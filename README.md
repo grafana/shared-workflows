@@ -1,2 +1,2 @@
 # shared-workflows
-A public-facing, centralized place to store reusable workflows used by Grafana Labs.
+A public-facing, centralized place to store reusable GitHub workflows used by Grafana Labs.
