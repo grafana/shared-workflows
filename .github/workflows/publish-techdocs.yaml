@@ -31,9 +31,11 @@ jobs:
 
       - id: auth
         name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v1.1.1
         with:
-          credentials_json: ${{ secrets.TECHDOCS_CONTRIB_KEY_JSON }}
+          create_credentials_file: true
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_POOL_PROVIDER }}
+          service_account: ${{ secrets.BACKSTAGE_TECHDOCS_SA_EMAIL }}
 
       - name: Install techdocs-cli
         run: sudo npm install -g @techdocs/cli
