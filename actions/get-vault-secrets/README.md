@@ -2,11 +2,6 @@
 
 From a `grafana/` org repository, get a secret from the Grafana vault instance.
 
-Things to note:
-
-- This is an action, and not a shared workflow, because when secrets are read, they need to be shared as env variables, or at least in any way that is strictly in-memory. Shared workflows cannot be called as steps and workflows can only share data through external storage (caches, buckets, etc).
-- Secrets need to be injected because actions don't have access to the `secrets` item.
-
 Example workflow:
 
 ```yaml
@@ -36,8 +31,17 @@ jobs:
               ci/data/common/test-secret my-key | TEST_KEY_2;
 
     # Use the secrets
+    # You can use the envvars directly in scripts or use the `${{ env.* }}` accessor in the workflow
       - name: echo
         run: |
           echo "$TEST_KEY"
-          echo "$TEST_KEY_2"
+          echo "${{ env.TEST_KEY_2 }}"
+
 ```
+
+<details>
+<summary>Implementation Details</summary>
+
+- This is an action, and not a shared workflow, because when secrets are read, they need to be shared as env variables, or at least in any way that is strictly in-memory. Shared workflows cannot be called as steps and workflows can only share data through external storage (caches, buckets, etc).
+- Secrets need to be injected because actions don't have access to the `secrets` item.
+</details>
