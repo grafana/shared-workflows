@@ -1,6 +1,7 @@
 # get-vault-secrets
 
 From a `grafana/` org repository, get a secret from the Grafana vault instance.
+The secret format is defined here: <https://github.com/hashicorp/vault-action>
 
 Example workflow:
 
