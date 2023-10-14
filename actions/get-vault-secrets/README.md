@@ -27,7 +27,7 @@ jobs:
           iap_service_account: '${{ secrets.VAULT_IAP_SA_EMAIL }}'
           iap_audience: '${{ secrets.VAULT_IAP_OAUTH_CLIENT_ID }}'
           vault_url: '${{ secrets.VAULT_URL }}'
-          secrets: |
+          raw_secrets: |
               ci/data/repo/grafana/<repo>/test-secret my-key | TEST_KEY;
               ci/data/common/test-secret my-key | TEST_KEY_2;
 
