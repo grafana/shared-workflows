@@ -23,26 +23,18 @@ jobs:
       - id: get-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
-          workload_identity_provider: '${{ secrets.WORKLOAD_IDENTITY_POOL_PROVIDER }}'
-          iap_service_account: '${{ secrets.VAULT_IAP_SA_EMAIL }}'
-          iap_audience: '${{ secrets.VAULT_IAP_OAUTH_CLIENT_ID }}'
-          vault_url: '${{ secrets.VAULT_URL }}'
-          secrets: |
-              ci/data/repo/grafana/<repo>/test-secret my-key | TEST_KEY;
-              ci/data/common/test-secret my-key | TEST_KEY_2;
+          # Secrets placed in the ci/common/<path> path in Vault
+          common_secrets: |
+            ENVVAR1=test-secret:testing
+          # Secrets placed in the ci/repo/<repo>/<path> path in Vault
+          repo_secrets: |
+            ENVVAR2=test-secret:key1
 
     # Use the secrets
     # You can use the envvars directly in scripts or use the `${{ env.* }}` accessor in the workflow
       - name: echo
         run: |
-          echo "$TEST_KEY"
-          echo "${{ env.TEST_KEY_2 }}"
+          echo "$ENVVAR1"
+          echo "${{ env.ENVVAR2 }}"
 
 ```
-
-<details>
-<summary>Implementation Details</summary>
-
-- This is an action, and not a shared workflow, because when secrets are read, they need to be shared as env variables, or at least in any way that is strictly in-memory. Shared workflows cannot be called as steps and workflows can only share data through external storage (caches, buckets, etc).
-- Secrets need to be injected because actions don't have access to the `secrets` item.
-</details>
