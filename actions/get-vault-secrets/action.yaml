@@ -4,7 +4,7 @@ inputs:
   repo_secrets:
     description: |
       Repository-specific secret mapping. Only Grafana Labs employees can list these secrets in Vault.
-      These secrets are stored in the `ci/data/repo/<repo owner>/<repo name>/<secret path>` path in Vault.
+      These secrets are stored in the `ci/data/repo/grafana/<repo name>/<secret path>` path in Vault.
       Ex:
       ```
       repo_secrets: |
