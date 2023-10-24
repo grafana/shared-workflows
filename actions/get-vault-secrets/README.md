@@ -26,7 +26,7 @@ jobs:
           # Secrets placed in the ci/common/<path> path in Vault
           common_secrets: |
             ENVVAR1=test-secret:testing
-          # Secrets placed in the ci/repo/<repo>/<path> path in Vault
+          # Secrets placed in the ci/repo/grafana/<repo>/<path> path in Vault
           repo_secrets: |
             ENVVAR2=test-secret:key1
 
