@@ -1,0 +1,68 @@
+name: Get Vault Secrets
+description: Composite action (step) to get secrets from Grafana Labs' Vault instance.
+inputs:
+  repo_secrets:
+    description: |
+      Repository-specific secret mapping. Only Grafana Labs employees can list these secrets in Vault.
+      These secrets are stored in the `ci/data/repo/grafana/<repo name>/<secret path>` path in Vault.
+      Ex:
+      ```
+      repo_secrets: |
+        ENVVAR1=secretpath:key
+        ENVVAR2=secretpath:key2
+      ```
+  common_secrets:
+    description: |
+      Common secrets mapping. Only Grafana Labs employees can list these secrets in Vault.
+      These secrets are stored in the `ci/data/common/<secret path>` path in Vault.
+      Ex:
+      ```
+      repo_secrets: |
+        ENVVAR1=secretpath:key
+        ENVVAR2=secretpath:key2
+      ```
+
+runs: 
+  using: composite
+  steps:
+    - id: vault-iap-auth
+      uses: google-github-actions/auth@v1
+      with:
+        # Note that these aren't secrets, login is secured through Github's OIDC integrations with GCP and Vault.
+        # Get with: 
+        #   gcloud iam workload-identity-pools list --project=grafanalabs-workload-identity --location="global"
+        #   gcloud iam workload-identity-pools providers list --workload-identity-pool=<POOL>
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+        service_account: "github-vault-actions-ops@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        token_format: id_token
+        # Get with: 
+        #   gcloud alpha iap oauth-brands list --project=ops-tools-1203
+        #   gcloud alpha iap oauth-clients list <BRAND_NAME>
+        id_token_audience: "398738203898-b4pffihghfj5aec08rg9n87hnnqn513k.apps.googleusercontent.com"
+        id_token_include_email: true
+        create_credentials_file: false
+    
+    # Translate the secrets into a format that the Vault action can understand
+    - id: translate-secrets
+      shell: bash
+      run: ${{ github.action_path }}/translate-secrets.sh
+      env:
+        REPO_SECRETS: ${{ inputs.repo_secrets }}
+        COMMON_SECRETS: ${{ inputs.common_secrets }}
+        REPO: ${{ github.repository }}
+
+      # Get the secrets
+    - name: Import Secrets
+      id: import-secrets
+      uses: hashicorp/vault-action@v2
+      with:
+        url: "https://vault-github-actions.grafana-ops.net/"
+        role: vault-github-actions
+        path: github-actions-oidc
+        method: jwt
+        jwtGithubAudience: "https://vault-github-actions.grafana-ops.net"
+        extraHeaders: |
+          Proxy-Authorization: Bearer ${{ steps.vault-iap-auth.outputs.id_token }}
+        secrets: |
+          ${{ steps.translate-secrets.outputs.secrets }}
+
