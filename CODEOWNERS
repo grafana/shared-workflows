@@ -1,8 +1,8 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-# @grafana/cloud-release will be requested for review when
+# @grafana/platform-productivity will be requested for review when
 # someone opens a pull request.
-* @grafana/cloud-release
+* @grafana/platform-productivity
 
-# Cloud Release
-/.github/workflows/publish-techdocs.yaml @grafana/cloud-release
+# Platform productivity
+/.github/workflows/publish-techdocs.yaml @grafana/platform-productivity
