@@ -22,9 +22,20 @@ inputs:
         ENVVAR2=secretpath:key2
       ```
 
+  vault_instance:
+    description: |
+      The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
+    default: ops
+
 runs:
   using: composite
   steps:
+    - id: check-vault-instance
+      if: inputs.vault_instance != 'dev' && inputs.vault_instance != 'ops'
+      shell: sh
+      run: |
+        echo "Invalid value for vault_instance input: ${{ inputs.vault_instance }}. Must be 'dev' or 'ops'."
+        exit 1
     - id: vault-iap-auth
       uses: google-github-actions/auth@v1
       with:
@@ -33,12 +44,12 @@ runs:
         #   gcloud iam workload-identity-pools list --project=grafanalabs-workload-identity --location="global"
         #   gcloud iam workload-identity-pools providers list --workload-identity-pool=<POOL>
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-        service_account: "github-vault-actions-ops@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        service_account: "github-vault-actions-${{ inputs.vault_instance }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
         token_format: id_token
         # Get with:
-        #   gcloud alpha iap oauth-brands list --project=ops-tools-1203
+        #   gcloud alpha iap oauth-brands list --project=ops-tools-1203 (or grafanalabs-dev for dev)
         #   gcloud alpha iap oauth-clients list <BRAND_NAME>
-        id_token_audience: "398738203898-b4pffihghfj5aec08rg9n87hnnqn513k.apps.googleusercontent.com"
+        id_token_audience: ${{ inputs.vault_instance == 'ops' && '398738203898-b4pffihghfj5aec08rg9n87hnnqn513k.apps.googleusercontent.com' || '1040409107725-0epub52fk3fmqtsst39dqi8na02rco6a.apps.googleusercontent.com' }}
         id_token_include_email: true
         create_credentials_file: false
 
@@ -56,11 +67,11 @@ runs:
       id: import-secrets
       uses: hashicorp/vault-action@v2
       with:
-        url: "https://vault-github-actions.grafana-ops.net/"
+        url: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net/"
         role: vault-github-actions
         path: github-actions-oidc
         method: jwt
-        jwtGithubAudience: "https://vault-github-actions.grafana-ops.net"
+        jwtGithubAudience: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
         extraHeaders: |
           Proxy-Authorization: Bearer ${{ steps.vault-iap-auth.outputs.id_token }}
         secrets: |
