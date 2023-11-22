@@ -1,0 +1,137 @@
+name: Trigger Argo Workflow
+description: Trigger an Argo workflow in the Grafana Labs Argo Workflows instance
+
+inputs:
+  instance:
+    description: |
+      The instance to use (`dev` or `ops`). Defaults to `ops`.
+    default: ops
+  namespace:
+    description: |
+      Required. The namespace to trigger the workflow in.
+    required: true
+  command:
+    description: |
+      The command to run. Defaults to `submit`.
+    default: submit
+  parameters:
+    description: |
+      The newline-separated parameters to pass to the Argo workflow. Ex:
+
+      ```
+      param1=value1
+      param2=value2
+      ```
+  workflow_template:
+    description: |
+      The workflow template to use. Defaults to `grafana-ci`. Required if `command` is `submit`.
+  extra_args:
+    description: |
+      Extra arguments to pass to the Argo CLI. Ex: `--generate-name foo-"
+  log_level:
+    description: |
+      The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.
+    default: info
+
+outputs:
+  uri:
+    description: |
+      The URI of the workflow that was triggered.
+    value: ${{ steps.run.outputs.uri }}
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@v4.1.1
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+
+    - name: Get Argo Token
+      id: get-argo-token
+      uses: "./actions/get-vault-secrets"
+      with:
+        vault_instance: ${{ inputs.instance }}
+        repo_secrets: |
+          ARGO_TOKEN=argo-workflows-trigger:token
+
+    - name: Restore cache
+      id: restore
+      uses: actions/cache/restore@v3.3.2
+      with:
+        path: ${{ github.workspace }}/bin
+        key: argo-linux-amd64-3.5.1
+
+    - name: Fetch Github Release Asset
+      id: fetch_asset
+      uses: dsaltares/fetch-gh-release-asset@1.1.1
+      with:
+        repo: "argoproj/argo-workflows"
+        version: "tags/v3.5.1"
+        file: "argo-linux-amd64.gz"
+        target: ${{ github.workspace }}/bin/argo.gz
+      if: steps.restore.outputs.cache-hit != 'true'
+
+    - name: gunzip
+      id: gunzip
+      shell: sh
+      run: |
+        pwd
+        gunzip ${{ github.workspace }}/bin/argo.gz
+        chmod +x ${{ github.workspace }}/bin/argo
+      if: steps.fetch_asset.outcome == 'success'
+
+    - name: Save to cache
+      id: save
+      uses: actions/cache/save@v3.3.2
+      with:
+        path: ${{ github.workspace }}/bin
+        key: ${{ steps.restore.outputs.cache-primary-key }}
+      if: steps.gunzip.outcome == 'success'
+
+    - name: Add binary to path
+      shell: sh
+      run: |
+        echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
+    - name: Setup go
+      uses: actions/setup-go@v4.1.0
+      with:
+        check-latest: true
+        cache-dependency-path: |
+          actions/trigger-argo-workflow/go.sum
+        go-version-file: "actions/trigger-argo-workflow/go.mod"
+
+    - name: Run
+      id: run
+      shell: bash
+      run: |
+        cd actions/trigger-argo-workflow
+
+        # Split the parameters into an array and pass them to the action as --parameter PARAM
+        while read -r line; do
+          if [ -z "${line}" ]; then
+            continue
+          fi
+
+          parameters+=("--parameter" "$line")
+        done <<< "${{ inputs.parameters }}"
+
+        if [ -n "${{ inputs.workflow_template }}" ]; then
+          parameters+=("--workflow-template" "${{ inputs.workflow_template }}")
+        fi
+
+        go run github.com/grafana/shared-workflows/actions/trigger-argo-workflow/cmd/trigger-argo-workflow \
+          --log-level "${{ inputs.log_level }}" \
+          --namespace "${{ inputs.namespace }}" \
+          --instance "${{ inputs.instance }}" \
+          ${parameters[@]} \
+          "${{ inputs.command }}" \
+          ${{ inputs.extra_args }}
+      env:
+        ARGO_TOKEN: ${{ env.ARGO_TOKEN }}

@@ -1,0 +1,41 @@
+name: Build, lint and test `trigger-argo-workflow`
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/trigger-argo-workflow/**"
+  pull_request:
+    paths:
+      - "actions/trigger-argo-workflow/**"
+
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: actions/trigger-argo-workflow
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+
+      - uses: actions/setup-go@v4.1.0
+        with:
+          check-latest: true
+          cache-dependency-path: |
+            actions/trigger-argo-workflow/go.sum
+          go-version-file: "actions/trigger-argo-workflow/go.mod"
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3.7.0
+        with:
+          version: latest
+          working-directory: actions/trigger-argo-workflow
+
+      - name: Run tests
+        run: go test -v ./...
+
+      - name: Build
+        run: go build -o trigger-argo-workflow ./...
