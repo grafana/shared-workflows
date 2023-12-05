@@ -38,11 +38,16 @@ runs:
         username: oauth2accesstoken
         password: ${{ steps.gcloud-auth.outputs.access_token }}
     - name: Build the container
-      shell: bash
-      run: |
-        docker build \
-            --tag ${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.repository }}/${{ inputs.image_name }}:${{ inputs.tag }} \
-            ${{ inputs.build_path }}/
+      uses: docker/build-push-action@v5.0.0
+      with:
+        context: ${{ inputs.build_path }}
+        build-args: |
+          VERSION=${{ steps.get-tags.outputs.date_short_sha }}
+        tags: |
+          ${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.repository }}/${{ inputs.image_name }}:${{ inputs.tag }}
+#          us.gcr.io/kubernetes-dev/backstage:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
     - name: Push to container registry
       shell: bash
       run: |
