@@ -43,15 +43,8 @@ runs:
       uses: docker/build-push-action@v5.0.0
       with:
         context: ${{ inputs.build_path }}
-        build-args: |
-          VERSION=${{ steps.get-tags.outputs.date_short_sha }}
+        push: ${{ github.event_name == 'push' }}
         tags: |
           ${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.repository }}/${{ inputs.image_name }}:${{ inputs.tag }}
-#          us.gcr.io/kubernetes-dev/backstage:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-    - name: Push to container registry
-      shell: bash
-      run: |
-        docker push \
-            ${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.repository }}/${{ inputs.image_name }}:${{ inputs.tag }}
