@@ -4,18 +4,9 @@ inputs:
   registry:
     description: |
       Google Artifact Registry to store docker images in.
-  project:
+  tags:
     description: |
-      The project which organises the Google Cloud resources.
-  repository:
-    description: |
-      Repository to store the docker image.
-  image_name:
-    description: |
-      The name of the Docker image to be created.
-  tag:
-    description: |
-      Docker image tag.
+      Docker image tags.
   build_path:
     description: |
       Path to Dockerfile, which is used to build the image.
@@ -44,6 +35,6 @@ runs:
         context: ${{ inputs.build_path }}
         push: ${{ github.event_name == 'push' }}
         tags: |
-          ${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.repository }}/${{ inputs.image_name }}:${{ inputs.tag }}
+          ${{ inputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
