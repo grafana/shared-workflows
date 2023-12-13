@@ -1,0 +1,27 @@
+name: Test Argo Workflow Trigger
+
+on: [push]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Argo Workflow
+        id: trigger
+        uses: grafana/shared-workflows/actions/trigger-argo-workflow@f11cfc910308385279c551eeace58a1718c50f2c
+        with:
+          instance: "dev"
+          namespace: "foonamespace"
+          command: "submit"
+          parameters: |
+            message=foobie
+          workflow_template: "hello-world"
+          log_level: "debug"
+      - name: Print URI
+        run: |
+          echo "URI: ${{ steps.trigger.outputs.uri }}"
