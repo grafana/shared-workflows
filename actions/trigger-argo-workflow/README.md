@@ -22,7 +22,7 @@ to fork and modify to run on your own instances.
     param1=value1
     param2=value2
 ```
-- `workflow_template`: The workflow template to use. Defaults to `grafana-ci`. Required if `command` is `submit`.
+- `workflow_template`: The workflow template to use. Required if `command` is `submit` (the default).
 - `extra_args`: Extra arguments to pass to the Argo CLI. Example: `--generate-name foo-`
 - `log_level`: The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.
 
