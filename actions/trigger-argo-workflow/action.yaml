@@ -81,7 +81,6 @@ runs:
       id: gunzip
       shell: sh
       run: |
-        pwd
         gunzip ${{ github.workspace }}/bin/argo.gz
         chmod +x ${{ github.workspace }}/bin/argo
       if: steps.fetch_asset.outcome == 'success'
