@@ -34,7 +34,7 @@ type App struct {
 func (a App) server() string {
 	instanceToHost := map[string]string{
 		"dev":  "argo-workflows-dev",
-		"prod": "argo-workflows",
+		"ops": "argo-workflows",
 	}
 	return fmt.Sprintf("%s.grafana.net:443", instanceToHost[a.instance])
 }
