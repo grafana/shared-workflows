@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -93,32 +94,35 @@ func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 	return uri, output, nil
 }
 
-func (a *App) setURIAsJobOutput(uri string) {
+func (a *App) setURIAsJobOutput(uri string, writer io.Writer) {
 	if a.command != "submit" {
-		a.logger.With("command", a.command).Debug("not setting job output, command is not `submit`")
+		a.logger.With("command", a.command).Debug("command is not `submit`, won't set job output")
 		return
 	}
 
+	_, err := writer.Write([]byte(fmt.Sprintf("uri=%s\n", uri)))
+	if err != nil {
+		a.logger.With("error", err).Error("failed to write to file, won't set job output")
+	}
+}
+
+func (a *App) openGitHubOutput() io.WriteCloser {
 	githubOutput := os.Getenv("GITHUB_OUTPUT")
 
 	if githubOutput == "" {
-		a.logger.Warn("GITHUB_OUTPUT not set, not setting job output")
-		return
+		a.logger.Warn("GITHUB_OUTPUT not set, won't set job output")
+		return nil
 	}
 
 	a.logger.With("github_output", githubOutput).Debug("setting job output")
 
 	f, err := os.OpenFile(githubOutput, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		a.logger.With("error", err).Error("failed to open file")
-		return
+		a.logger.With("error", err).Error("failed to open file, won't set job output")
+		return nil
 	}
-	defer f.Close()
 
-	_, err = f.WriteString(fmt.Sprintf("uri=%s\n", uri))
-	if err != nil {
-		a.logger.With("error", err).Error("failed to write to file")
-	}
+	return f
 }
 
 func (a *App) Run(md GitHubActionsMetadata) error {
@@ -143,8 +147,11 @@ func (a *App) Run(md GitHubActionsMetadata) error {
 
 	a.logger.With("uri", uri).Info("workflow URI")
 
-	if uri != "" {
-		a.setURIAsJobOutput(uri)
+	writer := a.openGitHubOutput()
+	defer writer.Close()
+
+	if writer != nil && uri != "" {
+		a.setURIAsJobOutput(uri, writer)
 	}
 
 	fmt.Println(out)
