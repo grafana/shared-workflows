@@ -41,7 +41,7 @@ func parseLogLevel(level string) (slog.Level, error) {
 
 func main() {
 	// If we're on a terminal, we use tint, otherwise if we're on GitHub actions
-	// we use `willabites/actionslog` to log proepr Actions messages, otherwise
+	// we use `willabites/actionslog` to log proper Actions messages, otherwise
 	// we use logfmt.
 	var lv slog.LevelVar
 
