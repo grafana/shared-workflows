@@ -24,9 +24,8 @@ jobs:
         id: push-to-gar
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev
-          project: "<YOUR-GCP-PROJECT>" 
-          repository: "<YOUR_REPOSITORY>" 
-          image_name: "<YOUR_IMAGE_NAME>" 
-          tag: "<YOUR_TAG>" # e.g. X.Y.Z or latest
+          tags: |-
+            "<IMAGE_NAME>:<IMAGE_TAG>"
+            "<IMAGE_NAME>:latest"
           build_path: "<YOUR_BUILD_PATH>" # e.g. "." - where the Dockerfile is
 ```

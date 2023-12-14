@@ -6,7 +6,7 @@ inputs:
       Google Artifact Registry to store docker images in.
   tags:
     description: |
-      Docker image tags.
+      List of Docker images to be pushed.
   build_path:
     description: |
       Path to Dockerfile, which is used to build the image.
