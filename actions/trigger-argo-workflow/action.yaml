@@ -52,6 +52,9 @@ runs:
 
     - name: Checkout
       env:
+        # In a composite action, these two need to be indirected via the
+        # environment, as per the GitHub actions documentation:
+        # https://docs.github.com/en/actions/learn-github-actions/contexts
         action_repo: ${{ github.action_repository }}
         action_ref: ${{ github.action_ref }}
       uses: actions/checkout@v4.1.1
