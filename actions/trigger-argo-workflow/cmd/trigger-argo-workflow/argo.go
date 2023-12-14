@@ -33,7 +33,7 @@ type App struct {
 
 func (a App) server() string {
 	instanceToHost := map[string]string{
-		"dev":  "argo-workflows-dev",
+		"dev": "argo-workflows-dev",
 		"ops": "argo-workflows",
 	}
 	return fmt.Sprintf("%s.grafana.net:443", instanceToHost[a.instance])
@@ -57,16 +57,18 @@ func (a App) env() []string {
 var nameRe = regexp.MustCompile(`^Name:\s+(.+)`)
 
 func (a App) outputWithURI(input *bytes.Buffer) (string, string) {
-	output := input.String()
+	output := strings.TrimSuffix(input.String(), "\n")
 
 	matches := nameRe.FindStringSubmatch(output)
 
-	var uri string
-	if len(matches) == 2 {
-		uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+	if len(matches) != 2 {
+		a.logger.Warn("Couldn't find workflow name in output - can't construct URI for launched workflow")
+		return "", output
 	}
 
-	return uri, strings.TrimSuffix(output, "\n")
+	uri := fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+
+	return uri, output
 }
 
 func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
