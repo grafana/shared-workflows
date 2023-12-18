@@ -10,10 +10,6 @@ inputs:
     description: |
       Required. The namespace to trigger the workflow in.
     required: true
-  command:
-    description: |
-      The command to run. Defaults to `submit`.
-    default: submit
   parameters:
     description: |
       The newline-separated parameters to pass to the Argo workflow. Ex:
@@ -24,7 +20,8 @@ inputs:
       ```
   workflow_template:
     description: |
-      The workflow template to use. Defaults to `grafana-ci`. Required if `command` is `submit`.
+      The workflow template to use. Defaults to `grafana-ci`.
+    required: true
   extra_args:
     description: |
       Extra arguments to pass to the Argo CLI. Ex: `--generate-name foo-"
@@ -140,7 +137,7 @@ runs:
           --namespace "${{ inputs.namespace }}" \
           --instance "${{ inputs.instance }}" \
           ${parameters[@]} \
-          "${{ inputs.command }}" \
+          submit \
           ${{ inputs.extra_args }}
       env:
         ARGO_TOKEN: ${{ env.ARGO_TOKEN }}

@@ -17,7 +17,6 @@ to fork and modify to run on your own instances. See [#21][issue-21].
 
 - `instance`: The instance to use (`dev` or `ops`). Defaults to `ops`.
 - `namespace`: Required. The namespace to trigger the workflow in.
-- `command`: The command to run. Defaults to `submit`.
 - `parameters`: The newline-separated parameters to pass to the Argo workflow. Example:
 ```yaml
   parameters: |
