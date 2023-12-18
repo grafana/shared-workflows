@@ -34,7 +34,6 @@ runs:
       with:
         context: ${{ inputs.build_path }}
         push: ${{ github.event_name == 'push' }}
-        tags: |
-          ${{ inputs.tags }}
+        tags: ${{ inputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
