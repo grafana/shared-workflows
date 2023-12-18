@@ -7,7 +7,9 @@ downloaded as part of the action.
 As our Argo Workflows instances require authentication, this workflow will only
 work when triggered from a `grafana`-owned repository. We would welcome
 contributions to extend this action to work with any instance, or you are free
-to fork and modify to run on your own instances.
+to fork and modify to run on your own instances. See [#21][issue-21].
+
+[issue-21]: https://github.com/grafana/shared-workflows/issues/21
 
 ## How to use
 
