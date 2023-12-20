@@ -136,7 +136,7 @@ runs:
           --log-level "${{ inputs.log_level }}" \
           --namespace "${{ inputs.namespace }}" \
           --instance "${{ inputs.instance }}" \
-          ${parameters[@]} \
+          "${parameters[@]}" \
           submit \
           ${{ inputs.extra_args }}
       env:
