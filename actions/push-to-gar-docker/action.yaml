@@ -13,6 +13,7 @@ inputs:
   environment:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
+    default: dev
 
 runs:
   using: composite
