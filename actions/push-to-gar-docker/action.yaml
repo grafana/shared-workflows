@@ -4,6 +4,7 @@ inputs:
   registry:
     description: |
       Google Artifact Registry to store docker images in.
+    default: "us-docker.pkg.dev"
   tags:
     description: |
       List of Docker images to be pushed.
@@ -14,15 +15,36 @@ inputs:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
     default: dev
+  image_name:
+    description: |
+      Name of the image to be pushed to GAR.
 
 runs:
   using: composite
   steps:
+    - name: Resolve GCP project
+      id: resolve-project
+      shell: bash
+      run: |
+        if [ "${{ inputs.environment }}" == 'dev' ]; then
+          PROJECT="grafanalabs-dev"
+        elif [ "${{ inputs.environment }}" == 'prod' ]; then
+          PROJECT="grafanalabs-global"
+        else
+          echo "Invalid environment. Valid environment variable inputs: dev, prod"
+          exit 1
+        fi
+        echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
+    - name: Echo project
+      id: echo-project
+      shell: sh
+      run: |
+        echo ${{ steps.resolve-project.outputs.project }}
     - name: Construct service account
       id: construct-service-account
       shell: sh
       run: |
-        SERVICE_ACCOUNT="github-${ROOT_REPO}-dev@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        SERVICE_ACCOUNT="github-${ROOT_REPO}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
     - uses: google-github-actions/auth@v1
       id: gcloud-auth
