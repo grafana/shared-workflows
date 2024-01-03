@@ -10,9 +10,6 @@ inputs:
   build_path:
     description: |
       Path to Dockerfile, which is used to build the image.
-  root_repo:
-    description: |
-      The repository from which this composite action was called.
   environment:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
@@ -25,7 +22,7 @@ runs:
       id: construct-service-account
       shell: sh
       run: |
-        SERVICE_ACCOUNT="github-${{ inputs.root_repo }}-dev@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        SERVICE_ACCOUNT="github-${ROOT_REPO}-dev@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
     - uses: google-github-actions/auth@v1
       id: gcloud-auth
