@@ -10,6 +10,9 @@ inputs:
   build_path:
     description: |
       Path to Dockerfile, which is used to build the image.
+  environment:
+    description: |
+      Environment for pushing artifacts (can be either dev or prod).
 
 runs:
   using: composite
