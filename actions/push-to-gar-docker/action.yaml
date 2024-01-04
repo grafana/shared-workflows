@@ -35,11 +35,25 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
-    - name: Echo project
-      id: echo-project
+    - name: Resolve tags
+      id: resolve-tags
+      shell: bash
+      run: |
+        tags=(${{ inputs.tags }})
+        image_uris=()
+        
+        for tag in ${tags[@]}; do
+          image_uri="${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${ROOT_REPO}-${{ inputs.environment }}/${{ inputs.image_name }}:$tag"
+          image_uris+=("$image_uri")
+        done
+        
+        IFS=, image_uris_string="${image_uris[*]}"
+        echo "images=${image_uris_string}" >> ${GITHUB_OUTPUT}
+    - name: Echo tags
+      id: echo-tags
       shell: sh
       run: |
-        echo ${{ steps.resolve-project.outputs.project }}
+        echo ${{ steps.resolve-tags.outputs.images }}
     - name: Construct service account
       id: construct-service-account
       shell: sh
@@ -66,6 +80,6 @@ runs:
       with:
         context: ${{ inputs.build_path }}
         push: ${{ github.event_name == 'push' }}
-        tags: ${{ inputs.tags }}
+        tags: ${{ steps.resolve-tags.outputs.images }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
