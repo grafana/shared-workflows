@@ -8,9 +8,11 @@ inputs:
   tags:
     description: |
       List of Docker images to be pushed.
+    required: true
   build_path:
     description: |
       Path to Dockerfile, which is used to build the image.
+    default: "."
   environment:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
@@ -18,6 +20,7 @@ inputs:
   image_name:
     description: |
       Name of the image to be pushed to GAR.
+    required: true
 
 runs:
   using: composite
@@ -41,7 +44,7 @@ runs:
       run: |
         tags=(${{ inputs.tags }})
         image_uris=()
-        IFS=$'\n' read -r -a tags_array <<< "tags"
+        IFS=$'\n' read -r -a tags_array <<< "$tags"
         
         for tag in ${tags_array[@]}; do
           image_uri="${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${ROOT_REPO}-${{ inputs.environment }}/${{ inputs.image_name }}:$tag"
