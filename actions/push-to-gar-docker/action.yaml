@@ -43,10 +43,8 @@ runs:
       shell: bash
       run: |
         tags=(${{ inputs.tags }})
-        image_uris=()
-        IFS=$'\n' read -r -a tags_array <<< "$tags"
         
-        for tag in ${tags_array[@]}; do
+        for tag in ${tags[@]}; do
           image_uri="${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${ROOT_REPO}-${{ inputs.environment }}/${{ inputs.image_name }}:$tag"
           image_uris+=("$image_uri")
         done
