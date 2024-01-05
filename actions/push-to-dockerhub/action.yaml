@@ -9,6 +9,10 @@ inputs:
     description: |
       List of Docker images to be pushed.
     required: true
+  build_path:
+    description: |
+      Path to Dockerfile, which is used to build the image.
+    default: "."
 
 runs:
   using: composite
@@ -53,7 +57,7 @@ runs:
     - name: Build and push Docker image
       uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
       with:
-        context: .
-        push: true
+        context: ${{ inputs.build_path }}
+        push: ${{ github.event_name == 'push' }}
         tags: ${{ steps.resolve-tags.outputs.images }}
         labels: ${{ steps.meta.outputs.labels }}
