@@ -36,10 +36,24 @@ runs:
       with:
         images: ${{ inputs.repository }}
 
+    - name: Resolve tags
+      id: resolve-tags
+      shell: bash
+      run: |
+        tags=(${{ inputs.tags }})
+
+        for tag in ${tags[@]}; do
+          image_uri="${{ inputs.repository }}:$tag"
+          image_uris+=("$image_uri")
+        done
+
+        IFS=, image_uris_string="${image_uris[*]}"
+        echo "images=${image_uris_string}" >> ${GITHUB_OUTPUT}
+
     - name: Build and push Docker image
       uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
       with:
         context: .
         push: true
-        tags: ${{ inputs.tags }}
+        tags: ${{ steps.resolve-tags.outputs.images }}
         labels: ${{ steps.meta.outputs.labels }}
