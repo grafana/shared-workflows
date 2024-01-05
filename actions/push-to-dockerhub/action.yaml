@@ -42,5 +42,5 @@ runs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ input.tags }}
+        tags: ${{ inputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
