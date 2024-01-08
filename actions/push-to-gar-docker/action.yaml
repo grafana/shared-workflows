@@ -4,26 +4,58 @@ inputs:
   registry:
     description: |
       Google Artifact Registry to store docker images in.
+    default: "us-docker.pkg.dev"
   tags:
     description: |
       List of Docker images to be pushed.
-  build_path:
+    required: true
+  context:
     description: |
       Path to Dockerfile, which is used to build the image.
+    default: "."
   environment:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
     default: dev
+  image_name:
+    description: |
+      Name of the image to be pushed to GAR.
+    required: true
 
 runs:
   using: composite
   steps:
+    - name: Resolve GCP project
+      id: resolve-project
+      shell: bash
+      run: |
+        if [ "${{ inputs.environment }}" == 'dev' ]; then
+          PROJECT="grafanalabs-dev"
+        elif [ "${{ inputs.environment }}" == 'prod' ]; then
+          PROJECT="grafanalabs-global"
+        else
+          echo "Invalid environment. Valid environment variable inputs: dev, prod"
+          exit 1
+        fi
+        echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      with:
+        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${ROOT_REPO}-${{ inputs.environment }}/${{ inputs.image_name }}"
+        tags: ${{ inputs.tags }}
+    - name: Construct service account
+      id: construct-service-account
+      shell: sh
+      run: |
+        SERVICE_ACCOUNT="github-${ROOT_REPO}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
     - uses: google-github-actions/auth@v1
       id: gcloud-auth
       with:
         token_format: access_token
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-        service_account: "github-docker-dev@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        service_account: ${{ steps.construct-service-account.outputs.service_account }}
         create_credentials_file: false
     - name: Login to GAR
       uses: docker/login-action@v3
@@ -36,8 +68,8 @@ runs:
     - name: Build the container
       uses: docker/build-push-action@v5.0.0
       with:
-        context: ${{ inputs.build_path }}
+        context: ${{ inputs.context }}
         push: ${{ github.event_name == 'push' }}
-        tags: ${{ inputs.tags }}
+        tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
