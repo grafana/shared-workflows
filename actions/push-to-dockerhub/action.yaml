@@ -1,0 +1,50 @@
+name: Publish Docker image
+description: Publish docker images to DockerHub
+
+inputs:
+  repository:
+    description: |
+      The caller workflow's repository
+  tags:
+    description: |
+      List of Docker images to be pushed.
+    required: true
+  context:
+    description: |
+      Path to Dockerfile, which is used to build the image.
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Check out the repo
+      uses: actions/checkout@v4
+
+    - name: Get secrets for DockerHub login
+      id: get-secrets
+      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+      with:
+        common_secrets: |
+          DOCKERHUB_USERNAME=dockerhub:username
+          DOCKERHUB_PASSWORD=dockerhub:password
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ env.DOCKERHUB_PASSWORD }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      with:
+        images: ${{ inputs.repository }}
+        tags: ${{ inputs.tags }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+      with:
+        context: ${{ inputs.context }}
+        push: ${{ github.event_name == 'push' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
