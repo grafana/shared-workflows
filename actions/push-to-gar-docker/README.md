@@ -27,5 +27,5 @@ jobs:
           tags: |-
             "<IMAGE_NAME>:<IMAGE_TAG>"
             "<IMAGE_NAME>:latest"
-          build_path: "<YOUR_BUILD_PATH>" # e.g. "." - where the Dockerfile is
+          context: "<YOUR_BUILD_PATH>" # e.g. "." - where the Dockerfile is
 ```
