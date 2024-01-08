@@ -42,7 +42,7 @@ runs:
       id: meta
       uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
       with:
-        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${ROOT_REPO}-${{ inputs.environment }}/${{ inputs.image_name }}"
+        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${{ env.ROOT_REPO }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
     - name: Construct service account
       id: construct-service-account
