@@ -23,7 +23,7 @@ jobs:
         uses: grafana/shared-workflows/actions/push-to-dockerhub@main
         with:
           repository: ${{ github.repository }} # or any other dockerhub repository
-          build_path: .
+          context: .
           tags: |-
             "2024-04-01-abcd1234"
             "latest"

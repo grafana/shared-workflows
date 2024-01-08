@@ -32,5 +32,5 @@ jobs:
           tags: |-
             "<IMAGE_TAG>"
             "latest"
-          context: "<YOUR_BUILD_PATH>" # e.g. "." - where the Dockerfile is
+          context: "<YOUR_CONTEXT>" # e.g. "." - where the Dockerfile is
 ```

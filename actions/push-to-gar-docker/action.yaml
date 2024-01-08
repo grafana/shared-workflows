@@ -9,7 +9,7 @@ inputs:
     description: |
       List of Docker images to be pushed.
     required: true
-  build_path:
+  context:
     description: |
       Path to Dockerfile, which is used to build the image.
     default: "."
@@ -80,7 +80,7 @@ runs:
     - name: Build the container
       uses: docker/build-push-action@v5.0.0
       with:
-        context: ${{ inputs.build_path }}
+        context: ${{ inputs.context }}
         push: ${{ github.event_name == 'push' }}
         tags: ${{ steps.resolve-tags.outputs.images }}
         cache-from: type=gha
