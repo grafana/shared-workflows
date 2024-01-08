@@ -44,11 +44,6 @@ runs:
       with:
         images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${ROOT_REPO}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
-    - name: Echo tags
-      id: echo-tags
-      shell: sh
-      run: |
-        echo ${{ steps.meta.outputs.images }}
     - name: Construct service account
       id: construct-service-account
       shell: sh
