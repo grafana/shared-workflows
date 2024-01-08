@@ -30,7 +30,7 @@ jobs:
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
           tags: |-
-            "<IMAGE_NAME>:<IMAGE_TAG>"
-            "<IMAGE_NAME>:latest"
+            "<IMAGE_TAG>"
+            "latest"
           context: "<YOUR_BUILD_PATH>" # e.g. "." - where the Dockerfile is
 ```
