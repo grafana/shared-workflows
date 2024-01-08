@@ -75,6 +75,6 @@ runs:
       with:
         context: ${{ inputs.context }}
         push: ${{ github.event_name == 'push' }}
-        tags: ${{ steps.meta.outputs.images }}
+        tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
