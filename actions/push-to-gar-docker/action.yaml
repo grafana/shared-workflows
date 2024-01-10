@@ -21,7 +21,7 @@ inputs:
     description: |
       Name of the image to be pushed to GAR.
     required: true
-  build_args:
+  build-args:
     description: |
       List of arguments necessary for the Docker image to be built.
     required: false
@@ -73,7 +73,7 @@ runs:
       uses: docker/build-push-action@v5.0.0
       with:
         context: ${{ inputs.context }}
-        build-args: ${{ inputs.build_args }}
+        build-args: ${{ inputs.build-args }}
         push: ${{ github.event_name == 'push' }}
         tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
