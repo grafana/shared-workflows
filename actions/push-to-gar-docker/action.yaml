@@ -24,7 +24,7 @@ inputs:
   build-args:
     description: |
       List of arguments necessary for the Docker image to be built.
-    required: false
+    default: ""
 
 runs:
   using: composite
