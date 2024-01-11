@@ -46,7 +46,7 @@ runs:
       id: get-repository-name
       shell: bash
       run: |
-        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')"
+        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
         echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
     - name: Extract metadata (tags, labels) for Docker
       id: meta
