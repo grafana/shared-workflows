@@ -42,17 +42,22 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
+    - name: Get repository name
+      id: get-repository-name
+      shell: bash
+      run: |
+        echo "::set-output name=repo_name::$(echo ${{ github.repository }} | awk -F'/' '{print $2}')"
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
       with:
-        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${{ github.repository }}-${{ inputs.environment }}/${{ inputs.image_name }}"
+        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
     - name: Construct service account
       id: construct-service-account
       shell: sh
       run: |
-        SERVICE_ACCOUNT="github-${{ github.repository }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        SERVICE_ACCOUNT="github-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
     - uses: google-github-actions/auth@v1
       id: gcloud-auth
