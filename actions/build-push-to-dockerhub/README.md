@@ -1,6 +1,6 @@
-# push-to-dockerhub
+# build-push-to-dockerhub
 
-This is a composite GitHub Action, used to push docker images to DockerHub.
+This is a composite GitHub Action, used to build Docker images and push them to DockerHub.
 It uses `get-vault-secrets` action to get the DockerHub username and password from Vault.
 
 Example of how to use this action in a repository:
@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/push-to-dockerhub@main
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
         with:
           repository: ${{ github.repository }} # or any other dockerhub repository
           context: .
