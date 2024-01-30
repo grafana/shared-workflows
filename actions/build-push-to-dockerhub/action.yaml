@@ -13,6 +13,10 @@ inputs:
     description: |
       Path to Dockerfile, which is used to build the image.
     default: "."
+  platforms:
+    description: |
+      List of platforms to build the image for
+    required: false
   push:
     description: |
       Push the generated images also to DockerHub
@@ -52,3 +56,4 @@ runs:
         push: ${{ inputs.push }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        platforms: ${{ inputs.platforms }}
