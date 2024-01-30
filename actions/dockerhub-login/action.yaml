@@ -1,0 +1,19 @@
+name: Login to DockerHub
+description: Using the shared Grafana Labs DockerHub credentials, log in to DockerHub
+
+runs:
+  using: composite
+  steps:
+    - name: Get secrets for DockerHub login
+      id: get-secrets
+      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+      with:
+        common_secrets: |
+          DOCKERHUB_USERNAME=dockerhub:username
+          DOCKERHUB_PASSWORD=dockerhub:password
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ env.DOCKERHUB_PASSWORD }}
