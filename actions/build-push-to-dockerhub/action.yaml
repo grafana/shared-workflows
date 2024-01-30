@@ -13,6 +13,10 @@ inputs:
     description: |
       Path to Dockerfile, which is used to build the image.
     default: "."
+  platforms:
+    description: |
+      List of platforms to build the image for
+    required: false
   push:
     description: |
       Push the generated images also to DockerHub
@@ -26,10 +30,15 @@ runs:
 
     - name: Login to DockerHub
       uses: grafana/shared-workflows/actions/dockerhub-login@main
-      with:
-        common_secrets: |
-          DOCKERHUB_USERNAME=dockerhub:username
-          DOCKERHUB_PASSWORD=dockerhub:password
+
+    # If platforms is specified then also initialize buildx and qemu:
+    - name: Set up QEMU
+      if: inputs.platforms
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      if: inputs.platforms
+      uses: docker/setup-buildx-action@v3
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
@@ -42,6 +51,7 @@ runs:
       uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
       with:
         context: ${{ inputs.context }}
+        platforms: ${{ inputs.platforms }}
         push: ${{ inputs.push }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

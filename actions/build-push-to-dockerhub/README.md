@@ -28,3 +28,20 @@ jobs:
             "2024-04-01-abcd1234"
             "latest"
 ```
+
+## Inputs
+
+| Name | Type | Description |
+|------|------|-------------|
+| `context` | String | Path to the Dockerfile (default: `.`) |
+| `platforms` | List | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`) |
+| `push` | Bool | Push the generated image (default: `false`) |
+| `repository`| String | Docker repository name |
+| `tags` | List | Tags that should be used for the image (see the [metadata-action][mda] for details) |
+
+[mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
+
+
+## Notes
+
+- If you specify `platforms` then the action will use buildx to build the image.
