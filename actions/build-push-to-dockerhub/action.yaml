@@ -24,19 +24,12 @@ runs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
-    - name: Get secrets for DockerHub login
-      id: get-secrets
-      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+    - name: Login to DockerHub
+      uses: grafana/shared-workflows/actions/dockerhub-login@main
       with:
         common_secrets: |
           DOCKERHUB_USERNAME=dockerhub:username
           DOCKERHUB_PASSWORD=dockerhub:password
-
-    - name: Log in to Docker Hub
-      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
-      with:
-        username: ${{ env.DOCKERHUB_USERNAME }}
-        password: ${{ env.DOCKERHUB_PASSWORD }}
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
