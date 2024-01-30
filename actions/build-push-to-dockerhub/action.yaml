@@ -21,10 +21,6 @@ inputs:
     description: |
       Push the generated images also to DockerHub
     default: "false"
-  load:
-    description: |
-      Load the image into the local Docker engine
-    default: "false"
 
 runs:
   using: composite
@@ -59,6 +55,5 @@ runs:
         context: ${{ inputs.context }}
         platforms: ${{ inputs.platforms }}
         push: ${{ inputs.push }}
-        load: ${{ inputs.load }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
