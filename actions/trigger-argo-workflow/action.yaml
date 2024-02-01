@@ -61,7 +61,8 @@ runs:
 
     - name: Restore cache
       id: restore
-      uses: actions/cache/restore@v3.3.2
+      # v4.0.0
+      uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2
       with:
         path: ${{ github.workspace }}/bin
         key: argo-linux-amd64-${{ steps.argo-version.outputs.version }}
@@ -87,7 +88,8 @@ runs:
     - name: Save to cache
       id: save
       if: steps.gunzip.outcome == 'success'
-      uses: actions/cache/save@v3.3.2
+      # v4.0.0
+      uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2
       with:
         path: ${{ github.workspace }}/bin
         key: ${{ steps.restore.outputs.cache-primary-key }}
@@ -98,7 +100,8 @@ runs:
         echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
 
     - name: Setup go
-      uses: actions/setup-go@v4.1.0
+      # v5.0.0
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
       with:
         check-latest: true
         cache-dependency-path: |
