@@ -9,7 +9,7 @@ Example of how to use this action in a repository:
 name: Push to DockerHub
 on:
   pull_request:
-    
+
 permissions:
   contents: read
   id-token: write

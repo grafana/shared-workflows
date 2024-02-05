@@ -13,10 +13,10 @@ on:
         required: true
         type: string
       default-working-directory:
-        description: 'The working directory to use for doc generation. Useful for cases without an mkdocs.yml file at the project root.'
+        description: "The working directory to use for doc generation. Useful for cases without an mkdocs.yml file at the project root."
         required: false
         type: string
-        default: '.'
+        default: "."
 
 jobs:
   generate-and-publish-docs:
