@@ -54,15 +54,14 @@ runs:
         # https://docs.github.com/en/actions/learn-github-actions/contexts
         action_repo: ${{ github.action_repository }}
         action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
 
     - name: Restore cache
       id: restore
-      # v4.0.0
-      uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2
+      uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
       with:
         path: ${{ github.workspace }}/bin
         key: argo-linux-amd64-${{ steps.argo-version.outputs.version }}
@@ -70,7 +69,7 @@ runs:
     - name: Fetch Github Release Asset
       id: fetch_asset
       if: steps.restore.outputs.cache-hit != 'true'
-      uses: dsaltares/fetch-gh-release-asset@1.1.1
+      uses: dsaltares/fetch-gh-release-asset@a40c8b4a0471f9ab81bdf73a010f74cc51476ad4 # 1.1.1
       with:
         repo: "argoproj/argo-workflows"
         version: "tags/v${{ steps.argo-version.outputs.version }}"
@@ -88,8 +87,7 @@ runs:
     - name: Save to cache
       id: save
       if: steps.gunzip.outcome == 'success'
-      # v4.0.0
-      uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2
+      uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
       with:
         path: ${{ github.workspace }}/bin
         key: ${{ steps.restore.outputs.cache-primary-key }}
@@ -100,8 +98,7 @@ runs:
         echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
 
     - name: Setup go
-      # v5.0.0
-      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         check-latest: true
         cache-dependency-path: |
