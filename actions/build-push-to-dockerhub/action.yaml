@@ -11,7 +11,7 @@ inputs:
     required: true
   context:
     description: |
-      Path to Dockerfile, which is used to build the image.
+      Path to the Docker build context.
     default: "."
   platforms:
     description: |
@@ -21,6 +21,10 @@ inputs:
     description: |
       Push the generated images also to DockerHub
     default: "false"
+  file:
+    description: |
+      The dockerfile to use.
+    default: "Dockerfile"
 
 runs:
   using: composite
@@ -55,3 +59,4 @@ runs:
         push: ${{ inputs.push }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        file: ${{ inputs.file }}
