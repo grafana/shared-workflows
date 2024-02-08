@@ -76,4 +76,3 @@ runs:
           Proxy-Authorization: Bearer ${{ steps.vault-iap-auth.outputs.id_token }}
         secrets: |
           ${{ steps.translate-secrets.outputs.secrets }}
-
