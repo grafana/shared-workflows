@@ -8,7 +8,7 @@ inputs:
   destination:
     description: |
       Location to upload object (including object name). Will create sub-folders in the bucket.
-      By default uses the objects name and path.
+      Default behavior is to upload ${inputs.object} to the root folder of the bucket.
     default: ""
   environment:
     description: |
@@ -37,6 +37,10 @@ runs:
       run: |
         REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
         echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
+    - name: Get object name and location
+      id: get-object-location
+      shell: sh
+      run: echo "object_path=${{ inputs.destination != '' && inputs.destination || inputs.object }}" >> ${GITHUB_OUTPUT}
     - name: Construct service account
       id: construct-service-account
       shell: sh
@@ -54,4 +58,4 @@ runs:
       id: upload-files
       with:
         path: ${{ inputs.object }}
-        destination: ${{ if(ne(inputs.destination, ''), inputs.destination, inputs.object) }}
+        destination: ${{ steps.get-object-location.outputs.object_path }}
