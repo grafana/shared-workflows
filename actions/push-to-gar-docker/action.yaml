@@ -11,7 +11,7 @@ inputs:
     required: true
   context:
     description: |
-      Path to Dockerfile, which is used to build the image.
+      Path to the Docker build context.
     default: "."
   environment:
     description: |
@@ -25,6 +25,10 @@ inputs:
     description: |
       List of arguments necessary for the Docker image to be built.
     default: ""
+  file:
+    description: |
+      The dockerfile to use.
+    default: "Dockerfile"
 
 runs:
   using: composite
@@ -84,3 +88,4 @@ runs:
         tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        file: ${{ inputs.file }}
