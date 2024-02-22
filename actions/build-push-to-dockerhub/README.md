@@ -9,7 +9,7 @@ Example of how to use this action in a repository:
 name: Push to DockerHub
 on:
   pull_request:
-    
+
 permissions:
   contents: read
   id-token: write
@@ -31,13 +31,14 @@ jobs:
 
 ## Inputs
 
-| Name | Type | Description |
-|------|------|-------------|
-| `context` | String | Path to the Dockerfile (default: `.`) |
-| `platforms` | List | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`) |
-| `push` | Bool | Push the generated image (default: `false`) |
-| `repository`| String | Docker repository name |
-| `tags` | List | Tags that should be used for the image (see the [metadata-action][mda] for details) |
+| Name         | Type   | Description                                                                         |
+|--------------|--------|-------------------------------------------------------------------------------------|
+| `context`    | String | Path to the Dockerfile (default: `.`)                                               |
+| `platforms`  | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)    |
+| `push`       | Bool   | Push the generated image (default: `false`)                                         |
+| `repository` | String | Docker repository name                                                              |
+| `tags`       | List   | Tags that should be used for the image (see the [metadata-action][mda] for details) |
+| `file`       | String | Path and filename of the dockerfile to build from.                                  |
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
