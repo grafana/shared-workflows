@@ -1,0 +1,25 @@
+{
+  "name": "lint-pr-title",
+  "version": "0.0.1",
+  "description": "Ensure your PR title matches the commit lint specification.",
+  "main": "index.js",
+  "scripts": {
+    "build": "yarn && ncc build index.js --license licenses.txt"
+  },
+  "keywords": [
+    "lint-pr-title",
+    "github-action",
+    "commitlint"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@commitlint/lint": "^18.6.1",
+    "@vercel/ncc": "^0.38.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

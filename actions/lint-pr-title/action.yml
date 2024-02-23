@@ -1,0 +1,8 @@
+name: Lint pull request title
+description: Ensure your PR title matches the requirements in the commitlint config.
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+branding:
+  icon: 'shield'
+  color: 'green'
