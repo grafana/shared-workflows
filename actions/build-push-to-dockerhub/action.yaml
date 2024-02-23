@@ -24,7 +24,7 @@ inputs:
   file:
     description: |
       The dockerfile to use.
-    default: "Dockerfile"
+    required: false
 
 runs:
   using: composite
