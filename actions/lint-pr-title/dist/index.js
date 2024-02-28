@@ -41979,7 +41979,7 @@ var __webpack_exports__ = {};
 (() => {
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const lint = __nccwpck_require__(9152);
+const lint = (__nccwpck_require__(9152)["default"]);
 const config = __nccwpck_require__(1070);
 
 async function run() {
@@ -41996,12 +41996,11 @@ async function run() {
       pull_number: contextPullRequest.number
     });
 
-    core.setOutput('Pr title is ' + pullRequest.title +' and the rules to check are: ' + JSON.stringify(config.rules))
-    // const result = await lint(pullRequest.title, config.rules);
-    // if (!result.valid) {
-    //   const errorMessages = result.errors.map((error) => error.message);
-    //   throw new Error(errorMessages.join('; '));
-    // }
+    const result = await lint(pullRequest.title, config.rules);
+    if (!result.valid) {
+      const errorMessages = result.errors.map((error) => error.message);
+      throw new Error(errorMessages.join('; '));
+    }
   } catch (error) {
     core.setFailed(error.message);
   }
