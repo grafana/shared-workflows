@@ -2,7 +2,6 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const lint = require('@commitlint/lint').default;
 const load = require('@commitlint/load').default;
-const config = require('./commitlint.config.js');
 
 async function run() {
   try {
