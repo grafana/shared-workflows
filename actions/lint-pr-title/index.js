@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const lint = require('@commitlint/lint').default;
+const load = require('@commitlint/load').default;
 const config = require('./commitlint.config.js');
 
 async function run() {
@@ -17,6 +18,8 @@ async function run() {
       pull_number: contextPullRequest.number
     });
 
+    const configPath = core.getInput('config-path', {required: true});
+    const config = await load({}, {file: configPath, cwd: process.cwd()});
     const result = await lint(pullRequest.title, config.rules);
     if (!result.valid) {
       const errorMessages = result.errors.map((error) => error.message);

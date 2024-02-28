@@ -1,6 +1,10 @@
 name: Lint pull request title using Javascript
 description: Run lint on the PR title to check if It matches the commitlint specification.
-
+inputs:
+  config-path:
+    description: 'The path for the commitlint configuration file'
+    required: false
+    default: './commitlint.config.js'
 runs:
   using: 'node20'
   main: 'dist/index.js'
