@@ -21,7 +21,18 @@ Examples for valid PR titles:
 
 ### The commit config
 
-This action uses the following commitlint configuration rules:
+This action can receive the `commitlint.config.js` file using the input parameter `config-path`.
+This parameter should contain the absolute path of the file and start the path definition with `${{ github.workspace }}/`. See example below:
+
+```
+...
+    uses: grafana/shared-workflows/actions/lint-pr-title@main
+    with:
+      config-path: '${{ github.workspace }}/folder1/folder2/commitlint.config.js'
+...
+
+```
+but this `config-path` parameter is optional. If you don't want to define it, the action will use the following rules by default:
 
 ```
 {
@@ -43,12 +54,10 @@ This action uses the following commitlint configuration rules:
 }
 ```
 
-You can adjust the `commitlint.config.js` if required.
-
 ## Example workflow:
 
 ```yml
-name: Lint pull request title
+name: Lint PR title
 
 on:
   pull_request:
@@ -58,11 +67,12 @@ on:
       - synchronize
 
 jobs:
-  main:
+  lint-pr-title:
     runs-on: ubuntu-latest
     steps:
-      - uses: grafana/shared-workflows/actions/lint-pr-title@main
-        id: lint-pr-title
+      - uses: actions/checkout@v3
+      - id: lint-pr-title
+        uses: grafana/shared-workflows/actions/lint-pr-title@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
