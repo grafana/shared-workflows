@@ -1,6 +1,33 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 1070:
+/***/ ((module) => {
+
+module.exports = {
+  extends: ['@commitlint/config-conventional'],
+  rules: {
+    'body-leading-blank': [1, 'always'],
+    'body-max-line-length': [2, 'always', 100],
+    'footer-leading-blank': [1, 'always'],
+    'footer-max-line-length': [2, 'always', 100],
+    'header-max-length': [2, 'always', 100],
+    'subject-case': [2, 'never', ['sentence-case', 'start-case', 'pascal-case', 'upper-case']],
+    'subject-empty': [2, 'never'],
+    'subject-full-stop': [2, 'never', '.'],
+    'type-case': [2, 'always', 'lower-case'],
+    'type-empty': [2, 'never'],
+    'type-enum': [
+      2,
+      'always',
+      ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style', 'test']
+    ]
+  }
+};
+
+
+/***/ }),
+
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -41953,7 +41980,6 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const lint = (__nccwpck_require__(9152)["default"]);
-// const load = require('@commitlint/load').default;
 
 async function run() {
   try {
@@ -41963,15 +41989,19 @@ async function run() {
     if (!contextPullRequest) {
       throw new Error("This action can only be invoked in `pull_request_target` or `pull_request` events. Otherwise the pull request can't be inferred.");
     }
-    const { data: pullRequest } = await octokit.rest.pulls.get({
+    const {data: pullRequest} = await octokit.rest.pulls.get({
       owner: contextPullRequest.base.user.login,
       repo: contextPullRequest.base.repo.name,
       pull_number: contextPullRequest.number
     });
 
-    const configPath = core.getInput('config-path', {required: true});
-    const config = require(configPath);
-    // const config = await load({}, {file: configPath, cwd: process.cwd()});
+    const configPath = core.getInput('config-path');
+    let config;
+    if (configPath) {
+      config = require(configPath);
+    } else {
+      config = __nccwpck_require__(1070);
+    }
     const result = await lint(pullRequest.title, config.rules);
     if (!result.valid) {
       const errorMessages = result.errors.map((error) => error.message);
