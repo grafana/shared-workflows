@@ -41996,12 +41996,7 @@ async function run() {
     });
 
     const configPath = core.getInput('config-path');
-    let config;
-    if (configPath) {
-      config = require(configPath);
-    } else {
-      config = __nccwpck_require__(1070);
-    }
+    const config = configPath ? require(configPath) : __nccwpck_require__(1070);
     const result = await lint(pullRequest.title, config.rules);
     if (!result.valid) {
       const errorMessages = result.errors.map((error) => error.message);
