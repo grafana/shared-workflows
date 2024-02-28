@@ -17,12 +17,7 @@ async function run() {
     });
 
     const configPath = core.getInput('config-path');
-    let config;
-    if (configPath) {
-      config = require(configPath);
-    } else {
-      config = require('./commitlint.config.js');
-    }
+    const config = configPath ? require(configPath) : require('./commitlint.config.js');
     const result = await lint(pullRequest.title, config.rules);
     if (!result.valid) {
       const errorMessages = result.errors.map((error) => error.message);
