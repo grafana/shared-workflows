@@ -1,9 +1,0 @@
-name: Lint pull request title using Javascript
-description: Run lint on the PR title to check if It matches the commitlint specification.
-
-runs:
-  using: 'node20'
-  main: 'index.js'
-branding:
-  icon: 'shield'
-  color: 'green'
