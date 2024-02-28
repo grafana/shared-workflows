@@ -1,8 +1,14 @@
 name: Lint pull request title
 description: Ensure your PR title matches the requirements in the commitlint config.
+
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
-branding:
-  icon: 'shield'
-  color: 'green'
+  using: composite
+  steps:
+    - name: Check out the repo
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+    - uses: actions/github-script@v7
+      with:
+        script: |
+          const script = require('dist/index.js')
+          await script()
