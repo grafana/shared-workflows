@@ -3,7 +3,7 @@ description: Run lint on the PR title to check if It matches the commitlint spec
 
 runs:
   using: 'node20'
-  main: 'dist/index.js'
+  main: 'index.js'
 branding:
   icon: 'shield'
   color: 'green'
