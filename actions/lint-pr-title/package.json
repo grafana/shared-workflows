@@ -4,7 +4,7 @@
   "description": "Ensure your PR title matches the commit lint specification.",
   "main": "index.js",
   "scripts": {
-    "build": "yarn && rm -r dist/ && ncc build index.js --license licenses.txt && rm -f **/*.hbs"
+    "build": "yarn && rm -r dist/ && ncc build index.js --license licenses.txt"
   },
   "keywords": [
     "lint-pr-title",
