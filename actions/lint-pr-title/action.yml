@@ -4,7 +4,7 @@ inputs:
   config-path:
     description: 'The path for the commitlint configuration file'
     required: false
-    default: './commitlint.config.js'
+    default: '${{ github.workspace }}/commitlint.config.js'
 runs:
   using: 'node20'
   main: 'dist/index.js'
