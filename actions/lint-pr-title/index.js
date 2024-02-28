@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const lint = require('@commitlint/lint').default;
-const load = require('@commitlint/load');
+const load = require('@commitlint/load').default;
 
 async function run() {
   try {
