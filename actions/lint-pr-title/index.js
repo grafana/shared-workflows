@@ -1,5 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+const lint = require('@commitlint/lint');
+const config = require('./commitlint.config.js');
 
 async function run() {
   try {
@@ -14,6 +16,13 @@ async function run() {
       repo: contextPullRequest.base.repo.name,
       pull_number: contextPullRequest.number
     });
+
+    core.setOutput('Pr title is ' + pullRequest.title +' and the rules to check are: ' + JOSN.stringify(config.rules))
+    // const result = await lint(pullRequest.title, config.rules);
+    // if (!result.valid) {
+    //   const errorMessages = result.errors.map((error) => error.message);
+    //   throw new Error(errorMessages.join('; '));
+    // }
   } catch (error) {
     core.setFailed(error.message);
   }
