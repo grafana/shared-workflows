@@ -26,10 +26,13 @@ jobs:
         run: yarn build
 
       - name: Commit changed files
-        uses: stefanzweifel/git-auto-commit-action@8756aa072ef5b4a080af5dc8fef36c5d586e521d # v5.0.0
+        uses: peter-evans/create-pull-request@a4f52f8033a6168103c2538976c07b467e8163bc # v6.0.1
         with:
-          commit_message: Apply build changes after dependabot updates
-          branch: 'update-lint-pr-dependencies'
-          create_branch: true
+          commit-message: 'Update code on lint-pr-title action'
+          branch: 'update-lint-pr-code'
+          delete-branch: true
+          branch-suffix: timestamp
+          title: 'Update code on lint-pr-title action'
+          body: 'This PR contains the code built after dependabot updated dependencies on lint-pr-title action'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
