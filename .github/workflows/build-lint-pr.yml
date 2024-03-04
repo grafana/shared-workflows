@@ -1,0 +1,38 @@
+name: Build Lint PR title
+on:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+
+jobs:
+  build-lin-pr-title:
+    if: ${{ github.event.pull_request.merged == true && contains(github.head_ref || github.ref_name, 'dependabot-npm') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: "20"
+
+      - name: Install lint-pr-title dependencies
+        working-directory: ./actions/lint-pr-title
+        run: yarn install --frozen-lockfile
+
+      - name: Build lint-pr-title action
+        working-directory: ./actions/lint-pr-title
+        run: yarn build
+
+      - name: Commit lint-pr-title changes and create new pull request
+        uses: peter-evans/create-pull-request@a4f52f8033a6168103c2538976c07b467e8163bc # v6.0.1
+        with:
+          commit-message: 'Update code on lint-pr-title action'
+          branch: 'update-lint-pr-code'
+          delete-branch: true
+          branch-suffix: timestamp
+          title: 'Update code on lint-pr-title action'
+          body: 'This PR contains the code built after dependabot updated dependencies on lint-pr-title action'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
