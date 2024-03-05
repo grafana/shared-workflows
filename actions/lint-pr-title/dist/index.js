@@ -2114,1905 +2114,6 @@ function isLoopbackAddress(host) {
 
 /***/ }),
 
-/***/ 8445:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const to_case_1 = __importDefault(__nccwpck_require__(2390));
-exports["default"] = ensureCase;
-function ensureCase(raw = '', target = 'lowercase') {
-    // We delete any content together with quotes because he can contains proper names (example `refactor: `Eslint` configuration`).
-    // We need trim string because content with quotes can be at the beginning or end of a line
-    const input = String(raw)
-        .replace(/`.*?`|".*?"|'.*?'/g, '')
-        .trim();
-    const transformed = (0, to_case_1.default)(input, target);
-    if (transformed === '' || transformed.match(/^\d/)) {
-        return true;
-    }
-    return transformed === input;
-}
-//# sourceMappingURL=case.js.map
-
-/***/ }),
-
-/***/ 9691:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = (value, enums = []) => {
-    if (value === undefined) {
-        return false;
-    }
-    if (!Array.isArray(enums)) {
-        return false;
-    }
-    return enums.indexOf(value) > -1;
-};
-//# sourceMappingURL=enum.js.map
-
-/***/ }),
-
-/***/ 5573:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toCase = exports.notEmpty = exports.minLength = exports.maxLineLength = exports.maxLength = exports["enum"] = exports["case"] = void 0;
-const case_1 = __importDefault(__nccwpck_require__(8445));
-exports["case"] = case_1.default;
-const enum_1 = __importDefault(__nccwpck_require__(9691));
-exports["enum"] = enum_1.default;
-const max_length_1 = __importDefault(__nccwpck_require__(8893));
-exports.maxLength = max_length_1.default;
-const max_line_length_1 = __importDefault(__nccwpck_require__(6066));
-exports.maxLineLength = max_line_length_1.default;
-const min_length_1 = __importDefault(__nccwpck_require__(2310));
-exports.minLength = min_length_1.default;
-const not_empty_1 = __importDefault(__nccwpck_require__(9081));
-exports.notEmpty = not_empty_1.default;
-const to_case_1 = __importDefault(__nccwpck_require__(2390));
-exports.toCase = to_case_1.default;
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 8893:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = (value, max) => typeof value === 'string' && value.length <= max;
-//# sourceMappingURL=max-length.js.map
-
-/***/ }),
-
-/***/ 6066:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const max_length_1 = __importDefault(__nccwpck_require__(8893));
-exports["default"] = (value, max) => typeof value === 'string' &&
-    value.split(/\r?\n/).every((line) => (0, max_length_1.default)(line, max));
-//# sourceMappingURL=max-line-length.js.map
-
-/***/ }),
-
-/***/ 2310:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = (value, min) => typeof value === 'string' && value.length >= min;
-//# sourceMappingURL=min-length.js.map
-
-/***/ }),
-
-/***/ 9081:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = (value) => typeof value === 'string' && value.length > 0;
-//# sourceMappingURL=not-empty.js.map
-
-/***/ }),
-
-/***/ 2390:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const lodash_camelcase_1 = __importDefault(__nccwpck_require__(7994));
-const lodash_kebabcase_1 = __importDefault(__nccwpck_require__(9449));
-const lodash_snakecase_1 = __importDefault(__nccwpck_require__(6645));
-const lodash_upperfirst_1 = __importDefault(__nccwpck_require__(9913));
-const lodash_startcase_1 = __importDefault(__nccwpck_require__(4532));
-function toCase(input, target) {
-    switch (target) {
-        case 'camel-case':
-            return (0, lodash_camelcase_1.default)(input);
-        case 'kebab-case':
-            return (0, lodash_kebabcase_1.default)(input);
-        case 'snake-case':
-            return (0, lodash_snakecase_1.default)(input);
-        case 'pascal-case':
-            return (0, lodash_upperfirst_1.default)((0, lodash_camelcase_1.default)(input));
-        case 'start-case':
-            return (0, lodash_startcase_1.default)(input);
-        case 'upper-case':
-        case 'uppercase':
-            return input.toUpperCase();
-        case 'sentence-case':
-        case 'sentencecase':
-            return (0, lodash_upperfirst_1.default)(input);
-        case 'lower-case':
-        case 'lowercase':
-        case 'lowerCase': // Backwards compat config-angular v4
-            return input.toLowerCase();
-        default:
-            throw new TypeError(`to-case: Unknown target case "${target}"`);
-    }
-}
-exports["default"] = toCase;
-//# sourceMappingURL=to-case.js.map
-
-/***/ }),
-
-/***/ 9125:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.wildcards = void 0;
-const semver = __importStar(__nccwpck_require__(1383));
-const isSemver = (c) => {
-    const firstLine = c.split('\n').shift();
-    if (typeof firstLine !== 'string') {
-        return false;
-    }
-    const stripped = firstLine.replace(/^chore(\([^)]+\))?:/, '').trim();
-    return semver.valid(stripped) !== null;
-};
-const test = (r) => r.test.bind(r);
-exports.wildcards = [
-    test(/^((Merge pull request)|(Merge (.*?) into (.*?)|(Merge branch (.*?)))(?:\r?\n)*$)/m),
-    test(/^(Merge tag (.*?))(?:\r?\n)*$/m),
-    test(/^(R|r)evert (.*)/),
-    test(/^(fixup|squash)!/),
-    isSemver,
-    test(/^(Merged (.*?)(in|into) (.*)|Merged PR (.*): (.*))/),
-    test(/^Merge remote-tracking branch(\s*)(.*)/),
-    test(/^Automatic merge(.*)/),
-    test(/^Auto-merged (.*?) into (.*)/),
-];
-//# sourceMappingURL=defaults.js.map
-
-/***/ }),
-
-/***/ 6871:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = void 0;
-__exportStar(__nccwpck_require__(4925), exports);
-var is_ignored_1 = __nccwpck_require__(4925);
-Object.defineProperty(exports, "default", ({ enumerable: true, get: function () { return __importDefault(is_ignored_1).default; } }));
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 4925:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const defaults_1 = __nccwpck_require__(9125);
-function isIgnored(commit = '', opts = {}) {
-    const ignores = typeof opts.ignores === 'undefined' ? [] : opts.ignores;
-    if (!Array.isArray(ignores)) {
-        throw new Error(`ignores must be of type array, received ${ignores} of type ${typeof ignores}`);
-    }
-    const invalids = ignores.filter((c) => typeof c !== 'function');
-    if (invalids.length > 0) {
-        throw new Error(`ignores must be array of type function, received items of type: ${invalids
-            .map((i) => typeof i)
-            .join(', ')}`);
-    }
-    const base = opts.defaults === false ? [] : defaults_1.wildcards;
-    return [...base, ...ignores].some((w) => w(commit));
-}
-exports["default"] = isIgnored;
-//# sourceMappingURL=is-ignored.js.map
-
-/***/ }),
-
-/***/ 8560:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildCommitMesage = void 0;
-const buildCommitMesage = ({ header, body, footer, }) => {
-    let message = header;
-    message = body ? `${message}\n\n${body}` : message;
-    message = footer ? `${message}\n\n${footer}` : message;
-    return message;
-};
-exports.buildCommitMesage = buildCommitMesage;
-//# sourceMappingURL=commit-message.js.map
-
-/***/ }),
-
-/***/ 9152:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const util_1 = __importDefault(__nccwpck_require__(3837));
-const is_ignored_1 = __importDefault(__nccwpck_require__(6871));
-const parse_1 = __importDefault(__nccwpck_require__(5635));
-const rules_1 = __importDefault(__nccwpck_require__(3383));
-const commit_message_1 = __nccwpck_require__(8560);
-const types_1 = __nccwpck_require__(3534);
-async function lint(message, rawRulesConfig, rawOpts) {
-    const opts = rawOpts
-        ? rawOpts
-        : { defaultIgnores: undefined, ignores: undefined };
-    const rulesConfig = rawRulesConfig || {};
-    // Found a wildcard match, skip
-    if ((0, is_ignored_1.default)(message, { defaults: opts.defaultIgnores, ignores: opts.ignores })) {
-        return {
-            valid: true,
-            errors: [],
-            warnings: [],
-            input: message,
-        };
-    }
-    // Parse the commit message
-    const parsed = message === ''
-        ? { header: null, body: null, footer: null }
-        : await (0, parse_1.default)(message, undefined, opts.parserOpts);
-    if (parsed.header === null &&
-        parsed.body === null &&
-        parsed.footer === null) {
-        // Commit is empty, skip
-        return {
-            valid: true,
-            errors: [],
-            warnings: [],
-            input: message,
-        };
-    }
-    const allRules = new Map(Object.entries(rules_1.default));
-    if (opts.plugins) {
-        Object.values(opts.plugins).forEach((plugin) => {
-            if (plugin.rules) {
-                Object.keys(plugin.rules).forEach((ruleKey) => allRules.set(ruleKey, plugin.rules[ruleKey]));
-            }
-        });
-    }
-    // Find invalid rules configs
-    const missing = Object.keys(rulesConfig).filter((name) => typeof allRules.get(name) !== 'function');
-    if (missing.length > 0) {
-        const names = [...allRules.keys()];
-        throw new RangeError(`Found invalid rule names: ${missing.join(', ')}. Supported rule names are: ${names.join(', ')}`);
-    }
-    const invalid = Object.entries(rulesConfig)
-        .map(([name, config]) => {
-        if (!Array.isArray(config)) {
-            return new Error(`config for rule ${name} must be array, received ${util_1.default.inspect(config)} of type ${typeof config}`);
-        }
-        const [level] = config;
-        if (level === types_1.RuleConfigSeverity.Disabled && config.length === 1) {
-            return null;
-        }
-        const [, when] = config;
-        if (typeof level !== 'number' || isNaN(level)) {
-            return new Error(`level for rule ${name} must be number, received ${util_1.default.inspect(level)} of type ${typeof level}`);
-        }
-        if (config.length < 2 || config.length > 3) {
-            return new Error(`config for rule ${name} must be 2 or 3 items long, received ${util_1.default.inspect(config)} of length ${config.length}`);
-        }
-        if (level < 0 || level > 2) {
-            return new RangeError(`level for rule ${name} must be between 0 and 2, received ${util_1.default.inspect(level)}`);
-        }
-        if (typeof when !== 'string') {
-            return new Error(`condition for rule ${name} must be string, received ${util_1.default.inspect(when)} of type ${typeof when}`);
-        }
-        if (when !== 'never' && when !== 'always') {
-            return new Error(`condition for rule ${name} must be "always" or "never", received ${util_1.default.inspect(when)}`);
-        }
-        return null;
-    })
-        .filter((item) => item instanceof Error);
-    if (invalid.length > 0) {
-        throw new Error(invalid.map((i) => i.message).join('\n'));
-    }
-    // Validate against all rules
-    const pendingResults = Object.entries(rulesConfig)
-        // Level 0 rules are ignored
-        .filter(([, config]) => !!config && config.length && config[0] > 0)
-        .map(async (entry) => {
-        const [name, config] = entry;
-        const [level, when, value] = config; //
-        const rule = allRules.get(name);
-        if (!rule) {
-            throw new Error(`Could not find rule implementation for ${name}`);
-        }
-        const executableRule = rule;
-        const [valid, message] = await executableRule(parsed, when, value);
-        return {
-            level,
-            valid,
-            name,
-            message,
-        };
-    });
-    const results = (await Promise.all(pendingResults)).filter((result) => result !== null);
-    const errors = results.filter((result) => result.level === 2 && !result.valid);
-    const warnings = results.filter((result) => result.level === 1 && !result.valid);
-    const valid = errors.length === 0;
-    return {
-        valid,
-        errors,
-        warnings,
-        input: (0, commit_message_1.buildCommitMesage)(parsed),
-    };
-}
-exports["default"] = lint;
-//# sourceMappingURL=lint.js.map
-
-/***/ }),
-
-/***/ 3384:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = message;
-function message(input = []) {
-    return input.filter(Boolean).join(' ');
-}
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 5635:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parse = void 0;
-const { sync } = __nccwpck_require__(1655);
-const defaultChangelogOpts = __nccwpck_require__(8143);
-async function parse(message, parser = sync, parserOpts) {
-    const preset = await defaultChangelogOpts();
-    const defaultOpts = preset.parserOpts;
-    const opts = Object.assign(Object.assign(Object.assign({}, defaultOpts), { fieldPattern: null }), (parserOpts || {}));
-    const parsed = parser(message, opts);
-    parsed.raw = message;
-    return parsed;
-}
-exports.parse = parse;
-exports["default"] = parse;
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 8175:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bodyCase = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const negated = (when) => when === 'never';
-const bodyCase = (parsed, when = 'always', value = []) => {
-    const { body } = parsed;
-    if (!body) {
-        return [true];
-    }
-    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
-        if (typeof check === 'string') {
-            return {
-                when: 'always',
-                case: check,
-            };
-        }
-        return check;
-    });
-    const result = checks.some((check) => {
-        const r = (0, ensure_1.case)(body, check.case);
-        return negated(check.when) ? !r : r;
-    });
-    const list = checks.map((c) => c.case).join(', ');
-    return [
-        negated(when) ? !result : result,
-        (0, message_1.default)([`body must`, negated(when) ? `not` : null, `be ${list}`]),
-    ];
-};
-exports.bodyCase = bodyCase;
-//# sourceMappingURL=body-case.js.map
-
-/***/ }),
-
-/***/ 6098:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bodyEmpty = void 0;
-const ensure = __importStar(__nccwpck_require__(5573));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const bodyEmpty = (parsed, when = 'always') => {
-    const negated = when === 'never';
-    const notEmpty = ensure.notEmpty(parsed.body || '');
-    return [
-        negated ? notEmpty : !notEmpty,
-        (0, message_1.default)(['body', negated ? 'may not' : 'must', 'be empty']),
-    ];
-};
-exports.bodyEmpty = bodyEmpty;
-//# sourceMappingURL=body-empty.js.map
-
-/***/ }),
-
-/***/ 2465:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bodyFullStop = void 0;
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const bodyFullStop = (parsed, when = 'always', value = '.') => {
-    const input = parsed.body;
-    if (!input) {
-        return [true];
-    }
-    const negated = when === 'never';
-    const hasStop = input[input.length - 1] === value;
-    return [
-        negated ? !hasStop : hasStop,
-        (0, message_1.default)(['body', negated ? 'may not' : 'must', 'end with full stop']),
-    ];
-};
-exports.bodyFullStop = bodyFullStop;
-//# sourceMappingURL=body-full-stop.js.map
-
-/***/ }),
-
-/***/ 9368:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bodyLeadingBlank = void 0;
-const to_lines_1 = __importDefault(__nccwpck_require__(4727));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const bodyLeadingBlank = (parsed, when) => {
-    // Flunk if no body is found
-    if (!parsed.body) {
-        return [true];
-    }
-    const negated = when === 'never';
-    const [leading] = (0, to_lines_1.default)(parsed.raw).slice(1);
-    // Check if the first line of body is empty
-    const succeeds = leading === '';
-    return [
-        negated ? !succeeds : succeeds,
-        (0, message_1.default)(['body', negated ? 'may not' : 'must', 'have leading blank line']),
-    ];
-};
-exports.bodyLeadingBlank = bodyLeadingBlank;
-//# sourceMappingURL=body-leading-blank.js.map
-
-/***/ }),
-
-/***/ 1564:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bodyMaxLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const bodyMaxLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.body;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.maxLength)(input, value),
-        `body must not be longer than ${value} characters`,
-    ];
-};
-exports.bodyMaxLength = bodyMaxLength;
-//# sourceMappingURL=body-max-length.js.map
-
-/***/ }),
-
-/***/ 9893:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bodyMaxLineLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const bodyMaxLineLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.body;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.maxLineLength)(input, value),
-        `body's lines must not be longer than ${value} characters`,
-    ];
-};
-exports.bodyMaxLineLength = bodyMaxLineLength;
-//# sourceMappingURL=body-max-line-length.js.map
-
-/***/ }),
-
-/***/ 9222:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bodyMinLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const bodyMinLength = (parsed, _when = undefined, value = 0) => {
-    if (!parsed.body) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.minLength)(parsed.body, value),
-        `body must not be shorter than ${value} characters`,
-    ];
-};
-exports.bodyMinLength = bodyMinLength;
-//# sourceMappingURL=body-min-length.js.map
-
-/***/ }),
-
-/***/ 28:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.footerEmpty = void 0;
-const ensure = __importStar(__nccwpck_require__(5573));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const footerEmpty = (parsed, when = 'always') => {
-    const negated = when === 'never';
-    const notEmpty = ensure.notEmpty(parsed.footer || '');
-    return [
-        negated ? notEmpty : !notEmpty,
-        (0, message_1.default)(['footer', negated ? 'may not' : 'must', 'be empty']),
-    ];
-};
-exports.footerEmpty = footerEmpty;
-//# sourceMappingURL=footer-empty.js.map
-
-/***/ }),
-
-/***/ 4761:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.footerLeadingBlank = void 0;
-const to_lines_1 = __importDefault(__nccwpck_require__(4727));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const footerLeadingBlank = (parsed, when = 'always') => {
-    // Flunk if no footer is found
-    if (!parsed.footer) {
-        return [true];
-    }
-    const negated = when === 'never';
-    const rawLines = (0, to_lines_1.default)(parsed.raw);
-    const footerLines = (0, to_lines_1.default)(parsed.footer);
-    const footerOffset = rawLines.indexOf(footerLines[0]);
-    const [leading] = rawLines.slice(footerOffset - 1);
-    // Check if the first line of footer is empty
-    const succeeds = leading === '';
-    return [
-        negated ? !succeeds : succeeds,
-        (0, message_1.default)([
-            'footer',
-            negated ? 'may not' : 'must',
-            'have leading blank line',
-        ]),
-    ];
-};
-exports.footerLeadingBlank = footerLeadingBlank;
-//# sourceMappingURL=footer-leading-blank.js.map
-
-/***/ }),
-
-/***/ 1150:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.footerMaxLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const footerMaxLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.footer;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.maxLength)(input, value),
-        `footer must not be longer than ${value} characters`,
-    ];
-};
-exports.footerMaxLength = footerMaxLength;
-//# sourceMappingURL=footer-max-length.js.map
-
-/***/ }),
-
-/***/ 7089:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.footerMaxLineLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const footerMaxLineLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.footer;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.maxLineLength)(input, value),
-        `footer's lines must not be longer than ${value} characters`,
-    ];
-};
-exports.footerMaxLineLength = footerMaxLineLength;
-//# sourceMappingURL=footer-max-line-length.js.map
-
-/***/ }),
-
-/***/ 3900:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.footerMinLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const footerMinLength = (parsed, _when = undefined, value = 0) => {
-    if (!parsed.footer) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.minLength)(parsed.footer, value),
-        `footer must not be shorter than ${value} characters`,
-    ];
-};
-exports.footerMinLength = footerMinLength;
-//# sourceMappingURL=footer-min-length.js.map
-
-/***/ }),
-
-/***/ 8629:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.headerCase = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const negated = (when) => when === 'never';
-const headerCase = (parsed, when = 'always', value = []) => {
-    const { header } = parsed;
-    if (typeof header !== 'string' || !header.match(/^[a-z]/i)) {
-        return [true];
-    }
-    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
-        if (typeof check === 'string') {
-            return {
-                when: 'always',
-                case: check,
-            };
-        }
-        return check;
-    });
-    const result = checks.some((check) => {
-        const r = (0, ensure_1.case)(header, check.case);
-        return negated(check.when) ? !r : r;
-    });
-    const list = checks.map((c) => c.case).join(', ');
-    return [
-        negated(when) ? !result : result,
-        (0, message_1.default)([`header must`, negated(when) ? `not` : null, `be ${list}`]),
-    ];
-};
-exports.headerCase = headerCase;
-//# sourceMappingURL=header-case.js.map
-
-/***/ }),
-
-/***/ 1423:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.headerFullStop = void 0;
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const headerFullStop = (parsed, when = 'always', value = '.') => {
-    const { header } = parsed;
-    const negated = when === 'never';
-    const hasStop = header[header.length - 1] === value;
-    return [
-        negated ? !hasStop : hasStop,
-        (0, message_1.default)(['header', negated ? 'may not' : 'must', 'end with full stop']),
-    ];
-};
-exports.headerFullStop = headerFullStop;
-//# sourceMappingURL=header-full-stop.js.map
-
-/***/ }),
-
-/***/ 6540:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.headerMaxLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const headerMaxLength = (parsed, _when = undefined, value = 0) => {
-    return [
-        (0, ensure_1.maxLength)(parsed.header, value),
-        `header must not be longer than ${value} characters, current length is ${parsed.header.length}`,
-    ];
-};
-exports.headerMaxLength = headerMaxLength;
-//# sourceMappingURL=header-max-length.js.map
-
-/***/ }),
-
-/***/ 9764:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.headerMinLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const headerMinLength = (parsed, _when = undefined, value = 0) => {
-    return [
-        (0, ensure_1.minLength)(parsed.header, value),
-        `header must not be shorter than ${value} characters, current length is ${parsed.header.length}`,
-    ];
-};
-exports.headerMinLength = headerMinLength;
-//# sourceMappingURL=header-min-length.js.map
-
-/***/ }),
-
-/***/ 4643:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.headerTrim = void 0;
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const headerTrim = (parsed) => {
-    const { header } = parsed;
-    const startsWithWhiteSpace = header !== header.trimStart();
-    const endsWithWhiteSpace = header !== header.trimEnd();
-    switch (true) {
-        case startsWithWhiteSpace && endsWithWhiteSpace:
-            return [
-                false,
-                (0, message_1.default)(['header', 'must not be surrounded by whitespace']),
-            ];
-        case startsWithWhiteSpace:
-            return [false, (0, message_1.default)(['header', 'must not start with whitespace'])];
-        case endsWithWhiteSpace:
-            return [false, (0, message_1.default)(['header', 'must not end with whitespace'])];
-        default:
-            return [true];
-    }
-};
-exports.headerTrim = headerTrim;
-//# sourceMappingURL=header-trim.js.map
-
-/***/ }),
-
-/***/ 3383:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const body_case_1 = __nccwpck_require__(8175);
-const body_empty_1 = __nccwpck_require__(6098);
-const body_full_stop_1 = __nccwpck_require__(2465);
-const body_leading_blank_1 = __nccwpck_require__(9368);
-const body_max_length_1 = __nccwpck_require__(1564);
-const body_max_line_length_1 = __nccwpck_require__(9893);
-const body_min_length_1 = __nccwpck_require__(9222);
-const footer_empty_1 = __nccwpck_require__(28);
-const footer_leading_blank_1 = __nccwpck_require__(4761);
-const footer_max_length_1 = __nccwpck_require__(1150);
-const footer_max_line_length_1 = __nccwpck_require__(7089);
-const footer_min_length_1 = __nccwpck_require__(3900);
-const header_case_1 = __nccwpck_require__(8629);
-const header_full_stop_1 = __nccwpck_require__(1423);
-const header_trim_1 = __nccwpck_require__(4643);
-const header_max_length_1 = __nccwpck_require__(6540);
-const header_min_length_1 = __nccwpck_require__(9764);
-const references_empty_1 = __nccwpck_require__(6839);
-const scope_case_1 = __nccwpck_require__(9605);
-const scope_empty_1 = __nccwpck_require__(5701);
-const scope_enum_1 = __nccwpck_require__(4072);
-const scope_max_length_1 = __nccwpck_require__(1203);
-const scope_min_length_1 = __nccwpck_require__(7227);
-const signed_off_by_1 = __nccwpck_require__(9933);
-const subject_case_1 = __nccwpck_require__(5645);
-const subject_empty_1 = __nccwpck_require__(4882);
-const subject_full_stop_1 = __nccwpck_require__(8109);
-const subject_max_length_1 = __nccwpck_require__(1227);
-const subject_min_length_1 = __nccwpck_require__(1991);
-const subject_exclamation_mark_1 = __nccwpck_require__(9870);
-const trailer_exists_1 = __nccwpck_require__(391);
-const type_case_1 = __nccwpck_require__(2006);
-const type_empty_1 = __nccwpck_require__(5480);
-const type_enum_1 = __nccwpck_require__(8656);
-const type_max_length_1 = __nccwpck_require__(3161);
-const type_min_length_1 = __nccwpck_require__(74);
-exports["default"] = {
-    'body-case': body_case_1.bodyCase,
-    'body-empty': body_empty_1.bodyEmpty,
-    'body-full-stop': body_full_stop_1.bodyFullStop,
-    'body-leading-blank': body_leading_blank_1.bodyLeadingBlank,
-    'body-max-length': body_max_length_1.bodyMaxLength,
-    'body-max-line-length': body_max_line_length_1.bodyMaxLineLength,
-    'body-min-length': body_min_length_1.bodyMinLength,
-    'footer-empty': footer_empty_1.footerEmpty,
-    'footer-leading-blank': footer_leading_blank_1.footerLeadingBlank,
-    'footer-max-length': footer_max_length_1.footerMaxLength,
-    'footer-max-line-length': footer_max_line_length_1.footerMaxLineLength,
-    'footer-min-length': footer_min_length_1.footerMinLength,
-    'header-case': header_case_1.headerCase,
-    'header-full-stop': header_full_stop_1.headerFullStop,
-    'header-max-length': header_max_length_1.headerMaxLength,
-    'header-min-length': header_min_length_1.headerMinLength,
-    'header-trim': header_trim_1.headerTrim,
-    'references-empty': references_empty_1.referencesEmpty,
-    'scope-case': scope_case_1.scopeCase,
-    'scope-empty': scope_empty_1.scopeEmpty,
-    'scope-enum': scope_enum_1.scopeEnum,
-    'scope-max-length': scope_max_length_1.scopeMaxLength,
-    'scope-min-length': scope_min_length_1.scopeMinLength,
-    'signed-off-by': signed_off_by_1.signedOffBy,
-    'subject-case': subject_case_1.subjectCase,
-    'subject-empty': subject_empty_1.subjectEmpty,
-    'subject-full-stop': subject_full_stop_1.subjectFullStop,
-    'subject-max-length': subject_max_length_1.subjectMaxLength,
-    'subject-min-length': subject_min_length_1.subjectMinLength,
-    'subject-exclamation-mark': subject_exclamation_mark_1.subjectExclamationMark,
-    'trailer-exists': trailer_exists_1.trailerExists,
-    'type-case': type_case_1.typeCase,
-    'type-empty': type_empty_1.typeEmpty,
-    'type-enum': type_enum_1.typeEnum,
-    'type-max-length': type_max_length_1.typeMaxLength,
-    'type-min-length': type_min_length_1.typeMinLength,
-};
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 6839:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.referencesEmpty = void 0;
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const referencesEmpty = (parsed, when = 'never') => {
-    const negated = when === 'always';
-    const notEmpty = parsed.references.length > 0;
-    return [
-        negated ? !notEmpty : notEmpty,
-        (0, message_1.default)(['references', negated ? 'must' : 'may not', 'be empty']),
-    ];
-};
-exports.referencesEmpty = referencesEmpty;
-//# sourceMappingURL=references-empty.js.map
-
-/***/ }),
-
-/***/ 9605:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.scopeCase = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const negated = (when) => when === 'never';
-const scopeCase = (parsed, when = 'always', value = []) => {
-    const { scope } = parsed;
-    if (!scope) {
-        return [true];
-    }
-    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
-        if (typeof check === 'string') {
-            return {
-                when: 'always',
-                case: check,
-            };
-        }
-        return check;
-    });
-    // Scopes may contain slash or comma delimiters to separate them and mark them as individual segments.
-    // This means that each of these segments should be tested separately with `ensure`.
-    const delimiters = /\/|\\|, ?/g;
-    const scopeSegments = scope.split(delimiters);
-    const result = checks.some((check) => {
-        const r = scopeSegments.every((segment) => delimiters.test(segment) || (0, ensure_1.case)(segment, check.case));
-        return negated(check.when) ? !r : r;
-    });
-    const list = checks.map((c) => c.case).join(', ');
-    return [
-        negated(when) ? !result : result,
-        (0, message_1.default)([`scope must`, negated(when) ? `not` : null, `be ${list}`]),
-    ];
-};
-exports.scopeCase = scopeCase;
-//# sourceMappingURL=scope-case.js.map
-
-/***/ }),
-
-/***/ 5701:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.scopeEmpty = void 0;
-const ensure = __importStar(__nccwpck_require__(5573));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const scopeEmpty = (parsed, when = 'never') => {
-    const negated = when === 'always';
-    const notEmpty = ensure.notEmpty(parsed.scope || '');
-    return [
-        negated ? !notEmpty : notEmpty,
-        (0, message_1.default)(['scope', negated ? 'must' : 'may not', 'be empty']),
-    ];
-};
-exports.scopeEmpty = scopeEmpty;
-//# sourceMappingURL=scope-empty.js.map
-
-/***/ }),
-
-/***/ 4072:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.scopeEnum = void 0;
-const ensure = __importStar(__nccwpck_require__(5573));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const scopeEnum = ({ scope }, when = 'always', value = []) => {
-    if (!scope || !value.length) {
-        return [true, ''];
-    }
-    // Scopes may contain slash or comma delimiters to separate them and mark them as individual segments.
-    // This means that each of these segments should be tested separately with `ensure`.
-    const delimiters = /\/|\\|, ?/g;
-    const messageScopes = scope.split(delimiters);
-    const errorMessage = ['scope must', `be one of [${value.join(', ')}]`];
-    const isScopeInEnum = (scope) => ensure.enum(scope, value);
-    let isValid;
-    if (when === 'never') {
-        isValid = !messageScopes.some(isScopeInEnum);
-        errorMessage.splice(1, 0, 'not');
-    }
-    else {
-        isValid = messageScopes.every(isScopeInEnum);
-    }
-    return [isValid, (0, message_1.default)(errorMessage)];
-};
-exports.scopeEnum = scopeEnum;
-//# sourceMappingURL=scope-enum.js.map
-
-/***/ }),
-
-/***/ 1203:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.scopeMaxLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const scopeMaxLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.scope;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.maxLength)(input, value),
-        `scope must not be longer than ${value} characters`,
-    ];
-};
-exports.scopeMaxLength = scopeMaxLength;
-//# sourceMappingURL=scope-max-length.js.map
-
-/***/ }),
-
-/***/ 7227:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.scopeMinLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const scopeMinLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.scope;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.minLength)(input, value),
-        `scope must not be shorter than ${value} characters`,
-    ];
-};
-exports.scopeMinLength = scopeMinLength;
-//# sourceMappingURL=scope-min-length.js.map
-
-/***/ }),
-
-/***/ 9933:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.signedOffBy = void 0;
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const to_lines_1 = __importDefault(__nccwpck_require__(4727));
-const signedOffBy = (parsed, when = 'always', value = '') => {
-    const lines = (0, to_lines_1.default)(parsed.raw).filter((ln) => 
-    // skip comments
-    !ln.startsWith('#') &&
-        // ignore empty lines
-        Boolean(ln));
-    const last = lines[lines.length - 1];
-    const negated = when === 'never';
-    const hasSignedOffBy = last.startsWith(value);
-    return [
-        negated ? !hasSignedOffBy : hasSignedOffBy,
-        (0, message_1.default)(['message', negated ? 'must not' : 'must', 'be signed off']),
-    ];
-};
-exports.signedOffBy = signedOffBy;
-//# sourceMappingURL=signed-off-by.js.map
-
-/***/ }),
-
-/***/ 5645:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.subjectCase = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const message_1 = __importDefault(__nccwpck_require__(3384));
-/**
- * Since the rule requires first symbol of a subject to be a letter, use
- * Unicode `Cased_Letter` category now to allow non-Latin alphabets as well.
- *
- * Do not use `Letter` category directly to avoid capturing `Modifier_Letter`
- * (which just modifiers letters, so we probably shouldn't anyway) and
- * `Other_Letter` (they actually are case-less, so they can't be validated)
- * categories, and to stay close to previous implementation.
- *
- * Also, typescript does not seem to support almost any longhand category name
- * (and even short for `Cased_Letter` too) so list all required letter
- * categories manually just to prevent it from complaining about unknown stuff.
- *
- * @see [Unicode Categories]{@link https://www.regular-expressions.info/unicode.html}
- */
-const startsWithLetterRegex = /^[\p{Ll}\p{Lu}\p{Lt}]/iu;
-const negated = (when) => when === 'never';
-const subjectCase = (parsed, when = 'always', value = []) => {
-    const { subject } = parsed;
-    if (typeof subject !== 'string' || !subject.match(startsWithLetterRegex)) {
-        return [true];
-    }
-    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
-        if (typeof check === 'string') {
-            return {
-                when: 'always',
-                case: check,
-            };
-        }
-        return check;
-    });
-    const result = checks.some((check) => {
-        const r = (0, ensure_1.case)(subject, check.case);
-        return negated(check.when) ? !r : r;
-    });
-    const list = checks.map((c) => c.case).join(', ');
-    return [
-        negated(when) ? !result : result,
-        (0, message_1.default)([`subject must`, negated(when) ? `not` : null, `be ${list}`]),
-    ];
-};
-exports.subjectCase = subjectCase;
-//# sourceMappingURL=subject-case.js.map
-
-/***/ }),
-
-/***/ 4882:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.subjectEmpty = void 0;
-const ensure = __importStar(__nccwpck_require__(5573));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const subjectEmpty = (parsed, when = 'always') => {
-    const negated = when === 'never';
-    const notEmpty = ensure.notEmpty(parsed.subject || '');
-    return [
-        negated ? notEmpty : !notEmpty,
-        (0, message_1.default)(['subject', negated ? 'may not' : 'must', 'be empty']),
-    ];
-};
-exports.subjectEmpty = subjectEmpty;
-//# sourceMappingURL=subject-empty.js.map
-
-/***/ }),
-
-/***/ 9870:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.subjectExclamationMark = void 0;
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const subjectExclamationMark = (parsed, when = 'always') => {
-    const input = parsed.header;
-    if (!input) {
-        return [true, ''];
-    }
-    const negated = when === 'never';
-    const hasExclamationMark = /!:/.test(input);
-    return [
-        negated ? !hasExclamationMark : hasExclamationMark,
-        (0, message_1.default)([
-            'subject',
-            negated ? 'must not' : 'must',
-            'have an exclamation mark in the subject to identify a breaking change',
-        ]),
-    ];
-};
-exports.subjectExclamationMark = subjectExclamationMark;
-//# sourceMappingURL=subject-exclamation-mark.js.map
-
-/***/ }),
-
-/***/ 8109:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.subjectFullStop = void 0;
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const subjectFullStop = (parsed, when = 'always', value = '.') => {
-    const colonIndex = parsed.header.indexOf(':');
-    if (colonIndex > 0 && colonIndex === parsed.header.length - 1) {
-        return [true];
-    }
-    const input = parsed.header;
-    const negated = when === 'never';
-    let hasStop = input[input.length - 1] === value;
-    if (input.slice(-3) === '...') {
-        hasStop = false;
-    }
-    return [
-        negated ? !hasStop : hasStop,
-        (0, message_1.default)(['subject', negated ? 'may not' : 'must', 'end with full stop']),
-    ];
-};
-exports.subjectFullStop = subjectFullStop;
-//# sourceMappingURL=subject-full-stop.js.map
-
-/***/ }),
-
-/***/ 1227:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.subjectMaxLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const subjectMaxLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.subject;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.maxLength)(input, value),
-        `subject must not be longer than ${value} characters`,
-    ];
-};
-exports.subjectMaxLength = subjectMaxLength;
-//# sourceMappingURL=subject-max-length.js.map
-
-/***/ }),
-
-/***/ 1991:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.subjectMinLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const subjectMinLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.subject;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.minLength)(input, value),
-        `subject must not be shorter than ${value} characters`,
-    ];
-};
-exports.subjectMinLength = subjectMinLength;
-//# sourceMappingURL=subject-min-length.js.map
-
-/***/ }),
-
-/***/ 391:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.trailerExists = void 0;
-const execa_1 = __importDefault(__nccwpck_require__(5447));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const to_lines_1 = __importDefault(__nccwpck_require__(4727));
-const trailerExists = (parsed, when = 'always', value = '') => {
-    const trailers = execa_1.default.sync('git', ['interpret-trailers', '--parse'], {
-        input: parsed.raw,
-    }).stdout;
-    const matches = (0, to_lines_1.default)(trailers).filter((ln) => ln.startsWith(value)).length;
-    const negated = when === 'never';
-    const hasTrailer = matches > 0;
-    return [
-        negated ? !hasTrailer : hasTrailer,
-        (0, message_1.default)([
-            'message',
-            negated ? 'must not' : 'must',
-            'have `' + value + '` trailer',
-        ]),
-    ];
-};
-exports.trailerExists = trailerExists;
-//# sourceMappingURL=trailer-exists.js.map
-
-/***/ }),
-
-/***/ 2006:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeCase = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const negated = (when) => when === 'never';
-const typeCase = (parsed, when = 'always', value = []) => {
-    const { type } = parsed;
-    if (!type) {
-        return [true];
-    }
-    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
-        if (typeof check === 'string') {
-            return {
-                when: 'always',
-                case: check,
-            };
-        }
-        return check;
-    });
-    const result = checks.some((check) => {
-        const r = (0, ensure_1.case)(type, check.case);
-        return negated(check.when) ? !r : r;
-    });
-    const list = checks.map((c) => c.case).join(', ');
-    return [
-        negated(when) ? !result : result,
-        (0, message_1.default)([`type must`, negated(when) ? `not` : null, `be ${list}`]),
-    ];
-};
-exports.typeCase = typeCase;
-//# sourceMappingURL=type-case.js.map
-
-/***/ }),
-
-/***/ 5480:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeEmpty = void 0;
-const ensure = __importStar(__nccwpck_require__(5573));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const typeEmpty = (parsed, when = 'always') => {
-    const negated = when === 'never';
-    const notEmpty = ensure.notEmpty(parsed.type || '');
-    return [
-        negated ? notEmpty : !notEmpty,
-        (0, message_1.default)(['type', negated ? 'may not' : 'must', 'be empty']),
-    ];
-};
-exports.typeEmpty = typeEmpty;
-//# sourceMappingURL=type-empty.js.map
-
-/***/ }),
-
-/***/ 8656:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeEnum = void 0;
-const ensure = __importStar(__nccwpck_require__(5573));
-const message_1 = __importDefault(__nccwpck_require__(3384));
-const typeEnum = (parsed, when = 'always', value = []) => {
-    const { type: input } = parsed;
-    if (!input) {
-        return [true];
-    }
-    const negated = when === 'never';
-    const result = ensure.enum(input, value);
-    return [
-        negated ? !result : result,
-        (0, message_1.default)([
-            `type must`,
-            negated ? `not` : null,
-            `be one of [${value.join(', ')}]`,
-        ]),
-    ];
-};
-exports.typeEnum = typeEnum;
-//# sourceMappingURL=type-enum.js.map
-
-/***/ }),
-
-/***/ 3161:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeMaxLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const typeMaxLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.type;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.maxLength)(input, value),
-        `type must not be longer than ${value} characters`,
-    ];
-};
-exports.typeMaxLength = typeMaxLength;
-//# sourceMappingURL=type-max-length.js.map
-
-/***/ }),
-
-/***/ 74:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.typeMinLength = void 0;
-const ensure_1 = __nccwpck_require__(5573);
-const typeMinLength = (parsed, _when = undefined, value = 0) => {
-    const input = parsed.type;
-    if (!input) {
-        return [true];
-    }
-    return [
-        (0, ensure_1.minLength)(input, value),
-        `type must not be shorter than ${value} characters`,
-    ];
-};
-exports.typeMinLength = typeMinLength;
-//# sourceMappingURL=type-min-length.js.map
-
-/***/ }),
-
-/***/ 4727:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-function toLines(input) {
-    if (typeof input !== 'string') {
-        return [];
-    }
-    return input.split(/(?:\r?\n)/);
-}
-exports["default"] = toLines;
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 1305:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=ensure.js.map
-
-/***/ }),
-
-/***/ 2562:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=format.js.map
-
-/***/ }),
-
-/***/ 3534:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__nccwpck_require__(1305), exports);
-__exportStar(__nccwpck_require__(2562), exports);
-__exportStar(__nccwpck_require__(3429), exports);
-__exportStar(__nccwpck_require__(1204), exports);
-__exportStar(__nccwpck_require__(8486), exports);
-__exportStar(__nccwpck_require__(2850), exports);
-__exportStar(__nccwpck_require__(6310), exports);
-__exportStar(__nccwpck_require__(9931), exports);
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 3429:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=is-ignored.js.map
-
-/***/ }),
-
-/***/ 1204:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=lint.js.map
-
-/***/ }),
-
-/***/ 8486:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=load.js.map
-
-/***/ }),
-
-/***/ 2850:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=parse.js.map
-
-/***/ }),
-
-/***/ 6310:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=prompt.js.map
-
-/***/ }),
-
-/***/ 9931:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RuleConfigQuality = exports.RuleConfigSeverity = void 0;
-/**
- * Rules always have a severity.
- * Severity indicates what to do if the rule is found to be broken
- * 0 - Disable this rule
- * 1 - Warn for violations
- * 2 - Error for violations
- */
-var RuleConfigSeverity;
-(function (RuleConfigSeverity) {
-    RuleConfigSeverity[RuleConfigSeverity["Disabled"] = 0] = "Disabled";
-    RuleConfigSeverity[RuleConfigSeverity["Warning"] = 1] = "Warning";
-    RuleConfigSeverity[RuleConfigSeverity["Error"] = 2] = "Error";
-})(RuleConfigSeverity || (exports.RuleConfigSeverity = RuleConfigSeverity = {}));
-var RuleConfigQuality;
-(function (RuleConfigQuality) {
-    RuleConfigQuality[RuleConfigQuality["User"] = 0] = "User";
-    RuleConfigQuality[RuleConfigQuality["Qualified"] = 1] = "Qualified";
-})(RuleConfigQuality || (exports.RuleConfigQuality = RuleConfigQuality = {}));
-//# sourceMappingURL=rules.js.map
-
-/***/ }),
-
 /***/ 334:
 /***/ ((module) => {
 
@@ -9224,1335 +7325,6 @@ module.exports = {
 
 /***/ }),
 
-/***/ 5447:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const path = __nccwpck_require__(1017);
-const childProcess = __nccwpck_require__(2081);
-const crossSpawn = __nccwpck_require__(7881);
-const stripFinalNewline = __nccwpck_require__(8174);
-const npmRunPath = __nccwpck_require__(502);
-const onetime = __nccwpck_require__(9082);
-const makeError = __nccwpck_require__(2187);
-const normalizeStdio = __nccwpck_require__(166);
-const {spawnedKill, spawnedCancel, setupTimeout, validateTimeout, setExitHandler} = __nccwpck_require__(9819);
-const {handleInput, getSpawnedResult, makeAllStream, validateInputSync} = __nccwpck_require__(2592);
-const {mergePromise, getSpawnedPromise} = __nccwpck_require__(7814);
-const {joinCommand, parseCommand, getEscapedCommand} = __nccwpck_require__(8286);
-
-const DEFAULT_MAX_BUFFER = 1000 * 1000 * 100;
-
-const getEnv = ({env: envOption, extendEnv, preferLocal, localDir, execPath}) => {
-	const env = extendEnv ? {...process.env, ...envOption} : envOption;
-
-	if (preferLocal) {
-		return npmRunPath.env({env, cwd: localDir, execPath});
-	}
-
-	return env;
-};
-
-const handleArguments = (file, args, options = {}) => {
-	const parsed = crossSpawn._parse(file, args, options);
-	file = parsed.command;
-	args = parsed.args;
-	options = parsed.options;
-
-	options = {
-		maxBuffer: DEFAULT_MAX_BUFFER,
-		buffer: true,
-		stripFinalNewline: true,
-		extendEnv: true,
-		preferLocal: false,
-		localDir: options.cwd || process.cwd(),
-		execPath: process.execPath,
-		encoding: 'utf8',
-		reject: true,
-		cleanup: true,
-		all: false,
-		windowsHide: true,
-		...options
-	};
-
-	options.env = getEnv(options);
-
-	options.stdio = normalizeStdio(options);
-
-	if (process.platform === 'win32' && path.basename(file, '.exe') === 'cmd') {
-		// #116
-		args.unshift('/q');
-	}
-
-	return {file, args, options, parsed};
-};
-
-const handleOutput = (options, value, error) => {
-	if (typeof value !== 'string' && !Buffer.isBuffer(value)) {
-		// When `execa.sync()` errors, we normalize it to '' to mimic `execa()`
-		return error === undefined ? undefined : '';
-	}
-
-	if (options.stripFinalNewline) {
-		return stripFinalNewline(value);
-	}
-
-	return value;
-};
-
-const execa = (file, args, options) => {
-	const parsed = handleArguments(file, args, options);
-	const command = joinCommand(file, args);
-	const escapedCommand = getEscapedCommand(file, args);
-
-	validateTimeout(parsed.options);
-
-	let spawned;
-	try {
-		spawned = childProcess.spawn(parsed.file, parsed.args, parsed.options);
-	} catch (error) {
-		// Ensure the returned error is always both a promise and a child process
-		const dummySpawned = new childProcess.ChildProcess();
-		const errorPromise = Promise.reject(makeError({
-			error,
-			stdout: '',
-			stderr: '',
-			all: '',
-			command,
-			escapedCommand,
-			parsed,
-			timedOut: false,
-			isCanceled: false,
-			killed: false
-		}));
-		return mergePromise(dummySpawned, errorPromise);
-	}
-
-	const spawnedPromise = getSpawnedPromise(spawned);
-	const timedPromise = setupTimeout(spawned, parsed.options, spawnedPromise);
-	const processDone = setExitHandler(spawned, parsed.options, timedPromise);
-
-	const context = {isCanceled: false};
-
-	spawned.kill = spawnedKill.bind(null, spawned.kill.bind(spawned));
-	spawned.cancel = spawnedCancel.bind(null, spawned, context);
-
-	const handlePromise = async () => {
-		const [{error, exitCode, signal, timedOut}, stdoutResult, stderrResult, allResult] = await getSpawnedResult(spawned, parsed.options, processDone);
-		const stdout = handleOutput(parsed.options, stdoutResult);
-		const stderr = handleOutput(parsed.options, stderrResult);
-		const all = handleOutput(parsed.options, allResult);
-
-		if (error || exitCode !== 0 || signal !== null) {
-			const returnedError = makeError({
-				error,
-				exitCode,
-				signal,
-				stdout,
-				stderr,
-				all,
-				command,
-				escapedCommand,
-				parsed,
-				timedOut,
-				isCanceled: context.isCanceled,
-				killed: spawned.killed
-			});
-
-			if (!parsed.options.reject) {
-				return returnedError;
-			}
-
-			throw returnedError;
-		}
-
-		return {
-			command,
-			escapedCommand,
-			exitCode: 0,
-			stdout,
-			stderr,
-			all,
-			failed: false,
-			timedOut: false,
-			isCanceled: false,
-			killed: false
-		};
-	};
-
-	const handlePromiseOnce = onetime(handlePromise);
-
-	handleInput(spawned, parsed.options.input);
-
-	spawned.all = makeAllStream(spawned, parsed.options);
-
-	return mergePromise(spawned, handlePromiseOnce);
-};
-
-module.exports = execa;
-
-module.exports.sync = (file, args, options) => {
-	const parsed = handleArguments(file, args, options);
-	const command = joinCommand(file, args);
-	const escapedCommand = getEscapedCommand(file, args);
-
-	validateInputSync(parsed.options);
-
-	let result;
-	try {
-		result = childProcess.spawnSync(parsed.file, parsed.args, parsed.options);
-	} catch (error) {
-		throw makeError({
-			error,
-			stdout: '',
-			stderr: '',
-			all: '',
-			command,
-			escapedCommand,
-			parsed,
-			timedOut: false,
-			isCanceled: false,
-			killed: false
-		});
-	}
-
-	const stdout = handleOutput(parsed.options, result.stdout, result.error);
-	const stderr = handleOutput(parsed.options, result.stderr, result.error);
-
-	if (result.error || result.status !== 0 || result.signal !== null) {
-		const error = makeError({
-			stdout,
-			stderr,
-			error: result.error,
-			signal: result.signal,
-			exitCode: result.status,
-			command,
-			escapedCommand,
-			parsed,
-			timedOut: result.error && result.error.code === 'ETIMEDOUT',
-			isCanceled: false,
-			killed: result.signal !== null
-		});
-
-		if (!parsed.options.reject) {
-			return error;
-		}
-
-		throw error;
-	}
-
-	return {
-		command,
-		escapedCommand,
-		exitCode: 0,
-		stdout,
-		stderr,
-		failed: false,
-		timedOut: false,
-		isCanceled: false,
-		killed: false
-	};
-};
-
-module.exports.command = (command, options) => {
-	const [file, ...args] = parseCommand(command);
-	return execa(file, args, options);
-};
-
-module.exports.commandSync = (command, options) => {
-	const [file, ...args] = parseCommand(command);
-	return execa.sync(file, args, options);
-};
-
-module.exports.node = (scriptPath, args, options = {}) => {
-	if (args && !Array.isArray(args) && typeof args === 'object') {
-		options = args;
-		args = [];
-	}
-
-	const stdio = normalizeStdio.node(options);
-	const defaultExecArgv = process.execArgv.filter(arg => !arg.startsWith('--inspect'));
-
-	const {
-		nodePath = process.execPath,
-		nodeOptions = defaultExecArgv
-	} = options;
-
-	return execa(
-		nodePath,
-		[
-			...nodeOptions,
-			scriptPath,
-			...(Array.isArray(args) ? args : [])
-		],
-		{
-			...options,
-			stdin: undefined,
-			stdout: undefined,
-			stderr: undefined,
-			stdio,
-			shell: false
-		}
-	);
-};
-
-
-/***/ }),
-
-/***/ 8286:
-/***/ ((module) => {
-
-"use strict";
-
-const normalizeArgs = (file, args = []) => {
-	if (!Array.isArray(args)) {
-		return [file];
-	}
-
-	return [file, ...args];
-};
-
-const NO_ESCAPE_REGEXP = /^[\w.-]+$/;
-const DOUBLE_QUOTES_REGEXP = /"/g;
-
-const escapeArg = arg => {
-	if (typeof arg !== 'string' || NO_ESCAPE_REGEXP.test(arg)) {
-		return arg;
-	}
-
-	return `"${arg.replace(DOUBLE_QUOTES_REGEXP, '\\"')}"`;
-};
-
-const joinCommand = (file, args) => {
-	return normalizeArgs(file, args).join(' ');
-};
-
-const getEscapedCommand = (file, args) => {
-	return normalizeArgs(file, args).map(arg => escapeArg(arg)).join(' ');
-};
-
-const SPACES_REGEXP = / +/g;
-
-// Handle `execa.command()`
-const parseCommand = command => {
-	const tokens = [];
-	for (const token of command.trim().split(SPACES_REGEXP)) {
-		// Allow spaces to be escaped by a backslash if not meant as a delimiter
-		const previousToken = tokens[tokens.length - 1];
-		if (previousToken && previousToken.endsWith('\\')) {
-			// Merge previous token with current one
-			tokens[tokens.length - 1] = `${previousToken.slice(0, -1)} ${token}`;
-		} else {
-			tokens.push(token);
-		}
-	}
-
-	return tokens;
-};
-
-module.exports = {
-	joinCommand,
-	getEscapedCommand,
-	parseCommand
-};
-
-
-/***/ }),
-
-/***/ 2187:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const {signalsByName} = __nccwpck_require__(2779);
-
-const getErrorPrefix = ({timedOut, timeout, errorCode, signal, signalDescription, exitCode, isCanceled}) => {
-	if (timedOut) {
-		return `timed out after ${timeout} milliseconds`;
-	}
-
-	if (isCanceled) {
-		return 'was canceled';
-	}
-
-	if (errorCode !== undefined) {
-		return `failed with ${errorCode}`;
-	}
-
-	if (signal !== undefined) {
-		return `was killed with ${signal} (${signalDescription})`;
-	}
-
-	if (exitCode !== undefined) {
-		return `failed with exit code ${exitCode}`;
-	}
-
-	return 'failed';
-};
-
-const makeError = ({
-	stdout,
-	stderr,
-	all,
-	error,
-	signal,
-	exitCode,
-	command,
-	escapedCommand,
-	timedOut,
-	isCanceled,
-	killed,
-	parsed: {options: {timeout}}
-}) => {
-	// `signal` and `exitCode` emitted on `spawned.on('exit')` event can be `null`.
-	// We normalize them to `undefined`
-	exitCode = exitCode === null ? undefined : exitCode;
-	signal = signal === null ? undefined : signal;
-	const signalDescription = signal === undefined ? undefined : signalsByName[signal].description;
-
-	const errorCode = error && error.code;
-
-	const prefix = getErrorPrefix({timedOut, timeout, errorCode, signal, signalDescription, exitCode, isCanceled});
-	const execaMessage = `Command ${prefix}: ${command}`;
-	const isError = Object.prototype.toString.call(error) === '[object Error]';
-	const shortMessage = isError ? `${execaMessage}\n${error.message}` : execaMessage;
-	const message = [shortMessage, stderr, stdout].filter(Boolean).join('\n');
-
-	if (isError) {
-		error.originalMessage = error.message;
-		error.message = message;
-	} else {
-		error = new Error(message);
-	}
-
-	error.shortMessage = shortMessage;
-	error.command = command;
-	error.escapedCommand = escapedCommand;
-	error.exitCode = exitCode;
-	error.signal = signal;
-	error.signalDescription = signalDescription;
-	error.stdout = stdout;
-	error.stderr = stderr;
-
-	if (all !== undefined) {
-		error.all = all;
-	}
-
-	if ('bufferedData' in error) {
-		delete error.bufferedData;
-	}
-
-	error.failed = true;
-	error.timedOut = Boolean(timedOut);
-	error.isCanceled = isCanceled;
-	error.killed = killed && !timedOut;
-
-	return error;
-};
-
-module.exports = makeError;
-
-
-/***/ }),
-
-/***/ 9819:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const os = __nccwpck_require__(2037);
-const onExit = __nccwpck_require__(4931);
-
-const DEFAULT_FORCE_KILL_TIMEOUT = 1000 * 5;
-
-// Monkey-patches `childProcess.kill()` to add `forceKillAfterTimeout` behavior
-const spawnedKill = (kill, signal = 'SIGTERM', options = {}) => {
-	const killResult = kill(signal);
-	setKillTimeout(kill, signal, options, killResult);
-	return killResult;
-};
-
-const setKillTimeout = (kill, signal, options, killResult) => {
-	if (!shouldForceKill(signal, options, killResult)) {
-		return;
-	}
-
-	const timeout = getForceKillAfterTimeout(options);
-	const t = setTimeout(() => {
-		kill('SIGKILL');
-	}, timeout);
-
-	// Guarded because there's no `.unref()` when `execa` is used in the renderer
-	// process in Electron. This cannot be tested since we don't run tests in
-	// Electron.
-	// istanbul ignore else
-	if (t.unref) {
-		t.unref();
-	}
-};
-
-const shouldForceKill = (signal, {forceKillAfterTimeout}, killResult) => {
-	return isSigterm(signal) && forceKillAfterTimeout !== false && killResult;
-};
-
-const isSigterm = signal => {
-	return signal === os.constants.signals.SIGTERM ||
-		(typeof signal === 'string' && signal.toUpperCase() === 'SIGTERM');
-};
-
-const getForceKillAfterTimeout = ({forceKillAfterTimeout = true}) => {
-	if (forceKillAfterTimeout === true) {
-		return DEFAULT_FORCE_KILL_TIMEOUT;
-	}
-
-	if (!Number.isFinite(forceKillAfterTimeout) || forceKillAfterTimeout < 0) {
-		throw new TypeError(`Expected the \`forceKillAfterTimeout\` option to be a non-negative integer, got \`${forceKillAfterTimeout}\` (${typeof forceKillAfterTimeout})`);
-	}
-
-	return forceKillAfterTimeout;
-};
-
-// `childProcess.cancel()`
-const spawnedCancel = (spawned, context) => {
-	const killResult = spawned.kill();
-
-	if (killResult) {
-		context.isCanceled = true;
-	}
-};
-
-const timeoutKill = (spawned, signal, reject) => {
-	spawned.kill(signal);
-	reject(Object.assign(new Error('Timed out'), {timedOut: true, signal}));
-};
-
-// `timeout` option handling
-const setupTimeout = (spawned, {timeout, killSignal = 'SIGTERM'}, spawnedPromise) => {
-	if (timeout === 0 || timeout === undefined) {
-		return spawnedPromise;
-	}
-
-	let timeoutId;
-	const timeoutPromise = new Promise((resolve, reject) => {
-		timeoutId = setTimeout(() => {
-			timeoutKill(spawned, killSignal, reject);
-		}, timeout);
-	});
-
-	const safeSpawnedPromise = spawnedPromise.finally(() => {
-		clearTimeout(timeoutId);
-	});
-
-	return Promise.race([timeoutPromise, safeSpawnedPromise]);
-};
-
-const validateTimeout = ({timeout}) => {
-	if (timeout !== undefined && (!Number.isFinite(timeout) || timeout < 0)) {
-		throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
-	}
-};
-
-// `cleanup` option handling
-const setExitHandler = async (spawned, {cleanup, detached}, timedPromise) => {
-	if (!cleanup || detached) {
-		return timedPromise;
-	}
-
-	const removeExitHandler = onExit(() => {
-		spawned.kill();
-	});
-
-	return timedPromise.finally(() => {
-		removeExitHandler();
-	});
-};
-
-module.exports = {
-	spawnedKill,
-	spawnedCancel,
-	setupTimeout,
-	validateTimeout,
-	setExitHandler
-};
-
-
-/***/ }),
-
-/***/ 7814:
-/***/ ((module) => {
-
-"use strict";
-
-
-const nativePromisePrototype = (async () => {})().constructor.prototype;
-const descriptors = ['then', 'catch', 'finally'].map(property => [
-	property,
-	Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property)
-]);
-
-// The return value is a mixin of `childProcess` and `Promise`
-const mergePromise = (spawned, promise) => {
-	for (const [property, descriptor] of descriptors) {
-		// Starting the main `promise` is deferred to avoid consuming streams
-		const value = typeof promise === 'function' ?
-			(...args) => Reflect.apply(descriptor.value, promise(), args) :
-			descriptor.value.bind(promise);
-
-		Reflect.defineProperty(spawned, property, {...descriptor, value});
-	}
-
-	return spawned;
-};
-
-// Use promises instead of `child_process` events
-const getSpawnedPromise = spawned => {
-	return new Promise((resolve, reject) => {
-		spawned.on('exit', (exitCode, signal) => {
-			resolve({exitCode, signal});
-		});
-
-		spawned.on('error', error => {
-			reject(error);
-		});
-
-		if (spawned.stdin) {
-			spawned.stdin.on('error', error => {
-				reject(error);
-			});
-		}
-	});
-};
-
-module.exports = {
-	mergePromise,
-	getSpawnedPromise
-};
-
-
-
-/***/ }),
-
-/***/ 166:
-/***/ ((module) => {
-
-"use strict";
-
-const aliases = ['stdin', 'stdout', 'stderr'];
-
-const hasAlias = options => aliases.some(alias => options[alias] !== undefined);
-
-const normalizeStdio = options => {
-	if (!options) {
-		return;
-	}
-
-	const {stdio} = options;
-
-	if (stdio === undefined) {
-		return aliases.map(alias => options[alias]);
-	}
-
-	if (hasAlias(options)) {
-		throw new Error(`It's not possible to provide \`stdio\` in combination with one of ${aliases.map(alias => `\`${alias}\``).join(', ')}`);
-	}
-
-	if (typeof stdio === 'string') {
-		return stdio;
-	}
-
-	if (!Array.isArray(stdio)) {
-		throw new TypeError(`Expected \`stdio\` to be of type \`string\` or \`Array\`, got \`${typeof stdio}\``);
-	}
-
-	const length = Math.max(stdio.length, aliases.length);
-	return Array.from({length}, (value, index) => stdio[index]);
-};
-
-module.exports = normalizeStdio;
-
-// `ipc` is pushed unless it is already present
-module.exports.node = options => {
-	const stdio = normalizeStdio(options);
-
-	if (stdio === 'ipc') {
-		return 'ipc';
-	}
-
-	if (stdio === undefined || typeof stdio === 'string') {
-		return [stdio, stdio, stdio, 'ipc'];
-	}
-
-	if (stdio.includes('ipc')) {
-		return stdio;
-	}
-
-	return [...stdio, 'ipc'];
-};
-
-
-/***/ }),
-
-/***/ 2592:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const isStream = __nccwpck_require__(1554);
-const getStream = __nccwpck_require__(1766);
-const mergeStream = __nccwpck_require__(2621);
-
-// `input` option
-const handleInput = (spawned, input) => {
-	// Checking for stdin is workaround for https://github.com/nodejs/node/issues/26852
-	// @todo remove `|| spawned.stdin === undefined` once we drop support for Node.js <=12.2.0
-	if (input === undefined || spawned.stdin === undefined) {
-		return;
-	}
-
-	if (isStream(input)) {
-		input.pipe(spawned.stdin);
-	} else {
-		spawned.stdin.end(input);
-	}
-};
-
-// `all` interleaves `stdout` and `stderr`
-const makeAllStream = (spawned, {all}) => {
-	if (!all || (!spawned.stdout && !spawned.stderr)) {
-		return;
-	}
-
-	const mixed = mergeStream();
-
-	if (spawned.stdout) {
-		mixed.add(spawned.stdout);
-	}
-
-	if (spawned.stderr) {
-		mixed.add(spawned.stderr);
-	}
-
-	return mixed;
-};
-
-// On failure, `result.stdout|stderr|all` should contain the currently buffered stream
-const getBufferedData = async (stream, streamPromise) => {
-	if (!stream) {
-		return;
-	}
-
-	stream.destroy();
-
-	try {
-		return await streamPromise;
-	} catch (error) {
-		return error.bufferedData;
-	}
-};
-
-const getStreamPromise = (stream, {encoding, buffer, maxBuffer}) => {
-	if (!stream || !buffer) {
-		return;
-	}
-
-	if (encoding) {
-		return getStream(stream, {encoding, maxBuffer});
-	}
-
-	return getStream.buffer(stream, {maxBuffer});
-};
-
-// Retrieve result of child process: exit code, signal, error, streams (stdout/stderr/all)
-const getSpawnedResult = async ({stdout, stderr, all}, {encoding, buffer, maxBuffer}, processDone) => {
-	const stdoutPromise = getStreamPromise(stdout, {encoding, buffer, maxBuffer});
-	const stderrPromise = getStreamPromise(stderr, {encoding, buffer, maxBuffer});
-	const allPromise = getStreamPromise(all, {encoding, buffer, maxBuffer: maxBuffer * 2});
-
-	try {
-		return await Promise.all([processDone, stdoutPromise, stderrPromise, allPromise]);
-	} catch (error) {
-		return Promise.all([
-			{error, signal: error.signal, timedOut: error.timedOut},
-			getBufferedData(stdout, stdoutPromise),
-			getBufferedData(stderr, stderrPromise),
-			getBufferedData(all, allPromise)
-		]);
-	}
-};
-
-const validateInputSync = ({input}) => {
-	if (isStream(input)) {
-		throw new TypeError('The `input` option cannot be a stream in sync mode');
-	}
-};
-
-module.exports = {
-	handleInput,
-	makeAllStream,
-	getSpawnedResult,
-	validateInputSync
-};
-
-
-
-/***/ }),
-
-/***/ 1585:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const {PassThrough: PassThroughStream} = __nccwpck_require__(2781);
-
-module.exports = options => {
-	options = {...options};
-
-	const {array} = options;
-	let {encoding} = options;
-	const isBuffer = encoding === 'buffer';
-	let objectMode = false;
-
-	if (array) {
-		objectMode = !(encoding || isBuffer);
-	} else {
-		encoding = encoding || 'utf8';
-	}
-
-	if (isBuffer) {
-		encoding = null;
-	}
-
-	const stream = new PassThroughStream({objectMode});
-
-	if (encoding) {
-		stream.setEncoding(encoding);
-	}
-
-	let length = 0;
-	const chunks = [];
-
-	stream.on('data', chunk => {
-		chunks.push(chunk);
-
-		if (objectMode) {
-			length = chunks.length;
-		} else {
-			length += chunk.length;
-		}
-	});
-
-	stream.getBufferedValue = () => {
-		if (array) {
-			return chunks;
-		}
-
-		return isBuffer ? Buffer.concat(chunks, length) : chunks.join('');
-	};
-
-	stream.getBufferedLength = () => length;
-
-	return stream;
-};
-
-
-/***/ }),
-
-/***/ 1766:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const {constants: BufferConstants} = __nccwpck_require__(4300);
-const stream = __nccwpck_require__(2781);
-const {promisify} = __nccwpck_require__(3837);
-const bufferStream = __nccwpck_require__(1585);
-
-const streamPipelinePromisified = promisify(stream.pipeline);
-
-class MaxBufferError extends Error {
-	constructor() {
-		super('maxBuffer exceeded');
-		this.name = 'MaxBufferError';
-	}
-}
-
-async function getStream(inputStream, options) {
-	if (!inputStream) {
-		throw new Error('Expected a stream');
-	}
-
-	options = {
-		maxBuffer: Infinity,
-		...options
-	};
-
-	const {maxBuffer} = options;
-	const stream = bufferStream(options);
-
-	await new Promise((resolve, reject) => {
-		const rejectPromise = error => {
-			// Don't retrieve an oversized buffer.
-			if (error && stream.getBufferedLength() <= BufferConstants.MAX_LENGTH) {
-				error.bufferedData = stream.getBufferedValue();
-			}
-
-			reject(error);
-		};
-
-		(async () => {
-			try {
-				await streamPipelinePromisified(inputStream, stream);
-				resolve();
-			} catch (error) {
-				rejectPromise(error);
-			}
-		})();
-
-		stream.on('data', () => {
-			if (stream.getBufferedLength() > maxBuffer) {
-				rejectPromise(new MaxBufferError());
-			}
-		});
-	});
-
-	return stream.getBufferedValue();
-}
-
-module.exports = getStream;
-module.exports.buffer = (stream, options) => getStream(stream, {...options, encoding: 'buffer'});
-module.exports.array = (stream, options) => getStream(stream, {...options, array: true});
-module.exports.MaxBufferError = MaxBufferError;
-
-
-/***/ }),
-
-/***/ 8213:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-Object.defineProperty(exports, "__esModule", ({value:true}));exports.SIGNALS=void 0;
-
-const SIGNALS=[
-{
-name:"SIGHUP",
-number:1,
-action:"terminate",
-description:"Terminal closed",
-standard:"posix"},
-
-{
-name:"SIGINT",
-number:2,
-action:"terminate",
-description:"User interruption with CTRL-C",
-standard:"ansi"},
-
-{
-name:"SIGQUIT",
-number:3,
-action:"core",
-description:"User interruption with CTRL-\\",
-standard:"posix"},
-
-{
-name:"SIGILL",
-number:4,
-action:"core",
-description:"Invalid machine instruction",
-standard:"ansi"},
-
-{
-name:"SIGTRAP",
-number:5,
-action:"core",
-description:"Debugger breakpoint",
-standard:"posix"},
-
-{
-name:"SIGABRT",
-number:6,
-action:"core",
-description:"Aborted",
-standard:"ansi"},
-
-{
-name:"SIGIOT",
-number:6,
-action:"core",
-description:"Aborted",
-standard:"bsd"},
-
-{
-name:"SIGBUS",
-number:7,
-action:"core",
-description:
-"Bus error due to misaligned, non-existing address or paging error",
-standard:"bsd"},
-
-{
-name:"SIGEMT",
-number:7,
-action:"terminate",
-description:"Command should be emulated but is not implemented",
-standard:"other"},
-
-{
-name:"SIGFPE",
-number:8,
-action:"core",
-description:"Floating point arithmetic error",
-standard:"ansi"},
-
-{
-name:"SIGKILL",
-number:9,
-action:"terminate",
-description:"Forced termination",
-standard:"posix",
-forced:true},
-
-{
-name:"SIGUSR1",
-number:10,
-action:"terminate",
-description:"Application-specific signal",
-standard:"posix"},
-
-{
-name:"SIGSEGV",
-number:11,
-action:"core",
-description:"Segmentation fault",
-standard:"ansi"},
-
-{
-name:"SIGUSR2",
-number:12,
-action:"terminate",
-description:"Application-specific signal",
-standard:"posix"},
-
-{
-name:"SIGPIPE",
-number:13,
-action:"terminate",
-description:"Broken pipe or socket",
-standard:"posix"},
-
-{
-name:"SIGALRM",
-number:14,
-action:"terminate",
-description:"Timeout or timer",
-standard:"posix"},
-
-{
-name:"SIGTERM",
-number:15,
-action:"terminate",
-description:"Termination",
-standard:"ansi"},
-
-{
-name:"SIGSTKFLT",
-number:16,
-action:"terminate",
-description:"Stack is empty or overflowed",
-standard:"other"},
-
-{
-name:"SIGCHLD",
-number:17,
-action:"ignore",
-description:"Child process terminated, paused or unpaused",
-standard:"posix"},
-
-{
-name:"SIGCLD",
-number:17,
-action:"ignore",
-description:"Child process terminated, paused or unpaused",
-standard:"other"},
-
-{
-name:"SIGCONT",
-number:18,
-action:"unpause",
-description:"Unpaused",
-standard:"posix",
-forced:true},
-
-{
-name:"SIGSTOP",
-number:19,
-action:"pause",
-description:"Paused",
-standard:"posix",
-forced:true},
-
-{
-name:"SIGTSTP",
-number:20,
-action:"pause",
-description:"Paused using CTRL-Z or \"suspend\"",
-standard:"posix"},
-
-{
-name:"SIGTTIN",
-number:21,
-action:"pause",
-description:"Background process cannot read terminal input",
-standard:"posix"},
-
-{
-name:"SIGBREAK",
-number:21,
-action:"terminate",
-description:"User interruption with CTRL-BREAK",
-standard:"other"},
-
-{
-name:"SIGTTOU",
-number:22,
-action:"pause",
-description:"Background process cannot write to terminal output",
-standard:"posix"},
-
-{
-name:"SIGURG",
-number:23,
-action:"ignore",
-description:"Socket received out-of-band data",
-standard:"bsd"},
-
-{
-name:"SIGXCPU",
-number:24,
-action:"core",
-description:"Process timed out",
-standard:"bsd"},
-
-{
-name:"SIGXFSZ",
-number:25,
-action:"core",
-description:"File too big",
-standard:"bsd"},
-
-{
-name:"SIGVTALRM",
-number:26,
-action:"terminate",
-description:"Timeout or timer",
-standard:"bsd"},
-
-{
-name:"SIGPROF",
-number:27,
-action:"terminate",
-description:"Timeout or timer",
-standard:"bsd"},
-
-{
-name:"SIGWINCH",
-number:28,
-action:"ignore",
-description:"Terminal window size changed",
-standard:"bsd"},
-
-{
-name:"SIGIO",
-number:29,
-action:"terminate",
-description:"I/O is available",
-standard:"other"},
-
-{
-name:"SIGPOLL",
-number:29,
-action:"terminate",
-description:"Watched event",
-standard:"other"},
-
-{
-name:"SIGINFO",
-number:29,
-action:"ignore",
-description:"Request for process information",
-standard:"other"},
-
-{
-name:"SIGPWR",
-number:30,
-action:"terminate",
-description:"Device running out of power",
-standard:"systemv"},
-
-{
-name:"SIGSYS",
-number:31,
-action:"core",
-description:"Invalid system call",
-standard:"other"},
-
-{
-name:"SIGUNUSED",
-number:31,
-action:"terminate",
-description:"Invalid system call",
-standard:"other"}];exports.SIGNALS=SIGNALS;
-//# sourceMappingURL=core.js.map
-
-/***/ }),
-
-/***/ 2779:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-Object.defineProperty(exports, "__esModule", ({value:true}));exports.signalsByNumber=exports.signalsByName=void 0;var _os=__nccwpck_require__(2037);
-
-var _signals=__nccwpck_require__(6435);
-var _realtime=__nccwpck_require__(5295);
-
-
-
-const getSignalsByName=function(){
-const signals=(0,_signals.getSignals)();
-return signals.reduce(getSignalByName,{});
-};
-
-const getSignalByName=function(
-signalByNameMemo,
-{name,number,description,supported,action,forced,standard})
-{
-return{
-...signalByNameMemo,
-[name]:{name,number,description,supported,action,forced,standard}};
-
-};
-
-const signalsByName=getSignalsByName();exports.signalsByName=signalsByName;
-
-
-
-
-const getSignalsByNumber=function(){
-const signals=(0,_signals.getSignals)();
-const length=_realtime.SIGRTMAX+1;
-const signalsA=Array.from({length},(value,number)=>
-getSignalByNumber(number,signals));
-
-return Object.assign({},...signalsA);
-};
-
-const getSignalByNumber=function(number,signals){
-const signal=findSignalByNumber(number,signals);
-
-if(signal===undefined){
-return{};
-}
-
-const{name,description,supported,action,forced,standard}=signal;
-return{
-[number]:{
-name,
-number,
-description,
-supported,
-action,
-forced,
-standard}};
-
-
-};
-
-
-
-const findSignalByNumber=function(number,signals){
-const signal=signals.find(({name})=>_os.constants.signals[name]===number);
-
-if(signal!==undefined){
-return signal;
-}
-
-return signals.find(signalA=>signalA.number===number);
-};
-
-const signalsByNumber=getSignalsByNumber();exports.signalsByNumber=signalsByNumber;
-//# sourceMappingURL=main.js.map
-
-/***/ }),
-
-/***/ 5295:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-Object.defineProperty(exports, "__esModule", ({value:true}));exports.SIGRTMAX=exports.getRealtimeSignals=void 0;
-const getRealtimeSignals=function(){
-const length=SIGRTMAX-SIGRTMIN+1;
-return Array.from({length},getRealtimeSignal);
-};exports.getRealtimeSignals=getRealtimeSignals;
-
-const getRealtimeSignal=function(value,index){
-return{
-name:`SIGRT${index+1}`,
-number:SIGRTMIN+index,
-action:"terminate",
-description:"Application-specific signal (realtime)",
-standard:"posix"};
-
-};
-
-const SIGRTMIN=34;
-const SIGRTMAX=64;exports.SIGRTMAX=SIGRTMAX;
-//# sourceMappingURL=realtime.js.map
-
-/***/ }),
-
-/***/ 6435:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-Object.defineProperty(exports, "__esModule", ({value:true}));exports.getSignals=void 0;var _os=__nccwpck_require__(2037);
-
-var _core=__nccwpck_require__(8213);
-var _realtime=__nccwpck_require__(5295);
-
-
-
-const getSignals=function(){
-const realtimeSignals=(0,_realtime.getRealtimeSignals)();
-const signals=[..._core.SIGNALS,...realtimeSignals].map(normalizeSignal);
-return signals;
-};exports.getSignals=getSignals;
-
-
-
-
-
-
-
-const normalizeSignal=function({
-name,
-number:defaultNumber,
-description,
-action,
-forced=false,
-standard})
-{
-const{
-signals:{[name]:constantSignal}}=
-_os.constants;
-const supported=constantSignal!==undefined;
-const number=supported?constantSignal:defaultNumber;
-return{name,number,description,supported,action,forced,standard};
-};
-//# sourceMappingURL=signals.js.map
-
-/***/ }),
-
 /***/ 1389:
 /***/ ((module) => {
 
@@ -10563,42 +7335,6 @@ module.exports = value => {
 	const type = typeof value;
 	return value !== null && (type === 'object' || type === 'function');
 };
-
-
-/***/ }),
-
-/***/ 1554:
-/***/ ((module) => {
-
-"use strict";
-
-
-const isStream = stream =>
-	stream !== null &&
-	typeof stream === 'object' &&
-	typeof stream.pipe === 'function';
-
-isStream.writable = stream =>
-	isStream(stream) &&
-	stream.writable !== false &&
-	typeof stream._write === 'function' &&
-	typeof stream._writableState === 'object';
-
-isStream.readable = stream =>
-	isStream(stream) &&
-	stream.readable !== false &&
-	typeof stream._read === 'function' &&
-	typeof stream._readableState === 'object';
-
-isStream.duplex = stream =>
-	isStream.writable(stream) &&
-	isStream.readable(stream);
-
-isStream.transform = stream =>
-	isStream.duplex(stream) &&
-	typeof stream._transform === 'function';
-
-module.exports = isStream;
 
 
 /***/ }),
@@ -13542,82 +10278,6 @@ module.exports = function (/*streams...*/) {
 
 /***/ }),
 
-/***/ 6047:
-/***/ ((module) => {
-
-"use strict";
-
-
-const mimicFn = (to, from) => {
-	for (const prop of Reflect.ownKeys(from)) {
-		Object.defineProperty(to, prop, Object.getOwnPropertyDescriptor(from, prop));
-	}
-
-	return to;
-};
-
-module.exports = mimicFn;
-// TODO: Remove this for the next major release
-module.exports["default"] = mimicFn;
-
-
-/***/ }),
-
-/***/ 502:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const path = __nccwpck_require__(1017);
-const pathKey = __nccwpck_require__(539);
-
-const npmRunPath = options => {
-	options = {
-		cwd: process.cwd(),
-		path: process.env[pathKey()],
-		execPath: process.execPath,
-		...options
-	};
-
-	let previous;
-	let cwdPath = path.resolve(options.cwd);
-	const result = [];
-
-	while (previous !== cwdPath) {
-		result.push(path.join(cwdPath, 'node_modules/.bin'));
-		previous = cwdPath;
-		cwdPath = path.resolve(cwdPath, '..');
-	}
-
-	// Ensure the running `node` binary is used
-	const execPathDir = path.resolve(options.cwd, options.execPath, '..');
-	result.push(execPathDir);
-
-	return result.concat(options.path).join(path.delimiter);
-};
-
-module.exports = npmRunPath;
-// TODO: Remove this for the next major release
-module.exports["default"] = npmRunPath;
-
-module.exports.env = options => {
-	options = {
-		env: process.env,
-		...options
-	};
-
-	const env = {...options.env};
-	const path = pathKey({env});
-
-	options.path = env[path];
-	env[path] = module.exports(options);
-
-	return env;
-};
-
-
-/***/ }),
-
 /***/ 1223:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -13663,58 +10323,6 @@ function onceStrict (fn) {
   f.called = false
   return f
 }
-
-
-/***/ }),
-
-/***/ 9082:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const mimicFn = __nccwpck_require__(6047);
-
-const calledFunctions = new WeakMap();
-
-const onetime = (function_, options = {}) => {
-	if (typeof function_ !== 'function') {
-		throw new TypeError('Expected a function');
-	}
-
-	let returnValue;
-	let callCount = 0;
-	const functionName = function_.displayName || function_.name || '<anonymous>';
-
-	const onetime = function (...arguments_) {
-		calledFunctions.set(onetime, ++callCount);
-
-		if (callCount === 1) {
-			returnValue = function_.apply(this, arguments_);
-			function_ = null;
-		} else if (options.throw === true) {
-			throw new Error(`Function \`${functionName}\` can only be called once`);
-		}
-
-		return returnValue;
-	};
-
-	mimicFn(onetime, function_);
-	calledFunctions.set(onetime, callCount);
-
-	return onetime;
-};
-
-module.exports = onetime;
-// TODO: Remove this for the next major release
-module.exports["default"] = onetime;
-
-module.exports.callCount = function_ => {
-	if (!calledFunctions.has(function_)) {
-		throw new Error(`The given function \`${function_.name}\` is not wrapped by the \`onetime\` package`);
-	}
-
-	return calledFunctions.get(function_);
-};
 
 
 /***/ }),
@@ -16263,299 +12871,6 @@ module.exports = (string = '') => {
 "use strict";
 
 module.exports = /^#!(.*)/;
-
-
-/***/ }),
-
-/***/ 4931:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-// Note: since nyc uses this module to output coverage, any lines
-// that are in the direct sync flow of nyc's outputCoverage are
-// ignored, since we can never get coverage for them.
-// grab a reference to node's real process object right away
-var process = global.process
-
-const processOk = function (process) {
-  return process &&
-    typeof process === 'object' &&
-    typeof process.removeListener === 'function' &&
-    typeof process.emit === 'function' &&
-    typeof process.reallyExit === 'function' &&
-    typeof process.listeners === 'function' &&
-    typeof process.kill === 'function' &&
-    typeof process.pid === 'number' &&
-    typeof process.on === 'function'
-}
-
-// some kind of non-node environment, just no-op
-/* istanbul ignore if */
-if (!processOk(process)) {
-  module.exports = function () {
-    return function () {}
-  }
-} else {
-  var assert = __nccwpck_require__(9491)
-  var signals = __nccwpck_require__(3710)
-  var isWin = /^win/i.test(process.platform)
-
-  var EE = __nccwpck_require__(2361)
-  /* istanbul ignore if */
-  if (typeof EE !== 'function') {
-    EE = EE.EventEmitter
-  }
-
-  var emitter
-  if (process.__signal_exit_emitter__) {
-    emitter = process.__signal_exit_emitter__
-  } else {
-    emitter = process.__signal_exit_emitter__ = new EE()
-    emitter.count = 0
-    emitter.emitted = {}
-  }
-
-  // Because this emitter is a global, we have to check to see if a
-  // previous version of this library failed to enable infinite listeners.
-  // I know what you're about to say.  But literally everything about
-  // signal-exit is a compromise with evil.  Get used to it.
-  if (!emitter.infinite) {
-    emitter.setMaxListeners(Infinity)
-    emitter.infinite = true
-  }
-
-  module.exports = function (cb, opts) {
-    /* istanbul ignore if */
-    if (!processOk(global.process)) {
-      return function () {}
-    }
-    assert.equal(typeof cb, 'function', 'a callback must be provided for exit handler')
-
-    if (loaded === false) {
-      load()
-    }
-
-    var ev = 'exit'
-    if (opts && opts.alwaysLast) {
-      ev = 'afterexit'
-    }
-
-    var remove = function () {
-      emitter.removeListener(ev, cb)
-      if (emitter.listeners('exit').length === 0 &&
-          emitter.listeners('afterexit').length === 0) {
-        unload()
-      }
-    }
-    emitter.on(ev, cb)
-
-    return remove
-  }
-
-  var unload = function unload () {
-    if (!loaded || !processOk(global.process)) {
-      return
-    }
-    loaded = false
-
-    signals.forEach(function (sig) {
-      try {
-        process.removeListener(sig, sigListeners[sig])
-      } catch (er) {}
-    })
-    process.emit = originalProcessEmit
-    process.reallyExit = originalProcessReallyExit
-    emitter.count -= 1
-  }
-  module.exports.unload = unload
-
-  var emit = function emit (event, code, signal) {
-    /* istanbul ignore if */
-    if (emitter.emitted[event]) {
-      return
-    }
-    emitter.emitted[event] = true
-    emitter.emit(event, code, signal)
-  }
-
-  // { <signal>: <listener fn>, ... }
-  var sigListeners = {}
-  signals.forEach(function (sig) {
-    sigListeners[sig] = function listener () {
-      /* istanbul ignore if */
-      if (!processOk(global.process)) {
-        return
-      }
-      // If there are no other listeners, an exit is coming!
-      // Simplest way: remove us and then re-send the signal.
-      // We know that this will kill the process, so we can
-      // safely emit now.
-      var listeners = process.listeners(sig)
-      if (listeners.length === emitter.count) {
-        unload()
-        emit('exit', null, sig)
-        /* istanbul ignore next */
-        emit('afterexit', null, sig)
-        /* istanbul ignore next */
-        if (isWin && sig === 'SIGHUP') {
-          // "SIGHUP" throws an `ENOSYS` error on Windows,
-          // so use a supported signal instead
-          sig = 'SIGINT'
-        }
-        /* istanbul ignore next */
-        process.kill(process.pid, sig)
-      }
-    }
-  })
-
-  module.exports.signals = function () {
-    return signals
-  }
-
-  var loaded = false
-
-  var load = function load () {
-    if (loaded || !processOk(global.process)) {
-      return
-    }
-    loaded = true
-
-    // This is the number of onSignalExit's that are in play.
-    // It's important so that we can count the correct number of
-    // listeners on signals, and don't wait for the other one to
-    // handle it instead of us.
-    emitter.count += 1
-
-    signals = signals.filter(function (sig) {
-      try {
-        process.on(sig, sigListeners[sig])
-        return true
-      } catch (er) {
-        return false
-      }
-    })
-
-    process.emit = processEmit
-    process.reallyExit = processReallyExit
-  }
-  module.exports.load = load
-
-  var originalProcessReallyExit = process.reallyExit
-  var processReallyExit = function processReallyExit (code) {
-    /* istanbul ignore if */
-    if (!processOk(global.process)) {
-      return
-    }
-    process.exitCode = code || /* istanbul ignore next */ 0
-    emit('exit', process.exitCode, null)
-    /* istanbul ignore next */
-    emit('afterexit', process.exitCode, null)
-    /* istanbul ignore next */
-    originalProcessReallyExit.call(process, process.exitCode)
-  }
-
-  var originalProcessEmit = process.emit
-  var processEmit = function processEmit (ev, arg) {
-    if (ev === 'exit' && processOk(global.process)) {
-      /* istanbul ignore else */
-      if (arg !== undefined) {
-        process.exitCode = arg
-      }
-      var ret = originalProcessEmit.apply(this, arguments)
-      /* istanbul ignore next */
-      emit('exit', process.exitCode, null)
-      /* istanbul ignore next */
-      emit('afterexit', process.exitCode, null)
-      /* istanbul ignore next */
-      return ret
-    } else {
-      return originalProcessEmit.apply(this, arguments)
-    }
-  }
-}
-
-
-/***/ }),
-
-/***/ 3710:
-/***/ ((module) => {
-
-// This is not the set of all possible signals.
-//
-// It IS, however, the set of all signals that trigger
-// an exit on either Linux or BSD systems.  Linux is a
-// superset of the signal names supported on BSD, and
-// the unknown signals just fail to register, so we can
-// catch that easily enough.
-//
-// Don't bother with SIGKILL.  It's uncatchable, which
-// means that we can't fire any callbacks anyway.
-//
-// If a user does happen to register a handler on a non-
-// fatal signal like SIGWINCH or something, and then
-// exit, it'll end up firing `process.emit('exit')`, so
-// the handler will be fired anyway.
-//
-// SIGBUS, SIGFPE, SIGSEGV and SIGILL, when not raised
-// artificially, inherently leave the process in a
-// state from which it is not safe to try and enter JS
-// listeners.
-module.exports = [
-  'SIGABRT',
-  'SIGALRM',
-  'SIGHUP',
-  'SIGINT',
-  'SIGTERM'
-]
-
-if (process.platform !== 'win32') {
-  module.exports.push(
-    'SIGVTALRM',
-    'SIGXCPU',
-    'SIGXFSZ',
-    'SIGUSR2',
-    'SIGTRAP',
-    'SIGSYS',
-    'SIGQUIT',
-    'SIGIOT'
-    // should detect profiler and enable/disable accordingly.
-    // see #21
-    // 'SIGPROF'
-  )
-}
-
-if (process.platform === 'linux') {
-  module.exports.push(
-    'SIGIO',
-    'SIGPOLL',
-    'SIGPWR',
-    'SIGSTKFLT',
-    'SIGUNUSED'
-  )
-}
-
-
-/***/ }),
-
-/***/ 8174:
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports = input => {
-	const LF = typeof input === 'string' ? '\n' : '\n'.charCodeAt();
-	const CR = typeof input === 'string' ? '\r' : '\r'.charCodeAt();
-
-	if (input[input.length - 1] === LF) {
-		input = input.slice(0, input.length - 1);
-	}
-
-	if (input[input.length - 1] === CR) {
-		input = input.slice(0, input.length - 1);
-	}
-
-	return input;
-};
 
 
 /***/ }),
@@ -41934,6 +38249,3230 @@ function parseParams (str) {
 module.exports = parseParams
 
 
+/***/ }),
+
+/***/ 9790:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  "Z": () => (/* binding */ lint)
+});
+
+// EXTERNAL MODULE: external "util"
+var external_util_ = __nccwpck_require__(3837);
+// EXTERNAL MODULE: ./node_modules/semver/index.js
+var semver = __nccwpck_require__(1383);
+;// CONCATENATED MODULE: ./node_modules/@commitlint/is-ignored/lib/defaults.js
+
+const isSemver = (c) => {
+    const firstLine = c.split('\n').shift();
+    if (typeof firstLine !== 'string') {
+        return false;
+    }
+    const stripped = firstLine.replace(/^chore(\([^)]+\))?:/, '').trim();
+    return semver.valid(stripped) !== null;
+};
+const test = (r) => r.test.bind(r);
+const wildcards = [
+    test(/^((Merge pull request)|(Merge (.*?) into (.*?)|(Merge branch (.*?)))(?:\r?\n)*$)/m),
+    test(/^(Merge tag (.*?))(?:\r?\n)*$/m),
+    test(/^(R|r)evert (.*)/),
+    test(/^(fixup|squash)!/),
+    isSemver,
+    test(/^(Merged (.*?)(in|into) (.*)|Merged PR (.*): (.*))/),
+    test(/^Merge remote-tracking branch(\s*)(.*)/),
+    test(/^Automatic merge(.*)/),
+    test(/^Auto-merged (.*?) into (.*)/),
+];
+//# sourceMappingURL=defaults.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/is-ignored/lib/is-ignored.js
+
+function isIgnored(commit = '', opts = {}) {
+    const ignores = typeof opts.ignores === 'undefined' ? [] : opts.ignores;
+    if (!Array.isArray(ignores)) {
+        throw new Error(`ignores must be of type array, received ${ignores} of type ${typeof ignores}`);
+    }
+    const invalids = ignores.filter((c) => typeof c !== 'function');
+    if (invalids.length > 0) {
+        throw new Error(`ignores must be array of type function, received items of type: ${invalids
+            .map((i) => typeof i)
+            .join(', ')}`);
+    }
+    const base = opts.defaults === false ? [] : wildcards;
+    return [...base, ...ignores].some((w) => w(commit));
+}
+//# sourceMappingURL=is-ignored.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/is-ignored/lib/index.js
+
+
+//# sourceMappingURL=index.js.map
+// EXTERNAL MODULE: ./node_modules/conventional-commits-parser/index.js
+var conventional_commits_parser = __nccwpck_require__(1655);
+// EXTERNAL MODULE: ./node_modules/conventional-changelog-angular/index.js
+var conventional_changelog_angular = __nccwpck_require__(8143);
+;// CONCATENATED MODULE: ./node_modules/@commitlint/parse/lib/index.js
+
+// @ts-expect-error -- no typings
+
+async function parse(message, parser = conventional_commits_parser.sync, parserOpts) {
+    const preset = await conventional_changelog_angular();
+    const defaultOpts = preset.parserOpts;
+    const opts = Object.assign(Object.assign(Object.assign({}, defaultOpts), { fieldPattern: null }), (parserOpts || {}));
+    const parsed = parser(message, opts);
+    parsed.raw = message;
+    return parsed;
+}
+/* harmony default export */ const lib = (parse);
+//# sourceMappingURL=index.js.map
+// EXTERNAL MODULE: ./node_modules/lodash.camelcase/index.js
+var lodash_camelcase = __nccwpck_require__(7994);
+// EXTERNAL MODULE: ./node_modules/lodash.kebabcase/index.js
+var lodash_kebabcase = __nccwpck_require__(9449);
+// EXTERNAL MODULE: ./node_modules/lodash.snakecase/index.js
+var lodash_snakecase = __nccwpck_require__(6645);
+// EXTERNAL MODULE: ./node_modules/lodash.upperfirst/index.js
+var lodash_upperfirst = __nccwpck_require__(9913);
+// EXTERNAL MODULE: ./node_modules/lodash.startcase/index.js
+var lodash_startcase = __nccwpck_require__(4532);
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/to-case.js
+
+
+
+
+
+function toCase(input, target) {
+    switch (target) {
+        case 'camel-case':
+            return lodash_camelcase(input);
+        case 'kebab-case':
+            return lodash_kebabcase(input);
+        case 'snake-case':
+            return lodash_snakecase(input);
+        case 'pascal-case':
+            return lodash_upperfirst(lodash_camelcase(input));
+        case 'start-case':
+            return lodash_startcase(input);
+        case 'upper-case':
+        case 'uppercase':
+            return input.toUpperCase();
+        case 'sentence-case':
+        case 'sentencecase':
+            return lodash_upperfirst(input);
+        case 'lower-case':
+        case 'lowercase':
+        case 'lowerCase': // Backwards compat config-angular v4
+            return input.toLowerCase();
+        default:
+            throw new TypeError(`to-case: Unknown target case "${target}"`);
+    }
+}
+//# sourceMappingURL=to-case.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/case.js
+
+/* harmony default export */ const lib_case = (ensureCase);
+function ensureCase(raw = '', target = 'lowercase') {
+    // We delete any content together with quotes because he can contains proper names (example `refactor: `Eslint` configuration`).
+    // We need trim string because content with quotes can be at the beginning or end of a line
+    const input = String(raw)
+        .replace(/`.*?`|".*?"|'.*?'/g, '')
+        .trim();
+    const transformed = toCase(input, target);
+    if (transformed === '' || transformed.match(/^\d/)) {
+        return true;
+    }
+    return transformed === input;
+}
+//# sourceMappingURL=case.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/enum.js
+/* harmony default export */ const lib_enum = ((value, enums = []) => {
+    if (value === undefined) {
+        return false;
+    }
+    if (!Array.isArray(enums)) {
+        return false;
+    }
+    return enums.indexOf(value) > -1;
+});
+//# sourceMappingURL=enum.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/max-length.js
+/* harmony default export */ const max_length = ((value, max) => typeof value === 'string' && value.length <= max);
+//# sourceMappingURL=max-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/max-line-length.js
+
+/* harmony default export */ const max_line_length = ((value, max) => typeof value === 'string' &&
+    value.split(/\r?\n/).every((line) => max_length(line, max)));
+//# sourceMappingURL=max-line-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/min-length.js
+/* harmony default export */ const min_length = ((value, min) => typeof value === 'string' && value.length >= min);
+//# sourceMappingURL=min-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/not-empty.js
+/* harmony default export */ const not_empty = ((value) => typeof value === 'string' && value.length > 0);
+//# sourceMappingURL=not-empty.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/ensure/lib/index.js
+
+
+
+
+
+
+
+
+
+
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/message/lib/index.js
+function message(input = []) {
+    return input.filter(Boolean).join(' ');
+}
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/body-case.js
+
+
+const negated = (when) => when === 'never';
+const bodyCase = (parsed, when = 'always', value = []) => {
+    const { body } = parsed;
+    if (!body) {
+        return [true];
+    }
+    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
+        if (typeof check === 'string') {
+            return {
+                when: 'always',
+                case: check,
+            };
+        }
+        return check;
+    });
+    const result = checks.some((check) => {
+        const r = lib_case(body, check.case);
+        return negated(check.when) ? !r : r;
+    });
+    const list = checks.map((c) => c.case).join(', ');
+    return [
+        negated(when) ? !result : result,
+        message([`body must`, negated(when) ? `not` : null, `be ${list}`]),
+    ];
+};
+//# sourceMappingURL=body-case.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/body-empty.js
+
+
+const bodyEmpty = (parsed, when = 'always') => {
+    const negated = when === 'never';
+    const notEmpty = not_empty(parsed.body || '');
+    return [
+        negated ? notEmpty : !notEmpty,
+        message(['body', negated ? 'may not' : 'must', 'be empty']),
+    ];
+};
+//# sourceMappingURL=body-empty.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/body-full-stop.js
+
+const bodyFullStop = (parsed, when = 'always', value = '.') => {
+    const input = parsed.body;
+    if (!input) {
+        return [true];
+    }
+    const negated = when === 'never';
+    const hasStop = input[input.length - 1] === value;
+    return [
+        negated ? !hasStop : hasStop,
+        message(['body', negated ? 'may not' : 'must', 'end with full stop']),
+    ];
+};
+//# sourceMappingURL=body-full-stop.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/to-lines/lib/index.js
+function toLines(input) {
+    if (typeof input !== 'string') {
+        return [];
+    }
+    return input.split(/(?:\r?\n)/);
+}
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/body-leading-blank.js
+
+
+const bodyLeadingBlank = (parsed, when) => {
+    // Flunk if no body is found
+    if (!parsed.body) {
+        return [true];
+    }
+    const negated = when === 'never';
+    const [leading] = toLines(parsed.raw).slice(1);
+    // Check if the first line of body is empty
+    const succeeds = leading === '';
+    return [
+        negated ? !succeeds : succeeds,
+        message(['body', negated ? 'may not' : 'must', 'have leading blank line']),
+    ];
+};
+//# sourceMappingURL=body-leading-blank.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/body-max-length.js
+
+const bodyMaxLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.body;
+    if (!input) {
+        return [true];
+    }
+    return [
+        max_length(input, value),
+        `body must not be longer than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=body-max-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/body-max-line-length.js
+
+const bodyMaxLineLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.body;
+    if (!input) {
+        return [true];
+    }
+    return [
+        max_line_length(input, value),
+        `body's lines must not be longer than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=body-max-line-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/body-min-length.js
+
+const bodyMinLength = (parsed, _when = undefined, value = 0) => {
+    if (!parsed.body) {
+        return [true];
+    }
+    return [
+        min_length(parsed.body, value),
+        `body must not be shorter than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=body-min-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/footer-empty.js
+
+
+const footerEmpty = (parsed, when = 'always') => {
+    const negated = when === 'never';
+    const notEmpty = not_empty(parsed.footer || '');
+    return [
+        negated ? notEmpty : !notEmpty,
+        message(['footer', negated ? 'may not' : 'must', 'be empty']),
+    ];
+};
+//# sourceMappingURL=footer-empty.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/footer-leading-blank.js
+
+
+const footerLeadingBlank = (parsed, when = 'always') => {
+    // Flunk if no footer is found
+    if (!parsed.footer) {
+        return [true];
+    }
+    const negated = when === 'never';
+    const rawLines = toLines(parsed.raw);
+    const footerLines = toLines(parsed.footer);
+    const footerOffset = rawLines.indexOf(footerLines[0]);
+    const [leading] = rawLines.slice(footerOffset - 1);
+    // Check if the first line of footer is empty
+    const succeeds = leading === '';
+    return [
+        negated ? !succeeds : succeeds,
+        message([
+            'footer',
+            negated ? 'may not' : 'must',
+            'have leading blank line',
+        ]),
+    ];
+};
+//# sourceMappingURL=footer-leading-blank.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/footer-max-length.js
+
+const footerMaxLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.footer;
+    if (!input) {
+        return [true];
+    }
+    return [
+        max_length(input, value),
+        `footer must not be longer than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=footer-max-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/footer-max-line-length.js
+
+const footerMaxLineLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.footer;
+    if (!input) {
+        return [true];
+    }
+    return [
+        max_line_length(input, value),
+        `footer's lines must not be longer than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=footer-max-line-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/footer-min-length.js
+
+const footerMinLength = (parsed, _when = undefined, value = 0) => {
+    if (!parsed.footer) {
+        return [true];
+    }
+    return [
+        min_length(parsed.footer, value),
+        `footer must not be shorter than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=footer-min-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/header-case.js
+
+
+const header_case_negated = (when) => when === 'never';
+const headerCase = (parsed, when = 'always', value = []) => {
+    const { header } = parsed;
+    if (typeof header !== 'string' || !header.match(/^[a-z]/i)) {
+        return [true];
+    }
+    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
+        if (typeof check === 'string') {
+            return {
+                when: 'always',
+                case: check,
+            };
+        }
+        return check;
+    });
+    const result = checks.some((check) => {
+        const r = lib_case(header, check.case);
+        return header_case_negated(check.when) ? !r : r;
+    });
+    const list = checks.map((c) => c.case).join(', ');
+    return [
+        header_case_negated(when) ? !result : result,
+        message([`header must`, header_case_negated(when) ? `not` : null, `be ${list}`]),
+    ];
+};
+//# sourceMappingURL=header-case.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/header-full-stop.js
+
+const headerFullStop = (parsed, when = 'always', value = '.') => {
+    const { header } = parsed;
+    const negated = when === 'never';
+    const hasStop = (header === null || header === void 0 ? void 0 : header[header.length - 1]) === value;
+    return [
+        negated ? !hasStop : hasStop,
+        message(['header', negated ? 'may not' : 'must', 'end with full stop']),
+    ];
+};
+//# sourceMappingURL=header-full-stop.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/header-max-length.js
+
+const headerMaxLength = (parsed, _when = undefined, value = 0) => {
+    var _a;
+    return [
+        max_length(parsed.header, value),
+        `header must not be longer than ${value} characters, current length is ${(_a = parsed.header) === null || _a === void 0 ? void 0 : _a.length}`,
+    ];
+};
+//# sourceMappingURL=header-max-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/header-min-length.js
+
+const headerMinLength = (parsed, _when = undefined, value = 0) => {
+    var _a;
+    return [
+        min_length(parsed.header, value),
+        `header must not be shorter than ${value} characters, current length is ${(_a = parsed.header) === null || _a === void 0 ? void 0 : _a.length}`,
+    ];
+};
+//# sourceMappingURL=header-min-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/header-trim.js
+
+const headerTrim = (parsed) => {
+    const { header } = parsed;
+    if (!header) {
+        return [true];
+    }
+    const startsWithWhiteSpace = header !== header.trimStart();
+    const endsWithWhiteSpace = header !== header.trimEnd();
+    switch (true) {
+        case startsWithWhiteSpace && endsWithWhiteSpace:
+            return [
+                false,
+                message(['header', 'must not be surrounded by whitespace']),
+            ];
+        case startsWithWhiteSpace:
+            return [false, message(['header', 'must not start with whitespace'])];
+        case endsWithWhiteSpace:
+            return [false, message(['header', 'must not end with whitespace'])];
+        default:
+            return [true];
+    }
+};
+//# sourceMappingURL=header-trim.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/references-empty.js
+
+const referencesEmpty = (parsed, when = 'never') => {
+    const negated = when === 'always';
+    const notEmpty = parsed.references.length > 0;
+    return [
+        negated ? !notEmpty : notEmpty,
+        message(['references', negated ? 'must' : 'may not', 'be empty']),
+    ];
+};
+//# sourceMappingURL=references-empty.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/scope-case.js
+
+
+const scope_case_negated = (when) => when === 'never';
+const scopeCase = (parsed, when = 'always', value = []) => {
+    const { scope } = parsed;
+    if (!scope) {
+        return [true];
+    }
+    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
+        if (typeof check === 'string') {
+            return {
+                when: 'always',
+                case: check,
+            };
+        }
+        return check;
+    });
+    // Scopes may contain slash or comma delimiters to separate them and mark them as individual segments.
+    // This means that each of these segments should be tested separately with `ensure`.
+    const delimiters = /\/|\\|, ?/g;
+    const scopeSegments = scope.split(delimiters);
+    const result = checks.some((check) => {
+        const r = scopeSegments.every((segment) => delimiters.test(segment) || lib_case(segment, check.case));
+        return scope_case_negated(check.when) ? !r : r;
+    });
+    const list = checks.map((c) => c.case).join(', ');
+    return [
+        scope_case_negated(when) ? !result : result,
+        message([`scope must`, scope_case_negated(when) ? `not` : null, `be ${list}`]),
+    ];
+};
+//# sourceMappingURL=scope-case.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/scope-empty.js
+
+
+const scopeEmpty = (parsed, when = 'never') => {
+    const negated = when === 'always';
+    const notEmpty = not_empty(parsed.scope || '');
+    return [
+        negated ? !notEmpty : notEmpty,
+        message(['scope', negated ? 'must' : 'may not', 'be empty']),
+    ];
+};
+//# sourceMappingURL=scope-empty.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/scope-enum.js
+
+
+const scopeEnum = ({ scope }, when = 'always', value = []) => {
+    if (!scope || !value.length) {
+        return [true, ''];
+    }
+    // Scopes may contain slash or comma delimiters to separate them and mark them as individual segments.
+    // This means that each of these segments should be tested separately with `ensure`.
+    const delimiters = /\/|\\|, ?/g;
+    const messageScopes = scope.split(delimiters);
+    const errorMessage = ['scope must', `be one of [${value.join(', ')}]`];
+    const isScopeInEnum = (scope) => lib_enum(scope, value);
+    let isValid;
+    if (when === 'never') {
+        isValid = !messageScopes.some(isScopeInEnum);
+        errorMessage.splice(1, 0, 'not');
+    }
+    else {
+        isValid = messageScopes.every(isScopeInEnum);
+    }
+    return [isValid, message(errorMessage)];
+};
+//# sourceMappingURL=scope-enum.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/scope-max-length.js
+
+const scopeMaxLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.scope;
+    if (!input) {
+        return [true];
+    }
+    return [
+        max_length(input, value),
+        `scope must not be longer than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=scope-max-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/scope-min-length.js
+
+const scopeMinLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.scope;
+    if (!input) {
+        return [true];
+    }
+    return [
+        min_length(input, value),
+        `scope must not be shorter than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=scope-min-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/signed-off-by.js
+
+
+const signedOffBy = (parsed, when = 'always', value = '') => {
+    const lines = toLines(parsed.raw).filter((ln) => 
+    // skip comments
+    !ln.startsWith('#') &&
+        // ignore empty lines
+        Boolean(ln));
+    const last = lines[lines.length - 1];
+    const negated = when === 'never';
+    const hasSignedOffBy = last.startsWith(value);
+    return [
+        negated ? !hasSignedOffBy : hasSignedOffBy,
+        message(['message', negated ? 'must not' : 'must', 'be signed off']),
+    ];
+};
+//# sourceMappingURL=signed-off-by.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/subject-case.js
+
+
+/**
+ * Since the rule requires first symbol of a subject to be a letter, use
+ * Unicode `Cased_Letter` category now to allow non-Latin alphabets as well.
+ *
+ * Do not use `Letter` category directly to avoid capturing `Modifier_Letter`
+ * (which just modifiers letters, so we probably shouldn't anyway) and
+ * `Other_Letter` (they actually are case-less, so they can't be validated)
+ * categories, and to stay close to previous implementation.
+ *
+ * Also, typescript does not seem to support almost any longhand category name
+ * (and even short for `Cased_Letter` too) so list all required letter
+ * categories manually just to prevent it from complaining about unknown stuff.
+ *
+ * @see [Unicode Categories]{@link https://www.regular-expressions.info/unicode.html}
+ */
+const startsWithLetterRegex = /^[\p{Ll}\p{Lu}\p{Lt}]/iu;
+const subject_case_negated = (when) => when === 'never';
+const subjectCase = (parsed, when = 'always', value = []) => {
+    const { subject } = parsed;
+    if (typeof subject !== 'string' || !subject.match(startsWithLetterRegex)) {
+        return [true];
+    }
+    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
+        if (typeof check === 'string') {
+            return {
+                when: 'always',
+                case: check,
+            };
+        }
+        return check;
+    });
+    const result = checks.some((check) => {
+        const r = lib_case(subject, check.case);
+        return subject_case_negated(check.when) ? !r : r;
+    });
+    const list = checks.map((c) => c.case).join(', ');
+    return [
+        subject_case_negated(when) ? !result : result,
+        message([`subject must`, subject_case_negated(when) ? `not` : null, `be ${list}`]),
+    ];
+};
+//# sourceMappingURL=subject-case.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/subject-empty.js
+
+
+const subjectEmpty = (parsed, when = 'always') => {
+    const negated = when === 'never';
+    const notEmpty = not_empty(parsed.subject || '');
+    return [
+        negated ? notEmpty : !notEmpty,
+        message(['subject', negated ? 'may not' : 'must', 'be empty']),
+    ];
+};
+//# sourceMappingURL=subject-empty.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/subject-full-stop.js
+
+const subjectFullStop = (parsed, when = 'always', value = '.') => {
+    var _a;
+    const colonIndex = ((_a = parsed.header) === null || _a === void 0 ? void 0 : _a.indexOf(':')) || 0;
+    if (colonIndex > 0 && colonIndex === parsed.header.length - 1) {
+        return [true];
+    }
+    const input = parsed.header;
+    const negated = when === 'never';
+    let hasStop = (input === null || input === void 0 ? void 0 : input[input.length - 1]) === value;
+    if ((input === null || input === void 0 ? void 0 : input.slice(-3)) === '...') {
+        hasStop = false;
+    }
+    return [
+        negated ? !hasStop : hasStop,
+        message(['subject', negated ? 'may not' : 'must', 'end with full stop']),
+    ];
+};
+//# sourceMappingURL=subject-full-stop.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/subject-max-length.js
+
+const subjectMaxLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.subject;
+    if (!input) {
+        return [true];
+    }
+    return [
+        max_length(input, value),
+        `subject must not be longer than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=subject-max-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/subject-min-length.js
+
+const subjectMinLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.subject;
+    if (!input) {
+        return [true];
+    }
+    return [
+        min_length(input, value),
+        `subject must not be shorter than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=subject-min-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/subject-exclamation-mark.js
+
+const subjectExclamationMark = (parsed, when = 'always') => {
+    const input = parsed.header;
+    if (!input) {
+        return [true, ''];
+    }
+    const negated = when === 'never';
+    const hasExclamationMark = /!:/.test(input);
+    return [
+        negated ? !hasExclamationMark : hasExclamationMark,
+        message([
+            'subject',
+            negated ? 'must not' : 'must',
+            'have an exclamation mark in the subject to identify a breaking change',
+        ]),
+    ];
+};
+//# sourceMappingURL=subject-exclamation-mark.js.map
+;// CONCATENATED MODULE: external "node:buffer"
+const external_node_buffer_namespaceObject = require("node:buffer");
+;// CONCATENATED MODULE: external "node:path"
+const external_node_path_namespaceObject = require("node:path");
+;// CONCATENATED MODULE: external "node:child_process"
+const external_node_child_process_namespaceObject = require("node:child_process");
+;// CONCATENATED MODULE: external "node:process"
+const external_node_process_namespaceObject = require("node:process");
+// EXTERNAL MODULE: ./node_modules/cross-spawn/index.js
+var cross_spawn = __nccwpck_require__(7881);
+;// CONCATENATED MODULE: ./node_modules/strip-final-newline/index.js
+function stripFinalNewline(input) {
+	const LF = typeof input === 'string' ? '\n' : '\n'.charCodeAt();
+	const CR = typeof input === 'string' ? '\r' : '\r'.charCodeAt();
+
+	if (input[input.length - 1] === LF) {
+		input = input.slice(0, -1);
+	}
+
+	if (input[input.length - 1] === CR) {
+		input = input.slice(0, -1);
+	}
+
+	return input;
+}
+
+;// CONCATENATED MODULE: external "node:url"
+const external_node_url_namespaceObject = require("node:url");
+;// CONCATENATED MODULE: ./node_modules/npm-run-path/node_modules/path-key/index.js
+function pathKey(options = {}) {
+	const {
+		env = process.env,
+		platform = process.platform
+	} = options;
+
+	if (platform !== 'win32') {
+		return 'PATH';
+	}
+
+	return Object.keys(env).reverse().find(key => key.toUpperCase() === 'PATH') || 'Path';
+}
+
+;// CONCATENATED MODULE: ./node_modules/npm-run-path/index.js
+
+
+
+
+
+const npmRunPath = ({
+	cwd = external_node_process_namespaceObject.cwd(),
+	path: pathOption = external_node_process_namespaceObject.env[pathKey()],
+	preferLocal = true,
+	execPath = external_node_process_namespaceObject.execPath,
+	addExecPath = true,
+} = {}) => {
+	const cwdString = cwd instanceof URL ? (0,external_node_url_namespaceObject.fileURLToPath)(cwd) : cwd;
+	const cwdPath = external_node_path_namespaceObject.resolve(cwdString);
+	const result = [];
+
+	if (preferLocal) {
+		applyPreferLocal(result, cwdPath);
+	}
+
+	if (addExecPath) {
+		applyExecPath(result, execPath, cwdPath);
+	}
+
+	return [...result, pathOption].join(external_node_path_namespaceObject.delimiter);
+};
+
+const applyPreferLocal = (result, cwdPath) => {
+	let previous;
+
+	while (previous !== cwdPath) {
+		result.push(external_node_path_namespaceObject.join(cwdPath, 'node_modules/.bin'));
+		previous = cwdPath;
+		cwdPath = external_node_path_namespaceObject.resolve(cwdPath, '..');
+	}
+};
+
+// Ensure the running `node` binary is used
+const applyExecPath = (result, execPath, cwdPath) => {
+	const execPathString = execPath instanceof URL ? (0,external_node_url_namespaceObject.fileURLToPath)(execPath) : execPath;
+	result.push(external_node_path_namespaceObject.resolve(cwdPath, execPathString, '..'));
+};
+
+const npmRunPathEnv = ({env = external_node_process_namespaceObject.env, ...options} = {}) => {
+	env = {...env};
+
+	const pathName = pathKey({env});
+	options.path = env[pathName];
+	env[pathName] = npmRunPath(options);
+
+	return env;
+};
+
+;// CONCATENATED MODULE: ./node_modules/mimic-fn/index.js
+const copyProperty = (to, from, property, ignoreNonConfigurable) => {
+	// `Function#length` should reflect the parameters of `to` not `from` since we keep its body.
+	// `Function#prototype` is non-writable and non-configurable so can never be modified.
+	if (property === 'length' || property === 'prototype') {
+		return;
+	}
+
+	// `Function#arguments` and `Function#caller` should not be copied. They were reported to be present in `Reflect.ownKeys` for some devices in React Native (#41), so we explicitly ignore them here.
+	if (property === 'arguments' || property === 'caller') {
+		return;
+	}
+
+	const toDescriptor = Object.getOwnPropertyDescriptor(to, property);
+	const fromDescriptor = Object.getOwnPropertyDescriptor(from, property);
+
+	if (!canCopyProperty(toDescriptor, fromDescriptor) && ignoreNonConfigurable) {
+		return;
+	}
+
+	Object.defineProperty(to, property, fromDescriptor);
+};
+
+// `Object.defineProperty()` throws if the property exists, is not configurable and either:
+// - one its descriptors is changed
+// - it is non-writable and its value is changed
+const canCopyProperty = function (toDescriptor, fromDescriptor) {
+	return toDescriptor === undefined || toDescriptor.configurable || (
+		toDescriptor.writable === fromDescriptor.writable &&
+		toDescriptor.enumerable === fromDescriptor.enumerable &&
+		toDescriptor.configurable === fromDescriptor.configurable &&
+		(toDescriptor.writable || toDescriptor.value === fromDescriptor.value)
+	);
+};
+
+const changePrototype = (to, from) => {
+	const fromPrototype = Object.getPrototypeOf(from);
+	if (fromPrototype === Object.getPrototypeOf(to)) {
+		return;
+	}
+
+	Object.setPrototypeOf(to, fromPrototype);
+};
+
+const wrappedToString = (withName, fromBody) => `/* Wrapped ${withName}*/\n${fromBody}`;
+
+const toStringDescriptor = Object.getOwnPropertyDescriptor(Function.prototype, 'toString');
+const toStringName = Object.getOwnPropertyDescriptor(Function.prototype.toString, 'name');
+
+// We call `from.toString()` early (not lazily) to ensure `from` can be garbage collected.
+// We use `bind()` instead of a closure for the same reason.
+// Calling `from.toString()` early also allows caching it in case `to.toString()` is called several times.
+const changeToString = (to, from, name) => {
+	const withName = name === '' ? '' : `with ${name.trim()}() `;
+	const newToString = wrappedToString.bind(null, withName, from.toString());
+	// Ensure `to.toString.toString` is non-enumerable and has the same `same`
+	Object.defineProperty(newToString, 'name', toStringName);
+	Object.defineProperty(to, 'toString', {...toStringDescriptor, value: newToString});
+};
+
+function mimicFunction(to, from, {ignoreNonConfigurable = false} = {}) {
+	const {name} = to;
+
+	for (const property of Reflect.ownKeys(from)) {
+		copyProperty(to, from, property, ignoreNonConfigurable);
+	}
+
+	changePrototype(to, from);
+	changeToString(to, from, name);
+
+	return to;
+}
+
+;// CONCATENATED MODULE: ./node_modules/onetime/index.js
+
+
+const calledFunctions = new WeakMap();
+
+const onetime = (function_, options = {}) => {
+	if (typeof function_ !== 'function') {
+		throw new TypeError('Expected a function');
+	}
+
+	let returnValue;
+	let callCount = 0;
+	const functionName = function_.displayName || function_.name || '<anonymous>';
+
+	const onetime = function (...arguments_) {
+		calledFunctions.set(onetime, ++callCount);
+
+		if (callCount === 1) {
+			returnValue = function_.apply(this, arguments_);
+			function_ = null;
+		} else if (options.throw === true) {
+			throw new Error(`Function \`${functionName}\` can only be called once`);
+		}
+
+		return returnValue;
+	};
+
+	mimicFunction(onetime, function_);
+	calledFunctions.set(onetime, callCount);
+
+	return onetime;
+};
+
+onetime.callCount = function_ => {
+	if (!calledFunctions.has(function_)) {
+		throw new Error(`The given function \`${function_.name}\` is not wrapped by the \`onetime\` package`);
+	}
+
+	return calledFunctions.get(function_);
+};
+
+/* harmony default export */ const node_modules_onetime = (onetime);
+
+;// CONCATENATED MODULE: external "node:os"
+const external_node_os_namespaceObject = require("node:os");
+;// CONCATENATED MODULE: ./node_modules/human-signals/build/src/realtime.js
+
+const getRealtimeSignals=()=>{
+const length=SIGRTMAX-SIGRTMIN+1;
+return Array.from({length},getRealtimeSignal)
+};
+
+const getRealtimeSignal=(value,index)=>({
+name:`SIGRT${index+1}`,
+number:SIGRTMIN+index,
+action:"terminate",
+description:"Application-specific signal (realtime)",
+standard:"posix"
+});
+
+const SIGRTMIN=34;
+const SIGRTMAX=64;
+;// CONCATENATED MODULE: ./node_modules/human-signals/build/src/core.js
+
+
+const SIGNALS=[
+{
+name:"SIGHUP",
+number:1,
+action:"terminate",
+description:"Terminal closed",
+standard:"posix"
+},
+{
+name:"SIGINT",
+number:2,
+action:"terminate",
+description:"User interruption with CTRL-C",
+standard:"ansi"
+},
+{
+name:"SIGQUIT",
+number:3,
+action:"core",
+description:"User interruption with CTRL-\\",
+standard:"posix"
+},
+{
+name:"SIGILL",
+number:4,
+action:"core",
+description:"Invalid machine instruction",
+standard:"ansi"
+},
+{
+name:"SIGTRAP",
+number:5,
+action:"core",
+description:"Debugger breakpoint",
+standard:"posix"
+},
+{
+name:"SIGABRT",
+number:6,
+action:"core",
+description:"Aborted",
+standard:"ansi"
+},
+{
+name:"SIGIOT",
+number:6,
+action:"core",
+description:"Aborted",
+standard:"bsd"
+},
+{
+name:"SIGBUS",
+number:7,
+action:"core",
+description:
+"Bus error due to misaligned, non-existing address or paging error",
+standard:"bsd"
+},
+{
+name:"SIGEMT",
+number:7,
+action:"terminate",
+description:"Command should be emulated but is not implemented",
+standard:"other"
+},
+{
+name:"SIGFPE",
+number:8,
+action:"core",
+description:"Floating point arithmetic error",
+standard:"ansi"
+},
+{
+name:"SIGKILL",
+number:9,
+action:"terminate",
+description:"Forced termination",
+standard:"posix",
+forced:true
+},
+{
+name:"SIGUSR1",
+number:10,
+action:"terminate",
+description:"Application-specific signal",
+standard:"posix"
+},
+{
+name:"SIGSEGV",
+number:11,
+action:"core",
+description:"Segmentation fault",
+standard:"ansi"
+},
+{
+name:"SIGUSR2",
+number:12,
+action:"terminate",
+description:"Application-specific signal",
+standard:"posix"
+},
+{
+name:"SIGPIPE",
+number:13,
+action:"terminate",
+description:"Broken pipe or socket",
+standard:"posix"
+},
+{
+name:"SIGALRM",
+number:14,
+action:"terminate",
+description:"Timeout or timer",
+standard:"posix"
+},
+{
+name:"SIGTERM",
+number:15,
+action:"terminate",
+description:"Termination",
+standard:"ansi"
+},
+{
+name:"SIGSTKFLT",
+number:16,
+action:"terminate",
+description:"Stack is empty or overflowed",
+standard:"other"
+},
+{
+name:"SIGCHLD",
+number:17,
+action:"ignore",
+description:"Child process terminated, paused or unpaused",
+standard:"posix"
+},
+{
+name:"SIGCLD",
+number:17,
+action:"ignore",
+description:"Child process terminated, paused or unpaused",
+standard:"other"
+},
+{
+name:"SIGCONT",
+number:18,
+action:"unpause",
+description:"Unpaused",
+standard:"posix",
+forced:true
+},
+{
+name:"SIGSTOP",
+number:19,
+action:"pause",
+description:"Paused",
+standard:"posix",
+forced:true
+},
+{
+name:"SIGTSTP",
+number:20,
+action:"pause",
+description:"Paused using CTRL-Z or \"suspend\"",
+standard:"posix"
+},
+{
+name:"SIGTTIN",
+number:21,
+action:"pause",
+description:"Background process cannot read terminal input",
+standard:"posix"
+},
+{
+name:"SIGBREAK",
+number:21,
+action:"terminate",
+description:"User interruption with CTRL-BREAK",
+standard:"other"
+},
+{
+name:"SIGTTOU",
+number:22,
+action:"pause",
+description:"Background process cannot write to terminal output",
+standard:"posix"
+},
+{
+name:"SIGURG",
+number:23,
+action:"ignore",
+description:"Socket received out-of-band data",
+standard:"bsd"
+},
+{
+name:"SIGXCPU",
+number:24,
+action:"core",
+description:"Process timed out",
+standard:"bsd"
+},
+{
+name:"SIGXFSZ",
+number:25,
+action:"core",
+description:"File too big",
+standard:"bsd"
+},
+{
+name:"SIGVTALRM",
+number:26,
+action:"terminate",
+description:"Timeout or timer",
+standard:"bsd"
+},
+{
+name:"SIGPROF",
+number:27,
+action:"terminate",
+description:"Timeout or timer",
+standard:"bsd"
+},
+{
+name:"SIGWINCH",
+number:28,
+action:"ignore",
+description:"Terminal window size changed",
+standard:"bsd"
+},
+{
+name:"SIGIO",
+number:29,
+action:"terminate",
+description:"I/O is available",
+standard:"other"
+},
+{
+name:"SIGPOLL",
+number:29,
+action:"terminate",
+description:"Watched event",
+standard:"other"
+},
+{
+name:"SIGINFO",
+number:29,
+action:"ignore",
+description:"Request for process information",
+standard:"other"
+},
+{
+name:"SIGPWR",
+number:30,
+action:"terminate",
+description:"Device running out of power",
+standard:"systemv"
+},
+{
+name:"SIGSYS",
+number:31,
+action:"core",
+description:"Invalid system call",
+standard:"other"
+},
+{
+name:"SIGUNUSED",
+number:31,
+action:"terminate",
+description:"Invalid system call",
+standard:"other"
+}];
+;// CONCATENATED MODULE: ./node_modules/human-signals/build/src/signals.js
+
+
+
+
+
+
+
+const getSignals=()=>{
+const realtimeSignals=getRealtimeSignals();
+const signals=[...SIGNALS,...realtimeSignals].map(normalizeSignal);
+return signals
+};
+
+
+
+
+
+
+
+const normalizeSignal=({
+name,
+number:defaultNumber,
+description,
+action,
+forced=false,
+standard
+})=>{
+const{
+signals:{[name]:constantSignal}
+}=external_node_os_namespaceObject.constants;
+const supported=constantSignal!==undefined;
+const number=supported?constantSignal:defaultNumber;
+return{name,number,description,supported,action,forced,standard}
+};
+;// CONCATENATED MODULE: ./node_modules/human-signals/build/src/main.js
+
+
+
+
+
+
+
+const getSignalsByName=()=>{
+const signals=getSignals();
+return Object.fromEntries(signals.map(getSignalByName))
+};
+
+const getSignalByName=({
+name,
+number,
+description,
+supported,
+action,
+forced,
+standard
+})=>[name,{name,number,description,supported,action,forced,standard}];
+
+const signalsByName=getSignalsByName();
+
+
+
+
+const getSignalsByNumber=()=>{
+const signals=getSignals();
+const length=SIGRTMAX+1;
+const signalsA=Array.from({length},(value,number)=>
+getSignalByNumber(number,signals)
+);
+return Object.assign({},...signalsA)
+};
+
+const getSignalByNumber=(number,signals)=>{
+const signal=findSignalByNumber(number,signals);
+
+if(signal===undefined){
+return{}
+}
+
+const{name,description,supported,action,forced,standard}=signal;
+return{
+[number]:{
+name,
+number,
+description,
+supported,
+action,
+forced,
+standard
+}
+}
+};
+
+
+
+const findSignalByNumber=(number,signals)=>{
+const signal=signals.find(({name})=>external_node_os_namespaceObject.constants.signals[name]===number);
+
+if(signal!==undefined){
+return signal
+}
+
+return signals.find((signalA)=>signalA.number===number)
+};
+
+const signalsByNumber=getSignalsByNumber();
+;// CONCATENATED MODULE: ./node_modules/execa/lib/error.js
+
+
+
+const getErrorPrefix = ({timedOut, timeout, errorCode, signal, signalDescription, exitCode, isCanceled}) => {
+	if (timedOut) {
+		return `timed out after ${timeout} milliseconds`;
+	}
+
+	if (isCanceled) {
+		return 'was canceled';
+	}
+
+	if (errorCode !== undefined) {
+		return `failed with ${errorCode}`;
+	}
+
+	if (signal !== undefined) {
+		return `was killed with ${signal} (${signalDescription})`;
+	}
+
+	if (exitCode !== undefined) {
+		return `failed with exit code ${exitCode}`;
+	}
+
+	return 'failed';
+};
+
+const makeError = ({
+	stdout,
+	stderr,
+	all,
+	error,
+	signal,
+	exitCode,
+	command,
+	escapedCommand,
+	timedOut,
+	isCanceled,
+	killed,
+	parsed: {options: {timeout, cwd = external_node_process_namespaceObject.cwd()}},
+}) => {
+	// `signal` and `exitCode` emitted on `spawned.on('exit')` event can be `null`.
+	// We normalize them to `undefined`
+	exitCode = exitCode === null ? undefined : exitCode;
+	signal = signal === null ? undefined : signal;
+	const signalDescription = signal === undefined ? undefined : signalsByName[signal].description;
+
+	const errorCode = error && error.code;
+
+	const prefix = getErrorPrefix({timedOut, timeout, errorCode, signal, signalDescription, exitCode, isCanceled});
+	const execaMessage = `Command ${prefix}: ${command}`;
+	const isError = Object.prototype.toString.call(error) === '[object Error]';
+	const shortMessage = isError ? `${execaMessage}\n${error.message}` : execaMessage;
+	const message = [shortMessage, stderr, stdout].filter(Boolean).join('\n');
+
+	if (isError) {
+		error.originalMessage = error.message;
+		error.message = message;
+	} else {
+		error = new Error(message);
+	}
+
+	error.shortMessage = shortMessage;
+	error.command = command;
+	error.escapedCommand = escapedCommand;
+	error.exitCode = exitCode;
+	error.signal = signal;
+	error.signalDescription = signalDescription;
+	error.stdout = stdout;
+	error.stderr = stderr;
+	error.cwd = cwd;
+
+	if (all !== undefined) {
+		error.all = all;
+	}
+
+	if ('bufferedData' in error) {
+		delete error.bufferedData;
+	}
+
+	error.failed = true;
+	error.timedOut = Boolean(timedOut);
+	error.isCanceled = isCanceled;
+	error.killed = killed && !timedOut;
+
+	return error;
+};
+
+;// CONCATENATED MODULE: ./node_modules/execa/lib/stdio.js
+const aliases = ['stdin', 'stdout', 'stderr'];
+
+const hasAlias = options => aliases.some(alias => options[alias] !== undefined);
+
+const normalizeStdio = options => {
+	if (!options) {
+		return;
+	}
+
+	const {stdio} = options;
+
+	if (stdio === undefined) {
+		return aliases.map(alias => options[alias]);
+	}
+
+	if (hasAlias(options)) {
+		throw new Error(`It's not possible to provide \`stdio\` in combination with one of ${aliases.map(alias => `\`${alias}\``).join(', ')}`);
+	}
+
+	if (typeof stdio === 'string') {
+		return stdio;
+	}
+
+	if (!Array.isArray(stdio)) {
+		throw new TypeError(`Expected \`stdio\` to be of type \`string\` or \`Array\`, got \`${typeof stdio}\``);
+	}
+
+	const length = Math.max(stdio.length, aliases.length);
+	return Array.from({length}, (value, index) => stdio[index]);
+};
+
+// `ipc` is pushed unless it is already present
+const stdio_normalizeStdioNode = options => {
+	const stdio = normalizeStdio(options);
+
+	if (stdio === 'ipc') {
+		return 'ipc';
+	}
+
+	if (stdio === undefined || typeof stdio === 'string') {
+		return [stdio, stdio, stdio, 'ipc'];
+	}
+
+	if (stdio.includes('ipc')) {
+		return stdio;
+	}
+
+	return [...stdio, 'ipc'];
+};
+
+;// CONCATENATED MODULE: ./node_modules/signal-exit/dist/mjs/signals.js
+/**
+ * This is not the set of all possible signals.
+ *
+ * It IS, however, the set of all signals that trigger
+ * an exit on either Linux or BSD systems.  Linux is a
+ * superset of the signal names supported on BSD, and
+ * the unknown signals just fail to register, so we can
+ * catch that easily enough.
+ *
+ * Windows signals are a different set, since there are
+ * signals that terminate Windows processes, but don't
+ * terminate (or don't even exist) on Posix systems.
+ *
+ * Don't bother with SIGKILL.  It's uncatchable, which
+ * means that we can't fire any callbacks anyway.
+ *
+ * If a user does happen to register a handler on a non-
+ * fatal signal like SIGWINCH or something, and then
+ * exit, it'll end up firing `process.emit('exit')`, so
+ * the handler will be fired anyway.
+ *
+ * SIGBUS, SIGFPE, SIGSEGV and SIGILL, when not raised
+ * artificially, inherently leave the process in a
+ * state from which it is not safe to try and enter JS
+ * listeners.
+ */
+const signals = [];
+signals.push('SIGHUP', 'SIGINT', 'SIGTERM');
+if (process.platform !== 'win32') {
+    signals.push('SIGALRM', 'SIGABRT', 'SIGVTALRM', 'SIGXCPU', 'SIGXFSZ', 'SIGUSR2', 'SIGTRAP', 'SIGSYS', 'SIGQUIT', 'SIGIOT'
+    // should detect profiler and enable/disable accordingly.
+    // see #21
+    // 'SIGPROF'
+    );
+}
+if (process.platform === 'linux') {
+    signals.push('SIGIO', 'SIGPOLL', 'SIGPWR', 'SIGSTKFLT');
+}
+//# sourceMappingURL=signals.js.map
+;// CONCATENATED MODULE: ./node_modules/signal-exit/dist/mjs/index.js
+// Note: since nyc uses this module to output coverage, any lines
+// that are in the direct sync flow of nyc's outputCoverage are
+// ignored, since we can never get coverage for them.
+// grab a reference to node's real process object right away
+
+
+const processOk = (process) => !!process &&
+    typeof process === 'object' &&
+    typeof process.removeListener === 'function' &&
+    typeof process.emit === 'function' &&
+    typeof process.reallyExit === 'function' &&
+    typeof process.listeners === 'function' &&
+    typeof process.kill === 'function' &&
+    typeof process.pid === 'number' &&
+    typeof process.on === 'function';
+const kExitEmitter = Symbol.for('signal-exit emitter');
+const global = globalThis;
+const ObjectDefineProperty = Object.defineProperty.bind(Object);
+// teeny special purpose ee
+class Emitter {
+    emitted = {
+        afterExit: false,
+        exit: false,
+    };
+    listeners = {
+        afterExit: [],
+        exit: [],
+    };
+    count = 0;
+    id = Math.random();
+    constructor() {
+        if (global[kExitEmitter]) {
+            return global[kExitEmitter];
+        }
+        ObjectDefineProperty(global, kExitEmitter, {
+            value: this,
+            writable: false,
+            enumerable: false,
+            configurable: false,
+        });
+    }
+    on(ev, fn) {
+        this.listeners[ev].push(fn);
+    }
+    removeListener(ev, fn) {
+        const list = this.listeners[ev];
+        const i = list.indexOf(fn);
+        /* c8 ignore start */
+        if (i === -1) {
+            return;
+        }
+        /* c8 ignore stop */
+        if (i === 0 && list.length === 1) {
+            list.length = 0;
+        }
+        else {
+            list.splice(i, 1);
+        }
+    }
+    emit(ev, code, signal) {
+        if (this.emitted[ev]) {
+            return false;
+        }
+        this.emitted[ev] = true;
+        let ret = false;
+        for (const fn of this.listeners[ev]) {
+            ret = fn(code, signal) === true || ret;
+        }
+        if (ev === 'exit') {
+            ret = this.emit('afterExit', code, signal) || ret;
+        }
+        return ret;
+    }
+}
+class SignalExitBase {
+}
+const signalExitWrap = (handler) => {
+    return {
+        onExit(cb, opts) {
+            return handler.onExit(cb, opts);
+        },
+        load() {
+            return handler.load();
+        },
+        unload() {
+            return handler.unload();
+        },
+    };
+};
+class SignalExitFallback extends SignalExitBase {
+    onExit() {
+        return () => { };
+    }
+    load() { }
+    unload() { }
+}
+class SignalExit extends SignalExitBase {
+    // "SIGHUP" throws an `ENOSYS` error on Windows,
+    // so use a supported signal instead
+    /* c8 ignore start */
+    #hupSig = mjs_process.platform === 'win32' ? 'SIGINT' : 'SIGHUP';
+    /* c8 ignore stop */
+    #emitter = new Emitter();
+    #process;
+    #originalProcessEmit;
+    #originalProcessReallyExit;
+    #sigListeners = {};
+    #loaded = false;
+    constructor(process) {
+        super();
+        this.#process = process;
+        // { <signal>: <listener fn>, ... }
+        this.#sigListeners = {};
+        for (const sig of signals) {
+            this.#sigListeners[sig] = () => {
+                // If there are no other listeners, an exit is coming!
+                // Simplest way: remove us and then re-send the signal.
+                // We know that this will kill the process, so we can
+                // safely emit now.
+                const listeners = this.#process.listeners(sig);
+                let { count } = this.#emitter;
+                // This is a workaround for the fact that signal-exit v3 and signal
+                // exit v4 are not aware of each other, and each will attempt to let
+                // the other handle it, so neither of them do. To correct this, we
+                // detect if we're the only handler *except* for previous versions
+                // of signal-exit, and increment by the count of listeners it has
+                // created.
+                /* c8 ignore start */
+                const p = process;
+                if (typeof p.__signal_exit_emitter__ === 'object' &&
+                    typeof p.__signal_exit_emitter__.count === 'number') {
+                    count += p.__signal_exit_emitter__.count;
+                }
+                /* c8 ignore stop */
+                if (listeners.length === count) {
+                    this.unload();
+                    const ret = this.#emitter.emit('exit', null, sig);
+                    /* c8 ignore start */
+                    const s = sig === 'SIGHUP' ? this.#hupSig : sig;
+                    if (!ret)
+                        process.kill(process.pid, s);
+                    /* c8 ignore stop */
+                }
+            };
+        }
+        this.#originalProcessReallyExit = process.reallyExit;
+        this.#originalProcessEmit = process.emit;
+    }
+    onExit(cb, opts) {
+        /* c8 ignore start */
+        if (!processOk(this.#process)) {
+            return () => { };
+        }
+        /* c8 ignore stop */
+        if (this.#loaded === false) {
+            this.load();
+        }
+        const ev = opts?.alwaysLast ? 'afterExit' : 'exit';
+        this.#emitter.on(ev, cb);
+        return () => {
+            this.#emitter.removeListener(ev, cb);
+            if (this.#emitter.listeners['exit'].length === 0 &&
+                this.#emitter.listeners['afterExit'].length === 0) {
+                this.unload();
+            }
+        };
+    }
+    load() {
+        if (this.#loaded) {
+            return;
+        }
+        this.#loaded = true;
+        // This is the number of onSignalExit's that are in play.
+        // It's important so that we can count the correct number of
+        // listeners on signals, and don't wait for the other one to
+        // handle it instead of us.
+        this.#emitter.count += 1;
+        for (const sig of signals) {
+            try {
+                const fn = this.#sigListeners[sig];
+                if (fn)
+                    this.#process.on(sig, fn);
+            }
+            catch (_) { }
+        }
+        this.#process.emit = (ev, ...a) => {
+            return this.#processEmit(ev, ...a);
+        };
+        this.#process.reallyExit = (code) => {
+            return this.#processReallyExit(code);
+        };
+    }
+    unload() {
+        if (!this.#loaded) {
+            return;
+        }
+        this.#loaded = false;
+        signals.forEach(sig => {
+            const listener = this.#sigListeners[sig];
+            /* c8 ignore start */
+            if (!listener) {
+                throw new Error('Listener not defined for signal: ' + sig);
+            }
+            /* c8 ignore stop */
+            try {
+                this.#process.removeListener(sig, listener);
+                /* c8 ignore start */
+            }
+            catch (_) { }
+            /* c8 ignore stop */
+        });
+        this.#process.emit = this.#originalProcessEmit;
+        this.#process.reallyExit = this.#originalProcessReallyExit;
+        this.#emitter.count -= 1;
+    }
+    #processReallyExit(code) {
+        /* c8 ignore start */
+        if (!processOk(this.#process)) {
+            return 0;
+        }
+        this.#process.exitCode = code || 0;
+        /* c8 ignore stop */
+        this.#emitter.emit('exit', this.#process.exitCode, null);
+        return this.#originalProcessReallyExit.call(this.#process, this.#process.exitCode);
+    }
+    #processEmit(ev, ...args) {
+        const og = this.#originalProcessEmit;
+        if (ev === 'exit' && processOk(this.#process)) {
+            if (typeof args[0] === 'number') {
+                this.#process.exitCode = args[0];
+                /* c8 ignore start */
+            }
+            /* c8 ignore start */
+            const ret = og.call(this.#process, ev, ...args);
+            /* c8 ignore start */
+            this.#emitter.emit('exit', this.#process.exitCode, null);
+            /* c8 ignore stop */
+            return ret;
+        }
+        else {
+            return og.call(this.#process, ev, ...args);
+        }
+    }
+}
+const mjs_process = globalThis.process;
+// wrap so that we call the method on the actual handler, without
+// exporting it directly.
+const { 
+/**
+ * Called when the process is exiting, whether via signal, explicit
+ * exit, or running out of stuff to do.
+ *
+ * If the global process object is not suitable for instrumentation,
+ * then this will be a no-op.
+ *
+ * Returns a function that may be used to unload signal-exit.
+ */
+onExit, 
+/**
+ * Load the listeners.  Likely you never need to call this, unless
+ * doing a rather deep integration with signal-exit functionality.
+ * Mostly exposed for the benefit of testing.
+ *
+ * @internal
+ */
+load, 
+/**
+ * Unload the listeners.  Likely you never need to call this, unless
+ * doing a rather deep integration with signal-exit functionality.
+ * Mostly exposed for the benefit of testing.
+ *
+ * @internal
+ */
+unload, } = signalExitWrap(processOk(mjs_process) ? new SignalExit(mjs_process) : new SignalExitFallback());
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/execa/lib/kill.js
+
+
+
+const DEFAULT_FORCE_KILL_TIMEOUT = 1000 * 5;
+
+// Monkey-patches `childProcess.kill()` to add `forceKillAfterTimeout` behavior
+const spawnedKill = (kill, signal = 'SIGTERM', options = {}) => {
+	const killResult = kill(signal);
+	setKillTimeout(kill, signal, options, killResult);
+	return killResult;
+};
+
+const setKillTimeout = (kill, signal, options, killResult) => {
+	if (!shouldForceKill(signal, options, killResult)) {
+		return;
+	}
+
+	const timeout = getForceKillAfterTimeout(options);
+	const t = setTimeout(() => {
+		kill('SIGKILL');
+	}, timeout);
+
+	// Guarded because there's no `.unref()` when `execa` is used in the renderer
+	// process in Electron. This cannot be tested since we don't run tests in
+	// Electron.
+	// istanbul ignore else
+	if (t.unref) {
+		t.unref();
+	}
+};
+
+const shouldForceKill = (signal, {forceKillAfterTimeout}, killResult) => isSigterm(signal) && forceKillAfterTimeout !== false && killResult;
+
+const isSigterm = signal => signal === external_node_os_namespaceObject.constants.signals.SIGTERM
+		|| (typeof signal === 'string' && signal.toUpperCase() === 'SIGTERM');
+
+const getForceKillAfterTimeout = ({forceKillAfterTimeout = true}) => {
+	if (forceKillAfterTimeout === true) {
+		return DEFAULT_FORCE_KILL_TIMEOUT;
+	}
+
+	if (!Number.isFinite(forceKillAfterTimeout) || forceKillAfterTimeout < 0) {
+		throw new TypeError(`Expected the \`forceKillAfterTimeout\` option to be a non-negative integer, got \`${forceKillAfterTimeout}\` (${typeof forceKillAfterTimeout})`);
+	}
+
+	return forceKillAfterTimeout;
+};
+
+// `childProcess.cancel()`
+const spawnedCancel = (spawned, context) => {
+	const killResult = spawned.kill();
+
+	if (killResult) {
+		context.isCanceled = true;
+	}
+};
+
+const timeoutKill = (spawned, signal, reject) => {
+	spawned.kill(signal);
+	reject(Object.assign(new Error('Timed out'), {timedOut: true, signal}));
+};
+
+// `timeout` option handling
+const setupTimeout = (spawned, {timeout, killSignal = 'SIGTERM'}, spawnedPromise) => {
+	if (timeout === 0 || timeout === undefined) {
+		return spawnedPromise;
+	}
+
+	let timeoutId;
+	const timeoutPromise = new Promise((resolve, reject) => {
+		timeoutId = setTimeout(() => {
+			timeoutKill(spawned, killSignal, reject);
+		}, timeout);
+	});
+
+	const safeSpawnedPromise = spawnedPromise.finally(() => {
+		clearTimeout(timeoutId);
+	});
+
+	return Promise.race([timeoutPromise, safeSpawnedPromise]);
+};
+
+const validateTimeout = ({timeout}) => {
+	if (timeout !== undefined && (!Number.isFinite(timeout) || timeout < 0)) {
+		throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
+	}
+};
+
+// `cleanup` option handling
+const setExitHandler = async (spawned, {cleanup, detached}, timedPromise) => {
+	if (!cleanup || detached) {
+		return timedPromise;
+	}
+
+	const removeExitHandler = onExit(() => {
+		spawned.kill();
+	});
+
+	return timedPromise.finally(() => {
+		removeExitHandler();
+	});
+};
+
+;// CONCATENATED MODULE: external "node:fs"
+const external_node_fs_namespaceObject = require("node:fs");
+;// CONCATENATED MODULE: ./node_modules/is-stream/index.js
+function isStream(stream) {
+	return stream !== null
+		&& typeof stream === 'object'
+		&& typeof stream.pipe === 'function';
+}
+
+function isWritableStream(stream) {
+	return isStream(stream)
+		&& stream.writable !== false
+		&& typeof stream._write === 'function'
+		&& typeof stream._writableState === 'object';
+}
+
+function isReadableStream(stream) {
+	return isStream(stream)
+		&& stream.readable !== false
+		&& typeof stream._read === 'function'
+		&& typeof stream._readableState === 'object';
+}
+
+function isDuplexStream(stream) {
+	return isWritableStream(stream)
+		&& isReadableStream(stream);
+}
+
+function isTransformStream(stream) {
+	return isDuplexStream(stream)
+		&& typeof stream._transform === 'function';
+}
+
+;// CONCATENATED MODULE: ./node_modules/execa/lib/pipe.js
+
+
+
+
+const isExecaChildProcess = target => target instanceof external_node_child_process_namespaceObject.ChildProcess && typeof target.then === 'function';
+
+const pipeToTarget = (spawned, streamName, target) => {
+	if (typeof target === 'string') {
+		spawned[streamName].pipe((0,external_node_fs_namespaceObject.createWriteStream)(target));
+		return spawned;
+	}
+
+	if (isWritableStream(target)) {
+		spawned[streamName].pipe(target);
+		return spawned;
+	}
+
+	if (!isExecaChildProcess(target)) {
+		throw new TypeError('The second argument must be a string, a stream or an Execa child process.');
+	}
+
+	if (!isWritableStream(target.stdin)) {
+		throw new TypeError('The target child process\'s stdin must be available.');
+	}
+
+	spawned[streamName].pipe(target.stdin);
+	return target;
+};
+
+const addPipeMethods = spawned => {
+	if (spawned.stdout !== null) {
+		spawned.pipeStdout = pipeToTarget.bind(undefined, spawned, 'stdout');
+	}
+
+	if (spawned.stderr !== null) {
+		spawned.pipeStderr = pipeToTarget.bind(undefined, spawned, 'stderr');
+	}
+
+	if (spawned.all !== undefined) {
+		spawned.pipeAll = pipeToTarget.bind(undefined, spawned, 'all');
+	}
+};
+
+;// CONCATENATED MODULE: external "node:timers/promises"
+const promises_namespaceObject = require("node:timers/promises");
+;// CONCATENATED MODULE: ./node_modules/get-stream/source/contents.js
+const contents_getStreamContents = async (stream, {init, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, finalize}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
+	if (!isAsyncIterable(stream)) {
+		throw new Error('The first argument must be a Readable, a ReadableStream, or an async iterable.');
+	}
+
+	const state = init();
+	state.length = 0;
+
+	try {
+		for await (const chunk of stream) {
+			const chunkType = getChunkType(chunk);
+			const convertedChunk = convertChunk[chunkType](chunk, state);
+			appendChunk({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer});
+		}
+
+		appendFinalChunk({state, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, maxBuffer});
+		return finalize(state);
+	} catch (error) {
+		error.bufferedData = finalize(state);
+		throw error;
+	}
+};
+
+const appendFinalChunk = ({state, getSize, truncateChunk, addChunk, getFinalChunk, maxBuffer}) => {
+	const convertedChunk = getFinalChunk(state);
+	if (convertedChunk !== undefined) {
+		appendChunk({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer});
+	}
+};
+
+const appendChunk = ({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer}) => {
+	const chunkSize = getSize(convertedChunk);
+	const newLength = state.length + chunkSize;
+
+	if (newLength <= maxBuffer) {
+		addNewChunk(convertedChunk, state, addChunk, newLength);
+		return;
+	}
+
+	const truncatedChunk = truncateChunk(convertedChunk, maxBuffer - state.length);
+
+	if (truncatedChunk !== undefined) {
+		addNewChunk(truncatedChunk, state, addChunk, maxBuffer);
+	}
+
+	throw new MaxBufferError();
+};
+
+const addNewChunk = (convertedChunk, state, addChunk, newLength) => {
+	state.contents = addChunk(convertedChunk, state, newLength);
+	state.length = newLength;
+};
+
+const isAsyncIterable = stream => typeof stream === 'object' && stream !== null && typeof stream[Symbol.asyncIterator] === 'function';
+
+const getChunkType = chunk => {
+	const typeOfChunk = typeof chunk;
+
+	if (typeOfChunk === 'string') {
+		return 'string';
+	}
+
+	if (typeOfChunk !== 'object' || chunk === null) {
+		return 'others';
+	}
+
+	// eslint-disable-next-line n/prefer-global/buffer
+	if (globalThis.Buffer?.isBuffer(chunk)) {
+		return 'buffer';
+	}
+
+	const prototypeName = objectToString.call(chunk);
+
+	if (prototypeName === '[object ArrayBuffer]') {
+		return 'arrayBuffer';
+	}
+
+	if (prototypeName === '[object DataView]') {
+		return 'dataView';
+	}
+
+	if (
+		Number.isInteger(chunk.byteLength)
+		&& Number.isInteger(chunk.byteOffset)
+		&& objectToString.call(chunk.buffer) === '[object ArrayBuffer]'
+	) {
+		return 'typedArray';
+	}
+
+	return 'others';
+};
+
+const {toString: objectToString} = Object.prototype;
+
+class MaxBufferError extends Error {
+	name = 'MaxBufferError';
+
+	constructor() {
+		super('maxBuffer exceeded');
+	}
+}
+
+;// CONCATENATED MODULE: ./node_modules/get-stream/source/utils.js
+const identity = value => value;
+
+const noop = () => undefined;
+
+const getContentsProp = ({contents}) => contents;
+
+const throwObjectStream = chunk => {
+	throw new Error(`Streams in object mode are not supported: ${String(chunk)}`);
+};
+
+const getLengthProp = convertedChunk => convertedChunk.length;
+
+;// CONCATENATED MODULE: ./node_modules/get-stream/source/array.js
+
+
+
+async function getStreamAsArray(stream, options) {
+	return getStreamContents(stream, arrayMethods, options);
+}
+
+const initArray = () => ({contents: []});
+
+const increment = () => 1;
+
+const addArrayChunk = (convertedChunk, {contents}) => {
+	contents.push(convertedChunk);
+	return contents;
+};
+
+const arrayMethods = {
+	init: initArray,
+	convertChunk: {
+		string: identity,
+		buffer: identity,
+		arrayBuffer: identity,
+		dataView: identity,
+		typedArray: identity,
+		others: identity,
+	},
+	getSize: increment,
+	truncateChunk: noop,
+	addChunk: addArrayChunk,
+	getFinalChunk: noop,
+	finalize: getContentsProp,
+};
+
+;// CONCATENATED MODULE: ./node_modules/get-stream/source/array-buffer.js
+
+
+
+async function getStreamAsArrayBuffer(stream, options) {
+	return contents_getStreamContents(stream, arrayBufferMethods, options);
+}
+
+const initArrayBuffer = () => ({contents: new ArrayBuffer(0)});
+
+const useTextEncoder = chunk => textEncoder.encode(chunk);
+const textEncoder = new TextEncoder();
+
+const useUint8Array = chunk => new Uint8Array(chunk);
+
+const useUint8ArrayWithOffset = chunk => new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+
+const truncateArrayBufferChunk = (convertedChunk, chunkSize) => convertedChunk.slice(0, chunkSize);
+
+// `contents` is an increasingly growing `Uint8Array`.
+const addArrayBufferChunk = (convertedChunk, {contents, length: previousLength}, length) => {
+	const newContents = hasArrayBufferResize() ? resizeArrayBuffer(contents, length) : resizeArrayBufferSlow(contents, length);
+	new Uint8Array(newContents).set(convertedChunk, previousLength);
+	return newContents;
+};
+
+// Without `ArrayBuffer.resize()`, `contents` size is always a power of 2.
+// This means its last bytes are zeroes (not stream data), which need to be
+// trimmed at the end with `ArrayBuffer.slice()`.
+const resizeArrayBufferSlow = (contents, length) => {
+	if (length <= contents.byteLength) {
+		return contents;
+	}
+
+	const arrayBuffer = new ArrayBuffer(getNewContentsLength(length));
+	new Uint8Array(arrayBuffer).set(new Uint8Array(contents), 0);
+	return arrayBuffer;
+};
+
+// With `ArrayBuffer.resize()`, `contents` size matches exactly the size of
+// the stream data. It does not include extraneous zeroes to trim at the end.
+// The underlying `ArrayBuffer` does allocate a number of bytes that is a power
+// of 2, but those bytes are only visible after calling `ArrayBuffer.resize()`.
+const resizeArrayBuffer = (contents, length) => {
+	if (length <= contents.maxByteLength) {
+		contents.resize(length);
+		return contents;
+	}
+
+	const arrayBuffer = new ArrayBuffer(length, {maxByteLength: getNewContentsLength(length)});
+	new Uint8Array(arrayBuffer).set(new Uint8Array(contents), 0);
+	return arrayBuffer;
+};
+
+// Retrieve the closest `length` that is both >= and a power of 2
+const getNewContentsLength = length => SCALE_FACTOR ** Math.ceil(Math.log(length) / Math.log(SCALE_FACTOR));
+
+const SCALE_FACTOR = 2;
+
+const finalizeArrayBuffer = ({contents, length}) => hasArrayBufferResize() ? contents : contents.slice(0, length);
+
+// `ArrayBuffer.slice()` is slow. When `ArrayBuffer.resize()` is available
+// (Node >=20.0.0, Safari >=16.4 and Chrome), we can use it instead.
+// eslint-disable-next-line no-warning-comments
+// TODO: remove after dropping support for Node 20.
+// eslint-disable-next-line no-warning-comments
+// TODO: use `ArrayBuffer.transferToFixedLength()` instead once it is available
+const hasArrayBufferResize = () => 'resize' in ArrayBuffer.prototype;
+
+const arrayBufferMethods = {
+	init: initArrayBuffer,
+	convertChunk: {
+		string: useTextEncoder,
+		buffer: useUint8Array,
+		arrayBuffer: useUint8Array,
+		dataView: useUint8ArrayWithOffset,
+		typedArray: useUint8ArrayWithOffset,
+		others: throwObjectStream,
+	},
+	getSize: getLengthProp,
+	truncateChunk: truncateArrayBufferChunk,
+	addChunk: addArrayBufferChunk,
+	getFinalChunk: noop,
+	finalize: finalizeArrayBuffer,
+};
+
+;// CONCATENATED MODULE: ./node_modules/get-stream/source/buffer.js
+
+
+async function getStreamAsBuffer(stream, options) {
+	if (!('Buffer' in globalThis)) {
+		throw new Error('getStreamAsBuffer() is only supported in Node.js');
+	}
+
+	try {
+		return arrayBufferToNodeBuffer(await getStreamAsArrayBuffer(stream, options));
+	} catch (error) {
+		if (error.bufferedData !== undefined) {
+			error.bufferedData = arrayBufferToNodeBuffer(error.bufferedData);
+		}
+
+		throw error;
+	}
+}
+
+// eslint-disable-next-line n/prefer-global/buffer
+const arrayBufferToNodeBuffer = arrayBuffer => globalThis.Buffer.from(arrayBuffer);
+
+;// CONCATENATED MODULE: ./node_modules/get-stream/source/string.js
+
+
+
+async function getStreamAsString(stream, options) {
+	return contents_getStreamContents(stream, stringMethods, options);
+}
+
+const initString = () => ({contents: '', textDecoder: new TextDecoder()});
+
+const useTextDecoder = (chunk, {textDecoder}) => textDecoder.decode(chunk, {stream: true});
+
+const addStringChunk = (convertedChunk, {contents}) => contents + convertedChunk;
+
+const truncateStringChunk = (convertedChunk, chunkSize) => convertedChunk.slice(0, chunkSize);
+
+const getFinalStringChunk = ({textDecoder}) => {
+	const finalChunk = textDecoder.decode();
+	return finalChunk === '' ? undefined : finalChunk;
+};
+
+const stringMethods = {
+	init: initString,
+	convertChunk: {
+		string: identity,
+		buffer: useTextDecoder,
+		arrayBuffer: useTextDecoder,
+		dataView: useTextDecoder,
+		typedArray: useTextDecoder,
+		others: throwObjectStream,
+	},
+	getSize: getLengthProp,
+	truncateChunk: truncateStringChunk,
+	addChunk: addStringChunk,
+	getFinalChunk: getFinalStringChunk,
+	finalize: getContentsProp,
+};
+
+;// CONCATENATED MODULE: ./node_modules/get-stream/source/index.js
+
+
+
+
+
+
+// EXTERNAL MODULE: ./node_modules/merge-stream/index.js
+var merge_stream = __nccwpck_require__(2621);
+;// CONCATENATED MODULE: ./node_modules/execa/lib/stream.js
+
+
+
+
+
+
+const validateInputOptions = input => {
+	if (input !== undefined) {
+		throw new TypeError('The `input` and `inputFile` options cannot be both set.');
+	}
+};
+
+const getInputSync = ({input, inputFile}) => {
+	if (typeof inputFile !== 'string') {
+		return input;
+	}
+
+	validateInputOptions(input);
+	return (0,external_node_fs_namespaceObject.readFileSync)(inputFile);
+};
+
+// `input` and `inputFile` option in sync mode
+const handleInputSync = options => {
+	const input = getInputSync(options);
+
+	if (isStream(input)) {
+		throw new TypeError('The `input` option cannot be a stream in sync mode');
+	}
+
+	return input;
+};
+
+const getInput = ({input, inputFile}) => {
+	if (typeof inputFile !== 'string') {
+		return input;
+	}
+
+	validateInputOptions(input);
+	return (0,external_node_fs_namespaceObject.createReadStream)(inputFile);
+};
+
+// `input` and `inputFile` option in async mode
+const handleInput = (spawned, options) => {
+	const input = getInput(options);
+
+	if (input === undefined) {
+		return;
+	}
+
+	if (isStream(input)) {
+		input.pipe(spawned.stdin);
+	} else {
+		spawned.stdin.end(input);
+	}
+};
+
+// `all` interleaves `stdout` and `stderr`
+const makeAllStream = (spawned, {all}) => {
+	if (!all || (!spawned.stdout && !spawned.stderr)) {
+		return;
+	}
+
+	const mixed = merge_stream();
+
+	if (spawned.stdout) {
+		mixed.add(spawned.stdout);
+	}
+
+	if (spawned.stderr) {
+		mixed.add(spawned.stderr);
+	}
+
+	return mixed;
+};
+
+// On failure, `result.stdout|stderr|all` should contain the currently buffered stream
+const getBufferedData = async (stream, streamPromise) => {
+	// When `buffer` is `false`, `streamPromise` is `undefined` and there is no buffered data to retrieve
+	if (!stream || streamPromise === undefined) {
+		return;
+	}
+
+	// Wait for the `all` stream to receive the last chunk before destroying the stream
+	await (0,promises_namespaceObject.setTimeout)(0);
+
+	stream.destroy();
+
+	try {
+		return await streamPromise;
+	} catch (error) {
+		return error.bufferedData;
+	}
+};
+
+const getStreamPromise = (stream, {encoding, buffer, maxBuffer}) => {
+	if (!stream || !buffer) {
+		return;
+	}
+
+	// eslint-disable-next-line unicorn/text-encoding-identifier-case
+	if (encoding === 'utf8' || encoding === 'utf-8') {
+		return getStreamAsString(stream, {maxBuffer});
+	}
+
+	if (encoding === null || encoding === 'buffer') {
+		return getStreamAsBuffer(stream, {maxBuffer});
+	}
+
+	return applyEncoding(stream, maxBuffer, encoding);
+};
+
+const applyEncoding = async (stream, maxBuffer, encoding) => {
+	const buffer = await getStreamAsBuffer(stream, {maxBuffer});
+	return buffer.toString(encoding);
+};
+
+// Retrieve result of child process: exit code, signal, error, streams (stdout/stderr/all)
+const getSpawnedResult = async ({stdout, stderr, all}, {encoding, buffer, maxBuffer}, processDone) => {
+	const stdoutPromise = getStreamPromise(stdout, {encoding, buffer, maxBuffer});
+	const stderrPromise = getStreamPromise(stderr, {encoding, buffer, maxBuffer});
+	const allPromise = getStreamPromise(all, {encoding, buffer, maxBuffer: maxBuffer * 2});
+
+	try {
+		return await Promise.all([processDone, stdoutPromise, stderrPromise, allPromise]);
+	} catch (error) {
+		return Promise.all([
+			{error, signal: error.signal, timedOut: error.timedOut},
+			getBufferedData(stdout, stdoutPromise),
+			getBufferedData(stderr, stderrPromise),
+			getBufferedData(all, allPromise),
+		]);
+	}
+};
+
+;// CONCATENATED MODULE: ./node_modules/execa/lib/promise.js
+// eslint-disable-next-line unicorn/prefer-top-level-await
+const nativePromisePrototype = (async () => {})().constructor.prototype;
+
+const descriptors = ['then', 'catch', 'finally'].map(property => [
+	property,
+	Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property),
+]);
+
+// The return value is a mixin of `childProcess` and `Promise`
+const mergePromise = (spawned, promise) => {
+	for (const [property, descriptor] of descriptors) {
+		// Starting the main `promise` is deferred to avoid consuming streams
+		const value = typeof promise === 'function'
+			? (...args) => Reflect.apply(descriptor.value, promise(), args)
+			: descriptor.value.bind(promise);
+
+		Reflect.defineProperty(spawned, property, {...descriptor, value});
+	}
+};
+
+// Use promises instead of `child_process` events
+const getSpawnedPromise = spawned => new Promise((resolve, reject) => {
+	spawned.on('exit', (exitCode, signal) => {
+		resolve({exitCode, signal});
+	});
+
+	spawned.on('error', error => {
+		reject(error);
+	});
+
+	if (spawned.stdin) {
+		spawned.stdin.on('error', error => {
+			reject(error);
+		});
+	}
+});
+
+;// CONCATENATED MODULE: ./node_modules/execa/lib/command.js
+
+
+
+const normalizeArgs = (file, args = []) => {
+	if (!Array.isArray(args)) {
+		return [file];
+	}
+
+	return [file, ...args];
+};
+
+const NO_ESCAPE_REGEXP = /^[\w.-]+$/;
+
+const escapeArg = arg => {
+	if (typeof arg !== 'string' || NO_ESCAPE_REGEXP.test(arg)) {
+		return arg;
+	}
+
+	return `"${arg.replaceAll('"', '\\"')}"`;
+};
+
+const joinCommand = (file, args) => normalizeArgs(file, args).join(' ');
+
+const getEscapedCommand = (file, args) => normalizeArgs(file, args).map(arg => escapeArg(arg)).join(' ');
+
+const SPACES_REGEXP = / +/g;
+
+// Handle `execaCommand()`
+const command_parseCommand = command => {
+	const tokens = [];
+	for (const token of command.trim().split(SPACES_REGEXP)) {
+		// Allow spaces to be escaped by a backslash if not meant as a delimiter
+		const previousToken = tokens.at(-1);
+		if (previousToken && previousToken.endsWith('\\')) {
+			// Merge previous token with current one
+			tokens[tokens.length - 1] = `${previousToken.slice(0, -1)} ${token}`;
+		} else {
+			tokens.push(token);
+		}
+	}
+
+	return tokens;
+};
+
+const parseExpression = expression => {
+	const typeOfExpression = typeof expression;
+
+	if (typeOfExpression === 'string') {
+		return expression;
+	}
+
+	if (typeOfExpression === 'number') {
+		return String(expression);
+	}
+
+	if (
+		typeOfExpression === 'object'
+		&& expression !== null
+		&& !(expression instanceof external_node_child_process_namespaceObject.ChildProcess)
+		&& 'stdout' in expression
+	) {
+		const typeOfStdout = typeof expression.stdout;
+
+		if (typeOfStdout === 'string') {
+			return expression.stdout;
+		}
+
+		if (external_node_buffer_namespaceObject.Buffer.isBuffer(expression.stdout)) {
+			return expression.stdout.toString();
+		}
+
+		throw new TypeError(`Unexpected "${typeOfStdout}" stdout in template expression`);
+	}
+
+	throw new TypeError(`Unexpected "${typeOfExpression}" in template expression`);
+};
+
+const concatTokens = (tokens, nextTokens, isNew) => isNew || tokens.length === 0 || nextTokens.length === 0
+	? [...tokens, ...nextTokens]
+	: [
+		...tokens.slice(0, -1),
+		`${tokens.at(-1)}${nextTokens[0]}`,
+		...nextTokens.slice(1),
+	];
+
+const parseTemplate = ({templates, expressions, tokens, index, template}) => {
+	const templateString = template ?? templates.raw[index];
+	const templateTokens = templateString.split(SPACES_REGEXP).filter(Boolean);
+	const newTokens = concatTokens(
+		tokens,
+		templateTokens,
+		templateString.startsWith(' '),
+	);
+
+	if (index === expressions.length) {
+		return newTokens;
+	}
+
+	const expression = expressions[index];
+	const expressionTokens = Array.isArray(expression)
+		? expression.map(expression => parseExpression(expression))
+		: [parseExpression(expression)];
+	return concatTokens(
+		newTokens,
+		expressionTokens,
+		templateString.endsWith(' '),
+	);
+};
+
+const parseTemplates = (templates, expressions) => {
+	let tokens = [];
+
+	for (const [index, template] of templates.entries()) {
+		tokens = parseTemplate({templates, expressions, tokens, index, template});
+	}
+
+	return tokens;
+};
+
+
+// EXTERNAL MODULE: external "node:util"
+var external_node_util_ = __nccwpck_require__(7261);
+;// CONCATENATED MODULE: ./node_modules/execa/lib/verbose.js
+
+
+
+const verboseDefault = (0,external_node_util_.debuglog)('execa').enabled;
+
+const padField = (field, padding) => String(field).padStart(padding, '0');
+
+const getTimestamp = () => {
+	const date = new Date();
+	return `${padField(date.getHours(), 2)}:${padField(date.getMinutes(), 2)}:${padField(date.getSeconds(), 2)}.${padField(date.getMilliseconds(), 3)}`;
+};
+
+const logCommand = (escapedCommand, {verbose}) => {
+	if (!verbose) {
+		return;
+	}
+
+	external_node_process_namespaceObject.stderr.write(`[${getTimestamp()}] ${escapedCommand}\n`);
+};
+
+;// CONCATENATED MODULE: ./node_modules/execa/index.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const DEFAULT_MAX_BUFFER = 1000 * 1000 * 100;
+
+const getEnv = ({env: envOption, extendEnv, preferLocal, localDir, execPath}) => {
+	const env = extendEnv ? {...external_node_process_namespaceObject.env, ...envOption} : envOption;
+
+	if (preferLocal) {
+		return npmRunPathEnv({env, cwd: localDir, execPath});
+	}
+
+	return env;
+};
+
+const handleArguments = (file, args, options = {}) => {
+	const parsed = cross_spawn._parse(file, args, options);
+	file = parsed.command;
+	args = parsed.args;
+	options = parsed.options;
+
+	options = {
+		maxBuffer: DEFAULT_MAX_BUFFER,
+		buffer: true,
+		stripFinalNewline: true,
+		extendEnv: true,
+		preferLocal: false,
+		localDir: options.cwd || external_node_process_namespaceObject.cwd(),
+		execPath: external_node_process_namespaceObject.execPath,
+		encoding: 'utf8',
+		reject: true,
+		cleanup: true,
+		all: false,
+		windowsHide: true,
+		verbose: verboseDefault,
+		...options,
+	};
+
+	options.env = getEnv(options);
+
+	options.stdio = normalizeStdio(options);
+
+	if (external_node_process_namespaceObject.platform === 'win32' && external_node_path_namespaceObject.basename(file, '.exe') === 'cmd') {
+		// #116
+		args.unshift('/q');
+	}
+
+	return {file, args, options, parsed};
+};
+
+const handleOutput = (options, value, error) => {
+	if (typeof value !== 'string' && !external_node_buffer_namespaceObject.Buffer.isBuffer(value)) {
+		// When `execaSync()` errors, we normalize it to '' to mimic `execa()`
+		return error === undefined ? undefined : '';
+	}
+
+	if (options.stripFinalNewline) {
+		return stripFinalNewline(value);
+	}
+
+	return value;
+};
+
+function execa(file, args, options) {
+	const parsed = handleArguments(file, args, options);
+	const command = joinCommand(file, args);
+	const escapedCommand = getEscapedCommand(file, args);
+	logCommand(escapedCommand, parsed.options);
+
+	validateTimeout(parsed.options);
+
+	let spawned;
+	try {
+		spawned = external_node_child_process_namespaceObject.spawn(parsed.file, parsed.args, parsed.options);
+	} catch (error) {
+		// Ensure the returned error is always both a promise and a child process
+		const dummySpawned = new external_node_child_process_namespaceObject.ChildProcess();
+		const errorPromise = Promise.reject(makeError({
+			error,
+			stdout: '',
+			stderr: '',
+			all: '',
+			command,
+			escapedCommand,
+			parsed,
+			timedOut: false,
+			isCanceled: false,
+			killed: false,
+		}));
+		mergePromise(dummySpawned, errorPromise);
+		return dummySpawned;
+	}
+
+	const spawnedPromise = getSpawnedPromise(spawned);
+	const timedPromise = setupTimeout(spawned, parsed.options, spawnedPromise);
+	const processDone = setExitHandler(spawned, parsed.options, timedPromise);
+
+	const context = {isCanceled: false};
+
+	spawned.kill = spawnedKill.bind(null, spawned.kill.bind(spawned));
+	spawned.cancel = spawnedCancel.bind(null, spawned, context);
+
+	const handlePromise = async () => {
+		const [{error, exitCode, signal, timedOut}, stdoutResult, stderrResult, allResult] = await getSpawnedResult(spawned, parsed.options, processDone);
+		const stdout = handleOutput(parsed.options, stdoutResult);
+		const stderr = handleOutput(parsed.options, stderrResult);
+		const all = handleOutput(parsed.options, allResult);
+
+		if (error || exitCode !== 0 || signal !== null) {
+			const returnedError = makeError({
+				error,
+				exitCode,
+				signal,
+				stdout,
+				stderr,
+				all,
+				command,
+				escapedCommand,
+				parsed,
+				timedOut,
+				isCanceled: context.isCanceled || (parsed.options.signal ? parsed.options.signal.aborted : false),
+				killed: spawned.killed,
+			});
+
+			if (!parsed.options.reject) {
+				return returnedError;
+			}
+
+			throw returnedError;
+		}
+
+		return {
+			command,
+			escapedCommand,
+			exitCode: 0,
+			stdout,
+			stderr,
+			all,
+			failed: false,
+			timedOut: false,
+			isCanceled: false,
+			killed: false,
+		};
+	};
+
+	const handlePromiseOnce = node_modules_onetime(handlePromise);
+
+	handleInput(spawned, parsed.options);
+
+	spawned.all = makeAllStream(spawned, parsed.options);
+
+	addPipeMethods(spawned);
+	mergePromise(spawned, handlePromiseOnce);
+	return spawned;
+}
+
+function execaSync(file, args, options) {
+	const parsed = handleArguments(file, args, options);
+	const command = joinCommand(file, args);
+	const escapedCommand = getEscapedCommand(file, args);
+	logCommand(escapedCommand, parsed.options);
+
+	const input = handleInputSync(parsed.options);
+
+	let result;
+	try {
+		result = external_node_child_process_namespaceObject.spawnSync(parsed.file, parsed.args, {...parsed.options, input});
+	} catch (error) {
+		throw makeError({
+			error,
+			stdout: '',
+			stderr: '',
+			all: '',
+			command,
+			escapedCommand,
+			parsed,
+			timedOut: false,
+			isCanceled: false,
+			killed: false,
+		});
+	}
+
+	const stdout = handleOutput(parsed.options, result.stdout, result.error);
+	const stderr = handleOutput(parsed.options, result.stderr, result.error);
+
+	if (result.error || result.status !== 0 || result.signal !== null) {
+		const error = makeError({
+			stdout,
+			stderr,
+			error: result.error,
+			signal: result.signal,
+			exitCode: result.status,
+			command,
+			escapedCommand,
+			parsed,
+			timedOut: result.error && result.error.code === 'ETIMEDOUT',
+			isCanceled: false,
+			killed: result.signal !== null,
+		});
+
+		if (!parsed.options.reject) {
+			return error;
+		}
+
+		throw error;
+	}
+
+	return {
+		command,
+		escapedCommand,
+		exitCode: 0,
+		stdout,
+		stderr,
+		failed: false,
+		timedOut: false,
+		isCanceled: false,
+		killed: false,
+	};
+}
+
+const normalizeScriptStdin = ({input, inputFile, stdio}) => input === undefined && inputFile === undefined && stdio === undefined
+	? {stdin: 'inherit'}
+	: {};
+
+const normalizeScriptOptions = (options = {}) => ({
+	preferLocal: true,
+	...normalizeScriptStdin(options),
+	...options,
+});
+
+function create$(options) {
+	function $(templatesOrOptions, ...expressions) {
+		if (!Array.isArray(templatesOrOptions)) {
+			return create$({...options, ...templatesOrOptions});
+		}
+
+		const [file, ...args] = parseTemplates(templatesOrOptions, expressions);
+		return execa(file, args, normalizeScriptOptions(options));
+	}
+
+	$.sync = (templates, ...expressions) => {
+		if (!Array.isArray(templates)) {
+			throw new TypeError('Please use $(options).sync`command` instead of $.sync(options)`command`.');
+		}
+
+		const [file, ...args] = parseTemplates(templates, expressions);
+		return execaSync(file, args, normalizeScriptOptions(options));
+	};
+
+	return $;
+}
+
+const $ = create$();
+
+function execaCommand(command, options) {
+	const [file, ...args] = parseCommand(command);
+	return execa(file, args, options);
+}
+
+function execaCommandSync(command, options) {
+	const [file, ...args] = parseCommand(command);
+	return execaSync(file, args, options);
+}
+
+function execaNode(scriptPath, args, options = {}) {
+	if (args && !Array.isArray(args) && typeof args === 'object') {
+		options = args;
+		args = [];
+	}
+
+	const stdio = normalizeStdioNode(options);
+	const defaultExecArgv = process.execArgv.filter(arg => !arg.startsWith('--inspect'));
+
+	const {
+		nodePath = process.execPath,
+		nodeOptions = defaultExecArgv,
+	} = options;
+
+	return execa(
+		nodePath,
+		[
+			...nodeOptions,
+			scriptPath,
+			...(Array.isArray(args) ? args : []),
+		],
+		{
+			...options,
+			stdin: undefined,
+			stdout: undefined,
+			stderr: undefined,
+			stdio,
+			shell: false,
+		},
+	);
+}
+
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/trailer-exists.js
+
+
+
+const trailerExists = (parsed, when = 'always', value = '') => {
+    const trailers = execaSync('git', ['interpret-trailers', '--parse'], {
+        input: parsed.raw || '',
+    }).stdout;
+    const matches = toLines(trailers).filter((ln) => ln.startsWith(value)).length;
+    const negated = when === 'never';
+    const hasTrailer = matches > 0;
+    return [
+        negated ? !hasTrailer : hasTrailer,
+        message([
+            'message',
+            negated ? 'must not' : 'must',
+            'have `' + value + '` trailer',
+        ]),
+    ];
+};
+//# sourceMappingURL=trailer-exists.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/type-case.js
+
+
+const type_case_negated = (when) => when === 'never';
+const typeCase = (parsed, when = 'always', value = []) => {
+    const { type } = parsed;
+    if (!type) {
+        return [true];
+    }
+    const checks = (Array.isArray(value) ? value : [value]).map((check) => {
+        if (typeof check === 'string') {
+            return {
+                when: 'always',
+                case: check,
+            };
+        }
+        return check;
+    });
+    const result = checks.some((check) => {
+        const r = lib_case(type, check.case);
+        return type_case_negated(check.when) ? !r : r;
+    });
+    const list = checks.map((c) => c.case).join(', ');
+    return [
+        type_case_negated(when) ? !result : result,
+        message([`type must`, type_case_negated(when) ? `not` : null, `be ${list}`]),
+    ];
+};
+//# sourceMappingURL=type-case.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/type-empty.js
+
+
+const typeEmpty = (parsed, when = 'always') => {
+    const negated = when === 'never';
+    const notEmpty = not_empty(parsed.type || '');
+    return [
+        negated ? notEmpty : !notEmpty,
+        message(['type', negated ? 'may not' : 'must', 'be empty']),
+    ];
+};
+//# sourceMappingURL=type-empty.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/type-enum.js
+
+
+const typeEnum = (parsed, when = 'always', value = []) => {
+    const { type: input } = parsed;
+    if (!input) {
+        return [true];
+    }
+    const negated = when === 'never';
+    const result = lib_enum(input, value);
+    return [
+        negated ? !result : result,
+        message([
+            `type must`,
+            negated ? `not` : null,
+            `be one of [${value.join(', ')}]`,
+        ]),
+    ];
+};
+//# sourceMappingURL=type-enum.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/type-max-length.js
+
+const typeMaxLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.type;
+    if (!input) {
+        return [true];
+    }
+    return [
+        max_length(input, value),
+        `type must not be longer than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=type-max-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/type-min-length.js
+
+const typeMinLength = (parsed, _when = undefined, value = 0) => {
+    const input = parsed.type;
+    if (!input) {
+        return [true];
+    }
+    return [
+        min_length(input, value),
+        `type must not be shorter than ${value} characters`,
+    ];
+};
+//# sourceMappingURL=type-min-length.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/index.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* harmony default export */ const rules_lib = ({
+    'body-case': bodyCase,
+    'body-empty': bodyEmpty,
+    'body-full-stop': bodyFullStop,
+    'body-leading-blank': bodyLeadingBlank,
+    'body-max-length': bodyMaxLength,
+    'body-max-line-length': bodyMaxLineLength,
+    'body-min-length': bodyMinLength,
+    'footer-empty': footerEmpty,
+    'footer-leading-blank': footerLeadingBlank,
+    'footer-max-length': footerMaxLength,
+    'footer-max-line-length': footerMaxLineLength,
+    'footer-min-length': footerMinLength,
+    'header-case': headerCase,
+    'header-full-stop': headerFullStop,
+    'header-max-length': headerMaxLength,
+    'header-min-length': headerMinLength,
+    'header-trim': headerTrim,
+    'references-empty': referencesEmpty,
+    'scope-case': scopeCase,
+    'scope-empty': scopeEmpty,
+    'scope-enum': scopeEnum,
+    'scope-max-length': scopeMaxLength,
+    'scope-min-length': scopeMinLength,
+    'signed-off-by': signedOffBy,
+    'subject-case': subjectCase,
+    'subject-empty': subjectEmpty,
+    'subject-full-stop': subjectFullStop,
+    'subject-max-length': subjectMaxLength,
+    'subject-min-length': subjectMinLength,
+    'subject-exclamation-mark': subjectExclamationMark,
+    'trailer-exists': trailerExists,
+    'type-case': typeCase,
+    'type-empty': typeEmpty,
+    'type-enum': typeEnum,
+    'type-max-length': typeMaxLength,
+    'type-min-length': typeMinLength,
+});
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/types/lib/rules.js
+/**
+ * Rules always have a severity.
+ * Severity indicates what to do if the rule is found to be broken
+ * 0 - Disable this rule
+ * 1 - Warn for violations
+ * 2 - Error for violations
+ */
+var RuleConfigSeverity;
+(function (RuleConfigSeverity) {
+    RuleConfigSeverity[RuleConfigSeverity["Disabled"] = 0] = "Disabled";
+    RuleConfigSeverity[RuleConfigSeverity["Warning"] = 1] = "Warning";
+    RuleConfigSeverity[RuleConfigSeverity["Error"] = 2] = "Error";
+})(RuleConfigSeverity || (RuleConfigSeverity = {}));
+var RuleConfigQuality;
+(function (RuleConfigQuality) {
+    RuleConfigQuality[RuleConfigQuality["User"] = 0] = "User";
+    RuleConfigQuality[RuleConfigQuality["Qualified"] = 1] = "Qualified";
+})(RuleConfigQuality || (RuleConfigQuality = {}));
+//# sourceMappingURL=rules.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/types/lib/index.js
+
+
+
+
+
+
+
+
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/lint/lib/commit-message.js
+const buildCommitMessage = ({ header, body, footer, }) => {
+    let message = header;
+    message = body ? `${message}\n\n${body}` : message;
+    message = footer ? `${message}\n\n${footer}` : message;
+    return message || '';
+};
+//# sourceMappingURL=commit-message.js.map
+;// CONCATENATED MODULE: ./node_modules/@commitlint/lint/lib/lint.js
+
+
+
+
+
+
+async function lint(message, rawRulesConfig, rawOpts) {
+    const opts = rawOpts
+        ? rawOpts
+        : { defaultIgnores: undefined, ignores: undefined };
+    const rulesConfig = rawRulesConfig || {};
+    // Found a wildcard match, skip
+    if (isIgnored(message, { defaults: opts.defaultIgnores, ignores: opts.ignores })) {
+        return {
+            valid: true,
+            errors: [],
+            warnings: [],
+            input: message,
+        };
+    }
+    // Parse the commit message
+    const parsed = message === ''
+        ? { header: null, body: null, footer: null }
+        : await lib(message, undefined, opts.parserOpts);
+    if (parsed.header === null &&
+        parsed.body === null &&
+        parsed.footer === null) {
+        // Commit is empty, skip
+        return {
+            valid: true,
+            errors: [],
+            warnings: [],
+            input: message,
+        };
+    }
+    const allRules = new Map(Object.entries(rules_lib));
+    if (opts.plugins) {
+        Object.values(opts.plugins).forEach((plugin) => {
+            if (plugin.rules) {
+                Object.keys(plugin.rules).forEach((ruleKey) => allRules.set(ruleKey, plugin.rules[ruleKey]));
+            }
+        });
+    }
+    // Find invalid rules configs
+    const missing = Object.keys(rulesConfig).filter((name) => typeof allRules.get(name) !== 'function');
+    if (missing.length > 0) {
+        const names = [...allRules.keys()];
+        throw new RangeError(`Found invalid rule names: ${missing.join(', ')}. Supported rule names are: ${names.join(', ')}`);
+    }
+    const invalid = Object.entries(rulesConfig)
+        .map(([name, config]) => {
+        if (!Array.isArray(config)) {
+            return new Error(`config for rule ${name} must be array, received ${external_util_.inspect(config)} of type ${typeof config}`);
+        }
+        const [level] = config;
+        if (level === RuleConfigSeverity.Disabled && config.length === 1) {
+            return null;
+        }
+        const [, when] = config;
+        if (typeof level !== 'number' || isNaN(level)) {
+            return new Error(`level for rule ${name} must be number, received ${external_util_.inspect(level)} of type ${typeof level}`);
+        }
+        if (config.length < 2 || config.length > 3) {
+            return new Error(`config for rule ${name} must be 2 or 3 items long, received ${external_util_.inspect(config)} of length ${config.length}`);
+        }
+        if (level < 0 || level > 2) {
+            return new RangeError(`level for rule ${name} must be between 0 and 2, received ${external_util_.inspect(level)}`);
+        }
+        if (typeof when !== 'string') {
+            return new Error(`condition for rule ${name} must be string, received ${external_util_.inspect(when)} of type ${typeof when}`);
+        }
+        if (when !== 'never' && when !== 'always') {
+            return new Error(`condition for rule ${name} must be "always" or "never", received ${external_util_.inspect(when)}`);
+        }
+        return null;
+    })
+        .filter((item) => item instanceof Error);
+    if (invalid.length > 0) {
+        throw new Error(invalid.map((i) => i.message).join('\n'));
+    }
+    // Validate against all rules
+    const pendingResults = Object.entries(rulesConfig)
+        // Level 0 rules are ignored
+        .filter(([, config]) => !!config && config.length && config[0] > 0)
+        .map(async (entry) => {
+        const [name, config] = entry;
+        const [level, when, value] = config; //
+        const rule = allRules.get(name);
+        if (!rule) {
+            throw new Error(`Could not find rule implementation for ${name}`);
+        }
+        const executableRule = rule;
+        const [valid, message] = await executableRule(parsed, when, value);
+        return {
+            level,
+            valid,
+            name,
+            message,
+        };
+    });
+    const results = (await Promise.all(pendingResults)).filter((result) => result !== null);
+    const errors = results.filter((result) => result.level === 2 && !result.valid);
+    const warnings = results.filter((result) => result.level === 1 && !result.valid);
+    const valid = errors.length === 0;
+    return {
+        valid,
+        errors,
+        warnings,
+        input: buildCommitMessage(parsed),
+    };
+}
+//# sourceMappingURL=lint.js.map
+
 /***/ })
 
 /******/ 	});
@@ -41969,6 +41508,23 @@ module.exports = parseParams
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
@@ -41979,7 +41535,7 @@ var __webpack_exports__ = {};
 (() => {
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const lint = (__nccwpck_require__(9152)["default"]);
+const lint = (__nccwpck_require__(9790)/* ["default"] */ .Z);
 
 async function run() {
   try {
