@@ -3,6 +3,8 @@
 # @grafana/platform-productivity will be requested for review when
 # someone opens a pull request.
 * @grafana/platform-productivity
+
+# Owned by the Grafana department's Infra O11y Frontend squad
 /actions/lint-pr-title/ @grafana/infra-o11y-frontend
 
 # Platform productivity
