@@ -3,6 +3,7 @@
 # @grafana/platform-productivity will be requested for review when
 # someone opens a pull request.
 * @grafana/platform-productivity
+* @grafana/growth-devex-eng
 
 # Platform productivity
 /.github/workflows/publish-techdocs.yaml @grafana/platform-productivity
