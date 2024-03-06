@@ -29,7 +29,7 @@ func TestBuildCommand(t *testing.T) {
 			logLevel:    "info",
 			expectedOutput: []string{
 				"--labels",
-				"trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-event=event,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-pr=123,trigger-pr-created-at=2023-12-13T10:11:12Z",
+				"trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-event=event,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-pr=123,trigger-pr-created-at=2023-12-13T10:11:12Z,trigger-pr-first-commit-date=2023-12-13T09:11:12Z",
 				"--loglevel",
 				"info",
 				"submit",
@@ -119,6 +119,29 @@ func createMockGitHubClient(t *testing.T) *github.Client {
 			github.PullRequest{
 				CreatedAt: &github.Timestamp{
 					Time: time.Date(2023, 12, 13, 10, 11, 12, 0, time.UTC),
+				},
+			},
+		),
+		mock.WithRequestMatch(
+			mock.GetReposPullsCommitsByOwnerByRepoByPullNumber,
+			[]*github.RepositoryCommit{
+				{
+					Commit: &github.Commit{
+						Committer: &github.CommitAuthor{
+							Date: &github.Timestamp{
+								Time: time.Date(2023, 12, 13, 9, 15, 12, 0, time.UTC),
+							},
+						},
+					},
+				},
+				{
+					Commit: &github.Commit{
+						Committer: &github.CommitAuthor{
+							Date: &github.Timestamp{
+								Time: time.Date(2023, 12, 13, 9, 11, 12, 0, time.UTC),
+							},
+						},
+					},
 				},
 			},
 		),

@@ -48,8 +48,9 @@ func (r RepoInfo) ToLabels() []string {
 // PullRequestInfo represents collected information about the pull request this
 // action was executed in.
 type PullRequestInfo struct {
-	Number    int
-	CreatedAt *time.Time
+	Number      int
+	CreatedAt   *time.Time
+	FirstCommit *github.RepositoryCommit
 }
 
 func (pri *PullRequestInfo) ToLabels() []string {
@@ -61,6 +62,9 @@ func (pri *PullRequestInfo) ToLabels() []string {
 	}
 	if pri.CreatedAt != nil {
 		result = append(result, fmt.Sprintf("trigger-pr-created-at=%s", pri.CreatedAt.UTC().Format(time.RFC3339)))
+	}
+	if pri.FirstCommit != nil && pri.FirstCommit.Commit != nil && pri.FirstCommit.Commit.Committer != nil {
+		result = append(result, fmt.Sprintf("trigger-pr-first-commit-date=%s", pri.FirstCommit.Commit.Committer.Date.UTC().Format(time.RFC3339)))
 	}
 	return result
 }
@@ -93,6 +97,28 @@ func NewPullRequestInfo(ctx context.Context, gh *github.Client) (*PullRequestInf
 	}
 	if pr.CreatedAt != nil {
 		info.CreatedAt = &pr.CreatedAt.Time
+	}
+
+	// Now let's also try to retrieve the first commit in this PR:
+	opts := github.ListOptions{
+		Page: 1,
+	}
+	var firstCommit *github.RepositoryCommit
+	for {
+		commits, resp, err := gh.PullRequests.ListCommits(ctx, repo.Owner, repo.Name, info.Number, &opts)
+		if err != nil {
+			return nil, err
+		}
+		if resp.NextPage <= opts.Page {
+			if len(commits) > 0 {
+				firstCommit = commits[len(commits)-1]
+			}
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+	if firstCommit != nil {
+		info.FirstCommit = firstCommit
 	}
 	return &info, nil
 }
