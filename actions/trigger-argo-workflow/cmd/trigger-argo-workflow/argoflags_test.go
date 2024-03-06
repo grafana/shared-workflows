@@ -5,7 +5,10 @@ import (
 	"log/slog"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/google/go-github/v60/github"
+	"github.com/migueleliasweb/go-github-mock/src/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +29,7 @@ func TestBuildCommand(t *testing.T) {
 			logLevel:    "info",
 			expectedOutput: []string{
 				"--labels",
-				"trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-event=event,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-pr=123",
+				"trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-event=event,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-pr=123,trigger-pr-created-at=2023-12-13T10:11:12Z",
 				"--loglevel",
 				"info",
 				"submit",
@@ -98,7 +101,8 @@ func TestBuildCommand(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			pr, err := NewPullRequestInfo(context.Background())
+			gh := createMockGitHubClient(t)
+			pr, err := NewPullRequestInfo(context.Background(), gh)
 			require.NoError(t, err)
 
 			output := a.args(md, pr)
@@ -107,18 +111,36 @@ func TestBuildCommand(t *testing.T) {
 	}
 }
 
+func createMockGitHubClient(t *testing.T) *github.Client {
+	t.Helper()
+	httpClient := mock.NewMockedHTTPClient(
+		mock.WithRequestMatch(
+			mock.GetReposPullsByOwnerByRepoByPullNumber,
+			github.PullRequest{
+				CreatedAt: &github.Timestamp{
+					Time: time.Date(2023, 12, 13, 10, 11, 12, 0, time.UTC),
+				},
+			},
+		),
+	)
+	return github.NewClient(httpClient)
+}
+
 func TestPullRequestInfo(t *testing.T) {
 	t.Run("no-pr", func(t *testing.T) {
+		gh := createMockGitHubClient(t)
 		t.Setenv("GITHUB_REF", "something")
-		info, err := NewPullRequestInfo(context.Background())
+		info, err := NewPullRequestInfo(context.Background(), gh)
 		require.NoError(t, err)
 		require.Nil(t, info)
 	})
 	t.Run("no-pr", func(t *testing.T) {
+		gh := createMockGitHubClient(t)
 		t.Setenv("GITHUB_REF", "refs/pull/123/merge")
-		info, err := NewPullRequestInfo(context.Background())
+		t.Setenv("GITHUB_REPOSITORY", "grafana/shared-workflows")
+		info, err := NewPullRequestInfo(context.Background(), gh)
 		require.NoError(t, err)
 		require.NotNil(t, info)
-		require.Equal(t, int64(123), info.Number)
+		require.Equal(t, 123, info.Number)
 	})
 }

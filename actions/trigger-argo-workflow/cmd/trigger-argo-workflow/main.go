@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"strings"
 
+	"github.com/google/go-github/v60/github"
 	"github.com/lmittmann/tint"
 	cli "github.com/urfave/cli/v2"
 	"github.com/willabides/actionslog"
@@ -162,6 +162,10 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 	retries := c.Uint64(flagRetries)
 	workflowTemplate := c.String(flagWorkflowTemplate)
 
+	ctx := c.Context
+
+	gh := github.NewTokenClient(ctx, os.Getenv("GITHUB_TOKEN"))
+
 	var extraArgs []string
 	for _, param := range parameters {
 		if !strings.Contains(param, "=") {
@@ -177,7 +181,7 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to get GitHub Actions metadata: %w", err)
 	}
-	prinfo, err := NewPullRequestInfo(context.Background())
+	prinfo, err := NewPullRequestInfo(ctx, gh)
 	if err != nil {
 		return fmt.Errorf("failed to get GitHub pull request metadata: %w", err)
 	}

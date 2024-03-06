@@ -7,7 +7,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/google/go-github/v60/github"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -46,34 +48,51 @@ func (r RepoInfo) ToLabels() []string {
 // PullRequestInfo represents collected information about the pull request this
 // action was executed in.
 type PullRequestInfo struct {
-	Number int64
+	Number    int
+	CreatedAt *time.Time
 }
 
 func (pri *PullRequestInfo) ToLabels() []string {
 	if pri == nil {
 		return []string{}
 	}
-	return []string{
+	result := []string{
 		fmt.Sprintf("trigger-pr=%d", pri.Number),
 	}
+	if pri.CreatedAt != nil {
+		result = append(result, fmt.Sprintf("trigger-pr-created-at=%s", pri.CreatedAt.UTC().Format(time.RFC3339)))
+	}
+	return result
 }
 
 // NewPullRequestInfo tries to generate a new PullRequestInfo object based on
 // information available inside the GitHub API and environment variables. If
 // now PR information is available, nil is returned without an error!
-func NewPullRequestInfo(ctx context.Context) (*PullRequestInfo, error) {
+func NewPullRequestInfo(ctx context.Context, gh *github.Client) (*PullRequestInfo, error) {
 	ref := os.Getenv("GITHUB_REF")
 	re := regexp.MustCompile("^refs/pull/([0-9]+)/merge$")
 	match := re.FindStringSubmatch(ref)
 	if len(match) == 0 {
 		return nil, nil
 	}
-	number, err := strconv.ParseInt(match[1], 10, 64)
+	number, err := strconv.ParseInt(match[1], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse PR number: %w", err)
 	}
 	info := PullRequestInfo{
-		Number: number,
+		Number: int(number),
+	}
+
+	repo := &RepoInfo{}
+	if err := repo.Decode(os.Getenv("GITHUB_REPOSITORY")); err != nil {
+		return nil, err
+	}
+	pr, _, err := gh.PullRequests.Get(ctx, repo.Owner, repo.Name, info.Number)
+	if err != nil {
+		return nil, err
+	}
+	if pr.CreatedAt != nil {
+		info.CreatedAt = &pr.CreatedAt.Time
 	}
 	return &info, nil
 }
