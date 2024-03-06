@@ -61,10 +61,10 @@ func (pri *PullRequestInfo) ToLabels() []string {
 		fmt.Sprintf("trigger-pr=%d", pri.Number),
 	}
 	if pri.CreatedAt != nil {
-		result = append(result, fmt.Sprintf("trigger-pr-created-at=%s", pri.CreatedAt.UTC().Format(time.RFC3339)))
+		result = append(result, fmt.Sprintf("trigger-pr-created-at=%d", pri.CreatedAt.UTC().Unix()))
 	}
 	if pri.FirstCommit != nil && pri.FirstCommit.Commit != nil && pri.FirstCommit.Commit.Committer != nil {
-		result = append(result, fmt.Sprintf("trigger-pr-first-commit-date=%s", pri.FirstCommit.Commit.Committer.Date.UTC().Format(time.RFC3339)))
+		result = append(result, fmt.Sprintf("trigger-pr-first-commit-date=%d", pri.FirstCommit.Commit.Committer.Date.UTC().Unix()))
 	}
 	return result
 }

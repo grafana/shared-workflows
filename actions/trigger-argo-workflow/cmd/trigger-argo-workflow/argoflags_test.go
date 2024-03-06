@@ -29,7 +29,7 @@ func TestBuildCommand(t *testing.T) {
 			logLevel:    "info",
 			expectedOutput: []string{
 				"--labels",
-				"trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-event=event,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-pr=123,trigger-pr-created-at=2023-12-13T10:11:12Z,trigger-pr-first-commit-date=2023-12-13T09:11:12Z",
+				"trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-event=event,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-pr=123,trigger-pr-created-at=1702462272,trigger-pr-first-commit-date=1702458672",
 				"--loglevel",
 				"info",
 				"submit",
