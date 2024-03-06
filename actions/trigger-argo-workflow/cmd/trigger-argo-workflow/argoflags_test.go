@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"testing"
@@ -19,17 +20,24 @@ func TestBuildCommand(t *testing.T) {
 		envVars        map[string]string
 	}{
 		{
-			name:           "Add labels to submit command",
-			command:        "submit",
-			addCILabels:    true,
-			logLevel:       "info",
-			expectedOutput: []string{"--labels", "trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-event=event", "--loglevel", "info", "submit"},
+			name:        "Add labels to submit command",
+			command:     "submit",
+			addCILabels: true,
+			logLevel:    "info",
+			expectedOutput: []string{
+				"--labels",
+				"trigger-build-number=1,trigger-commit=abc,trigger-commit-author=actor,trigger-event=event,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-pr=123",
+				"--loglevel",
+				"info",
+				"submit",
+			},
 			envVars: map[string]string{
 				"GITHUB_RUN_NUMBER": "1",
 				"GITHUB_SHA":        "abc",
 				"GITHUB_ACTOR":      "actor",
 				"GITHUB_REPOSITORY": "owner/repo",
 				"GITHUB_EVENT_NAME": "event",
+				"GITHUB_REF":        "refs/pull/123/merge",
 			},
 		},
 		{
@@ -90,9 +98,27 @@ func TestBuildCommand(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+			pr, err := NewPullRequestInfo(context.Background())
+			require.NoError(t, err)
 
-			output := a.args(md)
+			output := a.args(md, pr)
 			require.Equal(t, tc.expectedOutput, output)
 		})
 	}
+}
+
+func TestPullRequestInfo(t *testing.T) {
+	t.Run("no-pr", func(t *testing.T) {
+		t.Setenv("GITHUB_REF", "something")
+		info, err := NewPullRequestInfo(context.Background())
+		require.NoError(t, err)
+		require.Nil(t, info)
+	})
+	t.Run("no-pr", func(t *testing.T) {
+		t.Setenv("GITHUB_REF", "refs/pull/123/merge")
+		info, err := NewPullRequestInfo(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, info)
+		require.Equal(t, int64(123), info.Number)
+	})
 }

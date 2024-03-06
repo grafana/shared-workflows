@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -176,6 +177,10 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to get GitHub Actions metadata: %w", err)
 	}
+	prinfo, err := NewPullRequestInfo(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get GitHub pull request metadata: %w", err)
+	}
 
 	logger = logger.With(
 		"argo_wf_instance", instance,
@@ -209,5 +214,5 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 		retries: retries,
 	}
 
-	return argo.Run(md)
+	return argo.Run(md, prinfo)
 }
