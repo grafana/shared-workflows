@@ -141,3 +141,4 @@ runs:
           ${{ inputs.extra_args }}
       env:
         ARGO_TOKEN: ${{ env.ARGO_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
