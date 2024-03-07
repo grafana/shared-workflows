@@ -110,7 +110,11 @@ func NewPullRequestInfo(ctx context.Context, logger *slog.Logger, gh *github.Cli
 		// look somewhere else. For our purposes we can also take a look at the
 		// HEAD commit message and continue from there.
 		logger.InfoContext(ctx, "not inside a pull request; checking HEAD")
-		number, err = getPullRequestNumberFromHead(ctx, logger, ".")
+		workdir := os.Getenv("GITHUB_WORKSPACE")
+		if workdir == "" {
+			workdir = "."
+		}
+		number, err = getPullRequestNumberFromHead(ctx, logger, workdir)
 		if err != nil {
 			if err == errPRLookupNotSupported {
 				logger.InfoContext(ctx, "PR Git lookup not supported")
