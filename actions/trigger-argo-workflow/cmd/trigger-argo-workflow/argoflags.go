@@ -131,10 +131,11 @@ func NewPullRequestInfo(ctx context.Context, logger *slog.Logger, gh *github.Cli
 			logger.InfoContext(ctx, "PR Git lookup found no PR")
 			return nil, nil
 		}
-	}
-	number, err = strconv.ParseInt(match[1], 10, 32)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse PR number: %w", err)
+	} else {
+		number, err = strconv.ParseInt(match[1], 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse PR number: %w", err)
+		}
 	}
 	info := PullRequestInfo{
 		Number: int(number),
