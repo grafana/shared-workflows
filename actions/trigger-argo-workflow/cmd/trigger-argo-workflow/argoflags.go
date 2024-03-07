@@ -76,7 +76,7 @@ var errPRLookupNotSupported error = errors.New("PR lookup not supported")
 
 func getPullRequestNumberFromHead(ctx context.Context, logger *slog.Logger, workdir string) (int64, error) {
 	ref := os.Getenv("GITHUB_SHA")
-	if ref == "" {
+	if ref == "" || len(ref) < 40 {
 		ref = "HEAD"
 	}
 	l := logger.With(slog.String("workdir", workdir), slog.String("ref", ref))
