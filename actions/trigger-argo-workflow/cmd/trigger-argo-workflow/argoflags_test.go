@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -165,5 +166,42 @@ func TestPullRequestInfo(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, info)
 		require.Equal(t, 123, info.Number)
+	})
+}
+
+func TestGetPullRequestNumberFromHead(t *testing.T) {
+	gitPath, err := exec.LookPath("git")
+	if err != nil || gitPath == "" {
+		t.Skipf("Git is not available, skipping")
+		return
+	}
+
+	gitCommand := func(t *testing.T, workDir string, args ...string) {
+		cmd := exec.Command(gitPath, args...)
+		cmd.Env = []string{
+			"GIT_CONFIG_SYSTEM=",
+		}
+		cmd.Dir = workDir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("git failed: %s", err.Error())
+		}
+	}
+
+	t.Run("without-head-referencing-pr", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		gitCommand(t, tmpDir, "init")
+		gitCommand(t, tmpDir, "commit", "-m", "Hello world", "--allow-empty")
+		num, err := getPullRequestNumberFromHead(context.Background(), tmpDir)
+		require.NoError(t, err)
+		require.Equal(t, int64(-1), num)
+	})
+
+	t.Run("with-head-referencing-pr", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		gitCommand(t, tmpDir, "init")
+		gitCommand(t, tmpDir, "commit", "-m", "Hello world (#123)", "--allow-empty")
+		num, err := getPullRequestNumberFromHead(context.Background(), tmpDir)
+		require.NoError(t, err)
+		require.Equal(t, int64(123), num)
 	})
 }

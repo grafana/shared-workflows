@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -69,17 +71,54 @@ func (pri *PullRequestInfo) ToLabels() []string {
 	return result
 }
 
+var errPRLookupNotSupported error = errors.New("PR lookup not supported")
+
+func getPullRequestNumberFromHead(ctx context.Context, workdir string) (int64, error) {
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		return -1, errPRLookupNotSupported
+	}
+	cmd := exec.CommandContext(ctx, gitPath, "log", "--pretty=%s", "--max-count=1", "HEAD")
+	cmd.Dir = workdir
+	raw, err := cmd.CombinedOutput()
+	if err != nil {
+		return -1, err
+	}
+	output := strings.TrimSpace(string(raw))
+	re := regexp.MustCompile("^.*\\(#([0-9]+)\\)$")
+	match := re.FindStringSubmatch(output)
+	if len(match) < 2 {
+		return -1, nil
+	}
+	return strconv.ParseInt(match[1], 10, 64)
+}
+
 // NewPullRequestInfo tries to generate a new PullRequestInfo object based on
 // information available inside the GitHub API and environment variables. If
 // now PR information is available, nil is returned without an error!
 func NewPullRequestInfo(ctx context.Context, gh *github.Client) (*PullRequestInfo, error) {
+	var err error
+	var number int64
 	ref := os.Getenv("GITHUB_REF")
 	re := regexp.MustCompile("^refs/pull/([0-9]+)/merge$")
 	match := re.FindStringSubmatch(ref)
 	if len(match) == 0 {
-		return nil, nil
+		// This is happening outside of a pull request. This means that we
+		// cannot simply get the pull request number from the ref and need to
+		// look somewhere else. For our purposes we can also take a look at the
+		// HEAD commit message and continue from there.
+		number, err = getPullRequestNumberFromHead(ctx, ".")
+		if err != nil {
+			if err == errPRLookupNotSupported {
+				return nil, nil
+			}
+			return nil, err
+		}
+		if number == -1 {
+			return nil, nil
+		}
 	}
-	number, err := strconv.ParseInt(match[1], 10, 32)
+	number, err = strconv.ParseInt(match[1], 10, 32)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse PR number: %w", err)
 	}
