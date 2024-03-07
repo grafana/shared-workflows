@@ -103,7 +103,7 @@ func TestBuildCommand(t *testing.T) {
 				require.NoError(t, err)
 			}
 			gh := createMockGitHubClient(t)
-			pr, err := NewPullRequestInfo(context.Background(), gh)
+			pr, err := NewPullRequestInfo(context.Background(), slog.Default(), gh)
 			require.NoError(t, err)
 
 			output := a.args(md, pr)
@@ -154,7 +154,7 @@ func TestPullRequestInfo(t *testing.T) {
 	t.Run("no-pr", func(t *testing.T) {
 		gh := createMockGitHubClient(t)
 		t.Setenv("GITHUB_REF", "something")
-		info, err := NewPullRequestInfo(context.Background(), gh)
+		info, err := NewPullRequestInfo(context.Background(), slog.Default(), gh)
 		require.NoError(t, err)
 		require.Nil(t, info)
 	})
@@ -162,7 +162,7 @@ func TestPullRequestInfo(t *testing.T) {
 		gh := createMockGitHubClient(t)
 		t.Setenv("GITHUB_REF", "refs/pull/123/merge")
 		t.Setenv("GITHUB_REPOSITORY", "grafana/shared-workflows")
-		info, err := NewPullRequestInfo(context.Background(), gh)
+		info, err := NewPullRequestInfo(context.Background(), slog.Default(), gh)
 		require.NoError(t, err)
 		require.NotNil(t, info)
 		require.Equal(t, 123, info.Number)

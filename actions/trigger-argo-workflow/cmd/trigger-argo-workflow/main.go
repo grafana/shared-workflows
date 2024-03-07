@@ -181,7 +181,7 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to get GitHub Actions metadata: %w", err)
 	}
-	prinfo, err := NewPullRequestInfo(ctx, gh)
+	prinfo, err := NewPullRequestInfo(ctx, logger, gh)
 	if err != nil {
 		return fmt.Errorf("failed to get GitHub pull request metadata: %w", err)
 	}

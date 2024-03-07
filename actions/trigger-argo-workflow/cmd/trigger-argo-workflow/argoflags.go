@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"regexp"
@@ -96,7 +97,7 @@ func getPullRequestNumberFromHead(ctx context.Context, workdir string) (int64, e
 // NewPullRequestInfo tries to generate a new PullRequestInfo object based on
 // information available inside the GitHub API and environment variables. If
 // no PR information is available, nil is returned without an error!
-func NewPullRequestInfo(ctx context.Context, gh *github.Client) (*PullRequestInfo, error) {
+func NewPullRequestInfo(ctx context.Context, logger *slog.Logger, gh *github.Client) (*PullRequestInfo, error) {
 	var err error
 	var number int64
 	ref := os.Getenv("GITHUB_REF")
@@ -107,14 +108,17 @@ func NewPullRequestInfo(ctx context.Context, gh *github.Client) (*PullRequestInf
 		// cannot simply get the pull request number from the ref and need to
 		// look somewhere else. For our purposes we can also take a look at the
 		// HEAD commit message and continue from there.
+		logger.InfoContext(ctx, "not inside a pull request; checking HEAD")
 		number, err = getPullRequestNumberFromHead(ctx, ".")
 		if err != nil {
 			if err == errPRLookupNotSupported {
+				logger.InfoContext(ctx, "PR Git lookup not supported")
 				return nil, nil
 			}
 			return nil, err
 		}
 		if number == -1 {
+			logger.InfoContext(ctx, "PR Git lookup found no PR")
 			return nil, nil
 		}
 	}
