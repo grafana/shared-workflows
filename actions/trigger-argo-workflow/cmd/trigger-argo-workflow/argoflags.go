@@ -95,7 +95,7 @@ func getPullRequestNumberFromHead(ctx context.Context, workdir string) (int64, e
 
 // NewPullRequestInfo tries to generate a new PullRequestInfo object based on
 // information available inside the GitHub API and environment variables. If
-// now PR information is available, nil is returned without an error!
+// no PR information is available, nil is returned without an error!
 func NewPullRequestInfo(ctx context.Context, gh *github.Client) (*PullRequestInfo, error) {
 	var err error
 	var number int64
