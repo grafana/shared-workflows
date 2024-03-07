@@ -75,12 +75,17 @@ func (pri *PullRequestInfo) ToLabels() []string {
 var errPRLookupNotSupported error = errors.New("PR lookup not supported")
 
 func getPullRequestNumberFromHead(ctx context.Context, logger *slog.Logger, workdir string) (int64, error) {
-	logger.InfoContext(ctx, "checking PR information in HEAD commit", slog.String("workdir", workdir))
+	ref := os.Getenv("GITHUB_SHA")
+	if ref == "" {
+		ref = "HEAD"
+	}
+	l := logger.With(slog.String("workdir", workdir), slog.String("ref", ref))
+	l.InfoContext(ctx, "checking PR information in commit")
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
 		return -1, errPRLookupNotSupported
 	}
-	cmd := exec.CommandContext(ctx, gitPath, "log", "--pretty=%s", "--max-count=1", "HEAD")
+	cmd := exec.CommandContext(ctx, gitPath, "log", "--pretty=%s", "-1", ref)
 	cmd.Dir = workdir
 	raw, err := cmd.CombinedOutput()
 	if err != nil {
@@ -90,7 +95,7 @@ func getPullRequestNumberFromHead(ctx context.Context, logger *slog.Logger, work
 	re := regexp.MustCompile(`^.*\(#([0-9]+)\)$`)
 	match := re.FindStringSubmatch(output)
 	if len(match) < 2 {
-		logger.WarnContext(ctx, "unsupported commit message", slog.String("msg", output))
+		l.WarnContext(ctx, "unsupported commit message", slog.String("msg", output))
 		return -1, nil
 	}
 	return strconv.ParseInt(match[1], 10, 64)
