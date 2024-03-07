@@ -74,7 +74,7 @@ func (pri *PullRequestInfo) ToLabels() []string {
 
 var errPRLookupNotSupported error = errors.New("PR lookup not supported")
 
-func getPullRequestNumberFromHead(ctx context.Context, workdir string) (int64, error) {
+func getPullRequestNumberFromHead(ctx context.Context, logger *slog.Logger, workdir string) (int64, error) {
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
 		return -1, errPRLookupNotSupported
@@ -89,6 +89,7 @@ func getPullRequestNumberFromHead(ctx context.Context, workdir string) (int64, e
 	re := regexp.MustCompile(`^.*\(#([0-9]+)\)$`)
 	match := re.FindStringSubmatch(output)
 	if len(match) < 2 {
+		logger.WarnContext(ctx, "unsupported commit message", slog.String("msg", output))
 		return -1, nil
 	}
 	return strconv.ParseInt(match[1], 10, 64)
@@ -109,7 +110,7 @@ func NewPullRequestInfo(ctx context.Context, logger *slog.Logger, gh *github.Cli
 		// look somewhere else. For our purposes we can also take a look at the
 		// HEAD commit message and continue from there.
 		logger.InfoContext(ctx, "not inside a pull request; checking HEAD")
-		number, err = getPullRequestNumberFromHead(ctx, ".")
+		number, err = getPullRequestNumberFromHead(ctx, logger, ".")
 		if err != nil {
 			if err == errPRLookupNotSupported {
 				logger.InfoContext(ctx, "PR Git lookup not supported")
