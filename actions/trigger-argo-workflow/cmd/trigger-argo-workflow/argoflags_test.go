@@ -177,12 +177,17 @@ func TestGetPullRequestNumberFromHead(t *testing.T) {
 	}
 
 	gitCommand := func(t *testing.T, workDir string, args ...string) {
+		home := t.TempDir()
 		cmd := exec.Command(gitPath, args...)
 		cmd.Env = []string{
-			"GIT_CONFIG_SYSTEM=",
+			"GIT_CONFIG_NOSYSTEM=true",
+			"GIT_CONFIG_NOGLOBAL=true",
+			"HOME=" + home,
 		}
 		cmd.Dir = workDir
-		if err := cmd.Run(); err != nil {
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Log(string(output))
 			t.Fatalf("git failed: %s", err.Error())
 		}
 	}
@@ -190,6 +195,8 @@ func TestGetPullRequestNumberFromHead(t *testing.T) {
 	t.Run("without-head-referencing-pr", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		gitCommand(t, tmpDir, "init")
+		gitCommand(t, tmpDir, "config", "user.email", "test@example.org")
+		gitCommand(t, tmpDir, "config", "user.name", "test")
 		gitCommand(t, tmpDir, "commit", "-m", "Hello world", "--allow-empty")
 		num, err := getPullRequestNumberFromHead(context.Background(), tmpDir)
 		require.NoError(t, err)
@@ -199,6 +206,8 @@ func TestGetPullRequestNumberFromHead(t *testing.T) {
 	t.Run("with-head-referencing-pr", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		gitCommand(t, tmpDir, "init")
+		gitCommand(t, tmpDir, "config", "user.email", "test@example.org")
+		gitCommand(t, tmpDir, "config", "user.name", "test")
 		gitCommand(t, tmpDir, "commit", "-m", "Hello world (#123)", "--allow-empty")
 		num, err := getPullRequestNumberFromHead(context.Background(), tmpDir)
 		require.NoError(t, err)

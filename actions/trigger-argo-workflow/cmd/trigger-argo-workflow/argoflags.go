@@ -85,7 +85,7 @@ func getPullRequestNumberFromHead(ctx context.Context, workdir string) (int64, e
 		return -1, err
 	}
 	output := strings.TrimSpace(string(raw))
-	re := regexp.MustCompile(`^.*\\(#([0-9]+)\\)$`)
+	re := regexp.MustCompile(`^.*\(#([0-9]+)\)$`)
 	match := re.FindStringSubmatch(output)
 	if len(match) < 2 {
 		return -1, nil
