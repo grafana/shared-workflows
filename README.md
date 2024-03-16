@@ -14,7 +14,7 @@ version of the action, even if the action's maintainers release a new version or
 if the tag itself is updated.
 
 Dependabot can update these SHA references when there are new versions. If you
-include a tag in a commend after the SHA, it can update the comment too. For
+include a tag in a comment after the SHA, it can update the comment too. For
 example:
 
 ```yaml
