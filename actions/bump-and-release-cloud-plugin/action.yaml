@@ -1,0 +1,308 @@
+name: Bump and Release cloud plugin
+description: |
+  Bumps the version of a cloud plugin and tags the release. This action only builds Go binaries for the linux platform
+  as that is the only platform that Grafana Cloud uses.
+
+inputs:
+  default-branch:
+    description: |
+      The default branch of the repository. This is used to checkout the repository.
+    default: main
+    required: true
+  github-token:
+    description: |
+      A GitHub token used to commit the version bump and create a tag. This will need to have write access to the
+      default branch of the repository.
+    required: true
+  gcs-bucket:
+    description: GCS bucket to upload too
+    required: true
+  gcs-service-account-creds:
+    description: Credentials JSON to log into GCP and upload plugin to bucket
+    required: true
+  package-manager:
+    description: |
+      The package manager to use for building the plugin. This can be either `yarn` or `npm`.
+    default: yarn
+    required: true
+  release-level:
+    description: |
+      The level of the release. This can be one of `major`, `minor`, `patch`, or `prerelease`.
+      See https://semver.org/ for more information.
+    required: true
+  signing-token:
+    description: |
+      A Grafana access policy token to sign the plugin with.
+      See https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token
+    required: true
+  update-changelog:
+    description: |
+      Whether to update the changelog with the new version. When updating will replace the `## Unreleased` section
+      with `## Unreleased\n\n## v<version>`. Giving the top of the changelog a new unreleased section.
+    default: 'false'
+    required: true
+outputs:
+  version:
+    description: The semantic version that the package.json was bumped too
+    value: ${{ steps.output-version.outputs.version }}
+  version-tag:
+    description: The tag that was created for the version
+    value: v${{ steps.output-version.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Specify GOPRIVATE env
+      shell: bash
+      run: |
+        echo "GOPRIVATE=github.com/grafana/*" >> $GITHUB_ENV
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        ref: ${{ inputs.default-branch }}
+        token: ${{ inputs.github-token }}
+        fetch-depth: 0
+
+    - name: Setup credentials to access Grafana private repositories
+      shell: bash
+      run: git config --global url.https://${{ inputs.github-token }}@github.com/.insteadOf https://github.com/
+
+    - name: Setup Node.js environment
+      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+      with:
+        node-version: lts/iron
+        check-latest: true
+        cache: ${{ inputs.package-manager }}
+
+    - name: Setup Go environment
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version: '1.21'
+
+    - name: Install utilities
+      shell: bash
+      run: sudo apt-get install jq
+
+    - name: Is modern yarn
+      id: is-modern-yarn
+      shell: bash
+      if: inputs.package-manager == 'yarn'
+      run: |
+        version=$(yarn --version)
+
+        if [[ $version =~ ^1 ]]; then
+          echo "modern=false" >> $GITHUB_OUTPUT
+        else
+          echo "modern=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Install dependencies
+      if: inputs.package-manager == 'yarn' && steps.is-modern-yarn.outputs.modern == 'true'
+      shell: bash
+      run: yarn install --immutable;
+
+    - name: Install dependencies
+      if: inputs.package-manager == 'yarn' && steps.is-modern-yarn.outputs.modern == 'false'
+      shell: bash
+      run: yarn install --frozen-lockfile;
+
+    - name: Install dependencies
+      if: inputs.package-manager == 'npm'
+      shell: bash
+      run: npm ci;
+
+    - name: Prep package.json
+      shell: bash
+      run: |
+        echo "$(jq 'del(.stableVersion)' package.json)" > package.json
+
+    - name: Bump version (old yarn)
+      if: inputs.package-manager == 'yarn' && steps.is-modern-yarn.outputs.modern == 'false'
+      shell: bash
+      run: |
+        yarn version --no-git-tag-version --${{ inputs.release-level }}
+
+    - name: Bump version
+      id: bump-version
+      if: inputs.package-manager != 'yarn' || steps.is-modern-yarn.outputs.modern == 'true'
+      shell: bash
+      run: |
+        ${{ inputs.package-manager }} version ${{ inputs.release-level }}
+
+    - name: Output version
+      id: output-version
+      shell: bash
+      run: |
+        export BUMPED_VERSION=$(cat package.json | jq -r '.version')
+        echo "version=${BUMPED_VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Update changelog
+      if: inputs.update-changelog == 'true'
+      shell: bash
+      run: |
+        # Update the CHANGELOG to include the version we just created
+        sed -i "s/^## Unreleased\s*$/## Unreleased\n\n## v${{ steps.output-version.outputs.version }}/" CHANGELOG.md
+
+    - name: Stage files
+      shell: bash
+      run: |
+        # We want to stage files now so we don't have to worry about generated files later
+        git add .
+
+    - name: Lint frontend
+      shell: bash
+      run: ${{ inputs.package-manager }} run lint
+
+    - name: Test frontend
+      shell: bash
+      run: ${{ inputs.package-manager }} run test:ci
+
+    - name: Build frontend
+      shell: bash
+      run: ${{ inputs.package-manager }} run build
+
+    - name: Check for backend
+      id: check-for-backend
+      shell: bash
+      run: |
+        if [ -f "Magefile.go" ]
+        then
+          echo "has-backend=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Test backend
+      if: steps.check-for-backend.outputs.has-backend == 'true'
+      uses: magefile/mage-action@6a5dcb5fe61f43d7c08a98bc3cf9bc63c308c08e # v3.0.0
+      with:
+        version: latest
+        args: coverage
+
+    - name: Build backend
+      if: steps.check-for-backend.outputs.has-backend == 'true'
+      uses: magefile/mage-action@6a5dcb5fe61f43d7c08a98bc3cf9bc63c308c08e # v3.0.0
+      with:
+        version: latest
+        args: build:linux
+
+    - name: Warn missing Grafana API key
+      shell: bash
+      run: |
+        echo Please generate a Grafana API key: https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/#generate-an-api-key
+        echo Once done please follow the instructions found here: https://github.com/${{github.repository}}/blob/main/README.md#using-github-actions-release-workflow
+      if: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN == '' }}
+      env:
+        GRAFANA_ACCESS_POLICY_TOKEN: ${{ inputs.signing-token }}
+
+    - name: Sign plugin
+      shell: bash
+      run: ${{ inputs.package-manager }} run sign
+      if: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN != '' }}
+      env:
+        GRAFANA_ACCESS_POLICY_TOKEN: ${{ inputs.signing-token }}
+
+    - name: Get plugin metadata
+      id: metadata
+      shell: bash
+      run: |
+        export GRAFANA_PLUGIN_ID=$(cat dist/plugin.json | jq -r .id)
+        export GRAFANA_PLUGIN_VERSION=$(cat dist/plugin.json | jq -r .info.version)
+        export GRAFANA_PLUGIN_TYPE=$(cat dist/plugin.json | jq -r .type)
+        export GRAFANA_PLUGIN_ARTIFACT=${GRAFANA_PLUGIN_ID}-${GRAFANA_PLUGIN_VERSION}.zip
+        export GRAFANA_PLUGIN_ARTIFACT_CHECKSUM=${GRAFANA_PLUGIN_ARTIFACT}.md5
+
+        export GRAFANA_PLUGIN_ARTIFACT_LATEST=${GRAFANA_PLUGIN_ID}-latest.zip
+        export GRAFANA_PLUGIN_ARTIFACT_LATEST_CHECKSUM=${GRAFANA_PLUGIN_ARTIFACT_LATEST}.md5
+
+        echo "plugin-id=${GRAFANA_PLUGIN_ID}" >> $GITHUB_OUTPUT
+        echo "plugin-version=${GRAFANA_PLUGIN_VERSION}" >> $GITHUB_OUTPUT
+        echo "plugin-type=${GRAFANA_PLUGIN_TYPE}" >> $GITHUB_OUTPUT
+        echo "archive=${GRAFANA_PLUGIN_ARTIFACT}" >> $GITHUB_OUTPUT
+        echo "archive-checksum=${GRAFANA_PLUGIN_ARTIFACT_CHECKSUM}" >> $GITHUB_OUTPUT
+        echo "archive-latest=${GRAFANA_PLUGIN_ARTIFACT_LATEST}" >> $GITHUB_OUTPUT
+        echo "archive-latest-checksum=${GRAFANA_PLUGIN_ARTIFACT_LATEST_CHECKSUM}" >> $GITHUB_OUTPUT
+
+    # confirm that the version in the plugin archive will match the tag we are on
+    - name: Check package version
+      shell: bash
+      run: if [ "v${{ steps.metadata.outputs.plugin-version }}" != "v${{ steps.output-version.outputs.version }}" ]; then printf "\033[0;31mPlugin version doesn't match tag name\033[0m\n"; exit 1; fi
+
+    - name: Package plugin
+      id: package-plugin
+      shell: bash
+      run: |
+        mv dist ${{ steps.metadata.outputs.plugin-id }}
+        zip ${{ steps.metadata.outputs.archive }} ${{ steps.metadata.outputs.plugin-id }} -r
+        md5sum ${{ steps.metadata.outputs.archive }} > ${{ steps.metadata.outputs.archive-checksum }}
+
+        # move assets to upload folder for mass upload
+        mkdir ${{ runner.temp }}/plugin-artifacts
+        mv ${{ steps.metadata.outputs.archive }} ${{ steps.metadata.outputs.archive-checksum }} ${{ runner.temp }}/plugin-artifacts/
+
+    - name: Create latest zip
+      id: latest-zip
+      if: inputs.release-level != 'prerelease'
+      shell: bash
+      run: |
+        cd ${{ runner.temp }}/plugin-artifacts
+        cp ${{ steps.metadata.outputs.archive }} ${{ steps.metadata.outputs.archive-latest }}
+        md5sum ${{ steps.metadata.outputs.archive-latest }} > ${{ steps.metadata.outputs.archive-latest-checksum }}
+        cd ..
+
+    - name: Validate plugin
+      shell: bash
+      run: |
+        git clone https://github.com/grafana/plugin-validator
+        pushd ./plugin-validator/pkg/cmd/plugincheck2
+        go install
+        popd
+        plugincheck2 -config ./.config/plugin-validator-config.yaml ${{ runner.temp }}/plugin-artifacts/${{ steps.metadata.outputs.archive }}
+
+    # Now that we've validated our plugin we can safely commit the version bump
+    - name: Commit version bump
+      id: commit-version-bump
+      uses: grafana/github-api-commit-action@ccf9b520c5698380ad3b9619c5add427369b7ef1 # v0.2.0
+      with:
+        token: ${{ inputs.github-token }}
+        commit-message: 'chore(version): bump to version [${{ steps.output-version.outputs.version }}] (${{ inputs.release-level }}) [BOT]'
+
+    - name: Create tag
+      uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 # v1.7.2
+      with:
+        commit_sha: ${{ steps.commit-version-bump.outputs.commit-sha }}
+        github_token: ${{ inputs.github-token }}
+        message: "chore(tag): tag version ${{ steps.output-version.outputs.version }} [BOT]"
+        tag: v${{ steps.output-version.outputs.version }}
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+      with:
+        name: upload-dir
+        path: ${{ runner.temp }}/plugin-artifacts
+
+    # Checkout the tag, to create the release
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        ref: v${{ steps.output-version.outputs.version }}
+
+    - name: Create Github release
+      uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # v2.0.4
+      with:
+        prerelease: ${{ inputs.release-level == 'prerelease' }}
+        generate_release_notes: true
+        files: |
+          ${{ runner.temp }}/plugin-artifacts/**/*.zip?(.md5)
+        tag_name: v${{ steps.output-version.outputs.version }}
+        token: ${{ inputs.github-token }}
+
+    - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@55bd3a7c6e2ae7cf1877fd1ccb9d54c0503c457c # v2.1.2
+      with:
+        credentials_json: '${{ inputs.gcs-service-account-creds }}'
+
+    - id: upload-to-gcs
+      name: Upload assets
+      uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
+      with:
+        path: ${{ runner.temp }}/plugin-artifacts
+        destination: ${{ inputs.gcs-bucket }}
+        parent: false

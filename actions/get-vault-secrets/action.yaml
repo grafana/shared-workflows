@@ -17,7 +17,7 @@ inputs:
       These secrets are stored in the `ci/data/common/<secret path>` path in Vault.
       Ex:
       ```
-      repo_secrets: |
+      common_secrets: |
         ENVVAR1=secretpath:key
         ENVVAR2=secretpath:key2
       ```
