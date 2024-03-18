@@ -6,27 +6,27 @@ Through it the following steps will be performed:
 
 1. Bump the version of the plugin in the `package.json` file through the use of either `yarn version <level>`
    or `npm version <level>`
-2. Optionally update the changelog file by inserting the new version after the `## Unreleased` header
+2. Optionally update the changelog file by inserting the new version, `## v*.*.*` after the `## Unreleased` header
 3. Lint, test, and build the plugin
 4. Package, sign, and validate the plugin
 5. If the plugin is valid, it will commit the version bump, create a tag and release, and push the artifacts to GCS
 
 ## Inputs
 
-| Name                        | Description                                                                                                      | Required | Default      |
-|-----------------------------|------------------------------------------------------------------------------------------------------------------|----------|--------------|
-| `default-branch`            | The default branch of the repository                                                                             | `false`  | `main`       |
-| `gcs-bucket`                | The GCS bucket to upload the artifacts to                                                                        | `true`   |              |
-| `gcs-service-account-creds` | The GCS service account credentials json to log into GCP                                                         | `true`   |              |
-| `github-token`              | The GitHub token to use for the action, requires the permissions to commit to main and create tags and releases. | `true`   |              |
-| `package-manager`           | The package manager used for the plugin                                                                          | `false`  | `yarn`       |
-| `release-level`             | The level of the release                                                                                         | `false`  | `prerelease` |
-| `signing-token`             | The access policy token to use for signing the plugin                                                            | `true`   |              |
-| `update-changelog`          | Whether to update the changelog file                                                                             | `false`  | `false`      |
+| Name                        | Description                                                                                                          | Required | Default      |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------|----------|--------------|
+| `default-branch`            | The default branch of the repository                                                                                 | `false`  | `main`       |
+| `gcs-bucket`                | The GCS bucket to upload the artifacts to                                                                            | `true`   |              |
+| `gcs-service-account-creds` | The GCS service account credentials json to log into GCP                                                             | `true`   |              |
+| `github-token`              | The GitHub token to use for the action, requires the permissions to commit to main and create tags and releases.     | `true`   |              |
+| `package-manager`           | The package manager used for the plugin                                                                              | `false`  | `yarn`       |
+| `release-level`             | The level of the release                                                                                             | `false`  | `prerelease` |
+| `signing-token`             | The access policy token to use for signing the plugin                                                                | `true`   |              |
+| `update-changelog`          | Whether to update the changelog file, set to true if you have your changelog automated with a `## Unreleased` header | `false`  | `false`      |
 
 ## Note on the artifacts
 
-The zip file name with be `{{ plugin-id }}-{{ version }}.zip` E.g. `grafana-example-app-1.0.0.zip`
+The zip file name will be in the form `{{ plugin-id }}-{{ version }}.zip` E.g. `grafana-example-app-1.0.0.zip`
 
 There will also be a `*.zip.md5` checksum calculated and uploaded to the same GCS bucket.
 

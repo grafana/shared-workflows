@@ -38,7 +38,7 @@ inputs:
   update-changelog:
     description: |
       Whether to update the changelog with the new version. When updating will replace the `## Unreleased` section
-      with `## Unreleased\n\n## v<version>`. Giving the top of the changelog a new unreleased section.
+      with `## Unreleased\n\n## v*.*.*`. Giving the top of the changelog a new unreleased section.
     default: 'false'
     required: true
 outputs:
@@ -47,7 +47,7 @@ outputs:
     value: ${{ steps.output-version.outputs.version }}
   version-tag:
     description: The tag that was created for the version
-    value: v${{ steps.output-version.outputs.version }}
+    value: ${{ steps.output-version.outputs.version-tag }}
 
 runs:
   using: composite
@@ -134,13 +134,14 @@ runs:
       run: |
         export BUMPED_VERSION=$(cat package.json | jq -r '.version')
         echo "version=${BUMPED_VERSION}" >> $GITHUB_OUTPUT
+        echo "version-tag=v${BUMPED_VERSION}" >> $GITHUB_OUTPUT
 
     - name: Update changelog
       if: inputs.update-changelog == 'true'
       shell: bash
       run: |
         # Update the CHANGELOG to include the version we just created
-        sed -i "s/^## Unreleased\s*$/## Unreleased\n\n## v${{ steps.output-version.outputs.version }}/" CHANGELOG.md
+        sed -i "s/^## Unreleased\s*$/## Unreleased\n\n## ${{ steps.output-version.outputs.version-tag }}/" CHANGELOG.md
 
     - name: Stage files
       shell: bash
@@ -183,11 +184,10 @@ runs:
         version: latest
         args: build:linux
 
-    - name: Warn missing Grafana API key
+    - name: Warn missing Grafana Access Policy Token
       shell: bash
       run: |
-        echo Please generate a Grafana API key: https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/#generate-an-api-key
-        echo Once done please follow the instructions found here: https://github.com/${{github.repository}}/blob/main/README.md#using-github-actions-release-workflow
+        echo Please generate an Access Policy Token: https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token
       if: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN == '' }}
       env:
         GRAFANA_ACCESS_POLICY_TOKEN: ${{ inputs.signing-token }}
@@ -223,7 +223,7 @@ runs:
     # confirm that the version in the plugin archive will match the tag we are on
     - name: Check package version
       shell: bash
-      run: if [ "v${{ steps.metadata.outputs.plugin-version }}" != "v${{ steps.output-version.outputs.version }}" ]; then printf "\033[0;31mPlugin version doesn't match tag name\033[0m\n"; exit 1; fi
+      run: if [ "v${{ steps.metadata.outputs.plugin-version }}" != "${{ steps.output-version.outputs.version-tag }}" ]; then printf "\033[0;31mPlugin version doesn't match tag name\033[0m\n"; exit 1; fi
 
     - name: Package plugin
       id: package-plugin
@@ -269,8 +269,8 @@ runs:
       with:
         commit_sha: ${{ steps.commit-version-bump.outputs.commit-sha }}
         github_token: ${{ inputs.github-token }}
-        message: "chore(tag): tag version ${{ steps.output-version.outputs.version }} [BOT]"
-        tag: v${{ steps.output-version.outputs.version }}
+        message: "chore(tag): tag version ${{ steps.output-version.outputs.version-tag }} [BOT]"
+        tag: ${{ steps.output-version.outputs.version-tag }}
 
     - name: Upload build artifact
       uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
@@ -281,7 +281,7 @@ runs:
     # Checkout the tag, to create the release
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
-        ref: v${{ steps.output-version.outputs.version }}
+        ref: ${{ steps.output-version.outputs.version-tag }}
 
     - name: Create Github release
       uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # v2.0.4
@@ -290,7 +290,7 @@ runs:
         generate_release_notes: true
         files: |
           ${{ runner.temp }}/plugin-artifacts/**/*.zip?(.md5)
-        tag_name: v${{ steps.output-version.outputs.version }}
+        tag_name: ${{ steps.output-version.outputs.version-tag }}
         token: ${{ inputs.github-token }}
 
     - id: auth
