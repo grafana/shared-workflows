@@ -40,7 +40,7 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      level:
+      release-level:
         description: 'Release level'
         required: true
         default: 'prerelease'
@@ -58,10 +58,10 @@ jobs:
       # ... Steps to get necessary secrets
       - uses: grafana/shared-workflows/actions/bump-and-release-cloud-plugin@main
         with:
-          github-token: ${{ env.mygithub-token }} # Needs the ability to commit to main and create tags and releases
+          github-token: ${{ env.mygithub-token }} # Needs permission to commit to main and create tags and releases
           gcs-bucket: ${{ env.GCS_BUCKET }}
           gcs-service-account-creds: ${{ env.GCS_SERVICE_ACCOUNT_CREDS }}
-          release-level: 'minor' # 'major', 'minor', 'patch', 'prerelease'
+          release-level: ${{ inputs.release-level }}
           signing-token: ${{ env.SIGNING_TOKEN }}
 ```
 

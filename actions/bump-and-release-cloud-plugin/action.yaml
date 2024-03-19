@@ -52,17 +52,17 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Specify GOPRIVATE env
+    - name: Specify GOPRIVATE environment variable
       shell: bash
       run: |
-        echo "GOPRIVATE=github.com/grafana/*" >> $GITHUB_ENV
+        echo "GOPRIVATE=github.com/${{ github.repository_owner }}/*" >> $GITHUB_ENV
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         ref: ${{ inputs.default-branch }}
         token: ${{ inputs.github-token }}
         fetch-depth: 0
 
-    - name: Setup credentials to access Grafana private repositories
+    - name: Setup credentials to access private repositories
       shell: bash
       run: git config --global url.https://${{ inputs.github-token }}@github.com/.insteadOf https://github.com/
 
