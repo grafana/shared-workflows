@@ -50,15 +50,20 @@ export const zip = async(argv: ZipArgs) => {
   }
 
   const buildDir = generateFolder('package-zip');
-
   try {
-    await zipWorker(outDir, signatureType, rootUrls, pluginDistDir, buildDir, noSign);
+    zipWorker(outDir, signatureType, rootUrls, pluginDistDir, buildDir, noSign)
+    .then(() => {
+      console.log(`All files successfully zipped${noSign ? '' : 'and signed'}.`);
+    })
   } catch (err) {
-    rmdirSync(buildDir, { recursive: true });
     console.error(err);
-    process.exit(1);
+    throw err;
   } finally {
-    rmdirSync(buildDir, { recursive: true });
+    try {
+      rmdirSync(buildDir, { recursive: true });
+    } catch (cleanupErr) {
+      console.error('Failed to clean up:', cleanupErr);
+    }
   }
 };
 
