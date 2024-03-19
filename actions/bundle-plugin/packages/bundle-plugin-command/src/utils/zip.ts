@@ -32,7 +32,9 @@ export function compressFilesToZip(zipFilePath: string, pluginId: string, fileMa
     // append files to the archive
     Object.keys(fileMapping).forEach((filePath) => {
       const fileName = path.join(pluginId, fileMapping[filePath]); // get the file name
-      archive.append(createReadStream(filePath), { name: fileName, mode: 0o755 });
+      const reader = createReadStream(filePath); // create a read stream for the file
+      reader.on('error', reject);
+      archive.append(reader, { name: fileName, mode: 0o755 });
     });
 
     // finalize the archive

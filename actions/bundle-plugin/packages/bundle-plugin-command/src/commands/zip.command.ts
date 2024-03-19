@@ -51,18 +51,16 @@ export const zip = async(argv: ZipArgs) => {
 
   const buildDir = generateFolder('package-zip');
   try {
-    zipWorker(outDir, signatureType, rootUrls, pluginDistDir, buildDir, noSign)
-    .then(() => {
-      console.log(`All files successfully zipped${noSign ? '' : 'and signed'}.`);
-    })
+    await zipWorker(outDir, signatureType, rootUrls, pluginDistDir, buildDir, noSign);
   } catch (err) {
     console.error(err);
-    throw err;
-  } finally {
+    throw new Error('Failed to zip the plugin');
+  }finally {
     try {
-      rmdirSync(buildDir, { recursive: true });
+        rmdirSync(buildDir, { recursive: true });
+        console.log('Cleanup successful.');
     } catch (cleanupErr) {
-      console.error('Failed to clean up:', cleanupErr);
+        console.error('Failed to clean up:', cleanupErr);
     }
   }
 };
@@ -94,7 +92,7 @@ export const zipWorker = async(
 
   const anyPlatformZipPath = path.join(`${buildDir}`, `${pluginVersion}`, `${pluginId}-${pluginVersion}.zip`);
 
-  const anyManifest = noSign ? { [path.join(copiedPath, 'MANIFEST.txt')]: 'MANIFEST.txt' } : {};
+  const anyManifest = noSign ? {} : { [path.join(copiedPath, 'MANIFEST.txt')]: 'MANIFEST.txt' };
   
   // Binary distribution for any platform
   await compressFilesToZip(
