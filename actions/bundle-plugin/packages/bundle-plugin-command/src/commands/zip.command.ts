@@ -1,35 +1,9 @@
 import { existsSync, mkdirSync, cpSync, rmdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { sign } from '../utils/sign.js';
-import { absoluteToRelativePaths, addSha1ForFiles, generateFolder, listFiles } from '../utils/utils.js';
+import { absoluteToRelativePaths, addSha1ForFiles, generateFolder, getJsonMetadata, listFiles } from '../utils/utils.js';
 import { compressFilesToZip } from '../utils/zip.js';
-import { createHash } from 'node:crypto';
 import { URL } from 'url';
-
-export const getJsonMetadata = (zipPath: string): {
-  plugin: {
-    md5: string,
-    name: string,
-    sha1: string,
-    size: number
-  }
-} => {
-  const name = zipPath.split(path.sep).pop();
-  if (name === null || name === undefined) {
-    throw new Error('name is undefined or null');
-  }
-  const md5 = createHash('md5').update(readFileSync(zipPath)).digest('hex');
-  const sha1 = createHash('sha1').update(readFileSync(zipPath)).digest('hex');
-  const size = readFileSync(zipPath).byteLength;
-  return {
-    "plugin": {
-      "md5": md5,
-      "name": name,
-      "sha1": sha1,
-      "size": size
-    }
-  }
-}
 
 // Typescript interface for the zip command
 export interface ZipArgs {
@@ -65,7 +39,7 @@ export const zip = async(argv: ZipArgs) => {
   if (!GRAFANA_ACCESS_POLICY_TOKEN && !GRAFANA_API_KEY && !noSign) {
     throw new Error(
       'You must create a GRAFANA_ACCESS_POLICY_TOKEN env variable to sign plugins. Please see: https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token for instructions.\n' + 
-      'You can also use the --no-sign flag to skip signing the plugin.'
+      'You can also use the --noSign flag to skip signing the plugin.'
     );
   }
   if (GRAFANA_API_KEY && !noSign) {
@@ -77,15 +51,15 @@ export const zip = async(argv: ZipArgs) => {
 
   const buildDir = generateFolder('package-zip');
 
-  await zipWorker( outDir, signatureType, rootUrls, pluginDistDir, buildDir, noSign )
-  .catch((err) => {
+  try {
+    await zipWorker(outDir, signatureType, rootUrls, pluginDistDir, buildDir, noSign);
+  } catch (err) {
     rmdirSync(buildDir, { recursive: true });
     console.error(err);
     process.exit(1);
-  })
-  .finally(() => {
+  } finally {
     rmdirSync(buildDir, { recursive: true });
-  });
+  }
 };
 
 export const zipWorker = async(
@@ -114,12 +88,14 @@ export const zipWorker = async(
   }
 
   const anyPlatformZipPath = path.join(`${buildDir}`, `${pluginVersion}`, `${pluginId}-${pluginVersion}.zip`);
+
+  const anyManifest = noSign ? { [path.join(copiedPath, 'MANIFEST.txt')]: 'MANIFEST.txt' } : {};
   
   // Binary distribution for any platform
   await compressFilesToZip(
     path.join(anyPlatformZipPath),
     pluginId,
-    { ...filesWithZipPaths, [path.join(copiedPath, 'MANIFEST.txt')]: 'MANIFEST.txt' }
+    { ...filesWithZipPaths, ...anyManifest }
   );
 
   const anyPlatformJson = getJsonMetadata(anyPlatformZipPath);
@@ -230,8 +206,14 @@ export const zipWorker = async(
 
   // Move buildDir/latest and buildDir/pluginVersion to rootDir/${outDir}
   const toUploadPath = path.join(process.cwd(), outDir);
-  mkdirSync(toUploadPath, { recursive: true });
-  cpSync(latestPath, path.join(toUploadPath, 'latest'), { recursive: true });
-  cpSync(currentVersionPath, path.join(toUploadPath, pluginVersion), { recursive: true });
-
+  try {
+    mkdirSync(toUploadPath, { recursive: true });
+    cpSync(latestPath, path.join(toUploadPath, 'latest'), { recursive: true });
+    cpSync(currentVersionPath, path.join(toUploadPath, pluginVersion), { recursive: true });
+  } catch (err) {
+    // Clean up the toUploadPath if there was an error
+    rmdirSync(toUploadPath, { recursive: true });
+    console.error(err);
+    process.exit(1);
+  }
 };

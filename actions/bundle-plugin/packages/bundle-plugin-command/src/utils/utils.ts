@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
+import crypto, { createHash } from 'node:crypto';
 
 export function generateFolder(prefix: string): string {
   const randomHash = crypto.createHash('md5').update(new Date().getTime().toString()).digest('hex');
@@ -42,3 +42,28 @@ export const absoluteToRelativePaths = (dir: string) => {
   });
   return out;
 };
+
+export const getJsonMetadata = (zipPath: string): {
+  plugin: {
+    md5: string,
+    name: string,
+    sha1: string,
+    size: number
+  }
+} => {
+  const name = zipPath.split(path.sep).pop();
+  if (name === null || name === undefined) {
+    throw new Error('name is undefined or null');
+  }
+  const md5 = createHash('md5').update(readFileSync(zipPath)).digest('hex');
+  const sha1 = createHash('sha1').update(readFileSync(zipPath)).digest('hex');
+  const size = readFileSync(zipPath).byteLength;
+  return {
+    "plugin": {
+      "md5": md5,
+      "name": name,
+      "sha1": sha1,
+      "size": size
+    }
+  }
+}
