@@ -3,14 +3,20 @@
 Zip Grafana plugins for distribution.
 
 **`@grafana/zip-bundle-plugin`** works on macOS, Windows and Linux.<br />
-If something doesn’t work, please [file an issue](https://github.com/grafana/plugin-tools/issues/new).<br />
-If you have questions or need help, please ask in [GitHub Discussions](https://github.com/grafana/plugin-tools/discussions).
+If something doesn’t work, please [file an issue](https://github.com/grafana/shared-workflows/issues/new).<br />
+If you have questions or need help, please ask in [GitHub Discussions](https://github.com/grafana/shared-workflows/discussions).
 
 ## Packaging a plugin
 
 Packaging a plugin in a zip file is the recommended way of distributing Grafana plugins.
 
-Before packaging the plugin, you should build and sign it with your normal build tool and @grafana/sign-plugin, respectively.
+Ensure the following environment variables are set before running the script:
+
+- `GRAFANA_ACCESS_POLICY_TOKEN`: Used to sign plugins. [Generate a token](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token).
+
+- `GRAFANA_API_KEY`: Deprecated. Consider using `GRAFANA_ACCESS_POLICY_TOKEN` instead.
+
+If neither is set, use the `--noSign` flag to skip plugin signing. This will result in an unsigned bundle that cannot be validated or uploaded for official use, but may be good for testing.
 
 If your plugin puts build output in /dist, you can just do:
 
@@ -24,11 +30,11 @@ If the plugin distribution directory differs from the default `dist`, specify th
 npx @grafana/bundle-plugin@latest --distDir path/to/directory
 ```
 
-Alterntives:
+Alternatives:
 
-#### [`npx`](https://github.com/npm/npx)
+#### [`github actions`](https://docs.github.com/en/actions)
 
-```bash
+```yaml
 npx @grafana/bundle-plugin@latest
 ```
 

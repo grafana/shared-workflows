@@ -3,7 +3,7 @@
   "version": "1.0.8",
   "repository": {
     "directory": "packages/bundle-plugin",
-    "url": "https://github.com/grafana/plugin-tools"
+    "url": "https://github.com/grafana/shared-workflows"
   },
   "author": "Grafana",
   "license": "Apache-2.0",
