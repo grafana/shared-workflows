@@ -4,7 +4,7 @@ import { getVersion } from '../utils/getVersion.js';
 import { buildManifest, saveManifest, signManifest } from '../utils/manifest.js';
 import { assertRootUrlIsValid } from '../utils/pluginValidation.js';
 
-export const sign = async (distDir: string, signatureType: string, rootUrls: string[]) => {
+export const sign = async (distDir: string, rootUrls: string[], signatureType?: string) => {
   const pluginDistDir = path.resolve(distDir);
 
   if (!existsSync(pluginDistDir)) {

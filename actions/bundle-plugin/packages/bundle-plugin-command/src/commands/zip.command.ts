@@ -31,10 +31,18 @@ export const getJsonMetadata = (zipPath: string): {
   }
 }
 
-export const zip = async (argv: minimist.ParsedArgs) => {
+// Typescript interface for the zip command
+export interface ZipArgs {
+  distDir?: string;
+  outDir?: string;
+  signatureType?: string;
+  rootUrls?: string;
+}
+
+export const zip = async (argv: ZipArgs) => {
   const distDir = argv.distDir ?? 'dist';
   const outDir = argv.outDir ?? '__to-upload__';
-  const signatureType: string = argv.signatureType;
+  const signatureType: string | undefined = argv.signatureType ?? undefined;
   const rootUrls: string[] = argv.rootUrls?.split(',') ?? [];
   const pluginDistDir = path.resolve(distDir);
 
@@ -56,7 +64,7 @@ export const zip = async (argv: minimist.ParsedArgs) => {
   cpSync(pluginDistDir, copiedPath, { recursive: true });
 
   const filesWithZipPaths = absoluteToRelativePaths(copiedPath);
-  await sign(copiedPath, signatureType, rootUrls);
+  await sign(copiedPath, rootUrls, signatureType);
 
   const anyPlatformZipPath = path.join(`${buildDir}`, `${pluginVersion}`, `${pluginId}-${pluginVersion}.zip`);
   
@@ -128,7 +136,7 @@ export const zip = async (argv: minimist.ParsedArgs) => {
     });
 
     // Add the manifest
-    await sign(workingDir, signatureType, rootUrls);
+    await sign(workingDir, rootUrls, signatureType);
     const toCompress = absoluteToRelativePaths(workingDir);
     await compressFilesToZip(zipDestination, pluginId, toCompress);
     // Add json info file
