@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, cpSync, rmdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import minimist from 'minimist';
 import { sign } from '../utils/sign.js';
 import { absoluteToRelativePaths, addSha1ForFiles, generateFolder, listFiles } from '../utils/utils.js';
 import { compressFilesToZip } from '../utils/zip.js';
 import { createHash } from 'node:crypto';
+import { URL } from 'url';
 
 export const getJsonMetadata = (zipPath: string): {
   plugin: {
@@ -37,13 +37,18 @@ export interface ZipArgs {
   outDir?: string;
   signatureType?: string;
   rootUrls?: string;
+  noSign?: boolean;
 }
 
-export const zip = async (argv: ZipArgs) => {
+// Wrapper to parse arguments, make sure they are valid, and call the zip function
+// Also handles cleanup of the temporary build directory in case of crashes
+export const zip = async(argv: ZipArgs) => {
   const distDir = argv.distDir ?? 'dist';
   const outDir = argv.outDir ?? '__to-upload__';
   const signatureType: string | undefined = argv.signatureType ?? undefined;
   const rootUrls: string[] = argv.rootUrls?.split(',') ?? [];
+  const noSign = argv.noSign ?? false;
+
   const pluginDistDir = path.resolve(distDir);
 
   if (!existsSync(pluginDistDir)) {
@@ -52,7 +57,47 @@ export const zip = async (argv: ZipArgs) => {
     );
   }
 
+  // This check is redundant with the one in utils/sign
+  // It's kept here also to fail faster if the user tries to sign a plugin without the required env variables
+  const GRAFANA_API_KEY = process.env.GRAFANA_API_KEY;
+  const GRAFANA_ACCESS_POLICY_TOKEN = process.env.GRAFANA_ACCESS_POLICY_TOKEN;
+
+  if (!GRAFANA_ACCESS_POLICY_TOKEN && !GRAFANA_API_KEY && !noSign) {
+    throw new Error(
+      'You must create a GRAFANA_ACCESS_POLICY_TOKEN env variable to sign plugins. Please see: https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token for instructions.\n' + 
+      'You can also use the --no-sign flag to skip signing the plugin.'
+    );
+  }
+  if (GRAFANA_API_KEY && !noSign) {
+    console.warn(
+      `\x1b[33m%s\x1b[0m`,
+      'The usage of GRAFANA_API_KEY is deprecated, please consider using GRAFANA_ACCESS_POLICY_TOKEN instead. For more info visit https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin'
+    );
+  }
+
   const buildDir = generateFolder('package-zip');
+
+  await zipWorker( outDir, signatureType, rootUrls, pluginDistDir, buildDir, noSign )
+  .catch((err) => {
+    rmdirSync(buildDir, { recursive: true });
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(() => {
+    rmdirSync(buildDir, { recursive: true });
+  });
+};
+
+export const zipWorker = async(
+  outDir: string,
+  signatureType: string | undefined,
+  rootUrls: string[],
+  pluginDistDir: string | URL,
+  buildDir: string,
+  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+  noSign: boolean,
+) => {
+
   const pluginJson = JSON.parse(readFileSync(path.join(`${pluginDistDir}`, `plugin.json`), 'utf-8'));
   const {
     id: pluginId,
@@ -64,7 +109,9 @@ export const zip = async (argv: ZipArgs) => {
   cpSync(pluginDistDir, copiedPath, { recursive: true });
 
   const filesWithZipPaths = absoluteToRelativePaths(copiedPath);
-  await sign(copiedPath, rootUrls, signatureType);
+  if (!noSign) {
+    await sign(copiedPath, rootUrls, signatureType);
+  }
 
   const anyPlatformZipPath = path.join(`${buildDir}`, `${pluginVersion}`, `${pluginId}-${pluginVersion}.zip`);
   
@@ -136,7 +183,9 @@ export const zip = async (argv: ZipArgs) => {
     });
 
     // Add the manifest
-    await sign(workingDir, rootUrls, signatureType);
+    if (!noSign) {
+      await sign(workingDir, rootUrls, signatureType);
+    }
     const toCompress = absoluteToRelativePaths(workingDir);
     await compressFilesToZip(zipDestination, pluginId, toCompress);
     // Add json info file
@@ -173,7 +222,7 @@ export const zip = async (argv: ZipArgs) => {
     }
   });
 
-  // Sign all zip files with sha1
+  // Validate all zip files with sha1
   const zipFiles = listFiles(currentVersionPath).filter((file) => file.endsWith('.zip'));
   addSha1ForFiles(zipFiles);
   const latestZipFiles = listFiles(latestPath).filter((file) => file.endsWith('.zip'));
@@ -185,6 +234,4 @@ export const zip = async (argv: ZipArgs) => {
   cpSync(latestPath, path.join(toUploadPath, 'latest'), { recursive: true });
   cpSync(currentVersionPath, path.join(toUploadPath, pluginVersion), { recursive: true });
 
-  // Clean up after yourself
-  rmdirSync(buildDir, { recursive: true });
 };
