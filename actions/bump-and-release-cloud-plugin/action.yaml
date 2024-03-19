@@ -9,16 +9,21 @@ inputs:
       The default branch of the repository. This is used to checkout the repository.
     default: main
     required: true
-  github-token:
-    description: |
-      A GitHub token used to commit the version bump and create a tag. This will need to have write access to the
-      default branch of the repository.
-    required: true
   gcs-bucket:
     description: GCS bucket to upload too
     required: true
   gcs-service-account-creds:
     description: Credentials JSON to log into GCP and upload plugin to bucket
+    required: true
+  github-token:
+    description: |
+      A GitHub token used to commit the version bump and create a tag. This will need to have write access to the
+      default branch of the repository.
+    required: true
+  go-version:
+    description: |
+      The version of Go to use for building the plugin. This is only used if the repository contains a `Magefile.go`.
+    default: '1.21'
     required: true
   package-manager:
     description: |
@@ -41,6 +46,10 @@ inputs:
       with `## Unreleased\n\n## v*.*.*`. Giving the top of the changelog a new unreleased section.
     default: 'false'
     required: true
+  validator-config-path:
+    description: |
+      The path to the plugin validator config file. This is used to validate the plugin before release.
+    required: false
 outputs:
   version:
     description: The semantic version that the package.json was bumped too
@@ -76,7 +85,7 @@ runs:
     - name: Setup Go environment
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
-        go-version: '1.21'
+        go-version: ${{ inputs.go-version }}
 
     - name: Install utilities
       shell: bash
@@ -247,14 +256,17 @@ runs:
         md5sum ${{ steps.metadata.outputs.archive-latest }} > ${{ steps.metadata.outputs.archive-latest-checksum }}
         cd ..
 
-    - name: Validate plugin
+    - name: Validate plugin with validator config
+      if: inputs.validator-config-path != ''
       shell: bash
       run: |
-        git clone https://github.com/grafana/plugin-validator
-        pushd ./plugin-validator/pkg/cmd/plugincheck2
-        go install
-        popd
-        plugincheck2 -config ./.config/plugin-validator-config.yaml ${{ runner.temp }}/plugin-artifacts/${{ steps.metadata.outputs.archive }}
+        npx -y @grafana/plugin-validator@latest -config ${{ inputs.validator-config-path }} ${{ runner.temp }}/plugin-artifacts/${{ steps.metadata.outputs.archive }}
+
+    - name: Validate plugin
+      if: inputs.validator-config-path == ''
+      shell: bash
+      run: |
+        npx -y @grafana/plugin-validator@latest ${{ runner.temp }}/plugin-artifacts/${{ steps.metadata.outputs.archive }}
 
     # Now that we've validated our plugin we can safely commit the version bump
     - name: Commit version bump

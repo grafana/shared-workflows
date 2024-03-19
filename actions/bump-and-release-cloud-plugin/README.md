@@ -19,10 +19,12 @@ Through it the following steps will be performed:
 | `gcs-bucket`                | The GCS bucket to upload the artifacts to                                                                            | `true`   |              |
 | `gcs-service-account-creds` | The GCS service account credentials json to log into GCP                                                             | `true`   |              |
 | `github-token`              | The GitHub token to use for the action, requires the permissions to commit to main and create tags and releases.     | `true`   |              |
+| `go-version`                | The version of Go to use for building the plugin                                                                     | `false`  | `1.21`       |
 | `package-manager`           | The package manager used for the plugin                                                                              | `false`  | `yarn`       |
 | `release-level`             | The level of the release                                                                                             | `false`  | `prerelease` |
 | `signing-token`             | The access policy token to use for signing the plugin                                                                | `true`   |              |
 | `update-changelog`          | Whether to update the changelog file, set to true if you have your changelog automated with a `## Unreleased` header | `false`  | `false`      |
+| `validator-config-path`     | The path in the repo to the plugin-validator config file                                                             | `false`  |              |
 
 ## Note on the artifacts
 
@@ -30,7 +32,8 @@ The zip file name will be in the form `{{ plugin-id }}-{{ version }}.zip` E.g. `
 
 There will also be a `*.zip.md5` checksum calculated and uploaded to the same GCS bucket.
 
-If the release level is anything other than `prerelease` an additional zip file will be uploaded as `*-latest.zip` (and checksum)
+If the release level is anything other than `prerelease` an additional zip file will be uploaded as `*-latest.zip` (and
+checksum)
 
 ## Example workflow
 
