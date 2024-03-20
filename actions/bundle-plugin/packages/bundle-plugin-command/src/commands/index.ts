@@ -1,1 +1,1 @@
-export * from './zip.command.js';
+export * from './zip.command.js'

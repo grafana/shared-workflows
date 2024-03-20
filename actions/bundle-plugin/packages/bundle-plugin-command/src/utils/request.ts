@@ -1,23 +1,27 @@
-import https, { RequestOptions } from 'node:https';
-import { URL } from 'node:url';
-import { ProxyAgent } from 'proxy-agent';
+import https, { RequestOptions } from 'node:https'
+import { URL } from 'node:url'
+import { ProxyAgent } from 'proxy-agent'
 
 interface Headers {
-  Authorization: string;
-  [header: string]: string;
+  Authorization: string
+  [header: string]: string
 }
 
 interface Response<R> {
-  data: R;
-  status: number;
+  data: R
+  status: number
 }
 
-const agent = new ProxyAgent();
+const agent = new ProxyAgent()
 
-export async function postData(urlString: string, data: unknown, headers: Headers): Promise<Response<string>> {
+export async function postData(
+  urlString: string,
+  data: unknown,
+  headers: Headers
+): Promise<Response<string>> {
   return new Promise<Response<string>>((resolve, reject) => {
-    const url = new URL(urlString);
-    const postData = JSON.stringify(data);
+    const url = new URL(urlString)
+    const postData = JSON.stringify(data)
 
     const options: RequestOptions = {
       hostname: url.hostname,
@@ -26,30 +30,30 @@ export async function postData(urlString: string, data: unknown, headers: Header
       method: 'POST',
       headers: {
         ...headers,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      agent,
-    };
+      agent
+    }
 
-    const req = https.request(options, (res) => {
-      const chunks: Buffer[] = [];
+    const req = https.request(options, res => {
+      const chunks: Buffer[] = []
 
-      res.on('data', (chunk: Buffer) => chunks.push(chunk));
+      res.on('data', (chunk: Buffer) => chunks.push(chunk))
 
       res.on('end', () => {
-        const results = Buffer.concat(chunks);
+        const results = Buffer.concat(chunks)
         resolve({
           data: results.toString(),
-          status: res.statusCode ?? 200,
-        });
-      });
+          status: res.statusCode ?? 200
+        })
+      })
 
-      res.on('error', reject);
-    });
+      res.on('error', reject)
+    })
 
-    req.on('error', reject);
+    req.on('error', reject)
 
-    req.write(postData);
-    req.end();
-  });
+    req.write(postData)
+    req.end()
+  })
 }
