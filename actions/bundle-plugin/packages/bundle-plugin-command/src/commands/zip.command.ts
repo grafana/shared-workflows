@@ -127,7 +127,7 @@ export const zipWorker = async(
   // Noop if there are no go build files
   // Otherwise, compress each go build file along with all non-go files into a separate zip
   // Creates os/arch specific distributions
-  for (let [filePath, relativePath] of Object.entries(goBuildFiles)) {
+  for (const [filePath, relativePath] of Object.entries(goBuildFiles)) {
     const fileName = filePath
       .split(path.sep)
       .pop()

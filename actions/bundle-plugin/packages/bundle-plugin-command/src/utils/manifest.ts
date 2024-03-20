@@ -104,6 +104,7 @@ export async function signManifest(manifest: ManifestInfo): Promise<string> {
     }
 
     return info.data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.response?.data?.message) {
       throw new Error('Error signing manifest: ' + err.response.data.message);

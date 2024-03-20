@@ -29,14 +29,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "@typescript-eslint/parser": "^7.3.1",
     "archiver": "^7.0.0",
     "minimist": "^1.2.2",
     "proxy-agent": "6.3.1"
   },
   "devDependencies": {
-    "@grafana/eslint-config": "^6.0.1",
-    "@grafana/tsconfig": "^1.2.0-rc1",
-    "@tsconfig/node20": "^20.1.2",
     "@tsconfig/recommended": "^1.0.1",
     "@types/archiver": "^6.0.2",
     "@types/eslint": "^8",
@@ -44,9 +43,6 @@
     "@types/node": "20.10.1",
     "@typescript-eslint/eslint-plugin": "^7.3.1",
     "eslint": "^8.57.0",
-    "eslint-plugin-jsdoc": "^48.2.1",
-    "eslint-plugin-react": "^7.34.1",
-    "eslint-plugin-react-hooks": "^4.6.0",
     "nodemon": "^3.0.1",
     "prettier": "2.5.1",
     "typescript": "^5.4.2",

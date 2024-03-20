@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const validatePluginJson = (pluginJson: any) => {
   if (!pluginJson.id) {
     throw new Error('Plugin id is missing in plugin.json');

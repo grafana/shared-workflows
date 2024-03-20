@@ -28,7 +28,7 @@ export function listFiles(dir: string): string[] {
   return out;
 }
 
-export function addSha1ForFiles(files: any[]) {
+export function addSha1ForFiles(files: string[]) {
   files.forEach((file) => {
     const fileContent = readFileSync(file);
     const sha1 = crypto.createHash('sha1').update(fileContent).digest('hex');
