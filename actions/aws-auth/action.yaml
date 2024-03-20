@@ -7,11 +7,11 @@ inputs:
     required: true
     description: "Arn of Role when performing role chaining"
   chain-pass-claims:
-    default: ""
+    default: "repository_owner, repository_name, job_workflow_ref"
     required: true
     description: "Claims from ID token to pass to the role when performing role chaining. Can also include `repository_name`, which will be calculated."
   chain-set-in-environment:
-    default: "true"
+    default: true
     required: false
     description: "Set role chained credentials as environment variables"
   chain-role-duration-seconds:
@@ -47,8 +47,8 @@ runs:
         aws-region: "us-east-2"
         audience: "github-actions-cognito-identity-pool"
         aws-account-id: "590183704419"
+        chain-role-session-name: "GitHubActions"
         chain-role-arn: "${{ inputs.chain-role-arn }}"
         chain-role-duration-seconds: "${{ inputs.chain-role-duration-seconds }}"
-        chain-role-session-name: "GitHubActions"
         chain-pass-claims: "${{ inputs.chain-pass-claims }}"
         chain-set-in-environment: "${{ inputs.chain-set-in-environment }}"
