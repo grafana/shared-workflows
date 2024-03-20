@@ -1,4 +1,4 @@
-# push-to-gar-docker
+# login-to-gar
 
 This is a composite GitHub Action, used to login to Google Artifact Registry (GAR).
 It uses [OIDC authentication](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
