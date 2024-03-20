@@ -29,9 +29,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check out the repo
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-
     - name: Login to DockerHub
       uses: grafana/shared-workflows/actions/dockerhub-login@main
 
