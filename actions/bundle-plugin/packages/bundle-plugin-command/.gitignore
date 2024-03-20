@@ -8,3 +8,5 @@
 !.yarn/versions
 
 dist/*
+
+.eslintcache
