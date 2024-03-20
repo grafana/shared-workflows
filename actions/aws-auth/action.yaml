@@ -1,0 +1,54 @@
+name: Authenticate to AWS
+description: Authenticate to AWS from GitHub Actions via OpenID Connect
+
+inputs:
+  chain-role-arn:
+    default: ""
+    required: true
+    description: "Arn of Role when performing role chaining"
+  chain-pass-claims:
+    default: ""
+    required: true
+    description: "Claims from ID token to pass to the role when performing role chaining. Can also include `repository_name`, which will be calculated."
+  chain-set-in-environment:
+    default: "true"
+    required: false
+    description: "Set role chained credentials as environment variables"
+  chain-role-duration-seconds:
+    default: "3600"
+    required: false
+    description: "Role duration in seconds for chained role"
+
+outputs:
+  aws_access_key_id:
+    description: "AWS Access Key Id"
+    value: ${{ steps.auth.outputs.aws_access_key_id }}
+  aws_secret_access_key:
+    description: "AWS Secret Access Key"
+    value: ${{ steps.auth.outputs.aws_secret_access_key }}
+  aws_session_token:
+    description: "AWS Session Name"
+    value: ${{ steps.auth.outputs.aws_session_token }}
+  aws_region:
+    description: "AWS Region"
+    value: ${{ steps.auth.outputs.aws_region }}
+  cognito_identity_oidc_access_token:
+    description: "Cognito Identity OIDC Access Token"
+    value: ${{ steps.auth.outputs.cognito_identity_oidc_access_token }}
+
+runs:
+  using: composite
+  steps:
+    - id: auth
+      uses: catnekaise/cognito-idpool-auth@83ae9e159de469b3acd87ecb361d6b5957ee35ae # v1.0.1
+      with:
+        cognito-identity-pool-id: "us-east-2:3a4bca79-07af-4921-a9fb-e21475708406"
+        auth-flow: "enhanced"
+        aws-region: "us-east-2"
+        audience: "github-actions-cognito-identity-pool"
+        aws-account-id: "590183704419"
+        chain-role-arn: "${{ inputs.chain-role-arn }}"
+        chain-role-duration-seconds: "${{ inputs.chain-role-duration-seconds }}"
+        chain-role-session-name: "GitHubActions"
+        chain-pass-claims: "${{ inputs.chain-pass-claims }}"
+        chain-set-in-environment: "${{ inputs.chain-set-in-environment }}"
