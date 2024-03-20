@@ -36,7 +36,7 @@ So, it's recommended to start the path definition with `${{ github.workspace }}/
 but this `config-path` parameter is optional. If you don't want to define it, the action will use the following rules by default:
 
 ```
-{
+module.exports = {
   'body-leading-blank': [1, 'always'],
   'body-max-line-length': [2, 'always', 100],
   'footer-leading-blank': [1, 'always'],
