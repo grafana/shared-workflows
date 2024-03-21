@@ -2,6 +2,10 @@ name: Authenticate to AWS
 description: Authenticate to AWS from GitHub Actions via OpenID Connect
 
 inputs:
+  aws-region:
+    default: "us-east-2"
+    required: true
+    description: "AWS region"
   role-arn:
     default: ""
     required: true
@@ -31,7 +35,7 @@ outputs:
     value: ${{ steps.auth.outputs.aws_session_token }}
   aws_region:
     description: "AWS Region"
-    value: ${{ steps.auth.outputs.aws_region }}
+    value: ${{ steps.aws_region.outputs.value }}
   cognito_identity_oidc_access_token:
     description: "Cognito Identity OIDC Access Token"
     value: ${{ steps.auth.outputs.cognito_identity_oidc_access_token }}
@@ -52,3 +56,28 @@ runs:
         chain-role-duration-seconds: "${{ inputs.role-duration-seconds }}"
         chain-pass-claims: "${{ inputs.pass-claims }}"
         chain-set-in-environment: "${{ inputs.set-creds-in-environment }}"
+    
+    - id: aws_region # Pulled from catnekaise/cognito-idpool-auth/action.yml
+      shell: bash
+      env:
+        AWS_REGION: "${{ inputs.aws-region }}"
+        AWS_DEFAULT_REGION: "${{ inputs.aws-region }}"
+      run: |
+        value=""
+
+        if [ ! -z "${AWS_REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then
+          value="$AWS_REGION"
+        fi
+
+        if [ -z "$value" ]; then
+          echo "Unable to resolve what AWS Region to use"
+          exit 1
+        fi
+        
+        # Some-effort validation of aws region
+        if echo "$value" | grep -Eqv "^[a-z]{2}-[a-z]{4,9}-[0-9]$"; then
+          echo "Resolved value for AWS Region is invalid"
+          exit 1
+        fi
+
+        echo "value=$value" >> "$GITHUB_OUTPUT"
