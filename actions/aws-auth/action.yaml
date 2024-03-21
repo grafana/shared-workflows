@@ -2,22 +2,22 @@ name: Authenticate to AWS
 description: Authenticate to AWS from GitHub Actions via OpenID Connect
 
 inputs:
-  chain-role-arn:
+  role-arn:
     default: ""
     required: true
-    description: "Arn of Role when performing role chaining"
-  chain-pass-claims:
+    description: "ARN of workload role"
+  pass-claims:
     default: "repository_owner, repository_name, job_workflow_ref"
     required: true
     description: "Claims from ID token to pass to the role when performing role chaining. Can also include `repository_name`, which will be calculated."
-  chain-set-in-environment:
+  set-creds-in-environment:
     default: true
     required: false
-    description: "Set role chained credentials as environment variables"
-  chain-role-duration-seconds:
+    description: "Set environment variables for AWS CLI and SDKs"
+  role-duration-seconds:
     default: "3600"
     required: false
-    description: "Role duration in seconds for chained role"
+    description: "Role duration in seconds"
 
 outputs:
   aws_access_key_id:
@@ -48,7 +48,7 @@ runs:
         audience: "github-actions-cognito-identity-pool"
         aws-account-id: "590183704419"
         chain-role-session-name: "GitHubActions"
-        chain-role-arn: "${{ inputs.chain-role-arn }}"
-        chain-role-duration-seconds: "${{ inputs.chain-role-duration-seconds }}"
-        chain-pass-claims: "${{ inputs.chain-pass-claims }}"
-        chain-set-in-environment: "${{ inputs.chain-set-in-environment }}"
+        chain-role-arn: "${{ inputs.role-arn }}"
+        chain-role-duration-seconds: "${{ inputs.role-duration-seconds }}"
+        chain-pass-claims: "${{ inputs.pass-claims }}"
+        chain-set-in-environment: "${{ inputs.set-creds-in-environment }}"

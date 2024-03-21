@@ -30,7 +30,7 @@ jobs:
 
 | Name                          | Type   | Description                                                                                                                                                    |
 |-------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `chain-role-arn`              | String | Custom workload role to be assumed. Role arn must be prefixed with `github-actions` e.g. `arn:aws:iam::366620023056:role/github-actions/s3-test-access`        |
-| `chain-pass-claims`           | String | List of GitHub Actions claims (session tags) to pass to the next session when role chaining (default: `"repository_owner, repository_name, job_workflow_ref"`) |
-| `chain-set-in-environment`    | Bool   | Set role chained credentials as environment variables (default: `true`)                                                                                        |
-| `chain-role-duration-seconds` | String | Role duration in seconds for chained role (default: `"3600"`)                                                                                                  |
+| `role-arn`              | String | Specify custom workload role. Role ARN must be prefixed with `github-actions` e.g. `arn:aws:iam::366620023056:role/github-actions/s3-test-access`        |
+| `pass-claims`           | String | List of GitHub Actions claims (session tags) to pass to the next session when role chaining (default: `"repository_owner, repository_name, job_workflow_ref"`) |
+| `set-creds-in-environment`    | Bool   | Set environment variables for AWS CLI and SDKs (default: `true`)                                                                                        |
+| `role-duration-seconds` | String | Role duration in seconds (default: `"3600"`)                                                                                                  |
