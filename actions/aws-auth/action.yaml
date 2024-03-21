@@ -9,7 +9,7 @@ inputs:
   pass-claims:
     default: "repository_owner, repository_name, job_workflow_ref"
     required: true
-    description: "Claims from ID token to pass to the role when performing role chaining. Can also include `repository_name`, which will be calculated."
+    description: "`, `-separated claims from GitHub ID token to make available to `role-arn`"
   set-creds-in-environment:
     default: true
     required: false
