@@ -34,8 +34,8 @@ jobs:
         run: corepack enable |
             corepack prepare yarn@stable --activate
 
-    # Yarn dependencies cannot be cached until yarn is installed
-    # WORKAROUND: https://github.com/actions/setup-node/issues/531
+        # Yarn dependencies cannot be cached until yarn is installed
+        # WORKAROUND: https://github.com/actions/setup-node/issues/531
       - name: Setup Node.js
         id: setup-node
         uses: actions/setup-node@v4
@@ -48,15 +48,15 @@ jobs:
         run: yarn install --immutable
 
       - name: Check Format
-        id: npm-format-check
+        id: yarn-format-check
         run: yarn format:check
 
       - name: Lint
-        id: npm-lint
+        id: yarn-lint
         run: yarn lint
 
       - name: Test
-        id: npm-ci-test
+        id: yarn-ci-test
         run: yarn ci-test
 
   test-action:
