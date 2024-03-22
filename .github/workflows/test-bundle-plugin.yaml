@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: /actions/bundle-plugin/.node-version
-          cache-dependency-path: /actions/bundle-plugin/yarn.lock
+          cache-dependency-path: ./actions/bundle-plugin/yarn.lock
           cache: yarn
 
       - name: Install Dependencies
