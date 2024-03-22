@@ -25,13 +25,23 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+            node-version-file: /actions/bundle-plugin/.node-version
+
+      - name: Install Yarn
+        run: corepack enable |
+            corepack prepare yarn@stable --activate
+
+    # Yarn dependencies cannot be cached until yarn is installed
+    # WORKAROUND: https://github.com/actions/setup-node/issues/531
       - name: Setup Node.js
         id: setup-node
         uses: actions/setup-node@v4
         with:
-          node-version-file: /actions/bundle-plugin/.node-version
-          cache-dependency-path: ./actions/bundle-plugin/yarn.lock
-          cache: yarn
+            cache-dependency-path: ./actions/bundle-plugin/yarn.lock
+            cache: yarn
 
       - name: Install Dependencies
         id: yarn-ci
