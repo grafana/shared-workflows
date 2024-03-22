@@ -9,7 +9,7 @@ export async function run(): Promise<void> {
   try {
     const distDir: string = core.getInput('distDir')
     const outDir: string = core.getInput('outDir')
-    zip(distDir, outDir)
+    zip({ distDir, outDir })
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)

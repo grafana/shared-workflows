@@ -19,6 +19,7 @@
     "grafana",
     "plugin"
   ],
+  "type": "module",
   "exports": {
     ".": "./dist/index.js"
   },
@@ -26,16 +27,16 @@
     "node": ">=20"
   },
   "scripts": {
-    "bundle": "yarn format:write && yarn package",
-    "ci-test": "yarn jest",
-    "coverage": "yarn make-coverage-badge --output-path ./badges/coverage.svg",
-    "format:write": "yarn prettier --write .",
-    "format:check": "yarn prettier --check .",
-    "lint": "yarn eslint . -c ./linters/.eslintrc.yml",
-    "package": "yarn ncc build src/index.ts -o dist --source-map --license licenses.txt",
-    "package:watch": "yarn package --watch",
-    "test": "yarn jest",
-    "all": "yarn format:write && yarn lint && yarn test && yarn coverage && yarn package"
+    "bundle": "npm run format:write && npm run package",
+    "ci-test": "npx jest",
+    "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
+    "format:write": "npx prettier --write .",
+    "format:check": "npx prettier --check .",
+    "lint": "npx eslint . -c ./linters/.eslintrc.yml",
+    "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
+    "package:watch": "npm run package -- --watch",
+    "test": "npx jest",
+    "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
   "license": "MIT",
   "jest": {
@@ -74,8 +75,7 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@grafana/bundle-plugin": "workspace:^"
+    "@actions/core": "^1.10.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
@@ -96,10 +96,6 @@
     "typescript": "^5.4.2"
   },
   "workspaces": [
-    "packages/*"
-  ],
-  "nohoist": [
-    "**"
-  ],
-  "packageManager": "yarn@4.1.1"
+    "packages/bundle-plugin-command"
+  ]
 }

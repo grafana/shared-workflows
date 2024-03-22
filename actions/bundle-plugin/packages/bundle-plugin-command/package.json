@@ -3,25 +3,28 @@
   "version": "1.0.9",
   "repository": {
     "directory": "packages/bundle-plugin",
-    "url": "https://github.com/grafana/shared-workflows"
+    "url": "git+https://github.com/grafana/shared-workflows.git"
   },
+  "description": "Zip Grafana plugins for distribution.",
+  "bugs": {
+    "url": "https://github.com/grafana/shared-workflows/issues"
+  },
+  "homepage": "https://github.com/grafana/shared-workflows#readme",
   "author": "Grafana",
   "license": "Apache-2.0",
-  "bin": "./dist/bin/run.js",
-  "type": "module",
-  "exports": {
-    "node": {
-      "import": "./index.js"
-    },
-    "default": "./index.js"
+  "bin": {
+    "bundle-plugin": "dist/bin/run.js"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "scripts": {
     "clean": "rm -rf ./dist",
-    "build": "yarn run clean && tsc && chmod +x ./dist/bin/run.js",
+    "build": "npm run clean && tsc && chmod +x ./dist/bin/run.js",
     "dev": "nodemon --exec 'tsc'",
     "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx ./src",
     "lint:fix": "eslint --cache --ext .js,.jsx,.ts,.tsx --fix ./src ",
@@ -59,6 +62,5 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "packageManager": "yarn@4.1.1"
+  }
 }
