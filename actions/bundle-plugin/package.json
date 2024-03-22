@@ -1,9 +1,9 @@
 {
-  "name": "typescript-action",
+  "name": "bundle-plugin",
   "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
-  "author": "",
   "private": true,
+  "version": "0.0.1",
+  "author": "Grafana Labs",
   "homepage": "https://github.com/actions/typescript-action",
   "repository": {
     "type": "git",
@@ -24,19 +24,24 @@
     "node": ">=20"
   },
   "scripts": {
-    "bundle": "npm run format:write && npm run package",
-    "ci-test": "npx jest",
-    "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
-    "format:write": "npx prettier --write .",
-    "format:check": "npx prettier --check .",
-    "lint": "npx eslint . -c ./.github/linters/.eslintrc.yml",
-    "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
-    "package:watch": "npm run package -- --watch",
-    "test": "npx jest",
-    "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
+    "bundle": "yarn format:write && yarn package",
+    "ci-test": "yarn jest",
+    "coverage": "yarn make-coverage-badge --output-path ./badges/coverage.svg",
+    "format:write": "yarn prettier --write .",
+    "format:check": "yarn prettier --check .",
+    "lint": "yarn eslint . -c ./linters/.eslintrc.yml",
+    "package": "yarn ncc build src/index.ts -o dist --source-map --license licenses.txt",
+    "package:watch": "yarn package --watch",
+    "test": "yarn jest",
+    "all": "yarn format:write && yarn lint && yarn test && yarn coverage && yarn package"
   },
   "license": "MIT",
   "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "./tsconfig.json"
+      }
+    },
     "preset": "ts-jest",
     "verbose": true,
     "clearMocks": true,
@@ -50,7 +55,8 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/dist/"
+      "/dist/",
+      "/packages/*"
     ],
     "transform": {
       "^.+\\.ts$": "ts-jest"
@@ -85,5 +91,9 @@
     "prettier-eslint": "^16.3.0",
     "ts-jest": "^29.1.2",
     "typescript": "^5.4.2"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "packageManager": "yarn@4.1.1"
 }
