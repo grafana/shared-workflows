@@ -1,21 +1,23 @@
 {
-  "name": "bundle-plugin",
+  "name": "bundle-plugin-action",
   "description": "GitHub Actions TypeScript template",
   "private": true,
   "version": "0.0.1",
   "author": "Grafana Labs",
-  "homepage": "https://github.com/actions/typescript-action",
+  "homepage": "https://github.com/grafana/shared-workflows/tree/main/actions/bundle-plugin",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/grafana/shared-workflows.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/grafana/shared-workflows/issues"
   },
   "keywords": [
     "actions",
     "node",
-    "setup"
+    "setup",
+    "grafana",
+    "plugin"
   ],
   "exports": {
     ".": "./dist/index.js"
@@ -72,7 +74,8 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^1.10.1"
+    "@actions/core": "^1.10.1",
+    "@grafana/bundle-plugin": "workspace:^"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
@@ -94,6 +97,9 @@
   },
   "workspaces": [
     "packages/*"
+  ],
+  "nohoist": [
+    "**"
   ],
   "packageManager": "yarn@4.1.1"
 }
