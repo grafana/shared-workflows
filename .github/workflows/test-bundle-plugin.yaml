@@ -30,50 +30,25 @@ jobs:
         with:
             node-version-file: /actions/bundle-plugin/.node-version
 
-      - name: Install Yarn
-        run: corepack enable |
-            corepack prepare yarn@stable --activate
-
-        # Yarn dependencies cannot be cached until yarn is installed
-        # WORKAROUND: https://github.com/actions/setup-node/issues/531
       - name: Setup Node.js
         id: setup-node
         uses: actions/setup-node@v4
         with:
-            cache-dependency-path: ./actions/bundle-plugin/yarn.lock
-            cache: yarn
+            cache-dependency-path: ./actions/bundle-plugin/package-lock.json
+            cache: npm
 
       - name: Install Dependencies
-        id: yarn-ci
-        run: yarn install --immutable
+        id: npm-ci
+        run: npm ci
 
       - name: Check Format
-        id: yarn-format-check
-        run: yarn format:check
+        id: npm-format-check
+        run: yarn npm run format:check
 
       - name: Lint
-        id: yarn-lint
-        run: yarn lint
+        id: npm-lint
+        run: npm run lint
 
       - name: Test
-        id: yarn-ci-test
-        run: yarn ci-test
-
-  test-action:
-    name: GitHub Actions Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Test Local Action
-        id: test-action
-        uses: ./actions/bundle-plugin/
-        with:
-          milliseconds: 2000
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+        id: npm-ci-test
+        run: npm run ci-test
