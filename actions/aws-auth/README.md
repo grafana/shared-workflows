@@ -52,11 +52,16 @@ IAM workload roles are used to grant permissions to AWS in a secure manner. From
 
 ### Create IAM Role
 
-Make sure when creating the role, the path is prefixed with `github-actions`. The Cognito Identity Pool only allows authenticated roles that match the following naming scheme: `"arn:aws:iam::*:role/github-actions/*"`
+Ensure that the path is prefixed with `github-actions` when creating the role. The Cognito Identity Pool only allows authenticated roles that match the following naming pattern: `"arn:aws:iam::*:role/github-actions/*"`.
+
+The role should only be present in the account that contains the resources it needs to access.
 
 ### Trust Policy
 
 This is where you provide additional constraints for when permissions are applied. The condition block can be customized as you see fit with additional [GitHub OIDC token claims](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token) [^2].
+
+As this defines which GitHub Actions runs are allowed to use the role's permissions, it is critical to make these configurations as precise as possible. Furthermore, all runs are limited to be triggered exclusively from repositories under `grafana/`, and it is not possible to exceed this restriction.
+
 In this case, permissions are only granted when the `job_workflow_ref` tag matches the workflow that initiated the action.
 
 Example trust policy:
