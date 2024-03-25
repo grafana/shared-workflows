@@ -43,7 +43,7 @@ jobs:
 
       - name: Check Format
         id: npm-format-check
-        run: yarn npm run format:check
+        run: npm run format:check
 
       - name: Lint
         id: npm-lint
