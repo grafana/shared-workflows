@@ -27,16 +27,17 @@
     "node": ">=20"
   },
   "scripts": {
-    "bundle": "npm run format:write && npm run package",
-    "ci-test": "npx jest",
+    "build:packages": "npm run build --workspace=bundle-plugin-command",
+    "bundle": "npm run build:packages && npm run format:write && npm run package",
+    "ci-test": "npm run build:packages && npx jest",
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
     "format:write": "npx prettier --write .",
     "format:check": "npx prettier --check .",
-    "lint": "npx eslint . -c ./linters/.eslintrc.yml",
+    "lint": "npm run build:packages && npx eslint . -c ./linters/.eslintrc.yml",
     "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "package:watch": "npm run package -- --watch",
-    "test": "npx jest",
-    "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
+    "test": "npm run build:packages && npx jest",
+    "all": "npm run build:packages && npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
   "license": "MIT",
   "jest": {
