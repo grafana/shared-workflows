@@ -1,34 +1,14 @@
-name: Push to artifact registry
+name: Login to artifact registry
 description: Composite action to push to Google Artifact Registry
 inputs:
   registry:
     description: |
-      Google Artifact Registry to store docker images in.
+      Google Artifact Registry to authenticate against.
     default: "us-docker.pkg.dev"
-  tags:
-    description: |
-      List of Docker images to be pushed.
-    required: true
-  context:
-    description: |
-      Path to the Docker build context.
-    default: "."
   environment:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
     default: dev
-  image_name:
-    description: |
-      Name of the image to be pushed to GAR.
-    required: true
-  build-args:
-    description: |
-      List of arguments necessary for the Docker image to be built.
-    default: ""
-  file:
-    description: |
-      The dockerfile to use.
-    required: false
 
 runs:
   using: composite
@@ -46,18 +26,6 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
-    - name: Get repository name
-      id: get-repository-name
-      shell: bash
-      run: |
-        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
-        echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
-      with:
-        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
-        tags: ${{ inputs.tags }}
     - name: Construct service account
       id: construct-service-account
       shell: sh
@@ -77,15 +45,3 @@ runs:
         registry: ${{ inputs.registry }}
         username: oauth2accesstoken
         password: ${{ steps.gcloud-auth.outputs.access_token }}
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
-    - name: Build the container
-      uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
-      with:
-        context: ${{ inputs.context }}
-        build-args: ${{ inputs.build-args }}
-        push: ${{ github.event_name == 'push' }}
-        tags: ${{ steps.meta.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        file: ${{ inputs.file }}

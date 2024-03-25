@@ -1,0 +1,85 @@
+name: Authenticate to AWS
+description: Authenticate to AWS from GitHub Actions via OpenID Connect
+
+inputs:
+  aws-region:
+    default: "us-east-2"
+    required: true
+    description: "AWS region"
+  role-arn:
+    default: ""
+    required: true
+    description: "ARN of workload role"
+  pass-claims:
+    default: "repository_owner, repository_name, job_workflow_ref"
+    required: true
+    description: "`, `-separated claims from GitHub ID token to make available to `role-arn`"
+  set-creds-in-environment:
+    default: true
+    required: false
+    description: "Set environment variables for AWS CLI and SDKs"
+  role-duration-seconds:
+    default: "3600"
+    required: false
+    description: "Role duration in seconds"
+
+outputs:
+  aws_access_key_id:
+    description: "AWS Access Key Id"
+    value: ${{ steps.auth.outputs.aws_access_key_id }}
+  aws_secret_access_key:
+    description: "AWS Secret Access Key"
+    value: ${{ steps.auth.outputs.aws_secret_access_key }}
+  aws_session_token:
+    description: "AWS Session Name"
+    value: ${{ steps.auth.outputs.aws_session_token }}
+  aws_region:
+    description: "AWS Region"
+    value: ${{ steps.aws_region.outputs.value }}
+  cognito_identity_oidc_access_token:
+    description: "Cognito Identity OIDC Access Token"
+    value: ${{ steps.auth.outputs.cognito_identity_oidc_access_token }}
+
+runs:
+  using: composite
+  steps:
+    - id: auth
+      uses: catnekaise/cognito-idpool-auth@83ae9e159de469b3acd87ecb361d6b5957ee35ae # v1.0.1
+      with:
+        cognito-identity-pool-id: "us-east-2:3a4bca79-07af-4921-a9fb-e21475708406"
+        auth-flow: "enhanced"
+        aws-region: "us-east-2"
+        audience: "github-actions-cognito-identity-pool"
+        aws-account-id: "590183704419"
+        chain-role-session-name: "GitHubActions"
+        chain-role-arn: "${{ inputs.role-arn }}"
+        chain-role-duration-seconds: "${{ inputs.role-duration-seconds }}"
+        chain-pass-claims: "${{ inputs.pass-claims }}"
+        chain-set-in-environment: "${{ inputs.set-creds-in-environment }}"
+    
+    - id: aws_region # Pulled from catnekaise/cognito-idpool-auth/action.yml
+      shell: bash
+      env:
+        AWS_REGION: "${{ inputs.aws-region }}"
+        AWS_DEFAULT_REGION: "${{ inputs.aws-region }}"
+      run: |
+        value=""
+
+        if [ ! -z "${AWS_REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then
+          value="$AWS_REGION"
+        fi
+
+        if [ -z "$value" ]; then
+          echo "Unable to resolve what AWS Region to use"
+          exit 1
+        fi
+        
+        # Some-effort validation of aws region
+        if echo "$value" | grep -Eqv "^[a-z]{2}-[a-z]{4,9}-[0-9]$"; then
+          echo "Resolved value for AWS Region is invalid"
+          exit 1
+        fi
+
+        echo "value=$value" >> "$GITHUB_OUTPUT"
+        echo "AWS_REGION=${AWS_REGION}" >> "$GITHUB_ENV"
+        echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> "$GITHUB_ENV"

@@ -5,7 +5,8 @@
 * @grafana/platform-productivity
 
 # Owned by the Grafana department's Infra O11y Frontend squad
-/actions/lint-pr-title/ @grafana/infra-o11y-frontend
+.github/workflows/build-lint-pr.yml  @grafana/infra-o11y-frontend
+/actions/lint-pr-title/              @grafana/infra-o11y-frontend
 
 # Platform productivity
 /.github/workflows/publish-techdocs.yaml @grafana/platform-productivity
