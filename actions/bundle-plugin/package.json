@@ -27,7 +27,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build:packages": "npm run build --workspace=bundle-plugin-command",
+    "build:packages": "npm run build --workspace=@grafana/bundle-plugin",
     "bundle": "npm run build:packages && npm run format:write && npm run package",
     "ci-test": "npm run build:packages && npx jest",
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
