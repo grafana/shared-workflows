@@ -1,0 +1,79 @@
+name: Publish new backend plugin on grafana.com
+description: Action to push new backend plugin version to grafana.com
+inputs:
+  working-directory:
+    description: |
+      Working directory for the action.
+    default: "__to-upload__"
+  plugin-id:
+    description: |
+      ID of the plugin to publish.
+    required: true
+  plugin-version:
+    description: |
+      Version of the plugin to publish.
+    required: true
+  plugin-dist:
+    description: |
+      URL of the plugin distribution.
+    required: true
+  gcp-bucket:
+    description: |
+      Google Cloud Storage bucket to store plugin releases.
+    required: true
+  gcom-token:
+    description: |
+      Token for grafana.com API.
+    required: true
+  gcom-api:
+    description: |
+      URL of the grafana.com API.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: install-jq
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install jq
+    - name: publish-plugin
+      shell: bash
+      run: |
+        echo "Publish new plugin version on grafana.com:"
+        echo "Plugin version: ${{ inputs.plugin-version }}"
+        result=`curl -H "Authorization: Bearer $GCOM_TOKEN" -H "Content-Type: application/json" ${{ inputs.gcom-api }}/api/plugins -d "{
+          \"url\": \"${{ inputs.plugin-dist }}\",
+          \"download\": {
+            \"linux-amd64\": {
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_amd64.zip\",
+              \"md5\": \"$(cat ci/packages/info-linux_amd64.json | jq -r .plugin.md5)\"
+            },
+            \"linux-arm64\": {
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_arm64.zip\",
+              \"md5\": \"$(cat ci/packages/info-linux_arm64.json | jq -r .plugin.md5)\"
+            },
+            \"linux-arm\": {
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_arm.zip\",
+              \"md5\": \"$(cat ci/packages/info-linux_arm.json | jq -r .plugin.md5)\"
+            },
+            \"windows-amd64\": {
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/windows/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.windows_amd64.zip\",
+              \"md5\": \"$(cat ci/packages/info-windows_amd64.json | jq -r .plugin.md5)\"
+            },
+            \"darwin-amd64\": {
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.darwin_amd64.zip\",
+              \"md5\": \"$(cat ci/packages/info-darwin_amd64.json | jq -r .plugin.md5)\"
+            },
+            \"darwin-arm64\": {
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.darwin_arm64.zip\",
+              \"md5\": \"$(cat ci/packages/info-darwin_arm64.json | jq -r .plugin.md5)\"
+            }
+          }
+        }"`
+        if [[ "$(echo $result | jq -r .version)" == "null" ]]; then
+          echo "Failed to publish plugin version. Got:"
+          echo $result
+          exit 1
+        fi
