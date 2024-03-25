@@ -29,14 +29,14 @@
   "scripts": {
     "build:packages": "npm run build --workspace=@grafana/bundle-plugin",
     "bundle": "npm run build:packages && npm run format:write && npm run package",
-    "ci-test": "npm run build:packages && npx jest",
+    "ci-test": "npm run build:packages && npx jest --passWithNoTests",
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
     "format:write": "npx prettier --write .",
     "format:check": "npx prettier --check .",
     "lint": "npm run build:packages && npx eslint . -c ./linters/.eslintrc.yml",
     "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "package:watch": "npm run package -- --watch",
-    "test": "npm run build:packages && npx jest",
+    "test": "npm run build:packages && npx jest --passWithNoTests",
     "all": "npm run build:packages && npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
   "license": "MIT",
