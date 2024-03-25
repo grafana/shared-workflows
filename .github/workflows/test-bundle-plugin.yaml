@@ -41,6 +41,10 @@ jobs:
         id: npm-ci
         run: npm ci
 
+      - name: Build packages
+        id: build-packages
+        run: npm run build:packages
+
       - name: Check Format
         id: npm-format-check
         run: npm run format:check
