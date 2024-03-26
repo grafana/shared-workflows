@@ -48,10 +48,10 @@
     "@commitlint/types" "^19.0.3"
     semver "^7.6.0"
 
-"@commitlint/lint@^19.0.3":
-  version "19.0.3"
-  resolved "https://registry.yarnpkg.com/@commitlint/lint/-/lint-19.0.3.tgz#7db83188310c1a5fbdffebbb32a35aa1b0aacee3"
-  integrity sha512-uHPyRqIn57iIplYa5xBr6oNu5aPXKGC4WLeuHfqQHclwIqbJ33g3yA5fIA+/NYnp5ZM2EFiujqHFaVUYj6HlKA==
+"@commitlint/lint@^19.1.0":
+  version "19.1.0"
+  resolved "https://registry.yarnpkg.com/@commitlint/lint/-/lint-19.1.0.tgz#0f4b26b1452d59a92a28b5fa6de9bdbee18399a1"
+  integrity sha512-ESjaBmL/9cxm+eePyEr6SFlBUIYlYpI80n+Ltm7IA3MAcrmiP05UMhJdAD66sO8jvo8O4xdGn/1Mt2G5VzfZKw==
   dependencies:
     "@commitlint/is-ignored" "^19.0.3"
     "@commitlint/parse" "^19.0.3"
