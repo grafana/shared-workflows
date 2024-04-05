@@ -45,3 +45,4 @@ jobs:
 | `image_name`  | String | Name of the image to be pushed to GAR.                                               |
 | `build-args`  | String | List of arguments necessary for the Docker image to be built.                        |
 | `file`        | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`) |
+| `platforms`   | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)     |
