@@ -46,3 +46,5 @@ jobs:
 | `build-args`  | String | List of arguments necessary for the Docker image to be built.                        |
 | `file`        | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`) |
 | `platforms`   | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)     |
+| `cache-from`   | String   | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))    |
+| `cache-to`   | String   | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))   |
