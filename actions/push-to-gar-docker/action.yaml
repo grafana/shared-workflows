@@ -29,6 +29,10 @@ inputs:
     description: |
       The dockerfile to use.
     required: false
+  platforms:
+    description: |
+      List of platforms to build the image for
+    required: false
 
 runs:
   using: composite
