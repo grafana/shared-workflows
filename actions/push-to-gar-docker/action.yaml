@@ -62,10 +62,10 @@ runs:
       id: resolve-caches
       shell: bash
       run: |
-        CACHE_FROM="${{ inputs.cache-from:-'type=gha' }}"
-        CACHE_TO="${{ inputs.cache-to:-'type=gha,mode=max' }}"
+        CACHE_FROM="${{ inputs.cache-from && inputs.cache-from || 'type=gha' }}"
+        CACHE_TO="${{ inputs.cache-to && inputs.cache-to || 'type=gha,mode=max' }}"
         echo "cache-from=${CACHE_FROM}" >> ${GITHUB_OUTPUT}
-        echo "cache-to=${CACHE_TO}" >> ${GITHUB_OUTPUT}    
+        echo "cache-to=${CACHE_TO}" >> ${GITHUB_OUTPUT}
     - name: Get repository name
       id: get-repository-name
       shell: bash
