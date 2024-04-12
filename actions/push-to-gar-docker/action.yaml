@@ -33,6 +33,14 @@ inputs:
     description: |
       List of platforms to build the image for
     required: false
+  cache-from:
+    description: |
+      Where cache should be fetched from
+    required: false
+  cache-to:
+    description: |
+      Where cache should be stored to
+    required: false
 
 runs:
   using: composite
@@ -50,6 +58,14 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
+    - name: Resolve caches
+      id: resolve-caches
+      shell: bash
+      run: |
+        CACHE_FROM="${{ inputs.cache-from:-'type=gha' }}"
+        CACHE_TO="${{ inputs.cache-to:-'type=gha,mode=max' }}"
+        echo "cache-from=${CACHE_FROM}" >> ${GITHUB_OUTPUT}
+        echo "cache-to=${CACHE_TO}" >> ${GITHUB_OUTPUT}    
     - name: Get repository name
       id: get-repository-name
       shell: bash
@@ -90,7 +106,7 @@ runs:
         build-args: ${{ inputs.build-args }}
         push: ${{ github.event_name == 'push' }}
         tags: ${{ steps.meta.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: ${{ steps.resolve-caches.outputs.cache-from }}
+        cache-to: ${{ steps.resolve-caches.outputs.cache-to }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
