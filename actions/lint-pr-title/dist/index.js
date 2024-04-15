@@ -38280,7 +38280,7 @@ const wildcards = [
     test(/^((Merge pull request)|(Merge (.*?) into (.*?)|(Merge branch (.*?)))(?:\r?\n)*$)/m),
     test(/^(Merge tag (.*?))(?:\r?\n)*$/m),
     test(/^(R|r)evert (.*)/),
-    test(/^(fixup|squash)!/),
+    test(/^(amend|fixup|squash)!/),
     isSemver,
     test(/^(Merged (.*?)(in|into) (.*)|Merged PR (.*): (.*))/),
     test(/^Merge remote-tracking branch(\s*)(.*)/),
@@ -41407,7 +41407,10 @@ async function lint(message, rawRulesConfig, rawOpts) {
     const missing = Object.keys(rulesConfig).filter((name) => typeof allRules.get(name) !== 'function');
     if (missing.length > 0) {
         const names = [...allRules.keys()];
-        throw new RangeError(`Found invalid rule names: ${missing.join(', ')}. Supported rule names are: ${names.join(', ')}`);
+        throw new RangeError([
+            `Found rules without implementation: ${missing.join(', ')}.`,
+            `Supported rules are: ${names.join(', ')}.`,
+        ].join('\n'));
     }
     const invalid = Object.entries(rulesConfig)
         .map(([name, config]) => {
@@ -41461,8 +41464,8 @@ async function lint(message, rawRulesConfig, rawOpts) {
         };
     });
     const results = (await Promise.all(pendingResults)).filter((result) => result !== null);
-    const errors = results.filter((result) => result.level === 2 && !result.valid);
-    const warnings = results.filter((result) => result.level === 1 && !result.valid);
+    const errors = results.filter((result) => result.level === RuleConfigSeverity.Error && !result.valid);
+    const warnings = results.filter((result) => result.level === RuleConfigSeverity.Warning && !result.valid);
     const valid = errors.length === 0;
     return {
         valid,
