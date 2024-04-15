@@ -17,6 +17,11 @@ on:
         required: false
         type: string
         default: "."
+      checkout-repo:
+        description: "Whether to perform the `checkout` action at the start of the workflow. Setting to `false` is useful when generating docs in previous job. Default is `true`."
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   generate-and-publish-docs:
@@ -28,6 +33,7 @@ jobs:
       - id: checkout
         name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        if: inputs.checkout-repo
 
       - id: auth
         name: Authenticate with Google Cloud
