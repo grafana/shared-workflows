@@ -46,3 +46,18 @@ jobs:
 | `platforms`   | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)     |
 | `cache-from`   | String   | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))    |
 | `cache-to`   | String   | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))   |
+
+## Outputs
+
+The following outputs are exposed from [`docker/metadata-action`](https://github.com/docker/metadata-action?tab=readme-ov-file#outputs) and [`docker/build-push-action`](https://github.com/docker/build-push-action?tab=readme-ov-file#outputs):
+
+| Name      | Type   | Description                    | From |
+|-----------|--------|--------------------------------|------|
+| `version` | String | Generated Docker image version | `docker/metadata-action` |
+| `tags`    | String | Generated Docker tags    | `docker/metadata-action` |
+| `labels`  | String | Generated Docker labels  | `docker/metadata-action` |
+| `annotations` | String | Generated annotations | `docker/metadata-action` |
+| `json`    | String | JSON output of tags and labels | `docker/metadata-action` |
+| `imageid` | String | Image ID | `docker/build-push-action` |
+| `digest`  | String | Image digest | `docker/build-push-action` |
+| `metadata`| String | Build result metadata | `docker/build-push-action` |
