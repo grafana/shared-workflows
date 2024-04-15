@@ -10,10 +10,6 @@ name: CI
 on:
   pull_request:
 
-env:
-  ENVIRONMENT: "dev" # can be either dev/prod
-  IMAGE_NAME: "backstage" # name of the image to be published, required
-
 # These permissions are needed to assume roles from Github's OIDC.
 permissions:
   contents: read
@@ -32,6 +28,8 @@ jobs:
             "<IMAGE_TAG>"
             "latest"
           context: "<YOUR_CONTEXT>" # e.g. "." - where the Dockerfile is
+          image_name: "backstage" # name of the image to be published, required
+          environment: "dev" # can be either dev/prod
 ```
 
 ## Inputs
