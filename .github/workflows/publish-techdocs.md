@@ -1,6 +1,6 @@
 # Reusable workflow: Publish techdocs
 
-This workflow helps you building your project's documentation and publishing it to [EngHub](https://enghub.grafana-ops.net).
+This workflow helps you build your project's documentation and publish it to [EngHub](https://enghub.grafana-ops.net).
 Please keep in mind that for this you also need to first register your repository with EngHub.
 You can find details on this [here](https://enghub.grafana-ops.net/docs/default/component/enghub/user-guides/add-gh-repo/).
 
@@ -34,7 +34,7 @@ jobs:
 
 | Name | Type | Description |
 |-|-|-|
-| `namespace` | string | The entities namespace (usually `default`) |
+| `namespace` | string | The entity's namespace (usually `default`) |
 | `kind` | string | The kind of the entity in EngHub (usually `component`) |
 | `name` | string | The name of the entity in EngHub (usually matches the name of the repository) |
 | `default-working-directory` | string | The directory where the techdocs-cli should be run (default: `.`) |

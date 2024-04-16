@@ -1,6 +1,6 @@
 # GitHub workflows
 
-## Reusabe workflows
+## Reusable workflows
 
 This folder contains some workflows that can be re-used from other repositories:
 
