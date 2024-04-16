@@ -46,7 +46,7 @@ jobs:
 | `platforms`   | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)     |
 | `cache-from`   | String   | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))    |
 | `cache-to`   | String   | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))   |
-| `ssh`   | List   | List of SSH agent socket or keys to expose to the build     |
+| `ssh`   | List   | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs))    |
 
 ## Outputs
 
