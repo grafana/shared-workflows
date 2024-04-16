@@ -18,12 +18,12 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-push:
+  login:
     runs-on: ubuntu-latest
 
     steps:
       - uses: grafana/shared-workflows/actions/login-to-gar@main
-        id: push-to-gar
+        id: login-to-gar
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev
 ```
