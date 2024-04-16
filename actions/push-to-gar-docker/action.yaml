@@ -43,6 +43,9 @@ inputs:
       Where cache should be stored to
     required: false
     default: "type=gha,mode=max"
+  ssh:
+    desctiption: |
+      List of SSH agent socket or keys to expose to the build
 
 outputs:
   version:
@@ -131,3 +134,4 @@ runs:
         cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
+        ssh: ${{ inputs.ssh }}
