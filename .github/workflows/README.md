@@ -4,4 +4,4 @@
 
 This folder contains some workflows that can be re-used from other repositories:
 
-- [publish-techdocs](./publish-techdocs.md)
+- [publish-techdocs](./publish-techdocs.md): Publish your project's documentation to EngHub
