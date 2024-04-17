@@ -1,0 +1,38 @@
+name: Test login-to-gar action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/login-to-gar/**"
+      - ".github/workflows/test-login-to-gar.yml"
+
+  pull_request:
+    paths:
+      - "actions/login-to-gar/**"
+      - ".github/workflows/test-login-to-gar.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        enviromnent:
+          - dev
+          - prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Test Login to GAR Action
+        id: test-login-to-gar
+        if: matrix.enviromnent != 'invalid'
+        uses: ./actions/login-to-gar
+        with:
+          environment: ${{ matrix.enviromnent }}
+          registry: "us-docker.pkg.dev"
