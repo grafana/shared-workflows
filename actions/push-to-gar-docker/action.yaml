@@ -76,6 +76,15 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Checkout
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: shared-workflows    
     - name: Get repository name
       id: get-repository-name
       shell: bash
@@ -96,7 +105,7 @@ runs:
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
     - name: Login to GAR
-      uses: grafana/shared-workflows/actions/login-to-gar@main
+      uses: ./shared-workflows/actions/login-to-gar
       with:
         environment: ${{ inputs.environment }}
     - name: Extract metadata (tags, labels) for Docker
