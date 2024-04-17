@@ -26,4 +26,5 @@ jobs:
         id: login-to-gar
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev
+          environment: "prod" # can be either dev/prod
 ```

@@ -13,19 +13,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Resolve GCP project
-      id: resolve-project
-      shell: bash
-      run: |
-        if [ "${{ inputs.environment }}" == 'dev' ]; then
-          PROJECT="grafanalabs-dev"
-        elif [ "${{ inputs.environment }}" == 'prod' ]; then
-          PROJECT="grafanalabs-global"
-        else
-          echo "Invalid environment. Valid environment variable inputs: dev, prod"
-          exit 1
-        fi
-        echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
     - name: Construct service account
       id: construct-service-account
       shell: sh

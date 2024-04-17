@@ -76,6 +76,12 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Get repository name
+      id: get-repository-name
+      shell: bash
+      run: |
+        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
+        echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
     - name: Resolve GCP project
       id: resolve-project
       shell: bash
@@ -89,37 +95,17 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
-    - name: Get repository name
-      id: get-repository-name
-      shell: bash
-      run: |
-        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
-        echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
+    - name: Login to GAR
+      uses: grafana/shared-workflows/actions/login-to-gar@main
+      with:
+        environment: ${{ inputs.environment }}
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
       with:
         images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
-    - name: Construct service account
-      id: construct-service-account
-      shell: sh
-      run: |
-        SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
-        echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
-    - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
-      id: gcloud-auth
-      with:
-        token_format: access_token
-        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-        service_account: ${{ steps.construct-service-account.outputs.service_account }}
         create_credentials_file: false
-    - name: Login to GAR
-      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-      with:
-        registry: ${{ inputs.registry }}
-        username: oauth2accesstoken
-        password: ${{ steps.gcloud-auth.outputs.access_token }}
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
     - name: Build the container
