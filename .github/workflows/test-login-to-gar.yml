@@ -31,7 +31,6 @@ jobs:
 
       - name: Test Login to GAR Action
         id: test-login-to-gar
-        if: matrix.enviromnent != 'invalid'
         uses: ./actions/login-to-gar
         with:
           environment: ${{ matrix.enviromnent }}
