@@ -8,6 +8,9 @@ inputs:
   repo-url:
     type: string
     required: true
+  working-directory:
+    type: string
+    required: true
 
 runs:
   using: composite
@@ -38,9 +41,10 @@ runs:
       id: run
       shell: bash
       run: |
-        go run _action/actions/trigger-argo-workflow \
-          -default-branch=${{input.default-branch}} \
-          -repo-url=${{input.repo-url}}
+        go run _action/actions/techdocs-rewrite-relative-links \
+        --root-dir=${{input.working-directory}} \
+        --default-branch=${{input.default-branch}} \
+        --repo-url=${{input.repo-url}}
 
     - name: Cleanup
       if: "always()"
