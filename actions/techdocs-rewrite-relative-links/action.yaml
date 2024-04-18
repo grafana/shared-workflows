@@ -1,4 +1,4 @@
-name: Techdocs: Rewrite relative links
+name: "Techdocs: Rewrite relative links"
 description: Rewrite links inside techdocs pointing to outside resources
 
 inputs:
