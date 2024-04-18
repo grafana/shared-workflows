@@ -59,7 +59,7 @@ jobs:
         run: python -m pip install mkdocs-techdocs-core==1.*
 
       - name: Rewrite relative links
-        if: input.rewrite-relative-links
+        if: inputs.rewrite-relative-links
         uses: grafana/shared-workflows/actions/techdocs-rewrite-relative-links@zerok/techdocs-rewrite-relative-links
         with:
           working-directory: "${{ inputs.default-working-directory }}"

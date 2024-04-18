@@ -42,9 +42,9 @@ runs:
       shell: bash
       run: |
         go run _action/actions/techdocs-rewrite-relative-links \
-        --root-dir=${{input.working-directory}} \
-        --default-branch=${{input.default-branch}} \
-        --repo-url=${{input.repo-url}}
+        --root-dir=${{inputs.working-directory}} \
+        --default-branch=${{inputs.default-branch}} \
+        --repo-url=${{inputs.repo-url}}
 
     - name: Cleanup
       if: "always()"
