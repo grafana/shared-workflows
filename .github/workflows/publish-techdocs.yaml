@@ -70,6 +70,6 @@ jobs:
         run: techdocs-cli generate --no-docker --verbose
         working-directory: ${{ inputs.default-working-directory }}
 
-      - name: Publish docs site
-        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
-        working-directory: ${{ inputs.default-working-directory }}
+      # - name: Publish docs site
+      #   run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
+      #   working-directory: ${{ inputs.default-working-directory }}
