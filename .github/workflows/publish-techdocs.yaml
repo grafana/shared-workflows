@@ -60,7 +60,7 @@ jobs:
 
       - name: Rewrite relative links
         if: inputs.rewrite-relative-links
-        uses: grafana/shared-workflows/actions/techdocs-rewrite-relative-links@zerok/techdocs-rewrite-relative-links-action
+        uses: grafana/shared-workflows/actions/techdocs-rewrite-relative-links@${{ github.action_ref }}
         with:
           working-directory: "${{ inputs.default-working-directory }}"
           repo-url: "https://github.com/${{ github.repository }}"
