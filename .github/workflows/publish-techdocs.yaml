@@ -39,16 +39,25 @@ jobs:
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         if: inputs.checkout-repo
 
+      - id: checkout-shared-workflows
+        name: Checkout shared workflows
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: grafana/shared-workflows
+          ref: ${{ github.workflow_sha }}
+          path: _shared-workflows
+
       - name: Rewrite relative links
         if: inputs.rewrite-relative-links
         # TODO: Pin this action once stable
-        uses: grafana/shared-workflows/actions/techdocs-rewrite-relative-links@zerok/techdocs-rewrite-relative-links-action
+        uses: ./_shared-workflows/actions/techdocs-rewrite-relative-links
         with:
           working-directory: "${{ inputs.default-working-directory }}"
           repo-url: "https://github.com/${{ github.repository }}"
           default-branch: "${{ github.event.repository.default_branch }}"
 
       - name: Show diff
+        if: inputs.rewrite-relative-links
         shell: bash
         run: |
           git diff
@@ -75,7 +84,6 @@ jobs:
       - name: Generate docs site
         run: techdocs-cli generate --no-docker --verbose
         working-directory: ${{ inputs.default-working-directory }}
-
 
 
       # - name: Publish docs site
