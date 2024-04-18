@@ -41,8 +41,10 @@ runs:
       id: run
       shell: bash
       run: |
-        go run _action/actions/techdocs-rewrite-relative-links \
-        --root-dir=${{inputs.working-directory}} \
+        root_dir=$(realpath ${{ inputs.working-directory }})
+        cd ./_action/actions/techdocs-rewrite-relative-links
+        go run . \
+        --root-dir=${root_dir} \
         --default-branch=${{inputs.default-branch}} \
         --repo-url=${{inputs.repo-url}}
 
