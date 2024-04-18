@@ -1,0 +1,49 @@
+name: Techdocs: Rewrite relative links
+description: Rewrite links inside techdocs pointing to outside resources
+
+inputs:
+  default-branch:
+    type: string
+    required: true
+  repo-url:
+    type: string
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      env:
+        # In a composite action, these two need to be indirected via the
+        # environment, as per the GitHub actions documentation:
+        # https://docs.github.com/en/actions/learn-github-actions/contexts
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _action
+
+    - name: Setup go
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        check-latest: true
+        cache-dependency-path: |
+          _action/actions/techdocs-rewrite-relative-links/go.sum
+        go-version-file: "_action/actions/techdocs-rewrite-relative-links/go.mod"
+
+    - name: Run
+      id: run
+      shell: bash
+      run: |
+        go run _action/actions/trigger-argo-workflow \
+          -default-branch=${{input.default-branch}} \
+          -repo-url=${{input.repo-url}}
+
+    - name: Cleanup
+      if: "always()"
+      shell: bash
+      run: |
+        rm -rf _action
