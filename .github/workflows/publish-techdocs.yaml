@@ -40,10 +40,17 @@ jobs:
         if: inputs.checkout-repo
 
       - id: workflow-ref
+        name: Determine workflow ref
         if: inputs.rewrite-relative-links
         shell: bash
         run: |
-          echo "${{ github.workflow_ref }}" | awk '{split($0,a,"@");printf "workflow_ref=%s",a[2]}' >> $GITHUB_OUTPUT
+          ref=$(echo "${{ github.workflow_ref }}" | awk '{split($0,a,"@");printf "%s",a[2]}')
+          # pull request refs cannot be checked out, so we need to fall back:
+          if [[ "${ref}" =~ ^refs/pull/ ]]; then
+            printf "ref=zerok/techdocs-rewrite-relative-links-action" >> $GITHUB_OUTPUT
+          else
+            printf "ref=%s" $ref >> $GITHUB_OUTPUT
+          fi
 
       - id: checkout-shared-workflows
         if: inputs.rewrite-relative-links
@@ -51,7 +58,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: grafana/shared-workflows
-          ref: ${{ steps.workflow-ref.outputs.workflow_ref }}
+          ref: ${{ steps.workflow-ref.outputs.ref }}
           path: _shared-workflows
 
       - name: Rewrite relative links
