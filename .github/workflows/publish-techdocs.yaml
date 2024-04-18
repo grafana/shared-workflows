@@ -39,12 +39,19 @@ jobs:
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         if: inputs.checkout-repo
 
+      - id: workflow-ref
+        if: inputs.rewrite-relative-links
+        shell: bash
+        run: |
+          echo "${{ github.workflow_ref }}" | awk '{split($0,a,"@");printf "workflow_ref=%s",a[2]}' >> $GITHUB_OUTPUT
+
       - id: checkout-shared-workflows
+        if: inputs.rewrite-relative-links
         name: Checkout shared workflows
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: grafana/shared-workflows
-          ref: ${{ github.workflow_sha }}
+          ref: ${{ steps.workflow-ref.outputs.workflow_ref }}
           path: _shared-workflows
 
       - name: Rewrite relative links
