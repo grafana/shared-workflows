@@ -26,6 +26,10 @@ on:
         required: false
         type: boolean
         default: false
+      verbose:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   generate-and-publish-docs:
@@ -42,6 +46,8 @@ jobs:
       - name: Rewrite relative links
         if: inputs.rewrite-relative-links
         # TODO: Pin this action once stable
+        # Using an absolute reference to the action here due to the complexity
+        # involved with a composite action that also checks out its own code:
         uses: grafana/shared-workflows/actions/techdocs-rewrite-relative-links@zerok/techdocs-rewrite-relative-links-action
         with:
           working-directory: "${{ inputs.default-working-directory }}"
@@ -49,7 +55,7 @@ jobs:
           default-branch: "${{ github.event.repository.default_branch }}"
 
       - name: Show diff
-        if: inputs.rewrite-relative-links
+        if: inputs.rewrite-relative-links && inputs.verbose
         shell: bash
         run: |
           git diff
@@ -77,7 +83,7 @@ jobs:
         run: techdocs-cli generate --no-docker --verbose
         working-directory: ${{ inputs.default-working-directory }}
 
-
+      # TODO: Re-enable once finalized:
       # - name: Publish docs site
       #   run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
       #   working-directory: ${{ inputs.default-working-directory }}
