@@ -179,31 +179,36 @@ type relativeLinkASTTransformer struct {
 
 func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, reader text.Reader, pc parser.Context) {
 	ast.Walk(node, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
-		if link, ok := n.(*ast.Link); ok {
-			// If the destination points somewhere outside of the root
-			// directory, then we care:
-			dst := string(link.Destination)
-			if strings.HasPrefix(dst, "..") {
-				absPath := filepath.Join(filepath.Dir(transformer.path), dst)
-				destStat, err := os.Stat(absPath)
-				if err != nil {
-					return ast.WalkStop, err
-				}
-				if rel, _ := filepath.Rel(transformer.docsRootDirectory, absPath); strings.HasPrefix(rel, "..") {
-					typeSegment := "tree"
-					if !destStat.IsDir() {
-						typeSegment = "blob"
-					}
-					newDest := strings.Replace(absPath, strings.TrimSuffix(transformer.rootDirectory, "/"), transformer.repoURL+"/"+typeSegment+"/"+transformer.defaultBranch, 1)
-					transformer.logger.InfoContext(transformer.ctx, "rewriting path", slog.String("old-dest", dst), slog.String("new-dest", newDest))
-					// If this is too aggressive, we should be able to
-					// determine the line of the link and then just replace the
-					// string in a separate run
-					link.Destination = []byte(newDest)
-					transformer.changed = true
-				}
-			}
+		// We only care about links. Images etc. are not handled:
+		link, ok := n.(*ast.Link)
+		if !ok {
+			return ast.WalkContinue, nil
 		}
+		// If the destination points somewhere outside of the root
+		// directory, then we care:
+		dst := string(link.Destination)
+		if !strings.HasPrefix(dst, "..") {
+			return ast.WalkContinue, nil
+		}
+
+		absPath := filepath.Join(filepath.Dir(transformer.path), dst)
+		destStat, err := os.Stat(absPath)
+		if err != nil {
+			return ast.WalkStop, err
+		}
+		rel, _ := filepath.Rel(transformer.docsRootDirectory, absPath)
+		if !strings.HasPrefix(rel, "..") {
+			return ast.WalkContinue, nil
+		}
+
+		typeSegment := "tree"
+		if !destStat.IsDir() {
+			typeSegment = "blob"
+		}
+		newDest := strings.Replace(absPath, strings.TrimSuffix(transformer.rootDirectory, "/"), transformer.repoURL+"/"+typeSegment+"/"+transformer.defaultBranch, 1)
+		transformer.logger.InfoContext(transformer.ctx, "rewriting path", slog.String("old-dest", dst), slog.String("new-dest", newDest))
+		link.Destination = []byte(newDest)
+		transformer.changed = true
 		return ast.WalkContinue, nil
 	})
 }
