@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/neilotoole/slogt"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUpdateRelativeLinks(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	logger := slogt.New(t)
 	t.Run("rewrites-outside-link", func(t *testing.T) {
 		rootDir := t.TempDir()
 		createTestDirectory(t, rootDir, map[string]string{
@@ -53,7 +53,7 @@ func TestUpdateRelativeLinks(t *testing.T) {
 }
 
 func TestGetDocsRoot(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	logger := slogt.New(t)
 	t.Run("no-mkdocs-yml", func(t *testing.T) {
 		rootDir := t.TempDir()
 		createTestDirectory(t, rootDir, map[string]string{})
