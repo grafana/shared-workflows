@@ -6,8 +6,10 @@ import (
 	"io/fs"
 	"log/slog"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	markdown "github.com/teekennedy/goldmark-markdown"
 	"github.com/urfave/cli/v2"
@@ -55,7 +57,8 @@ func main() {
 			return ctrl.run(ctx)
 		},
 	}
-	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
 	app.RunContext(ctx, os.Args)
 }
 
