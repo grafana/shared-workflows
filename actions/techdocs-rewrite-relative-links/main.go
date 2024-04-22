@@ -11,13 +11,17 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/lmittmann/tint"
 	markdown "github.com/teekennedy/goldmark-markdown"
 	"github.com/urfave/cli/v2"
+	"github.com/willabides/actionslog"
+	"github.com/willabides/actionslog/human"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
+	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 )
 
@@ -47,7 +51,23 @@ func main() {
 			rootDir := cliCtx.String("root-dir")
 
 			ctx := cliCtx.Context
-			logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+			var logger *slog.Logger
+			if os.Getenv("GITHUB_ACTIONS") == "true" {
+				handler := &human.Handler{}
+				logger = slog.New(&actionslog.Wrapper{
+					Handler: handler.WithOutput,
+				})
+			} else {
+				if term.IsTerminal(int(os.Stderr.Fd())) {
+					logger = slog.New(
+						tint.NewHandler(os.Stderr, nil),
+					)
+				} else {
+					logger = slog.New(
+						slog.NewTextHandler(os.Stderr, nil),
+					)
+				}
+			}
 			ctrl := controller{
 				logger:        logger,
 				rootDirectory: rootDir,
