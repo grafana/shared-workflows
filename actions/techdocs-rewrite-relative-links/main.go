@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/aymanbagabas/go-udiff"
 	"github.com/lmittmann/tint"
 	markdown "github.com/teekennedy/goldmark-markdown"
 	"github.com/urfave/cli/v2"
@@ -44,6 +46,12 @@ func main() {
 				Usage:    "Name of the default branch",
 				Required: true,
 			},
+			&cli.BoolFlag{
+				Name:     "dry-run",
+				Usage:    "Print changes without modifying the files",
+				Required: false,
+				Value:    false,
+			},
 		},
 		Action: func(cliCtx *cli.Context) error {
 			repoURL := cliCtx.String("repo-url")
@@ -69,6 +77,7 @@ func main() {
 				}
 			}
 			ctrl := controller{
+				dryRun:        cliCtx.Bool("dry-run"),
 				logger:        logger,
 				rootDirectory: rootDir,
 				repoURL:       repoURL,
@@ -83,6 +92,7 @@ func main() {
 }
 
 type controller struct {
+	dryRun        bool
 	logger        *slog.Logger
 	defaultBranch string
 	repoURL       string
@@ -128,6 +138,7 @@ func (ctrl *controller) updateRelativeLinks(ctx context.Context, path string) er
 		path:              path,
 		repoURL:           ctrl.repoURL,
 		defaultBranch:     ctrl.defaultBranch,
+		dryRun:            ctrl.dryRun,
 	}
 	markdown.Parser().AddOptions(parser.WithASTTransformers(util.Prioritized(transformer, 999)))
 	source, err := os.ReadFile(path)
@@ -139,6 +150,16 @@ func (ctrl *controller) updateRelativeLinks(ctx context.Context, path string) er
 		return err
 	}
 	if transformer.changed {
+		if ctrl.dryRun {
+			// Print a diff only and then return
+			changes := udiff.Strings(string(source), out.String())
+			unifiedChanges, err := udiff.ToUnifiedDiff(path, path+".updated", string(source), changes, 5)
+			if err != nil {
+				return err
+			}
+			fmt.Println(unifiedChanges)
+			return nil
+		}
 		// Only update the original file if there were actual changes made:
 		if err := os.WriteFile(path, out.Bytes(), 0600); err != nil {
 			return err
@@ -175,6 +196,7 @@ type relativeLinkASTTransformer struct {
 	repoURL           string
 	defaultBranch     string
 	changed           bool
+	dryRun            bool
 }
 
 func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, reader text.Reader, pc parser.Context) {
@@ -206,7 +228,7 @@ func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, rea
 			typeSegment = "blob"
 		}
 		newDest := strings.Replace(absPath, strings.TrimSuffix(transformer.rootDirectory, "/"), transformer.repoURL+"/"+typeSegment+"/"+transformer.defaultBranch, 1)
-		transformer.logger.InfoContext(transformer.ctx, "rewriting path", slog.String("old-dest", dst), slog.String("new-dest", newDest))
+		transformer.logger.InfoContext(transformer.ctx, "rewriting path", slog.String("old-dest", dst), slog.String("new-dest", newDest), slog.Bool("dry-run", transformer.dryRun))
 		link.Destination = []byte(newDest)
 		transformer.changed = true
 		return ast.WalkContinue, nil

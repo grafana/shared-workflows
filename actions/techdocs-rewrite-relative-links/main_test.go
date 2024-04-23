@@ -16,6 +16,7 @@ func TestUpdateRelativeLinks(t *testing.T) {
 		testDirectory       map[string]string
 		fileUnderTest       string
 		expectedFileContent string
+		dryRun              bool
 	}{
 		"rewrites-outside-link": {
 			testDirectory: map[string]string{
@@ -32,6 +33,15 @@ func TestUpdateRelativeLinks(t *testing.T) {
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [external](https://example.org)",
 		},
+		"dry-run-does-not-modify": {
+			testDirectory: map[string]string{
+				"README.md":      "outside file",
+				"docs/README.md": "Hello world [inside](./README.md) [outside](../README.md)",
+			},
+			fileUnderTest:       "docs/README.md",
+			expectedFileContent: "Hello world [inside](./README.md) [outside](../README.md)",
+			dryRun:              true,
+		},
 	}
 
 	for testName, test := range tests {
@@ -39,6 +49,7 @@ func TestUpdateRelativeLinks(t *testing.T) {
 			rootDir := t.TempDir()
 			createTestDirectory(t, rootDir, test.testDirectory)
 			ctrl := controller{
+				dryRun:            test.dryRun,
 				rootDirectory:     rootDir,
 				logger:            logger,
 				defaultBranch:     "main",

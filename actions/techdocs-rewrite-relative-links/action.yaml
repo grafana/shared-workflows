@@ -11,6 +11,12 @@ inputs:
   working-directory:
     type: string
     required: true
+  dry-run:
+    description: |
+      Execute link rewriting without updating the underlying files
+    type: boolean
+    required: false
+    default: false
 
 runs:
   using: composite
@@ -46,7 +52,7 @@ runs:
         go run . \
         --root-dir=${root_dir} \
         --default-branch=${{inputs.default-branch}} \
-        --repo-url=${{inputs.repo-url}}
+        --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run && '--dry-run' || '' }}
 
     - name: Cleanup
       if: "always()"

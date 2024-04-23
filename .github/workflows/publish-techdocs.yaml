@@ -26,6 +26,11 @@ on:
         required: false
         type: boolean
         default: false
+      rewrite-relative-links-dry-run:
+        description: "Execute rewrite-relative-links step but only print the diff without modifying the files"
+        required: false
+        type: boolean
+        default: false
       verbose:
         required: false
         type: boolean
@@ -44,7 +49,7 @@ jobs:
         if: inputs.checkout-repo
 
       - name: Rewrite relative links
-        if: inputs.rewrite-relative-links
+        if: inputs.rewrite-relative-links || inputs.rewrite-relative-links-dry-run
         # TODO: Pin this action once stable
         # Using an absolute reference to the action here due to the complexity
         # involved with a composite action that also checks out its own code:
@@ -53,12 +58,7 @@ jobs:
           working-directory: "${{ inputs.default-working-directory }}"
           repo-url: "https://github.com/${{ github.repository }}"
           default-branch: "${{ github.event.repository.default_branch }}"
-
-      - name: Show diff
-        if: inputs.rewrite-relative-links && inputs.verbose
-        shell: bash
-        run: |
-          git diff
+          dry-run: "${{ inputs.rewrite-relative-links-dry-run }}"
 
       - id: auth
         name: Authenticate with Google Cloud
