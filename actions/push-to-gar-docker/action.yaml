@@ -37,12 +37,10 @@ inputs:
     description: |
       Where cache should be fetched from
     required: false
-    default: "type=gha"
   cache-to:
     description: |
       Where cache should be stored to
     required: false
-    default: "type=gha,mode=max"
   ssh:
     desctiption: |
       List of SSH agent socket or keys to expose to the build
