@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/neilotoole/slogt"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,29 +14,30 @@ func TestUpdateRelativeLinks(t *testing.T) {
 	logger := slogt.New(t)
 	tests := map[string]struct {
 		testDirectory       map[string]string
+		testDirectorySetup  func(afero.Fs, string)
 		fileUnderTest       string
 		expectedFileContent string
 		dryRun              bool
 	}{
 		"rewrites-outside-link": {
-			testDirectory: map[string]string{
-				"README.md":      "outside file",
-				"docs/README.md": "Hello world [inside](./README.md) [outside](../README.md)",
+			testDirectorySetup: func(fs afero.Fs, rootDir string) {
+				afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
+				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md)"), 0600)
 			},
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [inside](./README.md) [outside](https://github.com/grafana/dummy/blob/main/README.md)\n",
 		},
 		"ignores-external-links": {
-			testDirectory: map[string]string{
-				"docs/README.md": "Hello world [external](https://example.org)",
+			testDirectorySetup: func(fs afero.Fs, rootDir string) {
+				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [external](https://example.org)"), 0600)
 			},
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [external](https://example.org)",
 		},
 		"dry-run-does-not-modify": {
-			testDirectory: map[string]string{
-				"README.md":      "outside file",
-				"docs/README.md": "Hello world [inside](./README.md) [outside](../README.md)",
+			testDirectorySetup: func(fs afero.Fs, rootDir string) {
+				afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
+				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md)"), 0600)
 			},
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [inside](./README.md) [outside](../README.md)",
@@ -46,9 +47,13 @@ func TestUpdateRelativeLinks(t *testing.T) {
 
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
-			rootDir := t.TempDir()
-			createTestDirectory(t, rootDir, test.testDirectory)
+			filesys := afero.NewMemMapFs()
+			rootDir := "/root"
+			if test.testDirectorySetup != nil {
+				test.testDirectorySetup(filesys, rootDir)
+			}
 			ctrl := controller{
+				filesys:           filesys,
 				dryRun:            test.dryRun,
 				rootDirectory:     rootDir,
 				logger:            logger,
@@ -58,7 +63,7 @@ func TestUpdateRelativeLinks(t *testing.T) {
 			}
 			testFilePath := filepath.Join(rootDir, test.fileUnderTest)
 			require.NoError(t, ctrl.updateRelativeLinks(context.Background(), filepath.Join(rootDir, test.fileUnderTest)))
-			updatedContent, err := os.ReadFile(testFilePath)
+			updatedContent, err := afero.ReadFile(filesys, testFilePath)
 			require.NoError(t, err)
 			require.Equal(t, test.expectedFileContent, string(updatedContent))
 		})
@@ -71,23 +76,22 @@ func TestGetDocsRoot(t *testing.T) {
 		expectError             bool
 		expectedRelativeDocsDir string
 		expectedAbsoluteDocsDir string
-		rootDirectory           map[string]string
+		rootDirectorySetup      func(afero.Fs, string)
 	}{
 		"no-mkdocs-yml": {
-			expectError:   true,
-			rootDirectory: map[string]string{},
+			expectError: true,
 		},
 		"mkdocs-yml-relative-docs-dir": {
 			expectError: false,
-			rootDirectory: map[string]string{
-				"mkdocs.yml": `docs_dir: "docs"`,
+			rootDirectorySetup: func(fs afero.Fs, rootDir string) {
+				afero.WriteFile(fs, filepath.Join(rootDir, "mkdocs.yml"), []byte(`docs_dir: "docs"`), 0600)
 			},
 			expectedRelativeDocsDir: "docs",
 		},
 		"mkdocs-yml-absolute-docs-dir": {
 			expectError: false,
-			rootDirectory: map[string]string{
-				"mkdocs.yml": `docs_dir: "/tmp/docs"`,
+			rootDirectorySetup: func(fs afero.Fs, rootDir string) {
+				afero.WriteFile(fs, filepath.Join(rootDir, "mkdocs.yml"), []byte(`docs_dir: "/tmp/docs"`), 0600)
 			},
 			expectedAbsoluteDocsDir: "/tmp/docs",
 		},
@@ -95,9 +99,13 @@ func TestGetDocsRoot(t *testing.T) {
 
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
-			rootDir := t.TempDir()
-			createTestDirectory(t, rootDir, test.rootDirectory)
+			rootDir := "/root"
+			filesys := afero.NewMemMapFs()
+			if test.rootDirectorySetup != nil {
+				test.rootDirectorySetup(filesys, rootDir)
+			}
 			ctrl := controller{
+				filesys:       filesys,
 				rootDirectory: rootDir,
 				logger:        logger,
 				defaultBranch: "main",
@@ -119,13 +127,13 @@ func TestGetDocsRoot(t *testing.T) {
 	}
 }
 
-func createTestDirectory(t *testing.T, rootDir string, content map[string]string) {
+func createTestDirectory(t *testing.T, filesys afero.Fs, rootDir string, content map[string]string) {
 	t.Helper()
 	for filename, filecontent := range content {
 		dir := filepath.Dir(filename)
 		fullPath := filepath.Join(rootDir, dir)
-		require.NoError(t, os.MkdirAll(fullPath, 0700))
+		require.NoError(t, filesys.MkdirAll(fullPath, 0700))
 		fullFilePath := filepath.Join(rootDir, filename)
-		require.NoError(t, os.WriteFile(fullFilePath, []byte(filecontent), 0600))
+		require.NoError(t, afero.WriteFile(filesys, fullFilePath, []byte(filecontent), 0600))
 	}
 }

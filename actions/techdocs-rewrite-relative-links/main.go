@@ -14,6 +14,7 @@ import (
 
 	"github.com/aymanbagabas/go-udiff"
 	"github.com/lmittmann/tint"
+	"github.com/spf13/afero"
 	markdown "github.com/teekennedy/goldmark-markdown"
 	"github.com/urfave/cli/v2"
 	"github.com/willabides/actionslog"
@@ -77,6 +78,7 @@ func main() {
 				}
 			}
 			ctrl := controller{
+				filesys:       afero.NewOsFs(),
 				dryRun:        cliCtx.Bool("dry-run"),
 				logger:        logger,
 				rootDirectory: rootDir,
@@ -94,6 +96,7 @@ func main() {
 type controller struct {
 	dryRun        bool
 	logger        *slog.Logger
+	filesys       afero.Fs
 	defaultBranch string
 	repoURL       string
 	rootDirectory string
@@ -108,7 +111,7 @@ func (ctrl *controller) run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return filepath.WalkDir(docsRootDirectory, func(path string, d fs.DirEntry, err error) error {
+	return afero.Walk(ctrl.filesys, docsRootDirectory, func(path string, d fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -131,6 +134,7 @@ func (ctrl *controller) updateRelativeLinks(ctx context.Context, path string) er
 	renderer := markdown.NewRenderer()
 	markdown := goldmark.New(goldmark.WithRenderer(renderer))
 	transformer := &relativeLinkASTTransformer{
+		filesys:           ctrl.filesys,
 		ctx:               ctx,
 		logger:            logger,
 		rootDirectory:     ctrl.rootDirectory,
@@ -141,7 +145,7 @@ func (ctrl *controller) updateRelativeLinks(ctx context.Context, path string) er
 		dryRun:            ctrl.dryRun,
 	}
 	markdown.Parser().AddOptions(parser.WithASTTransformers(util.Prioritized(transformer, 999)))
-	source, err := os.ReadFile(path)
+	source, err := afero.ReadFile(ctrl.filesys, path)
 	if err != nil {
 		return err
 	}
@@ -161,7 +165,7 @@ func (ctrl *controller) updateRelativeLinks(ctx context.Context, path string) er
 			return nil
 		}
 		// Only update the original file if there were actual changes made:
-		if err := os.WriteFile(path, out.Bytes(), 0600); err != nil {
+		if err := afero.WriteFile(ctrl.filesys, path, out.Bytes(), 0600); err != nil {
 			return err
 		}
 	}
@@ -170,7 +174,7 @@ func (ctrl *controller) updateRelativeLinks(ctx context.Context, path string) er
 
 func (ctrl *controller) getDocsDir(ctx context.Context, root string) (string, error) {
 	cfg := mkdocsYaml{}
-	content, err := os.ReadFile(filepath.Join(root, "mkdocs.yml"))
+	content, err := afero.ReadFile(ctrl.filesys, filepath.Join(root, "mkdocs.yml"))
 	if err != nil {
 		return "", err
 	}
@@ -190,6 +194,7 @@ type mkdocsYaml struct {
 type relativeLinkASTTransformer struct {
 	ctx               context.Context
 	logger            *slog.Logger
+	filesys           afero.Fs
 	rootDirectory     string
 	docsRootDirectory string
 	path              string
@@ -214,7 +219,7 @@ func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, rea
 		}
 
 		absPath := filepath.Join(filepath.Dir(transformer.path), dst)
-		destStat, err := os.Stat(absPath)
+		destStat, err := transformer.filesys.Stat(absPath)
 		if err != nil {
 			return ast.WalkStop, err
 		}
