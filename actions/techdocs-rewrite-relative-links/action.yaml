@@ -17,12 +17,23 @@ inputs:
     type: boolean
     required: false
     default: false
+  checkout-path:
+    type: string
+    default: _action
+    required: false
+  skip-checkout:
+    description: |
+      If the action is already present in the workspace you can skip another checkout.
+    type: boolean
+    required: false
+    default: false
 
 runs:
   using: composite
 
   steps:
     - name: Checkout
+      if: ${{ !inputs.skip-checkout }}
       env:
         # In a composite action, these two need to be indirected via the
         # environment, as per the GitHub actions documentation:
@@ -33,29 +44,29 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        path: _action
+        path: ${{ inputs.checkout-path }}
 
     - name: Setup go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         check-latest: true
         cache-dependency-path: |
-          _action/actions/techdocs-rewrite-relative-links/go.sum
-        go-version-file: "_action/actions/techdocs-rewrite-relative-links/go.mod"
+          ${{ inputs.checkout-path }}/actions/techdocs-rewrite-relative-links/go.sum
+        go-version-file: "${{ inputs.checkout-path }}/actions/techdocs-rewrite-relative-links/go.mod"
 
     - name: Run
       id: run
       shell: bash
       run: |
         root_dir=$(realpath ${{ inputs.working-directory }})
-        cd ./_action/actions/techdocs-rewrite-relative-links
+        cd ${{ inputs.checkout-path }}/actions/techdocs-rewrite-relative-links
         go run . \
         --root-dir=${root_dir} \
         --default-branch=${{inputs.default-branch}} \
         --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run && '--dry-run' || '' }}
 
     - name: Cleanup
-      if: "always()"
+      if: "always() && !inputs.skip-checkout"
       shell: bash
       run: |
-        rm -rf _action
+        rm -rf ${{ inputs.checkout-path }}
