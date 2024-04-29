@@ -1,6 +1,6 @@
 module github.com/grafana/shared-workflows/actions/techdocs-rewrite-relative-links
 
-go 1.21.6
+go 1.22.2
 
 require (
 	github.com/aymanbagabas/go-udiff v0.2.0
