@@ -8,7 +8,7 @@ This is helpful when using the "Squash and merge" strategy, Github will suggest 
 
 If you make any change on the `index.js` file, you should build the code before to commit the changes using the command:
 
-```
+```console
 yarn build
 ```
 
@@ -25,39 +25,55 @@ This action can receive the `commitlint.config.js` file using the input paramete
 This parameter should contain the absolute path of the file.
 So, it's recommended to start the path definition with `${{ github.workspace }}/`. See example below:
 
+```yml
+---
+uses: grafana/shared-workflows/actions/lint-pr-title@main
+with:
+  config-path: "${{ github.workspace }}/dir1/dir2/commitlint.config.js"
 ```
-...
-    uses: grafana/shared-workflows/actions/lint-pr-title@main
-    with:
-      config-path: '${{ github.workspace }}/dir1/dir2/commitlint.config.js'
-...
 
-```
 but this `config-path` parameter is optional. If you don't want to define it, the action will use the following rules by default:
 
-```
+```javascript
 module.exports = {
-  'body-leading-blank': [1, 'always'],
-  'body-max-line-length': [2, 'always', 100],
-  'footer-leading-blank': [1, 'always'],
-  'footer-max-line-length': [2, 'always', 100],
-  'header-max-length': [2, 'always', 100],
-  'subject-case': [2, 'never', ['sentence-case', 'start-case', 'pascal-case', 'upper-case']],
-  'subject-empty': [2, 'never'],
-  'subject-full-stop': [2, 'never', '.'],
-  'type-case': [2, 'always', 'lower-case'],
-  'type-empty': [2, 'never'],
-  'type-enum': [
+  "body-leading-blank": [1, "always"],
+  "body-max-line-length": [2, "always", 100],
+  "footer-leading-blank": [1, "always"],
+  "footer-max-line-length": [2, "always", 100],
+  "header-max-length": [2, "always", 100],
+  "subject-case": [
     2,
-    'always',
-    ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style', 'test']
-  ]
-}
+    "never",
+    ["sentence-case", "start-case", "pascal-case", "upper-case"],
+  ],
+  "subject-empty": [2, "never"],
+  "subject-full-stop": [2, "never", "."],
+  "type-case": [2, "always", "lower-case"],
+  "type-empty": [2, "never"],
+  "type-enum": [
+    2,
+    "always",
+    [
+      "build",
+      "chore",
+      "ci",
+      "docs",
+      "feat",
+      "fix",
+      "perf",
+      "refactor",
+      "revert",
+      "style",
+      "test",
+    ],
+  ],
+};
 ```
 
 ## Example workflows
 
 ### Example with config path defined:
+
 In this example the `commitlint.config.js` file is located in the root directory from where the action is being executed.
 
 ```yml
@@ -74,11 +90,9 @@ jobs:
       - id: lint-pr-title
         uses: grafana/shared-workflows/actions/lint-pr-title@main
         with:
-          config-path: '${{ github.workspace }}/commitlint.config.js'
+          config-path: "${{ github.workspace }}/commitlint.config.js"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
 ```
 
 ## Example without config path:

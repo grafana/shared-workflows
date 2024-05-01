@@ -6,12 +6,12 @@ on:
       - main
     paths:
       - "actions/login-to-gar/**"
-      - ".github/workflows/test-login-to-gar.yml"
+      - ".github/workflows/test-login-to-gar.yaml"
 
   pull_request:
     paths:
       - "actions/login-to-gar/**"
-      - ".github/workflows/test-login-to-gar.yml"
+      - ".github/workflows/test-login-to-gar.yaml"
 
 permissions:
   contents: read

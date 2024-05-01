@@ -49,28 +49,28 @@ inputs:
 
 outputs:
   version:
-    description: 'Generated Docker image version (from docker/metadata-action)'
+    description: "Generated Docker image version (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.version }}
   tags:
-    description: 'Generated Docker tags (from docker/metadata-action)'
+    description: "Generated Docker tags (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.tags }}
   labels:
-    description: 'Generated Docker labels (from docker/metadata-action)'
+    description: "Generated Docker labels (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.labels }}
   annotations:
-    description: 'Generated annotations (from docker/metadata-action)'
+    description: "Generated annotations (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.annotations }}
   json:
-    description: 'JSON output of tags and labels (from docker/metadata-action)'
+    description: "JSON output of tags and labels (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.json }}
   imageid:
-    description: 'Image ID (from docker/build-push-action)'
+    description: "Image ID (from docker/build-push-action)"
     value: ${{ steps.build.outputs.imageid }}
   digest:
-    description: 'Image digest (from docker/build-push-action)'
+    description: "Image digest (from docker/build-push-action)"
     value: ${{ steps.build.outputs.digest }}
   metadata:
-    description: 'Build result metadata (from docker/build-push-action)'
+    description: "Build result metadata (from docker/build-push-action)"
     value: ${{ steps.build.outputs.metadata }}
 
 runs:
@@ -84,7 +84,7 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        path: shared-workflows    
+        path: shared-workflows
     - name: Get repository name
       id: get-repository-name
       shell: bash

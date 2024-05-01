@@ -13,12 +13,12 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'catalog-info.yaml'
-      - '.github/workflows/publish-docs.yml'
+      - "docs/**"
+      - "mkdocs.yml"
+      - "catalog-info.yaml"
+      - ".github/workflows/publish-docs.yml"
 concurrency:
-  group: '${{ github.workflow }}-${{ github.ref }}'
+  group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 jobs:
   publish-docs:
@@ -32,10 +32,10 @@ jobs:
 
 ## Inputs
 
-| Name | Type | Description |
-|-|-|-|
-| `namespace` | string | The entity's namespace within EngHub (usually `default`) |
-| `kind` | string | The kind of the entity in EngHub (usually `component`) |
-| `name` | string | The name of the entity in EngHub (usually matches the name of the repository) |
-| `default-working-directory` | string | The directory where the techdocs-cli should be run (default: `.`) |
-| `checkout-repo` | boolean | Should this workflow also check out the current repository? (default: `true`) |
+| Name                        | Type    | Description                                                                   |
+| --------------------------- | ------- | ----------------------------------------------------------------------------- |
+| `namespace`                 | string  | The entity's namespace within EngHub (usually `default`)                      |
+| `kind`                      | string  | The kind of the entity in EngHub (usually `component`)                        |
+| `name`                      | string  | The name of the entity in EngHub (usually matches the name of the repository) |
+| `default-working-directory` | string  | The directory where the techdocs-cli should be run (default: `.`)             |
+| `checkout-repo`             | boolean | Should this workflow also check out the current repository? (default: `true`) |

@@ -6,9 +6,9 @@ which means that only workflows which get triggered based on certain rules can t
 
 ```yaml
 name: CI
-on: 
+on:
   pull_request:
-    
+
 env:
   ENVIRONMENT: "dev" # can be either dev/prod
 

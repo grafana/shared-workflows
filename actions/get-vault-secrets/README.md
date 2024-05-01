@@ -7,7 +7,7 @@ Example workflow:
 
 ```yaml
 name: CI
-on: 
+on:
   pull_request:
 
 # These permissions are needed to assume roles from Github's OIDC.
@@ -30,11 +30,10 @@ jobs:
           repo_secrets: |
             ENVVAR2=test-secret:key1
 
-    # Use the secrets
-    # You can use the envvars directly in scripts or use the `${{ env.* }}` accessor in the workflow
+      # Use the secrets
+      # You can use the envvars directly in scripts or use the `${{ env.* }}` accessor in the workflow
       - name: echo
         run: |
           echo "$ENVVAR1"
           echo "${{ env.ENVVAR2 }}"
-
 ```

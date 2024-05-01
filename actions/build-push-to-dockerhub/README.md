@@ -32,7 +32,7 @@ jobs:
 ## Inputs
 
 | Name         | Type   | Description                                                                          |
-|--------------|--------|--------------------------------------------------------------------------------------|
+| ------------ | ------ | ------------------------------------------------------------------------------------ |
 | `context`    | String | Path to the Dockerfile (default: `.`)                                                |
 | `platforms`  | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)     |
 | `push`       | Bool   | Push the generated image (default: `false`)                                          |
@@ -41,7 +41,6 @@ jobs:
 | `file`       | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`) |
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
-
 
 ## Notes
 

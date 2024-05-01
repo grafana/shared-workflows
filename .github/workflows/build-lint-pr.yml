@@ -6,7 +6,7 @@ on:
     types: [closed]
 
 jobs:
-  build-lin-pr-title:
+  build-lint-pr-title:
     if: ${{ github.event.pull_request.merged == true && contains(github.head_ref || github.ref_name, 'dependabot-npm') }}
     runs-on: ubuntu-latest
     steps:
@@ -28,11 +28,11 @@ jobs:
       - name: Commit lint-pr-title changes and create new pull request
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e # v6.0.5
         with:
-          commit-message: 'Update code on lint-pr-title action'
-          branch: 'update-lint-pr-code'
+          commit-message: "Update code on lint-pr-title action"
+          branch: "update-lint-pr-code"
           delete-branch: true
           branch-suffix: timestamp
-          title: 'Update code on lint-pr-title action'
-          body: 'This PR contains the code built after dependabot updated dependencies on lint-pr-title action'
+          title: "Update code on lint-pr-title action"
+          body: "This PR contains the code built after dependabot updated dependencies on lint-pr-title action"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

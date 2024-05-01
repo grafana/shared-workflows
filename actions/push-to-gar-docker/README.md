@@ -34,31 +34,31 @@ jobs:
 
 ## Inputs
 
-| Name          | Type   | Description                                                                          |
-|---------------|--------|--------------------------------------------------------------------------------------|
-| `registry`    | String | Google Artifact Registry to store docker images in.                                  |
-| `tags`        | List   | Tags that should be used for the image (see the [metadata-action][mda] for details)  |
-| `context`     | List   | Path to the Docker build context.                                                    |
-| `environment` | Bool   | Environment for pushing artifacts (can be either dev or prod).                       |
-| `image_name`  | String | Name of the image to be pushed to GAR.                                               |
-| `build-args`  | String | List of arguments necessary for the Docker image to be built.                        |
-| `file`        | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`) |
-| `platforms`   | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)     |
-| `cache-from`   | String   | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))    |
-| `cache-to`   | String   | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))   |
-| `ssh`   | List   | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs))    |
+| Name          | Type   | Description                                                                                                                                                                    |
+| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `registry`    | String | Google Artifact Registry to store docker images in.                                                                                                                            |
+| `tags`        | List   | Tags that should be used for the image (see the [metadata-action][mda] for details)                                                                                            |
+| `context`     | List   | Path to the Docker build context.                                                                                                                                              |
+| `environment` | Bool   | Environment for pushing artifacts (can be either dev or prod).                                                                                                                 |
+| `image_name`  | String | Name of the image to be pushed to GAR.                                                                                                                                         |
+| `build-args`  | String | List of arguments necessary for the Docker image to be built.                                                                                                                  |
+| `file`        | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`)                                                                                           |
+| `platforms`   | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)                                                                                               |
+| `cache-from`  | String | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))                 |
+| `cache-to`    | String | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))                    |
+| `ssh`         | List   | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)) |
 
 ## Outputs
 
 The following outputs are exposed from [`docker/metadata-action`](https://github.com/docker/metadata-action?tab=readme-ov-file#outputs) and [`docker/build-push-action`](https://github.com/docker/build-push-action?tab=readme-ov-file#outputs):
 
-| Name      | Type   | Description                    | From |
-|-----------|--------|--------------------------------|------|
-| `version` | String | Generated Docker image version | `docker/metadata-action` |
-| `tags`    | String | Generated Docker tags    | `docker/metadata-action` |
-| `labels`  | String | Generated Docker labels  | `docker/metadata-action` |
-| `annotations` | String | Generated annotations | `docker/metadata-action` |
-| `json`    | String | JSON output of tags and labels | `docker/metadata-action` |
-| `imageid` | String | Image ID | `docker/build-push-action` |
-| `digest`  | String | Image digest | `docker/build-push-action` |
-| `metadata`| String | Build result metadata | `docker/build-push-action` |
+| Name          | Type   | Description                    | From                       |
+| ------------- | ------ | ------------------------------ | -------------------------- |
+| `version`     | String | Generated Docker image version | `docker/metadata-action`   |
+| `tags`        | String | Generated Docker tags          | `docker/metadata-action`   |
+| `labels`      | String | Generated Docker labels        | `docker/metadata-action`   |
+| `annotations` | String | Generated annotations          | `docker/metadata-action`   |
+| `json`        | String | JSON output of tags and labels | `docker/metadata-action`   |
+| `imageid`     | String | Image ID                       | `docker/build-push-action` |
+| `digest`      | String | Image digest                   | `docker/build-push-action` |
+| `metadata`    | String | Build result metadata          | `docker/build-push-action` |
