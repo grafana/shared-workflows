@@ -15,7 +15,7 @@ inputs:
     required: true
     description: "`, `-separated claims from GitHub ID token to make available to `role-arn`"
   set-creds-in-environment:
-    default: true
+    default: "true"
     required: false
     description: "Set environment variables for AWS CLI and SDKs"
   role-duration-seconds:
@@ -56,7 +56,7 @@ runs:
         chain-role-duration-seconds: "${{ inputs.role-duration-seconds }}"
         chain-pass-claims: "${{ inputs.pass-claims }}"
         chain-set-in-environment: "${{ inputs.set-creds-in-environment }}"
-    
+
     - id: aws_region # Pulled from catnekaise/cognito-idpool-auth/action.yml
       shell: bash
       env:
@@ -73,7 +73,7 @@ runs:
           echo "Unable to resolve what AWS Region to use"
           exit 1
         fi
-        
+
         # Some-effort validation of aws region
         if echo "$value" | grep -Eqv "^[a-z]{2}-[a-z]{4,9}-[0-9]$"; then
           echo "Resolved value for AWS Region is invalid"

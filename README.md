@@ -6,6 +6,23 @@ themselves.
 
 ## Notes
 
+### Configure your IDE to run Prettier
+
+[Prettier] will run in CI to ensure that files are formatted correctly. To ensure
+that your code is formatted correctly before you commit, set up your IDE to run
+Prettier on save.
+
+Or from the commandline, you can run Prettier using [`npx`][npx]:
+
+```sh
+npx prettier --check .
+```
+
+Or, of course, install it in any other way you want.
+
+[npx]: https://www.npmjs.com/package/npx
+[prettier]: https://prettier.io/
+
 ### Pin versions
 
 When referencing third-party actions, [always pin the version to a specific
