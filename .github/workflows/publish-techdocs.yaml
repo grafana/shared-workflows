@@ -64,7 +64,7 @@ jobs:
           repo-url: "https://github.com/${{ github.repository }}"
           default-branch: "${{ github.event.repository.default_branch }}"
           dry-run: "${{ inputs.rewrite-relative-links-dry-run }}"
-          skip-checkout: true
+          checkout: false
           checkout-path: _shared-workflows
 
       - id: auth

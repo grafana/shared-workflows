@@ -18,15 +18,20 @@ inputs:
     required: false
     default: false
   checkout-path:
+    description: |
+      Path where the action checks out its own code. If you disable the
+      checkout, make sure to set this to where a previous checkout has been
+      made to.
     type: string
     default: _action
     required: false
-  skip-checkout:
+  checkout:
     description: |
-      If the action is already present in the workspace you can skip another checkout.
+      By default this action checks out its own code. If you want to skip this,
+      set to false.
     type: boolean
     required: false
-    default: false
+    default: true
 
 runs:
   using: composite

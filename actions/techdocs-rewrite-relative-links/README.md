@@ -56,5 +56,5 @@ Follow that up with the actions that should publish the docs to EngHub. See [the
 | `repo-url` (required) | string | Full URL to the GitHub repository |
 | `working-directory` (required) | string | Directory containing the `mkdocs.yml` file |
 | `dry-run` | boolean | Do not modify the files but print a diff |
-| `checkout-path` (default: `_action`) | string | Folder where the repository should be checked out to for running the action |
-| `skip-checkout` (default: `false`) | boolean | If the workflow already checks out the shared-workflows repository, you can skip the additional checkout inside the action |
+| `checkout-path` (default: `_action`) | string | Folder where the repository should be checked out to for running the action or where a checkout already exists |
+| `checkout` (default: `true`) | boolean | If the workflow already checks out the shared-workflows repository, you can set this to false |
