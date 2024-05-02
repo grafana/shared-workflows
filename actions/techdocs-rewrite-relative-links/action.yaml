@@ -12,7 +12,7 @@ inputs:
     description: |
       Execute link rewriting without updating the underlying files
     required: false
-    default: 'false'
+    default: "false"
   checkout-action-repository-path:
     description: |
       Path where the action checks out its own code. If you disable the
@@ -25,7 +25,7 @@ inputs:
       By default this action checks out its own code. If you want to skip this,
       set to false.
     required: false
-    default: 'true'
+    default: "true"
 
 runs:
   using: composite
@@ -40,7 +40,7 @@ runs:
         # These seem not to be available when using a local action, though, and
         # so we need to fall back:
         action_repo: ${{ github.action_repository || 'grafana/shared-workflows' }}
-        action_ref: ${{ github.action_ref || 'zerok/pin-techdocs-rewrite-relative-links-action' }}
+        action_ref: ${{ github.action_ref || 'main' }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: ${{ env.action_repo }}

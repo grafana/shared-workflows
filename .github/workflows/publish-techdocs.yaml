@@ -54,7 +54,8 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: grafana/shared-workflows
-          ref: zerok/pin-techdocs-rewrite-relative-links-action
+          # TODO: Replace after merge
+          ref: main
           path: _shared-workflows
 
       - name: Rewrite relative links
@@ -65,7 +66,7 @@ jobs:
           repo-url: "https://github.com/${{ github.repository }}"
           default-branch: "${{ github.event.repository.default_branch }}"
           dry-run: "${{ inputs.rewrite-relative-links-dry-run }}"
-          checkout-action-repository: 'false'
+          checkout-action-repository: "false"
           checkout-action-repository-path: _shared-workflows
 
       - id: auth
