@@ -31,10 +31,11 @@ on:
         required: false
         type: boolean
         default: false
-      verbose:
+      publish:
+        description: "Enable or disable publishing after building the docs"
         required: false
         type: boolean
-        default: false
+        default: true
 
 jobs:
   generate-and-publish-docs:
@@ -65,8 +66,8 @@ jobs:
           repo-url: "https://github.com/${{ github.repository }}"
           default-branch: "${{ github.event.repository.default_branch }}"
           dry-run: "${{ inputs.rewrite-relative-links-dry-run }}"
-          checkout: false
-          checkout-path: _shared-workflows
+          checkout-action-repository: "false"
+          checkout-action-repository-path: _shared-workflows
 
       - id: auth
         name: Authenticate with Google Cloud
@@ -92,5 +93,6 @@ jobs:
         working-directory: ${{ inputs.default-working-directory }}
 
       - name: Publish docs site
+        if: inputs.publish
         run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
         working-directory: ${{ inputs.default-working-directory }}

@@ -39,3 +39,4 @@ jobs:
 | `name`                      | string  | The name of the entity in EngHub (usually matches the name of the repository) |
 | `default-working-directory` | string  | The directory where the techdocs-cli should be run (default: `.`)             |
 | `checkout-repo`             | boolean | Should this workflow also check out the current repository? (default: `true`) |
+| `publish`                   | boolean | Enable disable publishing the built docs to EngHub (default: `true`)          |
