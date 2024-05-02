@@ -1,16 +1,131 @@
 on:
   push:
-  pull_request:
+
+permissions:
+  contents: read
+  actions: write
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: Checkout
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: ${{ github.head_ref }}
 
-      - uses: creyD/prettier_action@31355f8eef017f8aeba2e0bc09d8502b13dbbad1 # v4.3.0
+      - name: Lint with Prettier
+        uses: creyD/prettier_action@31355f8eef017f8aeba2e0bc09d8502b13dbbad1 # v4.3.0
         with:
           dry: true
           prettier_options: "--check ."
+
+      # Lint .github/workflows/*
+      - name: Lint workflow files
+        uses: raven-actions/actionlint@789059c543ab20522fb3e7240794e13b0f69ad67 # v1.0.3
+
+  # A separate job so we can run in the `yq` container
+  lint-action-yaml:
+    runs-on: ubuntu-latest
+
+    container:
+      image: mikefarah/yq:4.43.1
+      # https://github.com/actions/checkout/issues/956
+      options: --user root
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+
+      - name: Install dependencies
+        run: |
+          # tar is needed to save/restore the schema cache
+          apk add --no-cache curl github-cli tar
+
+      - name: Restore github-action.json schema
+        id: restore-schema
+        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: |
+            github-action.json
+            github-action.json-etag
+          key: github-action-schema
+          # Doesn't matter if we save/restore the schema from different OSes
+          enableCrossOsArchive: true
+
+      - name: Download github-action.json schema
+        id: download-schema
+        # Download failures are non-fatal if we have a cache hit, because we can
+        # use the cached schema
+        continue-on-error: ${{ steps.restore-schema.outputs.cache-hit == 'true' }}
+        run: |
+          response_code=$(curl \
+            --write-out '%{response_code}' \
+            --verbose \
+            --retry 5 \
+            --remote-time \
+            --remote-name \
+            --time-cond github-action.json \
+            --etag-save github-action.json-etag \
+            --etag-compare github-action.json-etag \
+            https://json.schemastore.org/github-action.json);
+
+          curl_exit_code="${?}";
+
+          if [[ "${curl_exit_code}" -ne 0 ]]; then
+            exit "${curl_exit_code}";
+          fi
+
+          # If the schema has changed (200 vs. 304 if it's not changed), we need
+          # to update the cache.
+          echo "schema-changed=$([ "${response_code}" -eq 200 ] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
+
+      # Caches can't be overwritten, so we need to delete the previous cache if
+      # the schema has changed
+      - name: Delete Previous Cache
+        if: steps.restore-schema.outputs.cache-hit == 'true' && steps.download-schema.outputs.schema-changed == 'true'
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete --repo "${{ github.repository }}" "github-action-schema" --confirm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Save github-action.json schema to cache
+        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        if: steps.download-schema.outputs.schema-changed == 'true'
+        with:
+          path: |
+            github-action.json
+            github-action.json-etag
+          key: github-action-schema
+          # Doesn't matter if we save/restore the schema from different OSes
+          enableCrossOsArchive: true
+
+      - name: Convert action YAMLS to JSON
+        id: convert-action-yaml-to-json
+        run: |
+          set -ex
+
+          find . -name 'action.yaml' -o -name 'action.yml' | while read -r file; do
+            JSON_FILE="${file%.*}.json"
+
+            yq eval -o=j "$file" > "${JSON_FILE}"
+
+            # Save converted filenames to a file
+            echo "${JSON_FILE}" >> converted-files.txt
+          done
+
+          echo "Converted: $(tr '\n' ' ' < converted-files.txt)"
+
+          # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
+          {
+            echo 'converted-files<<EOF'
+            cat converted-files.txt
+            echo 'EOF'
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Validate action definitions
+        uses: ScratchAddons/validate-json-action@8f71e0683221310e32661c1b1634399858bde75f
+        with:
+          schema: github-action.json
+          jsons: ${{ steps.convert-action-yaml-to-json.outputs.converted-files }}

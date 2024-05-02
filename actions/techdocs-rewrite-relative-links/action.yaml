@@ -3,10 +3,16 @@ description: Rewrite links inside techdocs pointing to outside resources
 
 inputs:
   default-branch:
+    description: |
+      Default branch name of the repository
     required: true
   repo-url:
+    description: |
+      Full URL to the GitHub repository
     required: true
   working-directory:
+    description: |
+      Directory containing the `mkdocs.yml` file
     required: true
   dry-run:
     description: |
