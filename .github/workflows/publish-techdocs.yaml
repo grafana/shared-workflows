@@ -53,7 +53,8 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: grafana/shared-workflows
-          ref: zerok/techdocs-rewrite-relative-links-action
+          # TODO: Replace after merge
+          ref: main
           path: _shared-workflows
 
       - name: Rewrite relative links
@@ -90,7 +91,6 @@ jobs:
         run: techdocs-cli generate --no-docker --verbose
         working-directory: ${{ inputs.default-working-directory }}
 
-      # TODO: Re-enable once finalized:
-      # - name: Publish docs site
-      #   run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
-      #   working-directory: ${{ inputs.default-working-directory }}
+      - name: Publish docs site
+        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
+        working-directory: ${{ inputs.default-working-directory }}
