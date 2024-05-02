@@ -34,4 +34,3 @@ jobs:
           set -e
           cd actions/techdocs-rewrite-relative-links
           go test ./... -v
-
