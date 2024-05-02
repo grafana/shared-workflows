@@ -31,10 +31,11 @@ on:
         required: false
         type: boolean
         default: false
-      verbose:
+      publish:
+        description: "Enable or disable publishing after building the docs"
         required: false
         type: boolean
-        default: false
+        default: true
 
 jobs:
   generate-and-publish-docs:
@@ -53,8 +54,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: grafana/shared-workflows
-          # TODO: Replace after merge
-          ref: main
+          ref: 93c84040a318ceb535ed130b9b75c76eb68b0a06
           path: _shared-workflows
 
       - name: Rewrite relative links
@@ -92,5 +92,6 @@ jobs:
         working-directory: ${{ inputs.default-working-directory }}
 
       - name: Publish docs site
+        if: inputs.publish
         run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
         working-directory: ${{ inputs.default-working-directory }}
