@@ -22,6 +22,19 @@ on:
         required: false
         type: boolean
         default: true
+      rewrite-relative-links:
+        required: false
+        type: boolean
+        default: false
+      rewrite-relative-links-dry-run:
+        description: "Execute rewrite-relative-links step but only print the diff without modifying the files"
+        required: false
+        type: boolean
+        default: false
+      verbose:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   generate-and-publish-docs:
@@ -34,6 +47,26 @@ jobs:
         name: Checkout
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         if: inputs.checkout-repo
+
+      - id: checkout-shared-workflows
+        name: Checkout shared workflows
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: grafana/shared-workflows
+          # TODO: Replace after merge
+          ref: main
+          path: _shared-workflows
+
+      - name: Rewrite relative links
+        if: inputs.rewrite-relative-links || inputs.rewrite-relative-links-dry-run
+        uses: ./_shared-workflows/actions/techdocs-rewrite-relative-links
+        with:
+          working-directory: "${{ inputs.default-working-directory }}"
+          repo-url: "https://github.com/${{ github.repository }}"
+          default-branch: "${{ github.event.repository.default_branch }}"
+          dry-run: "${{ inputs.rewrite-relative-links-dry-run }}"
+          checkout: false
+          checkout-path: _shared-workflows
 
       - id: auth
         name: Authenticate with Google Cloud

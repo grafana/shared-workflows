@@ -1,0 +1,36 @@
+name: Test techdocs-rewrite-relative-links action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/techdocs-rewrite-relative-links/**"
+      - ".github/workflows/test-techdocs-rewrite-relative-links.yaml"
+
+  pull_request:
+    paths:
+      - "actions/techdocs-rewrite-relative-links/**"
+      - ".github/workflows/test-techdocs-rewrite-relative-links.yaml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          check-latest: true
+          go-version: "1.22.2"
+          cache-dependency-path: "actions/techdocs-rewrite-relative-links/go.sum"
+
+      - name: Test Go code
+        shell: bash
+        run: |
+          set -e
+          cd actions/techdocs-rewrite-relative-links
+          go test ./... -v
