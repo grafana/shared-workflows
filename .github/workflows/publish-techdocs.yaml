@@ -65,8 +65,8 @@ jobs:
           repo-url: "https://github.com/${{ github.repository }}"
           default-branch: "${{ github.event.repository.default_branch }}"
           dry-run: "${{ inputs.rewrite-relative-links-dry-run }}"
-          checkout: false
-          checkout-path: _shared-workflows
+          checkout-action-repository: false
+          checkout-action-repository-path: _shared-workflows
 
       - id: auth
         name: Authenticate with Google Cloud

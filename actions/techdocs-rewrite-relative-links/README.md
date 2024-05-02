@@ -41,19 +41,19 @@ Then this link inside the file will be changed to ...
     dry-run: false
 
     # Since the previous step already checked out the shared-workflows repo, we can use that:
-    skip-checkout: true
-    checkout-path: _shared-workflows
+    checkout-action-repository: true
+    checkout-action-repository-path: _shared-workflows
 ```
 
 Follow that up with the actions that should publish the docs to EngHub. See [the `publish-techdocs.yaml` workflow](https://github.com/grafana/shared-workflows/blob/main/.github/workflows/publish-techdocs.yaml) for details.
 
 ## Inputs
 
-| Name                                 | Type    | Description                                                                                                    |
-| ------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------- |
-| `default-branch` (required)          | string  | Default branch name of the repository                                                                          |
-| `repo-url` (required)                | string  | Full URL to the GitHub repository                                                                              |
-| `working-directory` (required)       | string  | Directory containing the `mkdocs.yml` file                                                                     |
-| `dry-run`                            | boolean | Do not modify the files but print a diff                                                                       |
-| `checkout-path` (default: `_action`) | string  | Folder where the repository should be checked out to for running the action or where a checkout already exists |
-| `checkout` (default: `true`)         | boolean | If the workflow already checks out the shared-workflows repository, you can set this to false                  |
+| Name                                                   | Type    | Description                                                                                                    |
+| ------------------------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------- |
+| `default-branch` (required)                            | string  | Default branch name of the repository                                                                          |
+| `repo-url` (required)                                  | string  | Full URL to the GitHub repository                                                                              |
+| `working-directory` (required)                         | string  | Directory containing the `mkdocs.yml` file                                                                     |
+| `dry-run`                                              | boolean | Do not modify the files but print a diff                                                                       |
+| `checkout-action-repository-path` (default: `_action`) | string  | Folder where the repository should be checked out to for running the action or where a checkout already exists |
+| `checkout-action-repository` (default: `true`)         | boolean | If the workflow already checks out the shared-workflows repository, you can set this to false                  |

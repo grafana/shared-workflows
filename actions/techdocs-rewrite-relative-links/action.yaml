@@ -17,7 +17,7 @@ inputs:
     type: boolean
     required: false
     default: false
-  checkout-path:
+  checkout-action-repository-path:
     description: |
       Path where the action checks out its own code. If you disable the
       checkout, make sure to set this to where a previous checkout has been
@@ -25,7 +25,7 @@ inputs:
     type: string
     default: _action
     required: false
-  checkout:
+  checkout-action-repository:
     description: |
       By default this action checks out its own code. If you want to skip this,
       set to false.
@@ -38,40 +38,42 @@ runs:
 
   steps:
     - name: Checkout
-      if: ${{ inputs.checkout }}
+      if: ${{ inputs.checkout-action-repository }}
       env:
         # In a composite action, these two need to be indirected via the
         # environment, as per the GitHub actions documentation:
-        # https://docs.github.com/en/actions/learn-github-actions/contexts
+        # https://docs.github.com/en/actions/learn-github-actions/contexts.
+        # These seem not to be available when using a local action, though, and
+        # so we need to fall back:
         action_repo: ${{ github.action_repository && github.action_repository || 'grafana/shared-workflows' }}
         action_ref: ${{ github.action_ref && github.action_ref || 'zerok/pin-techdocs-rewrite-relative-links-action' }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        path: ${{ inputs.checkout-path }}
+        path: ${{ inputs.checkout-action-repository-path }}
 
     - name: Setup go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
         check-latest: true
         cache-dependency-path: |
-          ${{ inputs.checkout-path }}/actions/techdocs-rewrite-relative-links/go.sum
-        go-version-file: "${{ inputs.checkout-path }}/actions/techdocs-rewrite-relative-links/go.mod"
+          ${{ inputs.checkout-action-repository-path }}/actions/techdocs-rewrite-relative-links/go.sum
+        go-version-file: "${{ inputs.checkout-action-repository-path }}/actions/techdocs-rewrite-relative-links/go.mod"
 
     - name: Run
       id: run
       shell: bash
       run: |
         root_dir=$(realpath ${{ inputs.working-directory }})
-        cd ${{ inputs.checkout-path }}/actions/techdocs-rewrite-relative-links
+        cd ${{ inputs.checkout-action-repository-path }}/actions/techdocs-rewrite-relative-links
         go run . \
         --root-dir=${root_dir} \
         --default-branch=${{inputs.default-branch}} \
         --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run && '--dry-run' || '' }}
 
     - name: Cleanup
-      if: ${{ always() && inputs.checkout }}
+      if: ${{ always() && inputs.checkout-action-repository }}
       shell: bash
       run: |
-        rm -rf ${{ inputs.checkout-path }}
+        rm -rf ${{ inputs.checkout-action-repository-path }}
