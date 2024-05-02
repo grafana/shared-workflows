@@ -44,7 +44,7 @@ inputs:
     required: false
     default: "type=gha,mode=max"
   ssh:
-    desctiption: |
+    description: |
       List of SSH agent socket or keys to expose to the build
 
 outputs:
