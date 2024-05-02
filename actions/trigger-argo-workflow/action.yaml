@@ -58,6 +58,7 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
+        path: _shared-workflows-trigger-argo-workflow
 
     - name: Restore cache
       id: restore
@@ -107,7 +108,7 @@ runs:
 
     - name: Get Argo Token
       id: get-argo-token
-      uses: "./actions/get-vault-secrets"
+      uses: ./_shared-workflows-trigger-argo-workflow/actions/get-vault-secrets
       with:
         vault_instance: ${{ inputs.instance }}
         repo_secrets: |
@@ -117,7 +118,7 @@ runs:
       id: run
       shell: bash
       run: |
-        cd actions/trigger-argo-workflow
+        cd _shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow
 
         # Split the parameters into an array and pass them to the action as --parameter PARAM
         while read -r line; do
