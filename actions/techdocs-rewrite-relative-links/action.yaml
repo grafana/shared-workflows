@@ -3,50 +3,44 @@ description: Rewrite links inside techdocs pointing to outside resources
 
 inputs:
   default-branch:
-    type: string
     required: true
   repo-url:
-    type: string
     required: true
   working-directory:
-    type: string
     required: true
   dry-run:
     description: |
       Execute link rewriting without updating the underlying files
-    type: boolean
     required: false
-    default: false
+    default: 'false'
   checkout-action-repository-path:
     description: |
       Path where the action checks out its own code. If you disable the
       checkout, make sure to set this to where a previous checkout has been
       made to.
-    type: string
     default: _action
     required: false
   checkout-action-repository:
     description: |
       By default this action checks out its own code. If you want to skip this,
       set to false.
-    type: boolean
     required: false
-    default: true
+    default: 'true'
 
 runs:
   using: composite
 
   steps:
     - name: Checkout
-      if: ${{ inputs.checkout-action-repository }}
+      if: ${{ inputs.checkout-action-repository == 'true' }}
       env:
         # In a composite action, these two need to be indirected via the
         # environment, as per the GitHub actions documentation:
         # https://docs.github.com/en/actions/learn-github-actions/contexts.
         # These seem not to be available when using a local action, though, and
         # so we need to fall back:
-        action_repo: ${{ github.action_repository && github.action_repository || 'grafana/shared-workflows' }}
-        action_ref: ${{ github.action_ref && github.action_ref || 'zerok/pin-techdocs-rewrite-relative-links-action' }}
+        action_repo: ${{ github.action_repository || 'grafana/shared-workflows' }}
+        action_ref: ${{ github.action_ref || 'zerok/pin-techdocs-rewrite-relative-links-action' }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: ${{ env.action_repo }}
@@ -70,10 +64,10 @@ runs:
         go run . \
         --root-dir=${root_dir} \
         --default-branch=${{inputs.default-branch}} \
-        --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run && '--dry-run' || '' }}
+        --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run == 'true' && '--dry-run' || '' }}
 
     - name: Cleanup
-      if: ${{ always() && inputs.checkout-action-repository }}
+      if: ${{ always() && inputs.checkout-action-repository == 'true' }}
       shell: bash
       run: |
         rm -rf ${{ inputs.checkout-action-repository-path }}
