@@ -38,13 +38,13 @@ runs:
 
   steps:
     - name: Checkout
-      if: ${{ !inputs.skip-checkout }}
+      if: ${{ inputs.checkout }}
       env:
         # In a composite action, these two need to be indirected via the
         # environment, as per the GitHub actions documentation:
         # https://docs.github.com/en/actions/learn-github-actions/contexts
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
+        action_repo: ${{ github.action_repository && github.action_repository || 'grafana/shared-workflows' }}
+        action_ref: ${{ github.action_ref && github.action_ref || 'zerok/pin-techdocs-rewrite-relative-links-action' }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: ${{ env.action_repo }}
@@ -71,7 +71,7 @@ runs:
         --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run && '--dry-run' || '' }}
 
     - name: Cleanup
-      if: "always() && !inputs.skip-checkout"
+      if: ${{ always() && inputs.checkout }}
       shell: bash
       run: |
         rm -rf ${{ inputs.checkout-path }}

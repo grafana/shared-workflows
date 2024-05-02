@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: grafana/shared-workflows
-          ref: 93c84040a318ceb535ed130b9b75c76eb68b0a06
+          ref: zerok/pin-techdocs-rewrite-relative-links-action
           path: _shared-workflows
 
       - name: Rewrite relative links
