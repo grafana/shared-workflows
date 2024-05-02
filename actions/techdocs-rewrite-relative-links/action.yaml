@@ -31,6 +31,19 @@ runs:
   using: composite
 
   steps:
+    - id: workflow-ref
+      name: Determine workflow ref
+      if: ${{ inputs.checkout-action-repository == 'true' }}
+      shell: bash
+      run: |
+        ref=$(echo "${{ github.workflow_ref }}" | awk '{split($0,a,"@");printf "%s",a[2]}')
+        # pull request refs cannot be checked out, so we need to fall back:
+        if [[ "${ref}" =~ ^refs/pull/ ]]; then
+          printf "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+        else
+          printf "ref=%s" $ref >> $GITHUB_OUTPUT
+        fi
+
     - name: Checkout
       if: ${{ inputs.checkout-action-repository == 'true' }}
       env:
@@ -40,7 +53,7 @@ runs:
         # These seem not to be available when using a local action, though, and
         # so we need to fall back:
         action_repo: ${{ github.action_repository || 'grafana/shared-workflows' }}
-        action_ref: ${{ github.action_ref || 'main' }}
+        action_ref: ${{ github.action_ref || steps.workflow-ref.outputs.ref }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: ${{ env.action_repo }}
