@@ -49,29 +49,13 @@ jobs:
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         if: inputs.checkout-repo
 
-      - id: workflow-ref
-        name: Determine workflow ref
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          ref=$(echo "${{ github.workflow_ref }}" | awk '{split($0,a,"@");printf "%s",a[2]}')
-          # pull request refs cannot be checked out, so we need to fall back:
-          if [[ "${ref}" =~ ^refs/pull/ ]]; then
-            pr_id=$(echo $ref | sed -r 's/^refs\/pull\/([[:digit:]]+).*$/\1/g')
-            pr_ref=$(gh pr view --repo grafana/shared-workflows ${pr_id} --json headRefName -q '.headRefName')
-            printf "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
-          else
-            printf "ref=%s" $ref >> $GITHUB_OUTPUT
-          fi
-
       - id: checkout-shared-workflows
         name: Checkout shared workflows
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: grafana/shared-workflows
           # TODO: Replace after merge
-          ref: ${{ steps.workflow-ref.outputs.ref }}
+          ref: main
           path: _shared-workflows
 
       - name: Rewrite relative links

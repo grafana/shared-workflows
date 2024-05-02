@@ -53,7 +53,7 @@ runs:
         # These seem not to be available when using a local action, though, and
         # so we need to fall back:
         action_repo: ${{ github.action_repository || 'grafana/shared-workflows' }}
-        action_ref: ${{ github.action_ref || steps.workflow-ref.outputs.ref }}
+        action_ref: ${{ github.action_ref || 'main' }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         repository: ${{ env.action_repo }}
