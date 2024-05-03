@@ -129,4 +129,6 @@ runs:
         cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
-        ssh: ${{ inputs.ssh }}
+        ssh: |
+          ${{ inputs.ssh }}
+
