@@ -27,6 +27,14 @@ func TestUpdateRelativeLinks(t *testing.T) {
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [inside](./README.md) [outside](https://github.com/grafana/dummy/blob/main/README.md)\n",
 		},
+		"rewrites-outside-link-with-hashname": {
+			testDirectorySetup: func(fs afero.Fs, rootDir string) {
+				afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
+				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md#somewhere)"), 0600)
+			},
+			fileUnderTest:       "docs/README.md",
+			expectedFileContent: "Hello world [inside](./README.md) [outside](https://github.com/grafana/dummy/blob/main/README.md#somewhere)\n",
+		},
 		"ignores-external-links": {
 			testDirectorySetup: func(fs afero.Fs, rootDir string) {
 				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [external](https://example.org)"), 0600)

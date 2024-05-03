@@ -218,6 +218,15 @@ func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, rea
 			return ast.WalkContinue, nil
 		}
 
+		// If the destination has a hashname, we need to strip that and append
+		// it afterwards again for the filesystem checks to work:
+		hashname := ""
+		elems := strings.SplitN(dst, "#", 2)
+		if len(elems) > 1 {
+			hashname = elems[1]
+			dst = elems[0]
+		}
+
 		absPath := filepath.Join(filepath.Dir(transformer.path), dst)
 		destStat, err := transformer.filesys.Stat(absPath)
 		if err != nil {
@@ -233,6 +242,9 @@ func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, rea
 			typeSegment = "blob"
 		}
 		newDest := strings.Replace(absPath, strings.TrimSuffix(transformer.rootDirectory, "/"), transformer.repoURL+"/"+typeSegment+"/"+transformer.defaultBranch, 1)
+		if hashname != "" {
+			newDest = newDest + "#" + hashname
+		}
 		transformer.logger.InfoContext(transformer.ctx, "rewriting path", slog.String("old-dest", dst), slog.String("new-dest", newDest), slog.Bool("dry-run", transformer.dryRun))
 		link.Destination = []byte(newDest)
 		transformer.changed = true
