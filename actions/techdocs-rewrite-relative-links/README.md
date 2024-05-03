@@ -57,3 +57,5 @@ Follow that up with the actions that should publish the docs to EngHub. See [the
 | `dry-run`                                              | boolean | Do not modify the files but print a diff                                                                       |
 | `checkout-action-repository-path` (default: `_action`) | string  | Folder where the repository should be checked out to for running the action or where a checkout already exists |
 | `checkout-action-repository` (default: `true`)         | boolean | If the workflow already checks out the shared-workflows repository, you can set this to false                  |
+| `verbose` (default `false`)                            | boolean | Log on info level                                                                                              |
+| `debug` (default `false`)                              | boolean | Log on debug level                                                                                             |

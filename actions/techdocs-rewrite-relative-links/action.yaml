@@ -26,6 +26,16 @@ inputs:
       set to false.
     required: false
     default: "true"
+  debug:
+    description: |
+      Log output on debug level
+    required: false
+    default: "false"
+  verbose:
+    description: |
+      Log output on info level
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -77,7 +87,7 @@ runs:
         go run . \
         --root-dir=${root_dir} \
         --default-branch=${{inputs.default-branch}} \
-        --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run == 'true' && '--dry-run' || '' }}
+        --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run == 'true' && '--dry-run' || '' }} ${{ inputs.debug == 'true' && '--debug' || '' }} ${{ inputs.verbose == 'true' && '--verbose' || '' }}
 
     - name: Cleanup
       if: ${{ always() && inputs.checkout-action-repository == 'true' }}

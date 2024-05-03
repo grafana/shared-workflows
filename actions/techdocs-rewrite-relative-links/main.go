@@ -53,11 +53,31 @@ func main() {
 				Required: false,
 				Value:    false,
 			},
+			&cli.BoolFlag{
+				Name:     "verbose",
+				Usage:    "Log at info-level",
+				Required: false,
+				Value:    false,
+			},
+			&cli.BoolFlag{
+				Name:     "debug",
+				Usage:    "Log at debug-level",
+				Required: false,
+				Value:    false,
+			},
 		},
 		Action: func(cliCtx *cli.Context) error {
 			repoURL := cliCtx.String("repo-url")
 			defaultBranch := cliCtx.String("default-branch")
 			rootDir := cliCtx.String("root-dir")
+
+			level := slog.LevelWarn
+			if cliCtx.Bool("debug") {
+				level = slog.LevelDebug
+			}
+			if level == slog.LevelDebug && cliCtx.Bool("verbose") {
+				level = slog.LevelInfo
+			}
 
 			ctx := cliCtx.Context
 			var logger *slog.Logger
@@ -65,15 +85,20 @@ func main() {
 				handler := &human.Handler{}
 				logger = slog.New(&actionslog.Wrapper{
 					Handler: handler.WithOutput,
+					Level:   level,
 				})
 			} else {
 				if term.IsTerminal(int(os.Stderr.Fd())) {
 					logger = slog.New(
-						tint.NewHandler(os.Stderr, nil),
+						tint.NewHandler(os.Stderr, &tint.Options{
+							Level: level,
+						}),
 					)
 				} else {
 					logger = slog.New(
-						slog.NewTextHandler(os.Stderr, nil),
+						slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+							Level: level,
+						}),
 					)
 				}
 			}
@@ -230,7 +255,8 @@ func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, rea
 		absPath := filepath.Join(filepath.Dir(transformer.path), dst)
 		destStat, err := transformer.filesys.Stat(absPath)
 		if err != nil {
-			return ast.WalkStop, err
+			transformer.logger.WarnContext(transformer.ctx, "mapped destination not found", slog.String("old-dest", dst), slog.String("abs-path", absPath))
+			return ast.WalkContinue, nil
 		}
 		rel, _ := filepath.Rel(transformer.docsRootDirectory, absPath)
 		if !strings.HasPrefix(rel, "..") {
