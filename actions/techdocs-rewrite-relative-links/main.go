@@ -231,6 +231,9 @@ type relativeLinkASTTransformer struct {
 
 func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, reader text.Reader, pc parser.Context) {
 	ast.Walk(node, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if entering {
+			return ast.WalkContinue, nil
+		}
 		// We only care about links. Images etc. are not handled:
 		link, ok := n.(*ast.Link)
 		if !ok {
