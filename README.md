@@ -39,3 +39,31 @@ example:
 ```
 
 [hardening]: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
+
+### Refer to other `shared-workflows` actions using relative paths
+
+When referencing other actions in this repository, use a relative path. This
+will ensure actions in this repo are always used at the same commit. To do this:
+
+```yaml
+- name: Checkout
+  env:
+    # In a composite action, these two need to be indirected via the
+    # environment, as per the GitHub actions documentation:
+    # https://docs.github.com/en/actions/learn-github-actions/contexts
+    action_repo: ${{ github.action_repository }}
+    action_ref: ${{ github.action_ref }}
+  uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+  with:
+    repository: ${{ env.action_repo }}
+    ref: ${{ env.action_ref }}
+    # substitute your-action with a unique name (within `shared-repos` for your
+    # action), so if multiple actions check `shared-workflows` out, they don't
+    # overwrite each other
+    path: _shared-workflows-your-action
+
+- name: Use another action
+  uses: ./_shared-workflows-your-action/actions/some-action
+  with:
+    some-input: some-value
+```

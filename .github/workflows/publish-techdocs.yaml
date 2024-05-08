@@ -56,18 +56,18 @@ jobs:
           repository: grafana/shared-workflows
           # TODO: Replace after merge
           ref: main
-          path: _shared-workflows
+          path: _shared-workflows-publish-techdocs
 
       - name: Rewrite relative links
         if: inputs.rewrite-relative-links || inputs.rewrite-relative-links-dry-run
-        uses: ./_shared-workflows/actions/techdocs-rewrite-relative-links
+        uses: ./_shared-workflows-publish-techdocs/actions/techdocs-rewrite-relative-links
         with:
           working-directory: "${{ inputs.default-working-directory }}"
           repo-url: "https://github.com/${{ github.repository }}"
           default-branch: "${{ github.event.repository.default_branch }}"
           dry-run: "${{ inputs.rewrite-relative-links-dry-run }}"
           checkout-action-repository: "false"
-          checkout-action-repository-path: _shared-workflows
+          checkout-action-repository-path: _shared-workflows-techdocs-rewrite-relative-links
 
       - id: auth
         name: Authenticate with Google Cloud
