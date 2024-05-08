@@ -72,8 +72,8 @@ func (a App) outputWithURI(input *bytes.Buffer) (string, string) {
 	return uri, output
 }
 
-func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
-	args := a.args(md)
+func (a App) runCmd(labelProviders ...LabelsProvider) (string, string, error) {
+	args := a.args(labelProviders...)
 
 	cmd := exec.Command("argo", args...)
 	cmdOutput := &bytes.Buffer{}
@@ -125,7 +125,7 @@ func (a *App) openGitHubOutput() io.WriteCloser {
 	return f
 }
 
-func (a *App) Run(md GitHubActionsMetadata) error {
+func (a *App) Run(labelProviders ...LabelsProvider) error {
 	bo := backoff.WithMaxRetries(backoff.NewExponentialBackOff(), a.retries)
 
 	var uri string
@@ -133,7 +133,7 @@ func (a *App) Run(md GitHubActionsMetadata) error {
 
 	run := func() error {
 		var err error
-		uri, out, err = a.runCmd(md)
+		uri, out, err = a.runCmd(labelProviders...)
 
 		return err
 	}
