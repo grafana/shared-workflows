@@ -1,0 +1,116 @@
+name: Cleanup Docker Registry
+
+description: Clean up Docker images in a registry.
+
+inputs:
+  image_name:
+    description: "The name of the Docker image to clean up, e.g., `ghcr.io/myorg/myimage`."
+    required: true
+
+  tag_filter:
+    description: "Glob pattern to filter tags. Defaults to *."
+    required: false
+    default: "*"
+
+  exclude_tags:
+    description: "Comma-separated list of tags to exclude from deletion."
+    required: false
+    default: ""
+
+  keep_latest:
+    description: "Number of latest images to keep."
+    required: true
+
+  dry_run:
+    description: "Run the action in dry-run mode (true/false)."
+    required: false
+    default: "true"
+
+  crane_version:
+    description: "The version of crane to use."
+    required: false
+    default: "v0.19.2"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Fetch crane
+      id: fetch-crane
+      uses: robinraju/release-downloader@c39a3b234af58f0cf85888573d361fb6fa281534 # v1.10
+      with:
+        extract: false
+        fileName: go-containerregistry_Linux_x86_64.tar.gz
+        releaseId: ${{ inputs.crane_version }}
+        repository: google/go-containerregistry
+
+    - name: Download SLSA Verifier
+      uses: slsa-framework/slsa-verifier/actions/installer@eb7007070baa04976cb9e25a0d8034f8db030a86 #v2.5.1
+
+    - name: Verify Crane SLSA provenance
+      shell: sh
+      run: |
+        slsa-verifier \
+          verify-artifact \
+          "${{ fromJSON(steps.fetch-crane.outputs.downloaded_files)[0] }}" \
+          --provenance-path provenance.intoto.jsonl \
+          --source-uri github.com/google/go-containerregistry \
+          --source-tag "${{ inputs.crane_version }}"
+
+    - name: Extract crane
+      shell: sh
+      run: |
+        tar -xzvf go-containerregistry_Linux_x86_64.tar.gz crane
+        chmod +x crane
+        mv crane /usr/local/bin/crane
+
+    - name: List images
+      shell: sh
+      id: list_images
+      run: |
+        image_name="${{ inputs.image_name }}"
+        tag_filter="${{ inputs.tag_filter }}"
+        exclude_tags="${{ inputs.exclude_tags }}"
+        keep_latest="${{ inputs.keep_latest }}"
+        dry_run="${{ inputs.dry_run }}"
+
+        # Convert exclude_tags to an array
+        IFS=',' read -r -a exclude_array <<< "$exclude_tags"
+
+        # List all image tags using crane
+        tags=$(crane ls $image_name)
+
+        # Convert tags to an array
+        tags_array=($tags)
+
+        # Filter tags by the glob pattern
+        filtered_tags=()
+        for tag in "${tags_array[@]}"; do
+          if [[ $tag == $tag_filter ]]; then
+            filtered_tags+=("$tag")
+          fi
+        done
+
+        # Exclude specified tags
+        for exclude in "${exclude_array[@]}"; do
+          filtered_tags=("${filtered_tags[@]/$exclude}")
+        done
+
+        # Sort tags using version sort
+        sorted_tags=$(printf "%s\n" "${filtered_tags[@]}" | sort -V)
+
+        # Determine tags to remove
+        tags_to_remove=($(echo "$sorted_tags" | head -n -"$keep_latest"))
+
+        if [ "$dry_run" == "true" ]; then
+          echo "Dry-run mode: the following tags would be removed:"
+          printf "%s\n" "${tags_to_remove[@]}"
+        else
+          echo "Removing the following tags:"
+          printf "%s\n" "${tags_to_remove[@]}"
+          for tag in "${tags_to_remove[@]}"; do
+            crane delete $image_name:$tag
+          done
+        fi
+
+        # Output removed tags
+        echo "::set-output name=removed_tags::$(IFS=,; echo "${tags_to_remove[*]}")"

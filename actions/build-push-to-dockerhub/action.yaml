@@ -98,15 +98,21 @@ runs:
         tags: ${{ inputs.tags }}
 
     - name: Build and push Docker image
+      id: build-push
       uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
       with:
+        attests: type=provenance,mode=max
         context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        labels: ${{ steps.meta.outputs.labels }}
         platforms: ${{ inputs.platforms }}
+        sbom: true
         push: ${{ inputs.push }}
         tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        file: ${{ inputs.file }}
-        build-args: ${{ inputs.build-args }}
-        target: ${{ inputs.target }}
-        cache-from: ${{ inputs.cache-from }}
-        cache-to: ${{ inputs.cache-to }}
+
+    - name: Attest build provenance
+      uses: actions/attest-build-provenance@5e9cb68e95676991667494a6a4e59b8a2f13e1d0 # v1.3.3
+      with:
+        push-to-registry: ${{ inputs.push }}
+        subject-digest: ${{ steps.build-push.outputs.digest }}
+        subject-name: index.docker.io/${{ inputs.repository }}
