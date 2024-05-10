@@ -2,6 +2,18 @@
 
 Welcome to the Shared Workflows repository! This repository contains reusable actions designed to streamline and automate common tasks across multiple departments and external organizations. We appreciate your interest in contributing to our shared efforts.
 
+## Scope of `shared-workflows`
+This repository is for generic workflows and actions which can be used across multiple types of projects. For more specialised use-cases, we encourage the use of project- or area-specific shared workflow repositories.
+Examples which would fit in here:
+- Push a container image to a Docker registry
+- Run security scanners on built artifacts
+- Read and write objects to cloud object storage (GCS or S3)
+  And those which would be better in project- or area-specific shared workflow repositories:
+- Implement a release process specific to a subset of projects
+- Lint project(s) with your team's opinionated toolset
+
+Get in touch with the maintainers [via an issue](https://github.com/grafana/shared-workflows/issues/new) if you're unsure in a particular case.
+
 ## Types of Workflows
 
 ### 1. Reusable Workflows
