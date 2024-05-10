@@ -20,15 +20,19 @@ Custom actions are defined in the `actions/` directory. These actions are design
 
 4. **Make Changes:** Make your desired changes to the codebase.
 
-5. **Commit Changes:** Commit your changes with clear and concise commit messages.
+5. **Document Changes:** Document your changes in a `README.md` file. Try to follow the examples set forward in other Readmes.
 
-6. **Push Changes:** Push your changes to your forked repository.
+6. **Commit Changes:** Commit your changes with clear and concise commit messages.
 
-7. **Submit a Pull Request:** Submit a pull request to the main repository. Ensure that your pull request is detailed and includes information about the changes made.
+7. **Push Changes:** Push your changes to your forked repository.
 
-8. **Review Process:** Your pull request will be reviewed by Grafana's platform-productivity squad. Make any requested changes or address any feedback during this process.
+8. **Submit a Pull Request:** Submit a pull request to the main repository. Ensure that your pull request is detailed and includes information about the changes made.
 
-9. **License Agreement:** By contributing to this repository, you agree that your contributions will be licensed under the GNU Affero General Public License v3.0.
+9. **Check CI:** Check your pull request to verify that any CI processes are passing.
+
+10. **Review Process:** Your pull request will be reviewed by Grafana's platform-productivity squad. Make any requested changes or address any feedback during this process.
+
+11. **Contributor License Agreement (CLA):** Before we can accept your pull request, you need to sign [Grafana's CLA](https://grafana.com/docs/grafana/latest/developers/cla/). If you haven't, our CLA assistant prompts you to when you create your pull request.
 
 ## Code of Conduct
 
