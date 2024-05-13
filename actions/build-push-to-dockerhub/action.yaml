@@ -1,5 +1,5 @@
-name: Publish Docker image
-description: Publish docker images to DockerHub
+name: Build & Publish Docker image
+description: Build and publish docker images to DockerHub
 
 inputs:
   repository:
@@ -19,7 +19,7 @@ inputs:
     required: false
   push:
     description: |
-      Push the generated images also to DockerHub
+      Also push the generated images to DockerHub
     default: "false"
   file:
     description: |
@@ -43,6 +43,7 @@ runs:
         path: _shared-workflows-build-push-to-dockerhub
 
     - name: Login to DockerHub
+      if: inputs.push
       uses: ./_shared-workflows-build-push-to-dockerhub/actions/dockerhub-login
 
     # If platforms is specified then also initialize buildx and qemu:
