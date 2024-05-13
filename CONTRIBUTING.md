@@ -3,8 +3,10 @@
 Welcome to the Shared Workflows repository! This repository contains reusable actions designed to streamline and automate common tasks across multiple departments and external organizations. We appreciate your interest in contributing to our shared efforts.
 
 ## Scope of `shared-workflows`
+
 This repository is for generic workflows and actions which can be used across multiple types of projects. For more specialised use-cases, we encourage the use of project- or area-specific shared workflow repositories.
 Examples which would fit in here:
+
 - Push a container image to a Docker registry
 - Run security scanners on built artifacts
 - Read and write objects to cloud object storage (GCS or S3)
@@ -15,12 +17,15 @@ Examples which would fit in here:
 Get in touch with the maintainers [via an issue](https://github.com/grafana/shared-workflows/issues/new) if you're unsure in a particular case.
 
 ## Types of Workflows
+
 Unsure about the difference between a reusable workflow and a composite action? Start [here](https://dev.to/n3wt0n/composite-actions-vs-reusable-workflows-what-is-the-difference-github-actions-11kd).
 
 ### 1. Reusable Workflows
+
 The `.github/workflows/` directory contains reusable workflows. Refer to the [GitHub documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows) for more info.
 
 ### 2. Composite Actions
+
 The `actions/` directory contains composite actions. Refer to the [GitHub documentation](https://docs.github.com/en/actions/creating-actions/about-custom-actions#composite-actions) for more info.
 
 ## Contribution Guidelines
