@@ -15,12 +15,13 @@ Examples which would fit in here:
 Get in touch with the maintainers [via an issue](https://github.com/grafana/shared-workflows/issues/new) if you're unsure in a particular case.
 
 ## Types of Workflows
+Unsure about the difference between a reusable workflow and a composite action? Start [here](https://dev.to/n3wt0n/composite-actions-vs-reusable-workflows-what-is-the-difference-github-actions-11kd).
 
 ### 1. Reusable Workflows
-Reusable workflows are located in the `.github/workflows/` directory. These workflows are primarily intended for internal use within this repository. They should be used for automating tasks specific to this repository's needs. Reusable workflows are also required if you intend to use the `on: workflow_call` event for workflow triggering. For more information on reusing workflows and using `on: workflow_call`, refer to the [GitHub documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
+The `.github/workflows/` directory contains reusable workflows. Refer to the [GitHub documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows) for more info.
 
-### 2. Custom Actions
-Custom actions are defined in the `actions/` directory. These actions are designed for external contributors to add new functionalities and actions that can be used across various projects. If you have innovative ideas or new actions to contribute, the `actions/` directory is the place to do so. To learn more about creating custom actions, check out the [GitHub documentation](https://docs.github.com/en/actions/creating-actions/about-custom-actions).
+### 2. Composite Actions
+The `actions/` directory contains composite actions. Refer to the [GitHub documentation](https://docs.github.com/en/actions/creating-actions/about-custom-actions#composite-actions) for more info.
 
 ## Contribution Guidelines
 
