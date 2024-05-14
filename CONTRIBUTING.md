@@ -14,7 +14,7 @@ Examples which would fit in here:
 And those which would be better in project- or area-specific shared workflow repositories:
 
 - Implement a release process specific to a subset of projects
-- Lint project(s) with a single (configurable) toolset
+- Lint project(s) with your team's opinionated toolset
 
 Get in touch with the maintainers [via an issue](https://github.com/grafana/shared-workflows/issues/new) if you're unsure in a particular case.
 
