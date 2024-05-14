@@ -1,5 +1,5 @@
-name: Publish Docker image
-description: Publish docker images to DockerHub
+name: Build & Publish Docker image
+description: Build and publish docker images to DockerHub
 
 inputs:
   repository:
@@ -19,7 +19,7 @@ inputs:
     required: false
   push:
     description: |
-      Push the generated images also to DockerHub
+      Also push the generated images to DockerHub
     default: "false"
   file:
     description: |
@@ -29,6 +29,14 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check if push is allowed
+      if: ${{ inputs.push == 'true' && github.event_name != 'push' }}
+      shell: sh
+      run: |
+        >&2 echo "Publishing to DockerHub is only allowed on push events."
+        >&2 echo "If you still want to build images without pushing them, set the push input to false."
+        exit 1
+
     - name: Checkout shared workflows
       env:
         # In a composite action, these two need to be indirected via the
@@ -43,6 +51,7 @@ runs:
         path: _shared-workflows-build-push-to-dockerhub
 
     - name: Login to DockerHub
+      if: ${{ inputs.push == 'true' }}
       uses: ./_shared-workflows-build-push-to-dockerhub/actions/dockerhub-login
 
     # If platforms is specified then also initialize buildx and qemu:

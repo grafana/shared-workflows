@@ -104,7 +104,7 @@ runs:
         check-latest: true
         cache-dependency-path: |
           actions/trigger-argo-workflow/go.sum
-        go-version-file: "actions/trigger-argo-workflow/go.mod"
+        go-version-file: "_shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow/go.mod"
 
     - name: Get Argo Token
       id: get-argo-token
