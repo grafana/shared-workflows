@@ -51,7 +51,7 @@ runs:
         path: _shared-workflows-build-push-to-dockerhub
 
     - name: Login to DockerHub
-      if: inputs.push
+      if: ${{ inputs.push == 'true' }}
       uses: ./_shared-workflows-build-push-to-dockerhub/actions/dockerhub-login
 
     # If platforms is specified then also initialize buildx and qemu:
