@@ -10,6 +10,7 @@ Examples which would fit in here:
 - Push a container image to a Docker registry
 - Run security scanners on built artifacts
 - Read and write objects to cloud object storage (GCS or S3)
+- Lint projects according to a widely-agreed specification such as [Commitlint](https://commitlint.js.org/).
 
 And those which would be better in project- or area-specific shared workflow repositories:
 
