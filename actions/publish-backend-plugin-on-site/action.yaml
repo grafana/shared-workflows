@@ -48,27 +48,27 @@ runs:
           \"download\": {
             \"linux-amd64\": {
               \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_amd64.zip\",
-              \"md5\": \"$(cat ci/packages/info-linux_amd64.json | jq -r .plugin.md5)\"
+              \"md5\": \"$(cat linux/info-linux_amd64.json | jq -r .plugin.md5)\"
             },
             \"linux-arm64\": {
               \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_arm64.zip\",
-              \"md5\": \"$(cat ci/packages/info-linux_arm64.json | jq -r .plugin.md5)\"
+              \"md5\": \"$(cat linux/info-linux_arm64.json | jq -r .plugin.md5)\"
             },
             \"linux-arm\": {
               \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_arm.zip\",
-              \"md5\": \"$(cat ci/packages/info-linux_arm.json | jq -r .plugin.md5)\"
+              \"md5\": \"$(cat linux/info-linux_arm.json | jq -r .plugin.md5)\"
             },
             \"windows-amd64\": {
               \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/windows/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.windows_amd64.zip\",
-              \"md5\": \"$(cat ci/packages/info-windows_amd64.json | jq -r .plugin.md5)\"
+              \"md5\": \"$(cat windows/info-windows_amd64.json | jq -r .plugin.md5)\"
             },
             \"darwin-amd64\": {
               \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.darwin_amd64.zip\",
-              \"md5\": \"$(cat ci/packages/info-darwin_amd64.json | jq -r .plugin.md5)\"
+              \"md5\": \"$(cat darwin/info-darwin_amd64.json | jq -r .plugin.md5)\"
             },
             \"darwin-arm64\": {
               \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.darwin_arm64.zip\",
-              \"md5\": \"$(cat ci/packages/info-darwin_arm64.json | jq -r .plugin.md5)\"
+              \"md5\": \"$(cat darwin/info-darwin_arm64.json | jq -r .plugin.md5)\"
             }
           }
         }"`
