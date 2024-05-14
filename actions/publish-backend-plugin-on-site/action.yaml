@@ -43,7 +43,7 @@ runs:
       run: |
         echo "Publish new plugin version on grafana.com:"
         echo "Plugin version: ${{ inputs.plugin-version }}"
-        result=`curl -H "Authorization: Bearer $GCOM_TOKEN" -H "Content-Type: application/json" ${{ inputs.gcom-api }}/api/plugins -d "{
+        result=`curl -H "Authorization: Bearer ${{ inputs.gcom-token }} -H "Content-Type: application/json" ${{ inputs.gcom-api }}/api/plugins -d "{
           \"url\": \"${{ inputs.plugin-dist }}\",
           \"download\": {
             \"linux-amd64\": {
