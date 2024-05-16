@@ -39,6 +39,7 @@ runs:
         sudo apt-get update
         sudo apt-get install jq
     - name: publish-plugin
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         echo "Publish new plugin version on grafana.com:"
