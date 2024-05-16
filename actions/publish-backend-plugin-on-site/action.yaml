@@ -4,7 +4,7 @@ inputs:
   working-directory:
     description: |
       Working directory for the action.
-    default: "__to-upload__"
+    default: "__to-upload__/0.10.4/"
   plugin-id:
     description: |
       ID of the plugin to publish.
