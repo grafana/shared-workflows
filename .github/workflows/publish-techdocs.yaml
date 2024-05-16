@@ -57,6 +57,7 @@ jobs:
           # TODO: Replace after merge
           ref: main
           path: _shared-workflows-publish-techdocs
+          submodules: true
 
       - name: Rewrite relative links
         if: inputs.rewrite-relative-links || inputs.rewrite-relative-links-dry-run
