@@ -4,7 +4,7 @@ inputs:
   working-directory:
     description: |
       Working directory for the action.
-    default: "__to-upload__/0.10.4/"
+    default: "__to-upload__/"
   plugin-id:
     description: |
       ID of the plugin to publish.
@@ -39,37 +39,36 @@ runs:
         sudo apt-get update
         sudo apt-get install jq
     - name: publish-plugin
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: ${{ inputs.working-directory }}/${{ inputs.plugin-version }}/
       shell: bash
       run: |
         echo "Publish new plugin version on grafana.com:"
         echo "Plugin version: ${{ inputs.plugin-version }}"
-        ls -R
         result=`curl -H "Authorization: Bearer ${{ inputs.gcom-token }}" -H "Content-Type: application/json" ${{ inputs.gcom-api }}/api/plugins -d "{
           \"url\": \"${{ inputs.plugin-dist }}\",
           \"download\": {
             \"linux-amd64\": {
-              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_amd64.zip\",
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin-id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin-id }}-${{ inputs.plugin-version }}.linux_amd64.zip\",
               \"md5\": \"$(cat linux/info-linux_amd64.json | jq -r .plugin.md5)\"
             },
             \"linux-arm64\": {
-              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_arm64.zip\",
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin-id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin-id }}-${{ inputs.plugin-version }}.linux_arm64.zip\",
               \"md5\": \"$(cat linux/info-linux_arm64.json | jq -r .plugin.md5)\"
             },
             \"linux-arm\": {
-              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.linux_arm.zip\",
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin-id }}/release/${{ inputs.plugin-version }}/linux/${{ inputs.plugin-id }}-${{ inputs.plugin-version }}.linux_arm.zip\",
               \"md5\": \"$(cat linux/info-linux_arm.json | jq -r .plugin.md5)\"
             },
             \"windows-amd64\": {
-              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/windows/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.windows_amd64.zip\",
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin-id }}/release/${{ inputs.plugin-version }}/windows/${{ inputs.plugin-id }}-${{ inputs.plugin-version }}.windows_amd64.zip\",
               \"md5\": \"$(cat windows/info-windows_amd64.json | jq -r .plugin.md5)\"
             },
             \"darwin-amd64\": {
-              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.darwin_amd64.zip\",
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin-id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin-id }}-${{ inputs.plugin-version }}.darwin_amd64.zip\",
               \"md5\": \"$(cat darwin/info-darwin_amd64.json | jq -r .plugin.md5)\"
             },
             \"darwin-arm64\": {
-              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin_id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin_id }}-${{ inputs.plugin-version }}.darwin_arm64.zip\",
+              \"url\": \"https://storage.googleapis.com/${{ inputs.gcp-bucket }}/${{ inputs.plugin-id }}/release/${{ inputs.plugin-version }}/darwin/${{ inputs.plugin-id }}-${{ inputs.plugin-version }}.darwin_arm64.zip\",
               \"md5\": \"$(cat darwin/info-darwin_arm64.json | jq -r .plugin.md5)\"
             }
           }
