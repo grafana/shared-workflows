@@ -17,11 +17,6 @@ on:
         required: false
         type: string
         default: "."
-      checkout-repo:
-        description: "Whether to perform the `checkout` action at the start of the workflow. Setting to `false` is useful when generating docs in previous job. Default is `true`."
-        required: false
-        type: boolean
-        default: true
       rewrite-relative-links:
         required: false
         type: boolean
@@ -47,7 +42,6 @@ jobs:
       - id: checkout
         name: Checkout
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
-        if: inputs.checkout-repo
 
       - id: checkout-shared-workflows
         name: Checkout shared workflows
