@@ -31,6 +31,11 @@ on:
         required: false
         type: boolean
         default: true
+      checkout-submodules:
+        description: "Checkout submodules in the repository. Options are `true` (checkout submodules), `false` (don't checkout submodules), or `recursive` (recursively checkout submodules)"
+        required: false
+        type: string
+        default: 'false'
 
 jobs:
   generate-and-publish-docs:
@@ -51,7 +56,7 @@ jobs:
           # TODO: Replace after merge
           ref: main
           path: _shared-workflows-publish-techdocs
-          submodules: true
+          submodules: "${{ inputs.checkout-submodules }}"
 
       - name: Rewrite relative links
         if: inputs.rewrite-relative-links || inputs.rewrite-relative-links-dry-run
