@@ -35,7 +35,7 @@ on:
         description: "Checkout submodules in the repository. Options are `true` (checkout submodules), `false` (don't checkout submodules), or `recursive` (recursively checkout submodules)"
         required: false
         type: string
-        default: 'false'
+        default: "false"
 
 jobs:
   generate-and-publish-docs:
