@@ -1,0 +1,49 @@
+name: Generate attestations and SBOM
+description: |
+  Generate SBOM and build provenance attestations for Docker images and publish
+  them to GitHub Sigstore instances
+
+inputs:
+  digest:
+    description: |
+      The digest of the image to attest. Must have been built already.
+    required: true
+
+  push:
+    description: |
+      Push the attestations to the registry and the Sigstore.
+    default: ""
+
+  image:
+    description: |
+      The repository and image. For Docker Hub, use index.docker.io as the
+      registry.
+
+      example: `index.docker.io/grafana/loki`
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds
+    - name: Attest build provenance
+      uses: actions/attest-build-provenance@951c0c5f8e375ad4efad33405ab77f7ded2358e4 # v1.1.1
+      with:
+        push-to-registry: ${{ inputs.push }}
+        subject-digest: ${{ inputs.digest }}
+        subject-name: ${{ inputs.image }}
+
+    - name: Generate SBOM
+      uses: anchore/sbom-action@7ccf588e3cf3cc2611714c2eeae48550fbc17552 # v0.15.11
+      with:
+        format: cyclonedx-json
+        image: ${{ inputs.image }}@${{ inputs.digest }}
+        output-file: sbom.cyclonedx.json
+
+    - name: Attest SBOM
+      uses: actions/attest-sbom@c29e4e92259a5ed4629496ec6a5724e444389a1f # v1.1.1
+      with:
+        push-to-registry: ${{ inputs.push }}
+        sbom-path: sbom.cyclonedx.json
+        subject-digest: ${{ inputs.digest }}
+        subject-name: ${{ inputs.image }}

@@ -71,11 +71,33 @@ runs:
         tags: ${{ inputs.tags }}
 
     - name: Build and push Docker image
+      id: build-push
       uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
       with:
         context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        labels: ${{ steps.meta.outputs.labels }}
         platforms: ${{ inputs.platforms }}
+        provenance: false
         push: ${{ inputs.push }}
         tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        file: ${{ inputs.file }}
+
+    - name: Checkout shared-workflows
+      env:
+        # In a composite action, these two need to be indirected via the
+        # environment, as per the GitHub actions documentation:
+        # https://docs.github.com/en/actions/learn-github-actions/contexts
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _shared-workflows-build-push-to-dockerhub
+
+    - name: Generate attestations and SBOM
+      uses: ./_shared-workflows-build-push-to-dockerhub/actions/sbom-provenence-attestation-docker
+      with:
+        digest: ${{ steps.build-push.outputs.digest }}
+        push: ${{ inputs.push }}
+        image: index.docker.io/${{ inputs.repository }}

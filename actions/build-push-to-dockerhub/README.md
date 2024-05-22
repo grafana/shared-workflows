@@ -1,6 +1,9 @@
 # build-push-to-dockerhub
 
-This is a composite GitHub Action, used to build Docker images and push them to DockerHub.
+This is a composite GitHub Action, used to build Docker images and push them to
+DockerHub. A SBOM and provenenace attestation will be generated too, and pushed
+to the registry and the GitHub signature store.
+
 It uses `get-vault-secrets` action to get the DockerHub username and password from Vault.
 
 Example of how to use this action in a repository:
@@ -13,6 +16,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  attestations: write
 
 jobs:
   build:
