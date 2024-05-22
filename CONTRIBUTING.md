@@ -43,7 +43,7 @@ The `actions/` directory contains composite actions. Refer to the [GitHub docume
 
 5. **Write Tests:** Where it makes sense, please add tests. See `actions/techdocs-rewrite-relative-links` as an example.
 
-6. **Document Changes:** Document your changes in a `README.md` file. Try to follow the examples set forward in other Readmes.
+6. **Document Changes:** Document your changes in a `README.md` file. Try to follow the examples set forward in other READMEs.
 
 7. **Commit Changes:** Commit your changes with clear and concise commit messages.
 
@@ -53,7 +53,7 @@ The `actions/` directory contains composite actions. Refer to the [GitHub docume
 
 10. **Check CI:** Check your pull request to verify that any CI processes are passing.
 
-11. **Review Process:** Your pull request will be reviewed by Grafana's platform-productivity squad. Make any requested changes or address any feedback during this process.
+11. **Review Process:** Your pull request will be reviewed by the Grafana Labs' platform-productivity squad. Make any requested changes or address any feedback during this process.
 
 12. **Contributor License Agreement (CLA):** Before we can accept your pull request, you need to sign [Grafana's CLA](https://grafana.com/docs/grafana/latest/developers/cla/). If you haven't, our CLA assistant prompts you to when you create your pull request.
 
