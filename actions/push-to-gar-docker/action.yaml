@@ -50,6 +50,11 @@ inputs:
     description: |
       List of additional build contexts (e.g., name=path)
     required: false
+  docker-buildx-driver:
+    description: |
+      The driver to use for Docker Buildx
+    required: false
+    default: "docker-container"
 
 outputs:
   version:
@@ -121,6 +126,8 @@ runs:
         create_credentials_file: false
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+      with:
+        driver: ${{ inputs.docker-buildx-driver }}
     - name: Build the container
       uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
       id: build
