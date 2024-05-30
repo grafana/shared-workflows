@@ -137,7 +137,12 @@ runs:
         push: ${{ github.event_name == 'push' }}
         tags: ${{ steps.meta.outputs.tags }}
         cache-from: ${{ inputs.cache-from }}
-        cache-to: ${{ inputs.cache-to }}
+        # docker driver only supports inline and local cache backends
+        # https://docs.docker.com/build/cache/backends/
+        #
+        # example build with this error
+        # https://github.com/grafana/oncall-private/actions/runs/9309199486/job/25624170381#step:8:633
+        cache-to: ${{ inputs.docker-buildx-driver == 'docker' && 'local' || inputs.cache-to }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
