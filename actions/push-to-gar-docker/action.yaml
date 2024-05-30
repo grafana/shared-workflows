@@ -55,6 +55,10 @@ inputs:
       The driver to use for Docker Buildx
     required: false
     default: "docker-container"
+  docker-buildx-driver-opts:
+    description: |
+      List of additional driver-specific options (eg. image=moby/buildkit:master)
+    required: false
 
 outputs:
   version:
@@ -128,6 +132,7 @@ runs:
       uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
       with:
         driver: ${{ inputs.docker-buildx-driver }}
+        driver-opts: ${{ inputs.docker-buildx-driver-opts }}
     - name: Build the container
       uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
       id: build
