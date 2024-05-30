@@ -141,8 +141,8 @@ runs:
         #
         # example build with this error
         # https://github.com/grafana/oncall-private/actions/runs/9309199486/job/25624170381#step:8:633
-        cache-from: ${{ inputs.docker-buildx-driver == 'docker' && 'local' || inputs.cache-from }}
-        cache-to: ${{ inputs.docker-buildx-driver == 'docker' && 'local' || inputs.cache-to }}
+        cache-from: ${{ inputs.docker-buildx-driver == 'docker' && '' || inputs.cache-from }}
+        cache-to: ${{ inputs.docker-buildx-driver == 'docker' && '' || inputs.cache-to }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
