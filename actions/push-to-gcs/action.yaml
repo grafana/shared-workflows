@@ -31,31 +31,33 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
-    - name: Get repository name
-      id: get-repository-name
-      shell: bash
-      run: |
-        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
-        echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
     - name: Get object name and location
       id: get-object-location
       shell: sh
       run: echo "object_path=${{ inputs.destination != '' && inputs.destination || inputs.object }}" >> ${GITHUB_OUTPUT}
-    - name: Construct service account
-      id: construct-service-account
+    - name: Construct service account and bucket name
+      id: construct-gcs-vars
       shell: sh
       run: |
-        SERVICE_ACCOUNT="github-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        # construct service account name
+        SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
-    - uses: google-github-actions/auth@v1
+
+        # construct bucket name
+        BUCKET_NAME="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}
+        echo "bucket_name=${BUCKET_NAME}" >> ${GITHUB_OUTPUT}
+
+        # construct path
+        echo "object_path=${{ inputs.destination != '' && inputs.destination || inputs.object }}" >> ${GITHUB_OUTPUT}
+    - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
       id: gcloud-auth
       with:
         token_format: access_token
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-        service_account: ${{ steps.construct-service-account.outputs.service_account }}
+        service_account: ${{ steps.construct-gcs-vars.outputs.service_account }}
         create_credentials_file: false
-    - uses: google-github-actions/upload-cloud-storage@v2
+    - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:
-        path: ${{ inputs.object }}
-        destination: ${{ steps.get-object-location.outputs.object_path }}
+        path: ${{ steps.construct-gcs-vars.outputs.object_path }}
+        destination: ${{ steps.construct-gcs-vars.outputs.bucket_name }}
