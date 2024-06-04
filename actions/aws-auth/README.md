@@ -46,6 +46,7 @@ jobs:
 <!-- markdownlint-restore -->
 
 [^1]: See [Setting up Workload Role](#setting-up-workload-role) for an example
+
 [^2]: GitHub OIDC token claims must be mapped to the Cognito Identity Pool before they can be used. If you would like to use a claim that is not listed, file an issue in this repo or reach out to `@platform-productivity` in `#platform`.
 
 This uses the [`cognito-idpool-auth`](https://github.com/catnekaise/cognito-idpool-auth) action to perform authentication with an Amazon Cognito Identity Pool using the GitHub Actions OIDC access token.
