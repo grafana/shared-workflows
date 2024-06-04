@@ -29,7 +29,7 @@ inputs:
     description: |
       Whether to push the image to the registry.
     required: false
-    default: "true"
+    default: ${{ github.event_name == 'push' }}
   file:
     description: |
       The dockerfile to use.
