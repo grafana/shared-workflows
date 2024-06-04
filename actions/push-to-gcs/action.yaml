@@ -1,15 +1,14 @@
 name: Push to cloud storage
 description: Composite action to push to Google Cloud Storage
 inputs:
-  object:
+  bucket:
     description: |
-      Name of object to upload.
+      Name of bucket to upload to.
     required: true
   destination:
     description: |
-      Location to upload object (including object name). Will create sub-folders in the bucket.
-      Default behavior is to upload ${inputs.object} to the root folder of the bucket.
-    default: ""
+      Object name and location to upload to. Will create sub-folders in the bucket.
+      Valid examples include `thing.txt` and `path/to/thing.txt`
   environment:
     description: |
       Environment for uploading objects (can be either dev or prod).
