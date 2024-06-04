@@ -26,9 +26,9 @@ runs:
       id: resolve-project
       shell: bash
       run: |
-        if [ "${{ inputs.environment }}" == 'dev' ]; then
+        if [ "${{ inputs.environment }}" = "dev" ]; then
           PROJECT="grafanalabs-dev"
-        elif [ "${{ inputs.environment }}" == 'prod' ]; then
+        elif [ "${{ inputs.environment }}" == "prod" ]; then
           PROJECT="grafanalabs-global"
         else
           echo "Invalid environment. Valid environment variable inputs: dev, prod"
@@ -37,20 +37,18 @@ runs:
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
     - name: Construct bucket name
       id: construct-bucket-name
-      shell: sh
+      shell: bash
       run: |
-        if [ '${{ inputs.bucket }}' == '' ]; then
-          echo "Using default bucket name"
+        if [ "${{ inputs.bucket }}" == "" ]; then
           BUCKET="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}-gcs"
         else
-          echo "Using inputs.bucket name"
           BUCKET="${{ inputs.bucket }}"
         fi
         echo "Setting bucket_name to ${BUCKET}"
         echo "bucket_name=${BUCKET}" >> ${GITHUB_OUTPUT}
     - name: Construct service account and bucket name
       id: construct-service-account
-      shell: sh
+      shell: bash
       run: |
         SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
