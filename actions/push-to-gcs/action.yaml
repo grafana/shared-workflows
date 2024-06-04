@@ -3,12 +3,13 @@ description: Composite action to push to Google Cloud Storage
 inputs:
   bucket:
     description: |
-      Name of bucket to upload to.
-    required: true
-  destination:
+      Name of bucket to upload to. Will default to grafanalabs-${repository.id}-${environment}
+    default: ""
+  path:
     description: |
       Object name and location to upload to. Will create sub-folders in the bucket.
       Valid examples include `thing.txt` and `path/to/thing.txt`
+    required: true
   environment:
     description: |
       Environment for uploading objects (can be either dev or prod).
@@ -30,24 +31,22 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
-    - name: Get object name and location
-      id: get-object-location
-      shell: sh
-      run: echo "object_path=${{ inputs.destination != '' && inputs.destination || inputs.object }}" >> ${GITHUB_OUTPUT}
-    - name: Construct service account and bucket name
-      id: construct-gcs-vars
+    - name: Construct bucket name
+      id: construct-bucket-name
       shell: sh
       run: |
-        # construct service account name
+        if [ "${{ inputs.bucket }}" == "" ]; then
+          bucket_name="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}-gcs
+        else
+          bucket_name="${{ inputs.bucket }}"
+        fi
+        echo "bucket_name=${bucket_name}" >> ${GITHUB_OUTPUT}
+    - name: Construct service account and bucket name
+      id: construct-service-account
+      shell: sh
+      run: |
         SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
-
-        # construct bucket name
-        BUCKET_NAME="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}
-        echo "bucket_name=${BUCKET_NAME}" >> ${GITHUB_OUTPUT}
-
-        # construct path
-        echo "object_path=${{ inputs.destination != '' && inputs.destination || inputs.object }}" >> ${GITHUB_OUTPUT}
     - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
       id: gcloud-auth
       with:
@@ -58,5 +57,5 @@ runs:
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:
-        path: ${{ steps.construct-gcs-vars.outputs.object_path }}
-        destination: ${{ steps.construct-gcs-vars.outputs.bucket_name }}
+        path: ${{ inputs.path }}
+        destination: ${{ steps.construct-bucket-name.outputs.bucket_name }}
