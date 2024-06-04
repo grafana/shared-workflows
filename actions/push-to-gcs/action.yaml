@@ -40,7 +40,7 @@ runs:
       shell: bash
       run: |
         if [ "${{ inputs.bucket }}" == "" ]; then
-          BUCKET="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}-gcs"
+          BUCKET="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}"
         else
           BUCKET="${{ inputs.bucket }}"
         fi
