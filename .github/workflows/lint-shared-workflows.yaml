@@ -1,6 +1,8 @@
 on:
   push:
 
+  pull_request:
+
 permissions:
   contents: read
   actions: write
@@ -11,8 +13,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
-        with:
-          ref: ${{ github.head_ref }}
 
       - name: Lint with Prettier
         uses: creyD/prettier_action@31355f8eef017f8aeba2e0bc09d8502b13dbbad1 # v4.3.0
