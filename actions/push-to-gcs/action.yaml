@@ -39,9 +39,11 @@ runs:
       id: construct-bucket-name
       shell: sh
       run: |
-        if [ "${{ inputs.bucket }}" == '' ]; then
+        if [ '${{ inputs.bucket }}' == '' ]; then
+          echo "Using default bucket name"
           BUCKET="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}-gcs"
         else
+          echo "Using inputs.bucket name"
           BUCKET="${{ inputs.bucket }}"
         fi
         echo "Setting bucket_name to ${BUCKET}"
