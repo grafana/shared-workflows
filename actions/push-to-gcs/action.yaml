@@ -17,7 +17,7 @@ inputs:
   parent:
     description: |
       Setting parent to false will omit path when uploading to bucket.
-    default: "true"
+    default: true
 
 runs:
   using: composite
