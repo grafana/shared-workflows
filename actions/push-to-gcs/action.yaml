@@ -44,6 +44,7 @@ runs:
         else
           BUCKET="${{ inputs.bucket }}"
         fi
+        echo "Setting bucket_name to ${BUCKET}"
         echo "bucket_name=${BUCKET}" >> ${GITHUB_OUTPUT}
     - name: Construct service account and bucket name
       id: construct-service-account
