@@ -14,6 +14,10 @@ inputs:
     description: |
       Environment for uploading objects (can be either dev or prod).
     default: dev
+  parent:
+    description: |
+      Setting parent to false will omit path when uploading to bucket.
+    default: "true"
 
 runs:
   using: composite
@@ -35,12 +39,12 @@ runs:
       id: construct-bucket-name
       shell: sh
       run: |
-        if [ "${{ inputs.bucket }}" == "" ]; then
-          bucket_name="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}-gcs
+        if [ "${{ inputs.bucket }}" == '' ]; then
+          BUCKET="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}-gcs"
         else
-          bucket_name="${{ inputs.bucket }}"
+          BUCKET="${{ inputs.bucket }}"
         fi
-        echo "bucket_name=${bucket_name}" >> ${GITHUB_OUTPUT}
+        echo "bucket_name=${BUCKET}" >> ${GITHUB_OUTPUT}
     - name: Construct service account and bucket name
       id: construct-service-account
       shell: sh
@@ -59,3 +63,4 @@ runs:
       with:
         path: ${{ inputs.path }}
         destination: ${{ steps.construct-bucket-name.outputs.bucket_name }}
+        parent: ${{ inputs.parent }}
