@@ -25,6 +25,11 @@ inputs:
     description: |
       List of arguments necessary for the Docker image to be built.
     default: ""
+  push:
+    description: |
+      Whether to push the image to the registry.
+    required: false
+    default: ${{ github.event_name == 'push' }}
   file:
     description: |
       The dockerfile to use.
@@ -134,7 +139,7 @@ runs:
       with:
         context: ${{ inputs.context }}
         build-args: ${{ inputs.build-args }}
-        push: ${{ github.event_name == 'push' }}
+        push: ${{ inputs.push == 'true' }}
         tags: ${{ steps.meta.outputs.tags }}
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
