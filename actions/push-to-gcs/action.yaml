@@ -5,18 +5,19 @@ inputs:
     description: |
       Name of bucket to upload to. Will default to grafanalabs-${repository.id}-${environment}
     default: ""
-  path:
+  object:
     description: |
       Object name and location to upload to. Will create sub-folders in the bucket.
       Valid examples include `thing.txt` and `path/to/thing.txt`
     required: true
+  bucket_path:
+    description: |
+      The path in the bucket to save the object. Defaults to the root of the bucket.
+    default: ""
   environment:
     description: |
       Environment for uploading objects (can be either dev or prod).
     default: dev
-  parent:
-    description: |
-      Setting parent to false will omit path when uploading to bucket.
 
 runs:
   using: composite
@@ -34,18 +35,31 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
-    - name: Construct bucket name
-      id: construct-bucket-name
+    - name: Construct destination
+      id: construct-destination
       shell: bash
       run: |
+        # Construct bucket name
         if [ "${{ inputs.bucket }}" == "" ]; then
           BUCKET="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}"
         else
           BUCKET="${{ inputs.bucket }}"
         fi
-        echo "Setting bucket_name to ${BUCKET}"
-        echo "bucket_name=${BUCKET}" >> ${GITHUB_OUTPUT}
-    - name: Construct service account and bucket name
+
+        # Construct destination file path (can be different than the source file path)
+        # First, get object name from full file path
+        FILENAME=$(echo ${{ inputs.object }} | awk -F/ '{print $NF}')
+
+        # Then, check if path was passed in, and join together with bucket_name if so
+        if [ "${{ inputs.bucket_path }}" != "" ]; then
+          DESTINATION="${BUCKET}/${{ inputs.bucket_path%/ }}"
+        fi
+
+        echo "Setting file_name to ${FILENAME}"
+        echo "file_name=${FILENAME}" >> ${GITHUB_OUTPUT}
+        echo "Setting destination to ${DESTINATION}"
+        echo "destination=${DESTINATION}" >> ${GITHUB_OUTPUT}
+    - name: Construct service account
       id: construct-service-account
       shell: bash
       run: |
@@ -61,6 +75,5 @@ runs:
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:
-        path: ${{ inputs.path }}
-        destination: ${{ steps.construct-bucket-name.outputs.bucket_name }}
-        parent: ${{ inputs.parent }}
+        path: ${{ steps.construct-destination.outputs.file_name }}  # object name
+        destination: ${{ steps.construct-destination.outputs.destination }}  # bucket name plus folder prefix (if applicable)
