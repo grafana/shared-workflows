@@ -50,11 +50,9 @@ runs:
         # First, get object name from full file path
         FILENAME=$(echo ${{ inputs.object }} | awk -F/ '{print $NF}')
 
-        # Then, check if path was passed in, and join together with bucket_name if so
-        if [ "${{ inputs.bucket_path }}" != "" ]; then
-          BUCKET_PATH="${{ inputs.bucket_path }}"
-          DESTINATION="${BUCKET}/${BUCKET_PATH%/}"
-        fi
+        # Then, join together bucket_path with bucket_name
+        BUCKET_PATH="${{ inputs.bucket_path }}"
+        DESTINATION="${BUCKET}/${BUCKET_PATH%/}"
 
         echo "Setting file_name to ${FILENAME}"
         echo "file_name=${FILENAME}" >> ${GITHUB_OUTPUT}
