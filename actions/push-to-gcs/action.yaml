@@ -52,7 +52,8 @@ runs:
 
         # Then, join together bucket_path with bucket_name
         BUCKET_PATH="${{ inputs.bucket_path }}"
-        DESTINATION="${BUCKET}/${BUCKET_PATH%/}"
+        DESTINATION="${BUCKET}/${BUCKET_PATH}"
+        DESTINATION="${DESTINATION%/}"  # strip trailing /
 
         echo "Setting file_name to ${FILENAME}"
         echo "file_name=${FILENAME}" >> ${GITHUB_OUTPUT}
