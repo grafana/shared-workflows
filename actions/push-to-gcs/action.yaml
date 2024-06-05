@@ -22,7 +22,7 @@ inputs:
     default: dev
   glob:
     description: |
-      Glob pattern. Matched files will be uploaded
+      Glob pattern.
     default: ""
 
 outputs:

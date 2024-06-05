@@ -31,32 +31,54 @@ jobs:
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         name: upload-yaml-to-root
         with:
-          object: .github/workflows/upload-files-to-gcs.yaml
+          path: .github/workflows/upload-files-to-gcs.yaml
 
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         name: upload-Dockerfile-to-root
         with:
-          object: Dockerfile
+          path: Dockerfile
 
         # upload a file to a folder in the bucket
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         name: upload-yaml-to-some-path
         with:
-          object: .github/workflows/upload-files-to-gcs.yaml
+          path: .github/workflows/upload-files-to-gcs.yaml
           bucket_path: some-path/
 
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         name: upload-Dockerfile-to-some-path
         with:
-          object: Dockerfile
+          path: Dockerfile
           bucket_path: some-path
+
+        # upload .yml files ./docs to bucket/docs
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        name: upload-all-yml-docs
+        with:
+          path: docs
+          glob: "*.yml"
+
+        # upload .yml files from docs to bucket/this-folder/docs
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        name: upload-all-yml-docs
+        with:
+          path: docs
+          glob: "*.yml"
+          bucket_path: this-folder
 ```
 
 ## Inputs
 
-| Name          | Type   | Description                                                                                                                               |
-|---------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| `bucket`      | String | Name of bucket to upload to. (Default: `grafanalabs-${repository.id}-${environment}`)                                                     |
-| `object`      | String | Object name and location to upload to. Will create sub-folders in the bucket. Valid examples include `thing.txt` and `path/to/thing.txt`. |
-| `bucket_path` | String | The path in the bucket to save the object. Valid examples include `some-path`, `some-path/`, `some/path`. (Default: root of bucket)       |
-| `environment` | String | Environment for pushing artifacts (can be either dev or prod).                                                                            |
+| Name          | Type   | Description                                                                                                                                                                                                                                                                                      |
+|---------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `bucket`      | String | Name of bucket to upload to. (Default: `grafanalabs-${repository.id}-${environment}`)                                                                                                                                                                                                            |
+| `path`        | String | Path to the object(s) to upload. Can either include a filename to upload 1 file, or can be used in conjunction with the `glob` option to upload matching files from a path. Valid examples include `thing.txt` and `path/to/thing.txt`. Valid examples when also using `glob` include `path/to`. |
+| `bucket_path` | String | The path in the bucket to save the object(s). Valid examples include `some-path`, `some-path/`, `some/path`. (Default: root of bucket)                                                                                                                                                           |
+| `environment` | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                                                                                                                                   |
+| `glob`        | String | Glob pattern.                                                                                                                                                                                                                                                                                    |
+
+## Outputs
+
+| Name       | Type   | Description                                        |
+|------------|--------|----------------------------------------------------|
+| `uploaded` | String | The list of files that were successfully uploaded. |
