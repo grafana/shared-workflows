@@ -2,14 +2,14 @@
 
 This is a composite GitHub Action, used to push objects to a bucket in Google Cloud Storage (GCS).
 It uses [OIDC authentication](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
-which means that only workflows which get triggered based on certain rules can 
+which means that only workflows which get triggered based on certain rules can
 trigger these composite workflows.
 
 ```yaml
 name: CI
-on: 
+on:
   pull_request:
-    
+
 env:
   ENVIRONMENT: "dev" # can be either dev/prod
 
@@ -27,6 +27,6 @@ jobs:
         id: push-to-gcs
         with:
           object: path/to/object
-          destination: folder/object  # Optional: defaults to the object input
+          destination: folder/object # Optional: defaults to the object input
           environment: ${{ env.ENVIRONMENT }}
 ```
