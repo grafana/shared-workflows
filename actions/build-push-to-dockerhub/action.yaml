@@ -34,6 +34,16 @@ inputs:
     description: |
       Target stage to build
     required: false
+  cache-from:
+    description: |
+      Where cache should be fetched from
+    required: false
+    default: "type=gha"
+  cache-to:
+    description: |
+      Where cache should be stored to
+    required: false
+    default: "type=gha,mode=max"
 
 runs:
   using: composite
@@ -90,3 +100,5 @@ runs:
         file: ${{ inputs.file }}
         build-args: ${{ inputs.build-args }}
         target: ${{ inputs.target }}
+        cache-from: ${{ inputs.cache-from }}
+        cache-to: ${{ inputs.cache-to }}
