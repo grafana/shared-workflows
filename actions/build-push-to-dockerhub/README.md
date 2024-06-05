@@ -39,6 +39,8 @@ jobs:
 | `repository` | String | Docker repository name                                                               |
 | `tags`       | List   | Tags that should be used for the image (see the [metadata-action][mda] for details)  |
 | `file`       | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`) |
+| `build-args` | String | List of arguments necessary for the Docker image to be built.                        |
+| `target`     | String | Sets the target stage to build                                                       |
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 

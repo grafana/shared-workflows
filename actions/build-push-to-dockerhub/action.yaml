@@ -25,6 +25,15 @@ inputs:
     description: |
       The dockerfile to use.
     required: false
+  build-args:
+    description: |
+      List of arguments necessary for the Docker image to be built.
+    required: false
+    default: ""
+  target:
+    description: |
+      Target stage to build
+    required: false
 
 runs:
   using: composite
@@ -79,3 +88,5 @@ runs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         file: ${{ inputs.file }}
+        build-args: ${{ inputs.build-args }}
+        target: ${{ inputs.target }}
