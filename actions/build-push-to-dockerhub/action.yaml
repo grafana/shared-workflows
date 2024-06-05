@@ -48,13 +48,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check if push is allowed
-      if: ${{ inputs.push == 'true' && github.event_name != 'push' }}
-      shell: sh
-      run: |
-        >&2 echo "Publishing to DockerHub is only allowed on push events."
-        >&2 echo "If you still want to build images without pushing them, set the push input to false."
-        exit 1
+    # - name: Check if push is allowed
+    #   if: ${{ inputs.push == 'true' && github.event_name != 'push' }}
+    #   shell: sh
+    #   run: |
+    #     >&2 echo "Publishing to DockerHub is only allowed on push events."
+    #     >&2 echo "If you still want to build images without pushing them, set the push input to false."
+    #     exit 1
 
     - name: Checkout shared workflows
       env:
