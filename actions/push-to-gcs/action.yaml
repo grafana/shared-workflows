@@ -75,5 +75,5 @@ runs:
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:
-        path: ${{ steps.construct-destination.outputs.file_name }}  # object name
+        path: ${{ inputs.object }}  # object path and filename
         destination: ${{ steps.construct-destination.outputs.destination }}  # bucket name plus folder prefix (if applicable)
