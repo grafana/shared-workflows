@@ -14,7 +14,7 @@ on:
       - main
 
 env:
-  ENVIRONMENT: 'dev'
+  ENVIRONMENT: "dev"
 
 permissions:
   contents: read
@@ -70,7 +70,7 @@ jobs:
 ## Inputs
 
 | Name          | Type   | Description                                                                                                                                                                                                                                                                                      |
-|---------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `bucket`      | String | Name of bucket to upload to. (Default: `grafanalabs-${repository.id}-${environment}`)                                                                                                                                                                                                            |
 | `path`        | String | Path to the object(s) to upload. Can either include a filename to upload 1 file, or can be used in conjunction with the `glob` option to upload matching files from a path. Valid examples include `thing.txt` and `path/to/thing.txt`. Valid examples when also using `glob` include `path/to`. |
 | `bucket_path` | String | The path in the bucket to save the object(s). Valid examples include `some-path`, `some-path/`, `some/path`. (Default: root of bucket)                                                                                                                                                           |
@@ -80,5 +80,5 @@ jobs:
 ## Outputs
 
 | Name       | Type   | Description                                        |
-|------------|--------|----------------------------------------------------|
+| ---------- | ------ | -------------------------------------------------- |
 | `uploaded` | String | The list of files that were successfully uploaded. |
