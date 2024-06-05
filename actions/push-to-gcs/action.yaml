@@ -18,6 +18,10 @@ inputs:
     description: |
       Environment for uploading objects (can be either dev or prod).
     default: dev
+  glob:
+    description: |
+      Glob pattern.
+    default: ""
 
 runs:
   using: composite
@@ -46,11 +50,16 @@ runs:
           BUCKET="${{ inputs.bucket }}"
         fi
 
-        # Construct destination file path (can be different than the source file path)
-        # First, get object name from full file path
-        FILENAME=$(echo ${{ inputs.object }} | awk -F/ '{print $NF}')
+        # If glob is set, then we'll use that instead of object
+        if [ "${{ inputs.glob }}" != "" ]; then
+          FILENAME="."
+        else
+          # Construct destination file path (can be different than the source file path)
+          # First, get object name from full file path
+          FILENAME=$(echo ${{ inputs.object }} | awk -F/ '{print $NF}')
+        fi
 
-        # Then, join together bucket_path with bucket_name
+        # Then, join together bucket_path with bucket_name (Ex: bucket_name/path/to/file)
         BUCKET_PATH="${{ inputs.bucket_path }}"
         DESTINATION="${BUCKET}/${BUCKET_PATH}"
         DESTINATION="${DESTINATION%/}"  # strip trailing /
@@ -73,5 +82,6 @@ runs:
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:
-        path: ${{ inputs.object }} # object path and filename
+        path: ${{ steps.construct-destination.outputs.file_name }}
+        glob: ${{ inputs.glob }}
         destination: ${{ steps.construct-destination.outputs.destination }} # bucket name plus folder prefix (if applicable)

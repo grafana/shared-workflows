@@ -58,5 +58,5 @@ jobs:
 |---------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------|
 | `bucket`      | String | Name of bucket to upload to. (Default: `grafanalabs-${repository.id}-${environment}`)                                                     |
 | `object`      | String | Object name and location to upload to. Will create sub-folders in the bucket. Valid examples include `thing.txt` and `path/to/thing.txt`. |
-| `bucket_path` | String | The path in the bucket to save the object. (Default: /)                                                                                   |
+| `bucket_path` | String | The path in the bucket to save the object. Valid examples include `some-path`, `some-path/`, `some/path`. (Default: root of bucket)       |
 | `environment` | String | Environment for pushing artifacts (can be either dev or prod).                                                                            |
