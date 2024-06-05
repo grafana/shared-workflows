@@ -52,7 +52,8 @@ runs:
 
         # Then, check if path was passed in, and join together with bucket_name if so
         if [ "${{ inputs.bucket_path }}" != "" ]; then
-          DESTINATION="${BUCKET}/${{ inputs.bucket_path%/ }}"
+          BUCKET_PATH="${{ inputs.bucket_path }}
+          DESTINATION="${BUCKET}/${BUCKET_PATH%/}"
         fi
 
         echo "Setting file_name to ${FILENAME}"
