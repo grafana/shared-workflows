@@ -48,6 +48,8 @@ inputs:
 runs:
   using: composite
   steps:
+    # See this conversation for more context as to why we don't want to allow pushes on pull requests
+    # https://github.com/grafana/shared-workflows/pull/143#discussion_r1628314620
     - name: Check if push is allowed
       if: ${{ inputs.push == 'true' && github.event_name != 'pull_request' }}
       shell: sh
