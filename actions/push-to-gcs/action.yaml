@@ -71,10 +71,8 @@ runs:
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:
-#        path: ${{ steps.construct-path.outputs.path }}
-        path: "."
-        glob: ${{ inputs.path }}
-#        glob: ${{ steps.construct-path.outputs.glob }}
+        path: ${{ steps.construct-path.outputs.path }}
+        glob: ${{ steps.construct-path.outputs.glob }}
         destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
         parent: ${{ inputs.parent }}
         process_gcloudignore: false
