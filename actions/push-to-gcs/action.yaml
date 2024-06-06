@@ -74,5 +74,5 @@ runs:
         path: ${{ steps.construct-path.outputs.path }}
         glob: ${{ steps.construct-path.outputs.glob }}
         destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
-        parent: ${{ inputs.parent }}
+        parent: false
         process_gcloudignore: false
