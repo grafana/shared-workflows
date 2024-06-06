@@ -56,6 +56,7 @@ runs:
         else
           GLOB=""
           PATH="${{ inputs.path }}"
+        fi
 
         # Then, join together bucket_path with bucket_name (Ex: bucket_name/path/to/file)
         DESTINATION="${BUCKET}/${{ inputs.bucket_path }}"
