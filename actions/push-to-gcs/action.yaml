@@ -3,8 +3,8 @@ description: Composite action to push to Google Cloud Storage
 inputs:
   bucket:
     description: |
-      Name of bucket to upload to. Will default to grafanalabs-${repository.id}-${environment}
-    default: ""
+      Name of bucket to upload to. This is output from the login-to-gcs shared-workflow.
+    required: true
   path:
     description: |
       Path to the object(s) to upload. Can either include a filename to upload 1 file,
@@ -20,10 +20,9 @@ inputs:
     description: |
       Environment for uploading objects (can be either dev or prod).
     default: dev
-  glob:
+  parent:
     description: |
-      Glob pattern.
-    default: ""
+      Whether parent directory should be included in bucket.
 
 outputs:
   uploaded:
@@ -46,50 +45,33 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
-    - name: Construct destination
-      id: construct-destination
+    - name: Construct path
+      id: construct-path
       shell: bash
       run: |
-        # Construct bucket name
-        if [ "${{ inputs.bucket }}" == "" ]; then
-          BUCKET="grafanalabs-${{ github.repository_id }}-${{ inputs.environment }}"
+        # Check for wildcard and set glob if exists
+        if [[ "${{ inputs.path }}" == *"*"* ]]; then
+          GLOB="${{ inputs.path }}"
+          PATH="."
         else
-          BUCKET="${{ inputs.bucket }}"
-        fi
-
-        # If glob is set, then we'll use that instead of object
-        if [ "${{ inputs.glob }}" != "" ]; then
-          FILENAME="."
-        else
-          # Construct destination file path (can be different than the source file path)
-          # First, get object name from full file path
-          FILENAME=$(echo ${{ inputs.path }} | awk -F/ '{print $NF}')
-        fi
+          GLOB=""
+          PATH="${{ inputs.path }}"
 
         # Then, join together bucket_path with bucket_name (Ex: bucket_name/path/to/file)
-        BUCKET_PATH="${{ inputs.bucket_path }}"
-        DESTINATION="${BUCKET}/${BUCKET_PATH}"
+        DESTINATION="${BUCKET}/${{ inputs.bucket_path }}"
         DESTINATION="${DESTINATION%/}"  # strip trailing /
 
-        echo "Setting file_name to ${FILENAME}"
-        echo "file_name=${FILENAME}" >> ${GITHUB_OUTPUT}
+        echo "Setting glob to ${GLOB}"
+        echo "glob=${GLOB}" >> ${GITHUB_OUTPUT}
+        echo "Setting path to ${PATH}"
+        echo "path=${PATH}" >> ${GITHUB_OUTPUT}
         echo "Setting destination to ${DESTINATION}"
         echo "destination=${DESTINATION}" >> ${GITHUB_OUTPUT}
-    - name: Construct service account
-      id: construct-service-account
-      shell: bash
-      run: |
-        SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
-        echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
-    - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
-      id: gcloud-auth
-      with:
-        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-        service_account: ${{ steps.construct-service-account.outputs.service_account }}
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:
-        path: ${{ inputs.path }}
-        glob: ${{ inputs.glob }}
-        destination: ${{ steps.construct-destination.outputs.destination }} # bucket name plus folder prefix (if applicable)
+        path: ${{ steps.construct-path.outputs.path }}
+        glob: ${{ steps.construct-path.outputs.glob }}
+        destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
+        parent: ${{ inputs.parent }}
         process_gcloudignore: false
