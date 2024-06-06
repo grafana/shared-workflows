@@ -59,7 +59,7 @@ runs:
         fi
 
         # Then, join together bucket_path with bucket_name (Ex: bucket_name/path/to/file)
-        DESTINATION="${BUCKET}/${{ inputs.bucket_path }}"
+        DESTINATION="${{ inputs.bucket }}/${{ inputs.bucket_path }}"
         DESTINATION="${DESTINATION%/}"  # strip trailing /
 
         echo "Setting glob to ${GLOB}"
