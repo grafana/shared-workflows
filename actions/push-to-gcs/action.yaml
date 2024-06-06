@@ -55,7 +55,7 @@ runs:
           PATH="."
         else
           GLOB=""
-          PATH="${{ inputs.path }}*"
+          PATH="${{ inputs.path }}"
         fi
 
         # Then, join together bucket_path with bucket_name (Ex: bucket_name/path/to/file)
@@ -74,7 +74,6 @@ runs:
 #        path: ${{ steps.construct-path.outputs.path }}
 #        glob: ${{ steps.construct-path.outputs.glob }}
         path: "."
-        glob: ${{ steps.construct-path.outputs.path }}
+        glob: ${{ inputs.path }}
         destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
-        parent: ${{ inputs.parent }}
         process_gcloudignore: false
