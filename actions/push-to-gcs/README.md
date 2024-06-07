@@ -44,12 +44,12 @@ jobs:
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: .
-          glob: 'folder/file.txt'
+          glob: "folder/file.txt"
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: folder
-          glob: 'file.txt'
+          glob: "file.txt"
 
         # Here are 2 equivalent statements to upload a single file WITHOUT its parent directory to the bucket root
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
@@ -61,7 +61,7 @@ jobs:
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: folder
-          glob: 'file.txt'
+          glob: "file.txt"
           parent: false
 
         # Here are 2 equivalent statements to upload a directory with all subdirectories
@@ -88,20 +88,20 @@ jobs:
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: folder/
-          glob: '*.txt'
+          glob: "*.txt"
 
         # upload all files of a type recursively
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: folder/
-          glob: '**/*.txt'
+          glob: "**/*.txt"
 ```
 
 ## Inputs
 
 | Name          | Type   | Description                                                                                                                                                                                  |
-|---------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bucket`      | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                          |
 | `path`        | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
 | `bucket_path` | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                      |
@@ -112,5 +112,5 @@ jobs:
 ## Outputs
 
 | Name       | Type   | Description                                        |
-|------------|--------|----------------------------------------------------|
+| ---------- | ------ | -------------------------------------------------- |
 | `uploaded` | String | The list of files that were successfully uploaded. |
