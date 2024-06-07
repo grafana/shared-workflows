@@ -1,19 +1,19 @@
 name: Login to GCS
 description: Composite action to login to Google Cloud Storage
 inputs:
-  environment:
-    description: |
-      Environment for uploading objects (can be either dev or prod).
-    default: dev
   bucket:
     description: |
       Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}
     default: ""
+  environment:
+    description: |
+      Environment for uploading objects (can be either dev or prod).
+    default: dev
 
 outputs:
-  bucket_name:
+  bucket:
     description: "The name of the bucket that we have authenticated to."
-    value: ${{ steps.get-bucket-name.outputs.bucket_name }}
+    value: ${{ steps.get-bucket-name.outputs.bucket }}
 
 runs:
   using: composite

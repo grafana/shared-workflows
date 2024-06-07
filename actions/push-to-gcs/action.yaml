@@ -7,26 +7,27 @@ inputs:
     required: true
   path:
     description: |
-      Path to the object(s) to upload. Can either include a filename to upload 1 file,
-      or can be used in conjunction with the `glob` option to upload files from a path.
-      Valid examples include `thing.txt` and `path/to/thing.txt`.
-      Valid examples when also using `glob` include `path/to`.
+      The path to a file or folder inside the action's filesystem
+      that should be uploaded to the bucket.
+      You can specify either the absolute path or the relative path from the action.
     required: true
   bucket_path:
     description: |
-      The path in the bucket to save the object(s). Defaults to the root of the bucket.
+      Bucket path where objects will be uploaded. Default is the bucket root.
     default: ""
   environment:
     description: |
       Environment for uploading objects (can be either dev or prod).
     default: dev
-  parent:
-    description: |
-      Whether parent directory should be included in bucket.
-    default: 'true'
   glob:
     description: |
       Glob pattern.
+  parent:
+    description: |
+      Whether parent dir should be included in GCS destination.
+      Dirs included in the `glob` statement are unaffected by this setting.
+    default: 'true'
+
 
 outputs:
   uploaded:
@@ -53,23 +54,10 @@ runs:
       id: construct-path
       shell: bash
       run: |
-        # Check for wildcard and set glob if exists
-        if [[ "${{ inputs.path }}" == *"*"* ]]; then
-          GLOB="${{ inputs.path }}"
-          PATH="."
-        else
-          GLOB=""
-          PATH="${{ inputs.path }}"
-        fi
-
-        # Then, join together bucket_path with bucket_name (Ex: bucket_name/path/to/file)
+        # Join bucket name with bucket_path (Ex: bucket_name/path/to/file)
         DESTINATION="${{ inputs.bucket }}/${{ inputs.bucket_path }}"
         DESTINATION="${DESTINATION%/}"  # strip trailing /
 
-        echo "Setting glob to ${GLOB}"
-        echo "glob=${GLOB}" >> ${GITHUB_OUTPUT}
-        echo "Setting path to ${PATH}"
-        echo "path=${PATH}" >> ${GITHUB_OUTPUT}
         echo "Setting destination to ${DESTINATION}"
         echo "destination=${DESTINATION}" >> ${GITHUB_OUTPUT}
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0

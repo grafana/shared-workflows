@@ -26,59 +26,91 @@ jobs:
     runs-on: ubuntu-x64-small
     steps:
       - uses: actions/checkout@v4
+      - uses: grafana/shared-workflows/actions/login-to-gcs@rwhitaker/push-to-gcs
+        id: login-to-gcs
 
-        # upload a file to the root of a bucket
+        # Upload a single file to the bucket root
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
-        name: upload-yaml-to-root
         with:
-          path: .github/workflows/upload-files-to-gcs.yaml
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: file.txt
 
+        # Here are 3 equivalent statements to upload a single file and its parent directory to the bucket root
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
-        name: upload-Dockerfile-to-root
         with:
-          path: Dockerfile
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: folder/file.txt
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        with:
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: .
+          glob: 'folder/file.txt'
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        with:
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: folder
+          glob: 'file.txt'
 
-        # upload a file to a folder in the bucket
+        # Here are 2 equivalent statements to upload a single file WITHOUT its parent directory to the bucket root
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        with:
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: folder/file.txt
+          parent: false
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        with:
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: folder
+          glob: 'file.txt'
+          parent: false
+
+        # Here are 2 equivalent statements to upload a directory with all subdirectories
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        with:
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: folder/
+      - uses: grafana/shared-workflows/actions/push-to-gcs@main
+        with:
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: .
+          glob: "folder/**/*"
+
+        # Specify a bucket prefix with `bucket_path`
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         name: upload-yaml-to-some-path
         with:
-          path: .github/workflows/upload-files-to-gcs.yaml
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: file.txt
           bucket_path: some-path/
 
+        # Upload all files of a type
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
-        name: upload-Dockerfile-to-some-path
         with:
-          path: Dockerfile
-          bucket_path: some-path
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: folder/
+          glob: '*.txt'
 
-        # upload .yml files ./docs to bucket/docs
+        # upload all files of a type recursively
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
-        name: upload-all-yml-docs
         with:
-          path: docs
-          glob: "*.yml"
-
-        # upload .yml files from docs to bucket/this-folder/docs
-      - uses: grafana/shared-workflows/actions/push-to-gcs@main
-        name: upload-all-yml-docs
-        with:
-          path: docs
-          glob: "*.yml"
-          bucket_path: this-folder
+          bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+          path: folder/
+          glob: '**/*.txt'
 ```
 
 ## Inputs
 
-| Name          | Type   | Description                                                                                                                                                                                                                                                                                                          |
-| ------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `path`        | String | (Required) Path to the object(s) to upload. Can be a path to file to upload 1 file, or a folder path to upload that folder and its contents. Can be used in conjunction with the `glob` option. Valid examples include `thing.txt` and `path/to/thing.txt`. Valid examples when also using `glob` include `path/to`. |
-| `bucket`      | String | Name of bucket to upload to. (Default: `grafanalabs-${repository.id}-${environment}`)                                                                                                                                                                                                                                |
-| `bucket_path` | String | The path in the bucket to save the object(s). Valid examples include `some-path`, `some-path/`, `some/path`. (Default: root of bucket)                                                                                                                                                                               |
-| `environment` | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                                                                                                                                                       |
-| `glob`        | String | Glob pattern. Will match objects in the provided path.                                                                                                                                                                                                                                                               |
+| Name          | Type   | Description                                                                                                                                                                                  |
+|---------------|--------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `bucket`      | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                          |
+| `path`        | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
+| `bucket_path` | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                      |
+| `environment` | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                               |
+| `glob`        | String | Glob pattern.                                                                                                                                                                                |
+| `parent`      | String | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                              |
 
 ## Outputs
 
 | Name       | Type   | Description                                        |
-| ---------- | ------ | -------------------------------------------------- |
+|------------|--------|----------------------------------------------------|
 | `uploaded` | String | The list of files that were successfully uploaded. |
