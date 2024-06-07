@@ -3,8 +3,8 @@ description: Composite action to push to Google Cloud Storage
 inputs:
   bucket:
     description: |
-      Name of bucket to upload to. This is output from the login-to-gcs shared-workflow.
-    required: true
+      Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}
+    default: ""
   path:
     description: |
       The path to a file or folder inside the action's filesystem
@@ -49,12 +49,18 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
+    - name: Login to GCS
+      id: login-to-gcs
+      uses: ./shared-workflows/actions/login-to-gcs
+      with:
+        bucket: ${{ inputs.bucket }}
+        environment: ${{ inputs.environment }}
     - name: Construct path
       id: construct-path
       shell: bash
       run: |
         # Join bucket name with bucket_path (Ex: bucket_name/path/to/file)
-        DESTINATION="${{ inputs.bucket }}/${{ inputs.bucket_path }}"
+        DESTINATION="${{ steps.login-to-gcs.outputs.bucket }}/${{ inputs.bucket_path }}"
         DESTINATION="${DESTINATION%/}"  # strip trailing /
 
         echo "Setting destination to ${DESTINATION}"
