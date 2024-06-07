@@ -18,15 +18,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      env:
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: shared-workflows
     - name: Resolve GCP project
       id: resolve-project
       shell: bash
