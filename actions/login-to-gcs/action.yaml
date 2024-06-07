@@ -48,7 +48,7 @@ runs:
           BUCKET="${{ inputs.bucket }}"
         fi
 
-        echo "bucket_name=${BUCKET}" >> ${GITHUB_OUTPUT}
+        echo "bucket=${BUCKET}" >> ${GITHUB_OUTPUT}
     - name: Construct service account
       id: construct-service-account
       shell: bash
