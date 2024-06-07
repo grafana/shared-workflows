@@ -23,6 +23,9 @@ inputs:
   parent:
     description: |
       Whether parent directory should be included in bucket.
+  glob:
+    description: |
+      Glob pattern.
 
 outputs:
   uploaded:
