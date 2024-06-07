@@ -23,6 +23,7 @@ inputs:
   parent:
     description: |
       Whether parent directory should be included in bucket.
+    default: 'true'
   glob:
     description: |
       Glob pattern.
