@@ -27,7 +27,8 @@ jobs:
 
 You can now use the shared-workflow `push-to-gcs` or gcloud to push objects from your CI pipeline.
 
-Ex: 
+Ex:
+
 ```
 $ gcloud storage cp OBJECT_LOCATION gs://DESTINATION_BUCKET_NAME
 ```
