@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-x64-small
     steps:
       - uses: actions/checkout@v4
-      - uses: grafana/shared-workflows/actions/login-to-gcs@rwhitaker/push-to-gcs
+      - uses: grafana/shared-workflows/actions/login-to-gcs@main
         id: login-to-gcs
 
         # Upload a single file to the bucket root

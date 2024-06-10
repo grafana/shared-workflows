@@ -13,9 +13,6 @@ on:
     branches:
       - main
 
-env:
-  ENVIRONMENT: "dev"
-
 permissions:
   contents: read
   id-token: write
@@ -24,8 +21,15 @@ jobs:
   login-to-gcs:
     name: login-to-gcs
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gcs@rwhitaker/push-to-gcs
+      - uses: grafana/shared-workflows/actions/login-to-gcs@main
         id: login-to-gcs
+```
+
+You can now use the shared-workflow `push-to-gcs` or gcloud to push objects from your CI pipeline.
+
+Ex: 
+```
+$ gcloud storage cp OBJECT_LOCATION gs://DESTINATION_BUCKET_NAME
 ```
 
 ## Inputs
