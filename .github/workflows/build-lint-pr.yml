@@ -35,4 +35,4 @@ jobs:
           title: "Update code on lint-pr-title action"
           body: "This PR contains the code built after dependabot updated dependencies on lint-pr-title action"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
