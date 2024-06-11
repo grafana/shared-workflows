@@ -1,0 +1,62 @@
+name: Find PR for commit
+description: Find the PR associated with a commit
+
+inputs:
+  owner:
+    description: The owner of the repository
+    default: ${{ github.repository_owner }}
+    required: false
+
+  repo:
+    description: The repository name
+    default: ${{ github.event.repository.name }}
+    required: false
+
+  commitrev:
+    description: The commit SHA to find the PR for
+    # If this is a PR, use the PR head SHA. This is because `github.sha` is the
+    # merge commit SHA which will not have a PR associated with it. The PR head
+    # SHA is the commit that was pushed to the PR branch.
+    default: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+    required: false
+
+  token:
+    description: |
+      The GitHub token to use for the query. Must have `contents:read` and
+      `pull-requests:read` permissions on the target repository.
+    default: ${{ github.token }}
+    required: false
+
+outputs:
+  pr_number:
+    description: The PR number associated with the commit
+    value: ${{ fromjson(steps.find-commit-pr.outputs.data).repository.object.associatedPullRequests.edges[0].node.number }}
+
+runs:
+  using: composite
+  steps:
+    - id: find-commit-pr
+      uses: octokit/graphql-action@8ad880e4d437783ea2ab17010324de1075228110 # v2.3.2
+      with:
+        query: |
+          query associatedPRs($commitrev: String, $repo: String!, $owner: String!) {
+            repository(name: $repo, owner: $owner) {
+              object(expression: $commitrev) {
+              ... on Commit {
+                  associatedPullRequests(first: 1, orderBy: {field: UPDATED_AT, direction: DESC}) {
+                    edges {
+                      node {
+                        number
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        variables: |
+          owner: ${{ inputs.owner }}
+          repo: ${{ inputs.repo }}
+          commitrev: ${{ inputs.commitrev }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
