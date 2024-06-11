@@ -22,19 +22,15 @@ runs:
       id: resolve-project
       shell: bash
       run: |
-        if [ "${{ inputs.environment }}" == "dev" ]; then
+        if [[ "${{ inputs.environment }}" == "dev" ]]; then
           PROJECT="grafanalabs-dev"
-        elif [ "${{ inputs.environment }}" == "prod" ]; then
+        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
           PROJECT="grafanalabs-global"
         else
           echo "Invalid environment. Valid environment variable inputs: dev, prod"
           exit 1
         fi
         echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
-    - name: Get repository name
-      id: get-repository-name
-      shell: bash
-      run: |
     - name: Construct dynamic account vars
       id: construct-account-vars
       shell: bash
@@ -44,7 +40,7 @@ runs:
         echo "repo_name=${REPO_NAME}" | tee -a ${GITHUB_OUTPUT}
 
         # Construct bucket name
-        if [ "${{ inputs.bucket }}" == "" ]; then
+        if [[ "${{ inputs.bucket }}" == "" ]]; then
           BUCKET="grafanalabs-${REPO_NAME}-${{ inputs.environment }}"
         else
           BUCKET="${{ inputs.bucket }}"

@@ -49,15 +49,15 @@ runs:
       id: resolve-project
       shell: bash
       run: |
-        if [ "${{ inputs.environment }}" = "dev" ]; then
+        if [[ "${{ inputs.environment }}" == "dev" ]]; then
           PROJECT="grafanalabs-dev"
-        elif [ "${{ inputs.environment }}" == "prod" ]; then
+        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
           PROJECT="grafanalabs-global"
         else
           echo "Invalid environment. Valid environment variable inputs: dev, prod"
           exit 1
         fi
-        echo "project=${PROJECT}" >> ${GITHUB_OUTPUT}
+        echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
     - name: Login to GCS
       id: login-to-gcs
       uses: ./shared-workflows/actions/login-to-gcs
@@ -74,8 +74,7 @@ runs:
         DESTINATION="${{ env.bucket }}/${{ inputs.bucket_path }}"
         DESTINATION="${DESTINATION%/}"  # strip trailing /
 
-        echo "Setting destination to ${DESTINATION}"
-        echo "destination=${DESTINATION}" >> ${GITHUB_OUTPUT}
+        echo "destination=${DESTINATION}" | tee -a ${GITHUB_OUTPUT}
     - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
       id: upload-files
       with:

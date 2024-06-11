@@ -13,9 +13,6 @@ on:
     branches:
       - main
 
-env:
-  ENVIRONMENT: "dev"
-
 permissions:
   contents: read
   id-token: write
@@ -34,6 +31,7 @@ jobs:
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: file.txt
+          environment: "dev"  # Can be dev/prod (defaults to dev)
 
         # Here are 3 equivalent statements to upload a single file and its parent directory to the bucket root
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
