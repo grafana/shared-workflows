@@ -65,3 +65,24 @@ To do this:
   with:
     some-input: some-value
 ```
+
+### Use separate files for shell scripts so they're linted
+
+Instead of embedding a shell script in the `run` string, write a separate script and refer to that.
+
+For example, don't use the step:
+
+```yaml
+id: echo-success
+shell: bash
+run: |
+  echo "Success!"
+```
+
+Instead, create the file `echo-success.bash` in the same directory and use the step:
+
+```yaml
+id: echo-success
+shell: bash
+run: ./echo-success.bash
+```
