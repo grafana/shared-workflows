@@ -1,0 +1,27 @@
+name: Test PR with GH token
+on:
+  push:
+    branches:
+      - rwhitaker/switch-gh-token
+
+jobs:
+  test-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+
+      - name: Touch a test file
+        shell: bash
+        run: |
+          echo "Hello there" > rickytest.txt
+
+      - name: Commit lint-pr-title changes and create new pull request
+        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e # v6.0.5
+        with:
+          commit-message: "Testing opening a PR with github.token"
+          branch: "rwhitaker/test"
+          branch-suffix: timestamp
+          title: "Test PR - do not merge"
+          body: "Test PR to verify that action works with github.token"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
