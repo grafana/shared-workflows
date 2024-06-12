@@ -1,18 +1,17 @@
 # shared-workflows
 
-A public-facing, centralized place to store reusable GitHub workflows and action
-used by Grafana Labs. See the `actions/` directory for the individual actions
-themselves.
+A public-facing, centralized place to store reusable workflows and GitHub Actions used by Grafana Labs.
+Refer to the [`actions/`](./actions) directory for the individual actions themselves.
 
 ## Notes
 
 ### Configure your IDE to run Prettier
 
-[Prettier] will run in CI to ensure that files are formatted correctly. To ensure
-that your code is formatted correctly before you commit, set up your IDE to run
+[Prettier][] run in CI to ensure that files are formatted correctly.
+To ensure that your code is formatted correctly before you commit, set up your IDE to run
 Prettier on save.
 
-Or from the commandline, you can run Prettier using [`npx`][npx]:
+Or from the command line, you can run Prettier using [`npx`][npx]:
 
 ```sh
 npx prettier --check .
@@ -25,14 +24,12 @@ Or, of course, install it in any other way you want.
 
 ### Pin versions
 
-When referencing third-party actions, [always pin the version to a specific
-commit hash][hardening]. This ensures that the workflow will always use the same
-version of the action, even if the action's maintainers release a new version or
-if the tag itself is updated.
+When using third-party actions, [always pin the version to a specific commit hash][hardening].
+This ensures that the workflow always uses the same version of the action, even if the action's maintainers release a new version or update the Git tag.
 
-Dependabot can update these SHA references when there are new versions. If you
-include a tag in a commend after the SHA, it can update the comment too. For
-example:
+Dependabot updates these SHA references when there are new versions.
+If you include a tag in a commend after the SHA, it updates the comment too.
+For example:
 
 ```yaml
 - uses: action/foo@abcdef0123456789abcdef0123456789 # v1.2.3
@@ -40,10 +37,11 @@ example:
 
 [hardening]: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
 
-### Refer to other `shared-workflows` actions using relative paths
+### Use other `shared-workflows` actions with relative paths
 
-When referencing other actions in this repository, use a relative path. This
-will ensure actions in this repo are always used at the same commit. To do this:
+When using other actions in this repository, use a relative path.
+This means that workflows always use actions at the same commit.
+To do this:
 
 ```yaml
 - name: Checkout
@@ -57,9 +55,9 @@ will ensure actions in this repo are always used at the same commit. To do this:
   with:
     repository: ${{ env.action_repo }}
     ref: ${{ env.action_ref }}
-    # substitute your-action with a unique name (within `shared-repos` for your
+    # Substitute your-action with a unique name (within `shared-repos` for your
     # action), so if multiple actions check `shared-workflows` out, they don't
-    # overwrite each other
+    # overwrite each other.
     path: _shared-workflows-your-action
 
 - name: Use another action
