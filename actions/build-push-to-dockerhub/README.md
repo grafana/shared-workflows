@@ -34,18 +34,19 @@ jobs:
 
 ## Inputs
 
-| Name         | Type   | Description                                                                                                                                                    |
-| ------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `context`    | String | Path to the Dockerfile (default: `.`)                                                                                                                          |
-| `platforms`  | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)                                                                               |
-| `push`       | Bool   | Push the generated image (default: `false`)                                                                                                                    |
-| `repository` | String | Docker repository name                                                                                                                                         |
-| `tags`       | List   | Tags that should be used for the image (see the [metadata-action][mda] for details)                                                                            |
-| `file`       | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`)                                                                           |
-| `build-args` | String | List of arguments necessary for the Docker image to be built.                                                                                                  |
-| `target`     | String | Sets the target stage to build                                                                                                                                 |
-| `cache-from` | String | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)) |
-| `cache-to`   | String | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))    |
+| Name                   | Type   | Description                                                                                                                                                    |
+| ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context`              | String | Path to the Dockerfile (default: `.`)                                                                                                                          |
+| `platforms`            | List   | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)                                                                               |
+| `push`                 | Bool   | Push the generated image (default: `false`)                                                                                                                    |
+| `repository`           | String | Docker repository name (**required**)                                                                                                                          |
+| `tags`                 | List   | Tags that should be used for the image (see the [metadata-action][mda] for details)                                                                            |
+| `file`                 | String | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`)                                                                           |
+| `build-args`           | String | List of arguments necessary for the Docker image to be built.                                                                                                  |
+| `target`               | String | Sets the target stage to build                                                                                                                                 |
+| `cache-from`           | String | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)) |
+| `cache-to`             | String | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))    |
+| `docker-buildx-driver` | String | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                   |
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
