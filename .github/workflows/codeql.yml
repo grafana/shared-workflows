@@ -1,0 +1,55 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches:
+      - "main"
+
+  pull_request:
+    branches:
+      - "main"
+
+  schedule:
+    - cron: "21 5 * * 3"
+
+  # To trigger a CodeQL analysis manually
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+
+    runs-on: ubuntu-latest-8-cores
+
+    timeout-minutes: 360
+
+    permissions:
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: go
+            build-mode: autobuild
+          - language: javascript-typescript
+            build-mode: none
+            paths-ignore:
+              - "**/dist/**"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9550da953dd3b29aedf76cd635101e48eae5eebd # v3.25.9
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          config: |
+            paths-ignore: ${{ toJSON(matrix.paths-ignore) }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@9550da953dd3b29aedf76cd635101e48eae5eebd # v3.25.9
+        with:
+          category: "/language:${{matrix.language}}"
