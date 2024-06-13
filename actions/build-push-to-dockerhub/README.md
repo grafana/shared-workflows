@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - id: checkout
+        uses: actions/checkout@v4
+
       - id: push-to-dockerhub
         uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
         with:

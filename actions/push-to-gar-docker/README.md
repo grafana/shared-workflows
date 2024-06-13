@@ -20,8 +20,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: grafana/shared-workflows/actions/push-to-gar-docker@main
-        id: push-to-gar
+      - id: checkout
+        uses: actions/checkout@v4
+
+      - id: push-to-gar
+        uses: grafana/shared-workflows/actions/push-to-gar-docker@main
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
           tags: |-
