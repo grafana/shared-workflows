@@ -1,0 +1,85 @@
+name: Push to cloud storage
+description: Composite action to push to Google Cloud Storage
+inputs:
+  bucket:
+    description: |
+      Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}
+    default: ""
+  path:
+    description: |
+      The path to a file or folder inside the action's filesystem
+      that should be uploaded to the bucket.
+      You can specify either the absolute path or the relative path from the action.
+    required: true
+  bucket_path:
+    description: |
+      Bucket path where objects will be uploaded. Default is the bucket root.
+    default: ""
+  environment:
+    description: |
+      Environment for uploading objects (can be either dev or prod).
+    default: dev
+  glob:
+    description: |
+      Glob pattern.
+  parent:
+    description: |
+      Whether parent dir should be included in GCS destination.
+      Dirs included in the `glob` statement are unaffected by this setting.
+    default: "true"
+
+outputs:
+  uploaded:
+    description: "The list of successfully uploaded files."
+    value: ${{ steps.upload-files.outputs.uploaded }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: shared-workflows
+    - name: Resolve GCP project
+      id: resolve-project
+      shell: bash
+      run: |
+        if [[ "${{ inputs.environment }}" == "dev" ]]; then
+          PROJECT="grafanalabs-dev"
+        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
+          PROJECT="grafanalabs-global"
+        else
+          echo "Invalid environment. Valid environment variable inputs: dev, prod"
+          exit 1
+        fi
+        echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
+    - name: Login to GCS
+      id: login-to-gcs
+      uses: ./shared-workflows/actions/login-to-gcs
+      with:
+        bucket: ${{ inputs.bucket }}
+        environment: ${{ inputs.environment }}
+    - name: Construct path
+      id: construct-path
+      shell: bash
+      env:
+        bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+      run: |
+        # Join bucket name with bucket_path (Ex: bucket_name/path/to/file)
+        DESTINATION="${{ env.bucket }}/${{ inputs.bucket_path }}"
+        DESTINATION="${DESTINATION%/}"  # strip trailing /
+
+        echo "destination=${DESTINATION}" | tee -a ${GITHUB_OUTPUT}
+    - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
+      id: upload-files
+      with:
+        path: ${{ inputs.path }}
+        glob: ${{ inputs.glob }}
+        destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
+        parent: ${{ inputs.parent }}
+        process_gcloudignore: false

@@ -1,0 +1,57 @@
+name: Login to GCS
+description: Composite action to login to Google Cloud Storage
+inputs:
+  bucket:
+    description: |
+      Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}
+    default: ""
+  environment:
+    description: |
+      Environment for uploading objects (can be either dev or prod).
+    default: dev
+
+outputs:
+  bucket:
+    description: "The name of the bucket that we have authenticated to."
+    value: ${{ steps.construct-account-vars.outputs.bucket }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve GCP project
+      id: resolve-project
+      shell: bash
+      run: |
+        if [[ "${{ inputs.environment }}" == "dev" ]]; then
+          PROJECT="grafanalabs-dev"
+        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
+          PROJECT="grafanalabs-global"
+        else
+          echo "Invalid environment. Valid environment variable inputs: dev, prod"
+          exit 1
+        fi
+        echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
+    - name: Construct dynamic account vars
+      id: construct-account-vars
+      shell: bash
+      run: |
+        # Construct repo name
+        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
+        echo "repo_name=${REPO_NAME}" | tee -a ${GITHUB_OUTPUT}
+
+        # Construct bucket name
+        if [[ "${{ inputs.bucket }}" == "" ]]; then
+          BUCKET="grafanalabs-${REPO_NAME}-${{ inputs.environment }}"
+        else
+          BUCKET="${{ inputs.bucket }}"
+        fi
+        echo "bucket=${BUCKET}" | tee -a ${GITHUB_OUTPUT}
+
+        # Construct service account
+        SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        echo "service_account=${SERVICE_ACCOUNT}" | tee -a ${GITHUB_OUTPUT}
+    - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
+      id: gcloud-auth
+      with:
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+        service_account: ${{ steps.construct-account-vars.outputs.service_account }}

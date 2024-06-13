@@ -14,3 +14,23 @@ updates:
       interval: "daily"
     pull-request-branch-name:
       separator: "-"
+
+  - package-ecosystem: "gomod"
+    directory: "/actions/trigger-argo-workflow"
+    schedule:
+      interval: "weekly"
+    groups:
+      go:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/actions/techdocs-rewrite-relative-links"
+    schedule:
+      interval: "weekly"
+    groups:
+      go:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
