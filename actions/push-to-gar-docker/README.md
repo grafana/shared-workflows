@@ -37,7 +37,7 @@ jobs:
 | Name                   | Type    | Description                                                                                                                                                                    |
 | ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `registry`             | String  | Google Artifact Registry to store docker images in.                                                                                                                            |
-| `tags`                 | List    | Tags that should be used for the image (see the [metadata-action](https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input) for details)                                                                                            |
+| `tags`                 | List    | Tags that should be used for the image (see the [metadata-action](mda) for details)                                                                                            |
 | `context`              | List    | Path to the Docker build context.                                                                                                                                              |
 | `environment`          | Bool    | Environment for pushing artifacts (can be either dev or prod).                                                                                                                 |
 | `image_name`           | String  | Name of the image to be pushed to GAR.                                                                                                                                         |
@@ -50,6 +50,8 @@ jobs:
 | `ssh`                  | List    | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)) |
 | `build-contexts`       | List    | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                 |
 | `docker-buildx-driver` | String  | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                                   |
+
+[mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
 ## Outputs
 
