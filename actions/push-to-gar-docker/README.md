@@ -51,6 +51,8 @@ jobs:
 | `build-contexts`       | List    | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                 |
 | `docker-buildx-driver` | String  | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                                   |
 
+[mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
+
 ## Outputs
 
 The following outputs are exposed from [`docker/metadata-action`](https://github.com/docker/metadata-action?tab=readme-ov-file#outputs) and [`docker/build-push-action`](https://github.com/docker/build-push-action?tab=readme-ov-file#outputs):
