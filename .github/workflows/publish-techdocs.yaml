@@ -77,7 +77,7 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_POOL_PROVIDER }}
           service_account: ${{ secrets.BACKSTAGE_TECHDOCS_SA_EMAIL }}
 
-# Pinning until resolved https://github.com/backstage/backstage/issues/25303
+      # Pinning until resolved https://github.com/backstage/backstage/issues/25303
       - name: Install techdocs-cli
         run: sudo npm install -g @techdocs/cli@1.8.11
 
