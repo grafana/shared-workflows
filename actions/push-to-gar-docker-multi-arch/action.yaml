@@ -7,7 +7,7 @@ inputs:
 outputs:
   resolved_platforms: 
     description: resolved-platform
-    value: ${{ steps.print.outputs.processed_platforms }}
+    value: ${{ steps.print.outputs.processed-platforms }}
 
 
 # env:
