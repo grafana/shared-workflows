@@ -35,6 +35,7 @@ runs:
     - name: print
       shell: bash
       run: | 
+        echo ${{ steps.env-var.outputs.resolved_platforms }}
         processed_platforms="${{ steps.env-var.outputs.resolved_platforms }}"
         echo "processed-platforms=${processed_platforms}" >> $GITHUB_OUTPUT
         echo "Processed platforms: ${processed_platforms}"
