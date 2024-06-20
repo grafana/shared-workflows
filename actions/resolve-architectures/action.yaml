@@ -37,3 +37,8 @@ runs:
         # printf "resolved_platforms=%s" $arr_string >> ${GITHUB_OUTPUT}
           
         echo "Resolved platforms: ${ARR_STRING}"
+
+    - name: Print resolved platforms inside action
+      shell: bash
+      run: |
+        echo "Inside composite action - Resolved platforms: ${{ steps.resolve-platforms-names.outputs.resolved_platforms }}"
