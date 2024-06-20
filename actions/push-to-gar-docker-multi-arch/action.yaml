@@ -32,10 +32,16 @@ runs:
       uses: grafana/shared-workflows/actions/resolve-architectures@multiarch-docker-builds-using-sh-runners
       with: 
         platforms: ${{ inputs.platforms }}
-    - name: print
+    - name: Process Platforms
+      id: print
       shell: bash
       run: | 
-        echo ${{ steps.env-var.outputs.resolved_platforms }}
         processed_platforms="${{ steps.env-var.outputs.resolved_platforms }}"
         echo "processed-platforms=${processed_platforms}" >> $GITHUB_OUTPUT
         echo "Processed platforms: ${processed_platforms}"
+
+    # Debugging step to print the resolved platforms within the composite action
+    - name: Print resolved platforms inside Push to artifact registry
+      shell: bash
+      run: |
+        echo "Inside composite action - Processed platforms: ${{ steps.print.outputs.processed-platforms }}"

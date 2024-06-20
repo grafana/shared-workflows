@@ -6,7 +6,7 @@ inputs:
     required: true
 outputs:
   resolved_platforms: 
-    description: resolved-platform
+    description: Resolved platform architectures
     value: ${{ steps.resolve-platforms-names.outputs.resolved_platforms }}
   
 runs:
@@ -34,8 +34,7 @@ runs:
         arr_string=$(IFS=, ; echo "['${arr[*]}']")
         ARR_STRING=$(echo $arr_string | sed "s/,/','/g")
         echo "resolved_platforms=${ARR_STRING}" >> ${GITHUB_OUTPUT}
-        # printf "resolved_platforms=%s" $arr_string >> ${GITHUB_OUTPUT}
-          
+
         echo "Resolved platforms: ${ARR_STRING}"
 
     - name: Print resolved platforms inside action
