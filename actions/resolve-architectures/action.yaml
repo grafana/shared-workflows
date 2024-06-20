@@ -32,8 +32,8 @@ runs:
         done
 
         arr_string=$(IFS=, ; echo "['${arr[*]}']")
-        arr_string=$(echo $arr_string | sed "s/,/','/g")
-        echo "resolved_platforms=${arr_string}" >> ${GITHUB_OUTPUT}
-
+        ARR_STRING=$(echo $arr_string | sed "s/,/','/g")
+        echo "resolved_platforms=${ARR_STRING}" >> ${GITHUB_OUTPUT}
+        # printf "resolved_platforms=%s" $arr_string >> ${GITHUB_OUTPUT}
           
-        echo "Resolved platforms: ${resolved_platforms}"
+        echo "Resolved platforms: $resolved_platforms"
