@@ -29,6 +29,7 @@ runs:
         ref: "multiarch-docker-builds-using-sh-runners"
         path: _shared-workflows-push-to-gar-docker-multi-arch
     - name: env-var
+      id: env-var-id
       uses: grafana/shared-workflows/actions/resolve-architectures@multiarch-docker-builds-using-sh-runners
       with: 
         platforms: ${{ inputs.platforms }}
@@ -36,7 +37,7 @@ runs:
       id: print
       shell: bash
       run: | 
-        processed_platforms="${{ steps.env-var.outputs.resolved_platforms }}"
+        processed_platforms="${{ steps.env-var-id.outputs.resolved_platforms }}"
         echo "processed-platforms=${processed_platforms}" >> $GITHUB_OUTPUT
         echo "Processed platforms: ${processed_platforms}"
 
