@@ -33,6 +33,7 @@ runs:
 
         arr_string=$(IFS=, ; echo "['${arr[*]}']")
         arr_string=$(echo $arr_string | sed "s/,/','/g")
-        echo "resolved_platforms=${arr_string}" >> $GITHUB_OUTPUT
+        echo "resolved_platforms=${arr_string}" >> ${GITHUB_OUTPUT}
+
           
         echo "Resolved platforms: ${resolved_platforms}"
