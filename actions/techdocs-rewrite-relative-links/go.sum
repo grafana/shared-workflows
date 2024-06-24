@@ -49,8 +49,8 @@ github.com/willabides/actionslog v0.5.1 h1:dJ/Cxg8vO1pEohgC2O4CW1tCWFKJrYJXTZDWY
 github.com/willabides/actionslog v0.5.1/go.mod h1:WDufDP3XZUMBOmau2BvfVCGYuUcVRZI6Eqy8ZRw4pJ8=
 github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913 h1:+qGGcbkzsfDQNPPe9UDgpxAWQrhbbBXOYJFQDq/dtJw=
 github.com/xrash/smetrics v0.0.0-20240312152122-5f08fbb34913/go.mod h1:4aEEwZQutDLsQv2Deui4iYQ6DWTxR14g6m8Wv88+Xqk=
-github.com/yuin/goldmark v1.7.2 h1:NjGd7lO7zrUn/A7eKwn5PEOt4ONYGqpxSEeZuduvgxc=
-github.com/yuin/goldmark v1.7.2/go.mod h1:uzxRWxtg69N339t3louHJ7+O03ezfj6PlliRlaOzY1E=
+github.com/yuin/goldmark v1.7.3 h1:fdk0a/y60GsS4NbEd13GSIP+d8OjtTkmluY32Dy1Z/A=
+github.com/yuin/goldmark v1.7.3/go.mod h1:uzxRWxtg69N339t3louHJ7+O03ezfj6PlliRlaOzY1E=
 golang.org/x/crypto v0.16.0 h1:mMMrFzRSCF0GvB7Ne27XVtVAaXLrPmgPC7/v0tkwHaY=
 golang.org/x/crypto v0.16.0/go.mod h1:gCAAfMLgwOJRpTjQ2zCCt2OcSfYMTeZVSRtQlPC7Nq4=
 golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 h1:k/i9J1pBpvlfR+9QsetwPyERsqu1GIbi967PQMq3Ivc=
