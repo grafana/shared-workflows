@@ -36,6 +36,11 @@ on:
         required: false
         type: string
         default: "false"
+      bucket:
+        description: "The name of the GCS bucket to which the docs will be published"
+        required: false
+        type: string
+        default: ops-us-east-0-backstage
 
 jobs:
   generate-and-publish-docs:
@@ -96,5 +101,5 @@ jobs:
 
       - name: Publish docs site
         if: inputs.publish
-        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
+        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ inputs.bucket }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
         working-directory: ${{ inputs.default-working-directory }}
