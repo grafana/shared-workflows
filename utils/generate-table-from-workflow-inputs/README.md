@@ -5,17 +5,19 @@ Then, you can copy+paste this markdown table into a doc/readme.
 
 ## Prerequisites
 
-* Python 3.x
+- Python 3.x
 
 ## Setup
 
 1. Set up virtual environment (using `venv`)
+
    ```bash
    python3 -m venv env
    source env/bin/activate
    ```
-  
+
 1. Install Dependencies
+
    ```bash
    pip install -r requirements.txt
    ```
