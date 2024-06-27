@@ -23,7 +23,6 @@ concurrency:
 jobs:
   publish-docs:
     uses: grafana/shared-workflows/.github/workflows/publish-techdocs.yaml@main
-    secrets: inherit
     with:
       namespace: default
       kind: component
