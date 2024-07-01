@@ -102,7 +102,7 @@ runs:
       with:
         context: ${{ inputs.context }}
         labels: ${{ steps.meta.outputs.labels }}
-        outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+        outputs: type=image,name=${{ steps.meta.outputs.tags }},push-by-digest=true,name-canonical=true,push=true
         build-args: ${{ inputs.build-args }}
         # tags: ${{ steps.meta.outputs.tags }}
         cache-from: ${{ inputs.cache-from }}
