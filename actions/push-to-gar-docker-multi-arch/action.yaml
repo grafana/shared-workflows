@@ -29,9 +29,9 @@ inputs:
     description: |
       The dockerfile to use.
     required: false
-  platforms:
+  platform:
     description: |
-      List of platforms to build the image for
+      Platforms to build the image for
     required: false
   cache-from:
     description: |
@@ -50,6 +50,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Prepare
+      run: |
+        platform=${{ inputs.platform }}
+        echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
     - name: Checkout
       env:
         action_repo: ${{ github.action_repository }}
@@ -96,11 +100,25 @@ runs:
       id: build
       with:
         context: ${{ inputs.context }}
+        labels: ${{ steps.meta.outputs.labels }}
+        outputs: type=image,name=${{ steps.meta.outputs.tags }},push-by-digest=true,name-canonical=true,push=true
         build-args: ${{ inputs.build-args }}
         push: ${{ github.event_name == 'push' }}
         tags: ${{ steps.meta.outputs.tags }}
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
-        platforms: ${{ inputs.platforms }}
+        platform: ${{ inputs.platform }}
         ssh: ${{ inputs.ssh }}
+    - name: Export digest
+      run: |
+        mkdir -p /tmp/digests
+        digest="${{ steps.build.outputs.digest }}"
+        touch "/tmp/digests/${digest#sha256:}"   
+    - name: Upload digest
+      uses: actions/upload-artifact@v4
+      with:
+        name: digests-${{ env.PLATFORM_PAIR }}
+        path: /tmp/digests/*
+        if-no-files-found: error
+        retention-days: 1
