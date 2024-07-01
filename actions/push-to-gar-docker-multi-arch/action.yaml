@@ -101,7 +101,7 @@ runs:
       id: build
       with:
         context: ${{ inputs.context }}
-        labels: ${{ steps.meta.outputs.labels }}
+        labels: ${{ steps.meta.outputs.images }}
         outputs: type=image,name=${{ steps.meta.outputs.tags }},push-by-digest=true,name-canonical=true,push=true
         build-args: ${{ inputs.build-args }}
         # tags: ${{ steps.meta.outputs.tags }}
