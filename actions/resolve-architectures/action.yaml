@@ -12,6 +12,18 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Checkout shared workflows
+      env:
+        # In a composite action, these two need to be indirected via the
+        # environment, as per the GitHub actions documentation:
+        # https://docs.github.com/en/actions/learn-github-actions/contexts
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: grafana/shared-workflows
+        ref: "multiarch-docker-builds-using-sh-runners"
+        path: _shared-workflows-resolve-architectures
     - name: Resolve platform name
       id: resolve-platforms-names
       shell: bash
