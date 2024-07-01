@@ -16,7 +16,7 @@ jobs:
   build-multi-arch-job:
   strategy:
     matrix:
-      os: ${{ fromJson(inputs.platforms) }}
+      os: ${{ inputs.platforms }}
   runs-on: ubuntu-${{ matrix.os }}-large
   permissions:
     contents: "read"
