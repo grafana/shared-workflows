@@ -104,7 +104,7 @@ runs:
         labels: ${{ steps.meta.outputs.labels }}
         outputs: type=image,name=${{ inputs.image_name }},push-by-digest=true,name-canonical=true,push=true
         build-args: ${{ inputs.build-args }}
-        tags: ${{ steps.meta.outputs.tags }}
+        # tags: ${{ steps.meta.outputs.tags }}
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
