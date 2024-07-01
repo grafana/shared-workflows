@@ -1,5 +1,5 @@
 name: Push to artifact registry
-description: Composite action to push to Google Artifact Registry
+
 on:
   workflow_call:
     inputs:
@@ -16,7 +16,7 @@ jobs:
   build-multi-arch-job:
   strategy:
     matrix:
-      os: ${{ fromJson(inputs.platforms ) }}
+      os: ${{ fromJson(inputs.platforms) }}
   runs-on: ubuntu-${{ matrix.os }}-large
   permissions:
     contents: "read"
