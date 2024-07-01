@@ -1,11 +1,17 @@
 on:
   push:
+    branches:
+      - main
 
   pull_request:
+    branches:
+      - main
 
 permissions:
-  contents: read
   actions: write
+  contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   lint:
@@ -23,6 +29,11 @@ jobs:
       # Lint .github/workflows/*
       - name: Lint workflow files
         uses: raven-actions/actionlint@789059c543ab20522fb3e7240794e13b0f69ad67 # v1.0.3
+
+      - name: Lint Python
+        uses: advanced-security/python-lint-code-scanning-action@e5446e09fc7d49dd4a1290193d45a41ee72a0a40 # v1.1.1
+        with:
+          linter: flake8
 
   # A separate job so we can run in the `yq` container
   lint-action-yaml:
