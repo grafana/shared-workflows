@@ -1,0 +1,43 @@
+name: Test multiarch-builds action
+
+on:
+  push:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  platform_env: "linux/amd64,linux/arm64/v7"
+
+jobs:
+  expose-env-var:
+    runs-on: ubuntu-latest
+    outputs:
+      platforms: ${{ env.platform_env }}
+    steps:
+      - run: echo "exposing env var"
+  test:
+    needs: [expose-env-var]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: "multiarch-docker-builds-using-sh-runners"
+
+      - name: Test multiarch builds
+        id: test-multiarch-builds
+        uses: ./actions/push-to-gar-docker-multi-arch
+        with:
+          platforms: ${{ needs.expose-env-var.outputs.platforms }}
+  start-multi-arch:
+      needs: [test]
+      name: start-multi-arch-builds
+      # strategy:
+      #   matrix:
+      #     os: ['x64, arm64']
+      runs-on: ubuntu-arm64-large
+      steps:
+        - id: test
+          run: echo "works"

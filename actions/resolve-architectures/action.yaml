@@ -1,0 +1,53 @@
+name: Resolve architectures for Docker image builds
+description: Composite action to resolve architectures for Docker image builds
+inputs:
+  platforms:
+    description: platform
+    required: true
+outputs:
+  resolved_platforms: 
+    description: Resolved platform architectures
+    value: ${{ steps.resolve-platforms-names.outputs.resolved_platforms }}
+  
+runs:
+  using: composite
+  steps:
+    - name: Checkout shared workflows
+      env:
+        # In a composite action, these two need to be indirected via the
+        # environment, as per the GitHub actions documentation:
+        # https://docs.github.com/en/actions/learn-github-actions/contexts
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: grafana/shared-workflows
+        ref: "multiarch-docker-builds-using-sh-runners"
+        path: _shared-workflows-resolve-architectures
+    - name: Resolve platform name
+      id: resolve-platforms-names
+      shell: bash
+      run: |
+        declare -a arr=()
+          
+        for platform_input in $(echo "${{ inputs.platforms }}" | sed "s/,/ /g")
+        do
+          platform=$(echo ${platform_input} | cut -d "/" -f 2)
+          if [ "${platform}" == "arm64" ]; then
+            arr+=("arm64")
+          elif [ "${platform}" == "amd64" ]; then
+            arr+=("x64")
+          else
+            echo "Invalid architecture. Valid architectures: arm64, amd64"
+            exit 1
+          fi
+        done
+
+        arr_string=$(IFS=, ; echo "['${arr[*]}']")
+        ARR_STRING=$(echo $arr_string | sed "s/,/','/g" | sed "s/''/'/g")  # Remove double single quotes
+        echo "resolved_platforms=${ARR_STRING}" >> ${GITHUB_OUTPUT}
+
+    - name: Print resolved platforms inside action
+      shell: bash
+      run: |
+        echo "Inside composite action - Resolved platforms: ${{ steps.resolve-platforms-names.outputs.resolved_platforms }}"
