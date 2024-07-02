@@ -50,6 +50,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: try printing env
+      shell: bash
+      run: |
+        echo ${{ env.platform_env }}
     - name: Prepare
       shell: bash
       run: |
