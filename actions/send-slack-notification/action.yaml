@@ -3,30 +3,30 @@ description: Composite action to send a Slack notification
 
 inputs:
   channel-id: # channel id to post message when using bot token
-    description: 'Slack channel ID where message will be posted'
+    description: "Slack channel ID where message will be posted"
     required: true
   payload: # JSON payload to send
-    description: 'JSON payload to send to Slack if webhook route'
+    description: "JSON payload to send to Slack if webhook route"
     required: false
   slack-message: # message to post
-    description: 'Message to post into Slack'
+    description: "Message to post into Slack"
     required: false
   update-ts: # The timestamp of a previous message posted to update it instead of posting a new message
-    description: 'The timestamp of a previous message posted. It will update the existing message instead of posting a new message'
+    description: "The timestamp of a previous message posted. It will update the existing message instead of posting a new message"
     required: false
 outputs:
   time: # id of output
     value: ${{ steps.send-slack-notification.outputs.time }}
-    description: 'The time'
+    description: "The time"
   thread_ts: # threaded timestamp on the message that was posted when using bot token
     value: ${{ steps.send-slack-notification.outputs.thread_ts }}
-    description: 'The timestamp on the message that was posted into Slack when using bot token'
+    description: "The timestamp on the message that was posted into Slack when using bot token"
   ts: # timestamp of message posted
     value: ${{ steps.send-slack-notification.outputs.ts }}
-    description: 'The timestamp on the message that was posted into Slack when using bot token'
+    description: "The timestamp on the message that was posted into Slack when using bot token"
   channel_id: # Id of the channel. If channel name was used as input we can get ID from output for later use when updating message or posting to thread.
     value: ${{ steps.send-slack-notification.outputs.channel_id }}
-    description: 'The channel id of the message that was posted into Slack when using bot token'
+    description: "The channel id of the message that was posted into Slack when using bot token"
 
 runs:
   using: composite

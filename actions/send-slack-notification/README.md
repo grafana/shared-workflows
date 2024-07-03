@@ -15,16 +15,17 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-notification@main
         with:
-          channel-id: 'Channel Name of ID'
+          channel-id: "Channel Name of ID"
           slack-message: "We are testing, testing, testing all day long"
 
       - name: Update Slack Message
         uses: grafana/shared-workflows/actions/send-slack-notification@main
         with:
-          channel-id: ${{ steps.slack.outputs.channel_id }}  # Channel ID is required when updating a message
+          channel-id: ${{ steps.slack.outputs.channel_id }} # Channel ID is required when updating a message
           slack-message: "This is the updated message"
           update-ts: ${{ steps.slack.outputs.ts }}
 ```
+
 ```yaml
 name: Send And Update a Slack message using JSON payload
 jobs:
@@ -35,24 +36,24 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-notification@main
         with:
-            channel-id: 'Channel Name or ID'
-            payload: |
-              {
-                "text": "Deployment started (In Progress)",
-                "attachments": [
-                  {
-                    "pretext": "Deployment started",
-                    "color": "dbab09",
-                    "fields": [
-                      {
-                        "title": "Status",
-                        "short": true,
-                        "value": "In Progress"
-                      }
-                    ]
-                  }
-                ]
-              }
+          channel-id: "Channel Name or ID"
+          payload: |
+            {
+              "text": "Deployment started (In Progress)",
+              "attachments": [
+                {
+                  "pretext": "Deployment started",
+                  "color": "dbab09",
+                  "fields": [
+                    {
+                      "title": "Status",
+                      "short": true,
+                      "value": "In Progress"
+                    }
+                  ]
+                }
+              ]
+            }
 
       - name: Update Slack Message via Payload
         uses: grafana/shared-workflows/actions/send-slack-notification@main
@@ -89,7 +90,7 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-notification@main
         with:
-          channel-id: 'Channel Name of ID'
+          channel-id: "Channel Name of ID"
           payload: |
             {
               "text": "Deployment started (In Progress)"
@@ -108,7 +109,7 @@ jobs:
 ## Inputs
 
 | Name            | Type   | Description                                                                 |
-|-----------------|--------|-----------------------------------------------------------------------------|
+| --------------- | ------ | --------------------------------------------------------------------------- |
 | `channel-id`    | String | Name or ID of the channel to send to.                                       |
 | `payload`       | String | JSON payload to send. Use `payload` or `slack-message`, but not both.       |
 | `slack-message` | String | Plain text message to send. Use `payload` or `slack-message`, but not both. |
@@ -117,7 +118,7 @@ jobs:
 ## Outputs
 
 | Name         | Type   | Description                                        |
-|--------------|--------|----------------------------------------------------|
+| ------------ | ------ | -------------------------------------------------- |
 | `time`       | String | The time the message was sent.                     |
 | `thread_ts`  | String | Threaded timestamp on the message that was posted. |
 | `ts`         | String | Timestamp on the message that was posted           |
