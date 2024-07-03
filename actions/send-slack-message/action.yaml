@@ -11,7 +11,7 @@ inputs:
   slack-message:
     description: "Plain text message to send. Use `payload` or `slack-message`, but not both"
     required: false
-  update-ts: # The timestamp of a previous message posted to update it instead of posting a new message
+  update-ts:
     description: "The timestamp of a previous message posted. Used to update or reply to existing messages"
     required: false
 outputs:
