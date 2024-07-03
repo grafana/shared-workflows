@@ -3,21 +3,11 @@ description: Composite action to send a Slack notification
 
 inputs:
   channel-id: # channel id to post message when using bot token
-    description: 'Slack channel ID where message will be posted. Needed if using bot token'
-    required: false
+    description: 'Slack channel ID where message will be posted'
+    required: true
   slack-message: # message to post when using bot token
-    description: 'Message to post into Slack. Needed if using bot token'
-    required: false
-  payload: # JSON payload to send to Slack via webhook
-    description: 'JSON payload to send to Slack if webhook route. If not supplied, json from GitHub event will be sent instead'
-    required: false
-  payload-file-path: # path to JSON payload to send to Slack via webhook
-    description: 'path to JSON payload to send to Slack if webhook route. If not supplied, json from GitHub event will be sent instead. If payload is provided, it will take preference over this field'
-    required: false
-  payload-file-path-parsed:
-    description: 'Replace templated variables in the JSON payload file with values from the GitHub context and environment variables'
-    default: true
-    required: false
+    description: 'Message to post into Slack'
+    required: true
   update-ts: # The timestamp of a previous message posted to update it instead of posting a new message
     description: 'The timestamp of a previous message posted. It will update the existing message instead of posting a new message'
     required: false
