@@ -1,0 +1,57 @@
+name: Send Slack Notification
+description: Composite action to send a Slack notification
+
+inputs:
+  channel-id: # channel id to post message when using bot token
+    description: 'Slack channel ID where message will be posted. Needed if using bot token'
+    required: false
+  slack-message: # message to post when using bot token
+    description: 'Message to post into Slack. Needed if using bot token'
+    required: false
+  payload: # JSON payload to send to Slack via webhook
+    description: 'JSON payload to send to Slack if webhook route. If not supplied, json from GitHub event will be sent instead'
+    required: false
+  payload-file-path: # path to JSON payload to send to Slack via webhook
+    description: 'path to JSON payload to send to Slack if webhook route. If not supplied, json from GitHub event will be sent instead. If payload is provided, it will take preference over this field'
+    required: false
+  payload-file-path-parsed:
+    description: 'Replace templated variables in the JSON payload file with values from the GitHub context and environment variables'
+    default: true
+    required: false
+  update-ts: # The timestamp of a previous message posted to update it instead of posting a new message
+    description: 'The timestamp of a previous message posted. It will update the existing message instead of posting a new message'
+    required: false
+outputs:
+  time: # id of output
+    value: ${{ steps.send-slack-notification.outputs.time }}
+    description: 'The time'
+  thread_ts: # threaded timestamp on the message that was posted when using bot token
+    value: ${{ steps.send-slack-notification.outputs.thread_ts }}
+    description: 'The timestamp on the message that was posted into Slack when using bot token'
+  ts: # timestamp of message posted
+    value: ${{ steps.send-slack-notification.outputs.ts }}
+    description: 'The timestamp on the message that was posted into Slack when using bot token'
+  channel_id: # Id of the channel. If channel name was used as input we can get ID from output for later use when updating message or posting to thread.
+    value: ${{ steps.send-slack-notification.outputs.channel_id }}
+    description: 'The channel id of the message that was posted into Slack when using bot token'
+
+runs:
+  using: composite
+  steps:
+    - name: Get a Slack token
+      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+      with:
+        common_secrets: |
+          SLACK_BOT_TOKEN=slack-notifications:oauth-token
+    - name: Send Slack Notification
+      id: send-slack-notification
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      with:
+        channel-id: ${{ inputs.channel-id }}
+        slack-message: ${{ inputs.slack-message }}
+        payload: ${{ inputs.payload }}
+        payload-file-path: ${{ inputs.payload-file-path }}
+        payload-file-path-parsed: ${{ inputs.payload-file-path-parsed }}
+        update-ts: ${{ inputs.update-ts }}
+      env:
+        SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}
