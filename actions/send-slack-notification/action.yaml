@@ -39,9 +39,6 @@ runs:
       with:
         channel-id: ${{ inputs.channel-id }}
         slack-message: ${{ inputs.slack-message }}
-        payload: ${{ inputs.payload }}
-        payload-file-path: ${{ inputs.payload-file-path }}
-        payload-file-path-parsed: ${{ inputs.payload-file-path-parsed }}
         update-ts: ${{ inputs.update-ts }}
       env:
         SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}
