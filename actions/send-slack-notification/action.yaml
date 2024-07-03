@@ -5,9 +5,12 @@ inputs:
   channel-id: # channel id to post message when using bot token
     description: 'Slack channel ID where message will be posted'
     required: true
-  slack-message: # message to post when using bot token
+  payload: # JSON payload to send
+    description: 'JSON payload to send to Slack if webhook route'
+    required: false
+  slack-message: # message to post
     description: 'Message to post into Slack'
-    required: true
+    required: false
   update-ts: # The timestamp of a previous message posted to update it instead of posting a new message
     description: 'The timestamp of a previous message posted. It will update the existing message instead of posting a new message'
     required: false
@@ -38,6 +41,7 @@ runs:
       uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
       with:
         channel-id: ${{ inputs.channel-id }}
+        payload: ${{ inputs.payload }}
         slack-message: ${{ inputs.slack-message }}
         update-ts: ${{ inputs.update-ts }}
       env:
