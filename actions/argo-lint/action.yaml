@@ -15,5 +15,7 @@ runs:
       uses: grafana/shared-workflows/actions/install-argo-cli@main
 
     - name: Run
+      env:
+        WORKFLOW_PATH: ${{ inputs.path }}
       shell: bash
-      run: argo lint --offline ${{ inputs.path }}
+      run: argo lint --offline "${WORKFLOW_PATH}"
