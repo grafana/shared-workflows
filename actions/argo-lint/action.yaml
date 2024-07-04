@@ -12,7 +12,7 @@ runs:
 
   steps:
     - name: Install argo-cli
-      uses: grafana/shared-workflows/actions/install-argo-cli@main
+      uses: grafana/shared-workflows/actions/install-argo-cli@duologic/argo-lint
 
     - name: Run
       shell: bash
