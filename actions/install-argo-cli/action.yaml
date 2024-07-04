@@ -1,0 +1,57 @@
+name: Install Argo cli
+description: Install Argo cli
+
+inputs:
+  version:
+    description: |
+      Version of the Argo CLI to install.
+    default: 3.5.1
+
+runs:
+  using: composite
+
+  steps:
+    - name: Set argo version
+      id: argo-version
+      shell: sh
+      run: |
+        ARGO_VERSION=${{ inputs.version }}
+        echo "version=${ARGO_VERSION}" >> ${GITHUB_OUTPUT}
+
+    - name: Restore cache
+      id: restore
+      uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      with:
+        path: ${{ github.workspace }}/bin
+        key: argo-linux-amd64-${{ steps.argo-version.outputs.version }}
+
+    - name: Fetch Github Release Asset
+      id: fetch_asset
+      if: steps.restore.outputs.cache-hit != 'true'
+      uses: dsaltares/fetch-gh-release-asset@a40c8b4a0471f9ab81bdf73a010f74cc51476ad4 # 1.1.1
+      with:
+        repo: "argoproj/argo-workflows"
+        version: "tags/v${{ steps.argo-version.outputs.version }}"
+        file: "argo-linux-amd64.gz"
+        target: ${{ github.workspace }}/bin/argo.gz
+
+    - name: gunzip
+      id: gunzip
+      if: steps.fetch_asset.outcome == 'success'
+      shell: sh
+      run: |
+        gunzip ${{ github.workspace }}/bin/argo.gz
+        chmod +x ${{ github.workspace }}/bin/argo
+
+    - name: Save to cache
+      id: save
+      if: steps.gunzip.outcome == 'success'
+      uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      with:
+        path: ${{ github.workspace }}/bin
+        key: ${{ steps.restore.outputs.cache-primary-key }}
+
+    - name: Add binary to path
+      shell: sh
+      run: |
+        echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
