@@ -2,14 +2,10 @@ name: Lint Argo Workflow files
 description: Lint Argo workflow files
 
 inputs:
-  artifact_name:
-    description: |
-      Name of the artifact containing the files to lint.
-    required: true
   path:
     description: |
-      Path to files within the artifact to lint.
-    default: ""
+      Path to files for linting.
+    required: true
 
 runs:
   using: composite
@@ -18,16 +14,6 @@ runs:
     - name: Install argo-cli
       uses: grafana/shared-workflows/actions/install-argo-cli@main
 
-    - name: Download artifact
-      uses: actions/download-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
-      with:
-        name: ${{ inputs.artifact_name }}
-        path: _shared-workflows-argo-lint
-
     - name: Run
-      id: run
       shell: bash
-      run: |
-        cd _shared-workflows-argo-lint
-
-        argo lint --offline ${{ inputs.path }}
+      run: argo lint --offline ${{ inputs.path }}
