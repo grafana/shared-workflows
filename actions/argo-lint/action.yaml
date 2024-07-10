@@ -22,9 +22,6 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        # substitute your-action with a unique name (within `shared-repos` for your
-        # action), so if multiple actions check `shared-workflows` out, they don't
-        # overwrite each other
         path: _shared-workflows-argo-lint
 
     - name: Install argo-cli
