@@ -1,0 +1,53 @@
+---
+description: Pulls image digests from GitHub and pushes manifests to GAR
+inputs:
+  full-image-name:
+    description: Image name to push the manifest for
+    required: true
+  tag:
+    description: Tag to create and push the manifest for
+    required: true
+  environment:
+    description: Environment to suffix the image digest
+    required: true
+name: Create and push image manifest
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - name: Checkout
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      with:
+        repository: grafana/shared-workflows
+        ref: multiarch-docker-builds-using-sh-runners
+        path: shared-workflows
+    - name: Download digests
+      uses: actions/download-artifact@v4
+      with:
+        merge-multiple: true
+        path: /tmp/digests
+        pattern: digests-*-${{ inputs.tag }}-${{ inputs.environment }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - id: meta
+      name: Docker meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ inputs.full-image-name }}
+        tags: ${{ inputs.tag }}
+    - id: login-to-gar
+      uses: grafana/shared-workflows/actions/login-to-gar@main
+      with:
+        environment: ${{ inputs.environment }}
+    - name: Create manifest list and push
+      working-directory: /tmp/digests
+      shell: bash
+      run: |
+        docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          $(printf '${{ inputs.full-image-name }}@sha256:%s ' *)
+    - name: Inspect image
+      shell: bash
+      run: |
+        docker buildx imagetools inspect ${{ inputs.full-image-name }}:${{ steps.meta.outputs.version }}
