@@ -9,9 +9,6 @@ name: CI
 on:
   pull_request:
 
-env:
-  ENVIRONMENT: "dev" # can be either dev/prod
-
 # These permissions are needed to assume roles from Github's OIDC.
 permissions:
   contents: read

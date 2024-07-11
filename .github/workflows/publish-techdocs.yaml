@@ -4,12 +4,15 @@ on:
   workflow_call:
     inputs:
       namespace:
+        description: The entity's namespace within EngHub (usually `default`)
         required: true
         type: string
       kind:
+        description: The kind of the entity in EngHub (usually `component`)
         required: true
         type: string
       name:
+        description: The name of the entity in EngHub (usually matches the name of the repository)
         required: true
         type: string
       default-working-directory:
@@ -18,6 +21,7 @@ on:
         type: string
         default: "."
       rewrite-relative-links:
+        description: "Execute rewrite-relative-links step to rewrite relative links in the docs to point to the correct location in the GitHub repository"
         required: false
         type: boolean
         default: false
@@ -36,6 +40,21 @@ on:
         required: false
         type: string
         default: "false"
+      bucket:
+        description: "The name of the GCS bucket to which the docs will be published"
+        required: false
+        type: string
+        default: ops-us-east-0-backstage
+      workload-identity-provider:
+        description: "The GCP workload identity provider to use for authentication"
+        required: false
+        type: string
+        default: projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider
+      service-account:
+        description: "The GCP service account to use for authentication"
+        required: false
+        type: string
+        default: github-backstage-techdocs@grafanalabs-workload-identity.iam.gserviceaccount.com
 
 jobs:
   generate-and-publish-docs:
@@ -46,11 +65,11 @@ jobs:
     steps:
       - id: checkout
         name: Checkout
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - id: checkout-shared-workflows
         name: Checkout shared workflows
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           repository: grafana/shared-workflows
           # TODO: Replace after merge
@@ -74,19 +93,21 @@ jobs:
         uses: google-github-actions/auth@71fee32a0bb7e97b4d33d548e7d957010649d8fa # v2.1.3
         with:
           create_credentials_file: true
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_POOL_PROVIDER }}
-          service_account: ${{ secrets.BACKSTAGE_TECHDOCS_SA_EMAIL }}
+          workload_identity_provider: ${{ inputs.workload-identity-provider }}
+          service_account: ${{ inputs.service-account }}
 
+      # Pinning until resolved https://github.com/backstage/backstage/issues/25303
       - name: Install techdocs-cli
-        run: sudo npm install -g @techdocs/cli
+        run: sudo npm install -g @techdocs/cli@1.8.11
 
       - name: setup python
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
         with:
           python-version: 3.11
 
+      # Pinning until resolved https://github.com/backstage/backstage/issues/25303
       - name: Install mkdocs and mkdocs plugins
-        run: python -m pip install mkdocs-techdocs-core==1.*
+        run: python -m pip install mkdocs-techdocs-core==1.3.5
 
       - name: Generate docs site
         run: techdocs-cli generate --no-docker --verbose
@@ -94,5 +115,5 @@ jobs:
 
       - name: Publish docs site
         if: inputs.publish
-        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ secrets.BACKSTAGE_TECHDOCS_BUCKET_NAME }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
+        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ inputs.bucket }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
         working-directory: ${{ inputs.default-working-directory }}

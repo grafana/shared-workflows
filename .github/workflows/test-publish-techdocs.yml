@@ -1,0 +1,36 @@
+name: Publish TechDocs (test)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/publish-techdocs-testdata/**
+      - .github/workflows/publish-techdocs.yaml
+      - .github/workflows/test-publish-techdocs.yml
+      - .github/workflows/test-techdocs-rewrite-relative-links.yml
+      - techdocs-rewrite-relative-links/**
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/publish-techdocs-testdata/**
+      - .github/workflows/publish-techdocs.yaml
+      - .github/workflows/test-publish-techdocs.yml
+      - .github/workflows/test-techdocs-rewrite-relative-links.yml
+      - techdocs-rewrite-relative-links/**
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  publish-docs:
+    uses: ./.github/workflows/publish-techdocs.yaml
+    secrets: inherit
+    with:
+      default-working-directory: ".github/publish-techdocs-testdata"
+      kind: component
+      name: ignored
+      namespace: default
+      publish: false

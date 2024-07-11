@@ -1,0 +1,6 @@
+self-hosted-runner:
+  # Labels of self-hosted runner in array of strings.
+  labels:
+    - ubuntu-amd64*
+    - ubuntu-x64*
+    - ubuntu-arm64*

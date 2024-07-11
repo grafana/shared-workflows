@@ -23,7 +23,6 @@ concurrency:
 jobs:
   publish-docs:
     uses: grafana/shared-workflows/.github/workflows/publish-techdocs.yaml@main
-    secrets: inherit
     with:
       namespace: default
       kind: component
@@ -32,11 +31,18 @@ jobs:
 
 ## Inputs
 
-| Name                        | Type    | Description                                                                             |
-| --------------------------- | ------- | --------------------------------------------------------------------------------------- |
-| `namespace`                 | string  | The entity's namespace within EngHub (usually `default`)                                |
-| `kind`                      | string  | The kind of the entity in EngHub (usually `component`)                                  |
-| `name`                      | string  | The name of the entity in EngHub (usually matches the name of the repository)           |
-| `default-working-directory` | string  | The directory where the techdocs-cli should be run (default: `.`)                       |
-| `publish`                   | boolean | Whether to publish the built docs to EngHub (default: `true`)                           |
-| `checkout-submodules`       | string  | Checkout submodules in the repository (options: `false` (default), `true`, `recursive`) |
+| Name                             | Type    | Description                                                                                                                                                            |
+| -------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `namespace`                      | string  | The entity's namespace within EngHub (usually `default`)                                                                                                               |
+| `kind`                           | string  | The kind of the entity in EngHub (usually `component`)                                                                                                                 |
+| `name`                           | string  | The name of the entity in EngHub (usually matches the name of the repository)                                                                                          |
+| `default-working-directory`      | string  | The working directory to use for doc generation. Useful for cases without an mkdocs.yml file at the project root.                                                      |
+| `rewrite-relative-links`         | boolean | Execute [rewrite-relative-links][rewrite-action] step to rewrite relative links in the docs to point to the correct location in the GitHub repository                  |
+| `rewrite-relative-links-dry-run` | boolean | Execute [rewrite-relative-links][rewrite-action] step but only print the diff without modifying the files                                                              |
+| `publish`                        | boolean | Enable or disable publishing after building the docs                                                                                                                   |
+| `checkout-submodules`            | string  | Checkout submodules in the repository. Options are `true` (checkout submodules), `false` (don't checkout submodules), or `recursive` (recursively checkout submodules) |
+| `bucket`                         | string  | The name of the GCS bucket to which the docs will be published                                                                                                         |
+| `workload-identity-provider`     | string  | The GCP workload identity provider to use for authentication                                                                                                           |
+| `service-account`                | string  | The GCP service account to use for authentication                                                                                                                      |
+
+[rewrite-action]: ../../actions/techdocs-rewrite-relative-links/README.md

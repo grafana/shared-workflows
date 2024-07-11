@@ -1,0 +1,48 @@
+name: Send Slack Message
+description: Composite action to send a Slack message
+
+inputs:
+  channel-id:
+    description: "Name or ID of the channel to send to"
+    required: true
+  payload:
+    description: "JSON payload to send. Use `payload` or `slack-message`, but not both"
+    required: false
+  slack-message:
+    description: "Plain text message to send. Use `payload` or `slack-message`, but not both"
+    required: false
+  update-ts:
+    description: "The timestamp of a previous message posted. Used to update or reply to existing messages"
+    required: false
+outputs:
+  time:
+    value: ${{ steps.send-slack-message.outputs.time }}
+    description: "The time that the Slack message was sent"
+  thread_ts:
+    value: ${{ steps.send-slack-message.outputs.thread_ts }}
+    description: "The timestamp on the latest thread posted into Slack"
+  ts:
+    value: ${{ steps.send-slack-message.outputs.ts }}
+    description: "The timestamp on the message that was posted into Slack"
+  channel_id:
+    value: ${{ steps.send-slack-message.outputs.channel_id }}
+    description: "The channel id of the message that was posted into Slack"
+
+runs:
+  using: composite
+  steps:
+    - name: Get a Slack token
+      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+      with:
+        common_secrets: |
+          SLACK_BOT_TOKEN=slack-notifications:oauth-token
+    - name: Send Slack Message
+      id: send-slack-message
+      uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
+      with:
+        channel-id: ${{ inputs.channel-id }}
+        payload: ${{ inputs.payload }}
+        slack-message: ${{ inputs.slack-message }}
+        update-ts: ${{ inputs.update-ts }}
+      env:
+        SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}

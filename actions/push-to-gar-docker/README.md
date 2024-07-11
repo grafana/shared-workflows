@@ -20,8 +20,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: grafana/shared-workflows/actions/push-to-gar-docker@main
-        id: push-to-gar
+      - id: checkout
+        uses: actions/checkout@v4
+
+      - id: push-to-gar
+        uses: grafana/shared-workflows/actions/push-to-gar-docker@main
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
           tags: |-
@@ -50,6 +53,8 @@ jobs:
 | `ssh`                  | List    | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)) |
 | `build-contexts`       | List    | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                 |
 | `docker-buildx-driver` | String  | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                                   |
+
+[mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
 ## Outputs
 
