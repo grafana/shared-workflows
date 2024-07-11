@@ -2,6 +2,8 @@
 
 This is a composite GitHub Action, used to create and push image manifests to GAR.
 
+This action can be used together with the [build-and-push-image-digests](../build-and-push-image-digests/README.md) action so the digests can be built and then use the current action to form a manifest.
+
 ```yaml
 name: CI
 on:

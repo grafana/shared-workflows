@@ -4,6 +4,8 @@ This is a composite GitHub Action, used to build and push image digests to GitHu
 
 The user is able to see digests appearing on the github action level after every successful run.
 
+This action can be used together with the [create-and-push-image-manifests](../create-and-push-image-manifests/README.md) action so the digests can form a manifest and push it to GAR.
+
 ```yaml
 name: CI
 on:
