@@ -25,17 +25,17 @@ jobs:
           repository: ${{ env.action_repo }}
           ref: ${{ env.action_ref }}
       - name: Create and push image manifests
-        uses: grafana/shared-workflows/actions/push-to-gar-docker@main
+        uses: grafana/shared-workflows/actions/create-and-push-image-manifests@main
         with:
           full-image-name: <FULL_IMAGE_NAME>
-          tags: <TAG> 
+          tag: <TAG>
           environment: <ENVIRONMENT>
 ```
 
 ## Inputs
 
-| Name                   | Type    | Description                                                                                                                                                                    |
-| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `full-image-name`             | String  | Full image name for docker image, e.g. `us-docker.pkg.dev/grafanalabs-dev/docker-grafana-enterprise-dev/grafana-enterprise`                                                                                                                       |
-| `tags`                 | String    | Tag for the image you want to push                                                                     |
-| `environment`              | String    | Environment for pushing artifacts (can be either dev or prod).                                                                                                                                       
+| Name              | Type   | Description                                                                                                                 |
+| ----------------- | ------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `full-image-name` | String | Full image name for docker image, e.g. `us-docker.pkg.dev/grafanalabs-dev/docker-grafana-enterprise-dev/grafana-enterprise` |
+| `tag`             | String | Tag for the image you want to push                                                                                          |
+| `environment`     | String | Environment for pushing artifacts (can be either dev or prod).                                                              |

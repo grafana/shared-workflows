@@ -72,7 +72,7 @@ jobs:
         os: ${{ fromJson(inputs.platforms ) }}
         tag: ${{ fromJson(inputs.tags ) }}
     runs-on: ubuntu-${{ matrix.os }}-large
-    name: build-${{ matrix.os }}-image-for-tag-${{ matrix.tags }}
+    name: build-${{ matrix.os }}-image-for-tag-${{ matrix.tag }}
     steps:
       - name: Checkout
         env:
