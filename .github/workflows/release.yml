@@ -15,6 +15,9 @@ jobs:
           release-type: simple
           skip-github-pull-request: true
       - uses: actions/checkout@v4
+      # this step is needed since we are publishing github actions releases.
+      # when patching a version e.g. v2.0.0 to v2.0.1,
+      # we need to make sure that v2 is updated as well as v2.0
       - name: tag major and minor versions
         if: ${{ steps.release.outputs.release_created }}
         run: |
