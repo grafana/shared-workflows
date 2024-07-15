@@ -1,0 +1,24 @@
+name: Lint PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+jobs:
+  lint-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        env:
+          action_repo: ${{ github.action_repository }}
+          action_ref: ${{ github.action_ref }}
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: ${{ env.action_repo }}
+          ref: ${{ env.action_ref }}
+          path: shared-workflows
+      - id: lint-pr-title
+        uses: ./shared-workflows/actions/lint-pr-title
+        with:
+          config-path: "${{ github.workspace }}/commitlint.config.js"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
