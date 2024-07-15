@@ -3,6 +3,8 @@ name: Lint PR title
 on:
   pull_request:
     types: [opened, edited, synchronize]
+  merge_group:
+
 jobs:
   lint-pr-title:
     runs-on: ubuntu-latest
