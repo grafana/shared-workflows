@@ -24,7 +24,7 @@ jobs:
 
       # Lint .github/workflows/*
       - name: Lint workflow files
-        uses: raven-actions/actionlint@789059c543ab20522fb3e7240794e13b0f69ad67 # v1.0.3
+        uses: raven-actions/actionlint@01fce4f43a270a612932cb1c64d40505a029f821 # v2.0.0
 
   # A separate job so we can run in the `yq` container
   lint-action-yaml:
