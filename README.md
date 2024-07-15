@@ -75,12 +75,13 @@ For this reason we need to provide releasable actions so engineers can review al
 have they set automated update mechanisms (e.g. `dependabot`, `renovate` etc).
 
 A new patch version of `shared-workflows` is released automatically upon push to main. In order for the
-release action to work properly, which means to generate a CHANGELOG for the current release, the pull 
+release action to work properly, which means to generate a CHANGELOG for the current release, the pull
 request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This means that the PR should start with a `type` followed by a colon, and then a `subject` - all in lowercase.
 
 For example:
-* `feat: add new release action`
 
-Also, the PR description needs to be filled and should never be empty. 
+- `feat: add new release action`
+
+Also, the PR description needs to be filled and should never be empty.
 
 Failing to follow any of the aforementioned necessary steps, will lead to CI failing on your pull request.
