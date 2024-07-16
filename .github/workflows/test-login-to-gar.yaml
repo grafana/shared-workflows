@@ -12,6 +12,7 @@ on:
     paths:
       - "actions/login-to-gar/**"
       - ".github/workflows/test-login-to-gar.yaml"
+  merge_group:
 
 permissions:
   contents: read

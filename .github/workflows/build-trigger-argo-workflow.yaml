@@ -9,6 +9,7 @@ on:
   pull_request:
     paths:
       - "actions/trigger-argo-workflow/**"
+  merge_group:
 
 jobs:
   lint-test-build:
