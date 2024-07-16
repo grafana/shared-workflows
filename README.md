@@ -70,9 +70,7 @@ will ensure actions in this repo are always used at the same commit. To do this:
 
 ### Releasing a version of shared-workflows
 
-When working with `shared-workflows`, we need to make sure that we won't break backwards compatibility.
-For this reason we need to provide releasable actions so engineers can review all the incoming changes,
-have they set automated update mechanisms (e.g. `dependabot`, `renovate` etc).
+When working with `shared-workflows`, it's essential to avoid breaking backwards compatibility. To ensure this, we must provide releasable actions for engineers to review incoming changes. This also helps automated update tools like `dependabot` and `renovate` to work effectively.
 
 Upon push to main, a new PR with updates in the CHANGELOG.md will be generated. The author needs to review and approve the PR, then merge. When merged, a new tag with a new release will be shown in the repository's GitHub page.
 
