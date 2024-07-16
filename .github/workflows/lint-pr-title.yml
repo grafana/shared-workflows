@@ -14,6 +14,6 @@ jobs:
       - id: lint-pr-title
         uses: ./actions/lint-pr-title
         with:
-          config-path: "${{ github.workspace }}/commitlint.config.js"
+          config-path: "${{ github.workspace }}/actions/lint-pr-title/commitlint.config.js"
         env:
           GITHUB_TOKEN: ${{ github.token }}
