@@ -11,6 +11,7 @@ on:
     paths:
       - actions/find-pr-for-commit/**
       - .github/workflows/test-find-pr-for-commit.yml
+  merge_group:
 
 permissions:
   contents: read

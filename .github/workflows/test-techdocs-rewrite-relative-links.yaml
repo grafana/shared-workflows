@@ -12,6 +12,7 @@ on:
     paths:
       - "actions/techdocs-rewrite-relative-links/**"
       - ".github/workflows/test-techdocs-rewrite-relative-links.yaml"
+  merge_group:
 
 jobs:
   test:
