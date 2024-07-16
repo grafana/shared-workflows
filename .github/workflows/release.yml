@@ -13,7 +13,6 @@ jobs:
         id: release
         with:
           release-type: simple
-          skip-github-pull-request: true
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       # this step is needed since we are publishing github actions releases.
       # when patching a version e.g. v2.0.0 to v2.0.1,
