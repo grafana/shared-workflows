@@ -1,0 +1,19 @@
+name: Lint PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+  merge_group:
+
+jobs:
+  lint-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - id: lint-pr-title
+        uses: ./actions/lint-pr-title
+        with:
+          config-path: "${{ github.workspace }}/actions/lint-pr-title/commitlint.config.js"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

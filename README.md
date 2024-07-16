@@ -67,3 +67,21 @@ will ensure actions in this repo are always used at the same commit. To do this:
   with:
     some-input: some-value
 ```
+
+### Releasing a version of shared-workflows
+
+When working with `shared-workflows`, it's essential to avoid breaking backwards compatibility. To ensure this, we must provide releasable actions for engineers to review incoming changes. This also helps automated update tools like `dependabot` and `renovate` to work effectively.
+
+Upon push to main, a new PR with updates in the CHANGELOG.md will be generated. The author needs to review and approve the PR, then merge. When merged, a new tag with a new release will be shown in the repository's GitHub page.
+
+In order for the release action to work properly, which means to generate a CHANGELOG for the current release, the pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This means that the PR should start with a `type` followed by a colon, and then a `subject` - all in lowercase.
+
+For example:
+
+- `feat: add new release action`
+
+Also, the PR description needs to be filled and should never be empty.
+
+Failing to follow any of the aforementioned necessary steps, will lead to CI failing on your pull request.
+
+More about how the upstream action works can be found [here](https://github.com/googleapis/release-please-action).
