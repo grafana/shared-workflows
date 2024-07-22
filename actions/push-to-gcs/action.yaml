@@ -27,6 +27,11 @@ inputs:
       Whether parent dir should be included in GCS destination.
       Dirs included in the `glob` statement are unaffected by this setting.
     default: "true"
+  predefinedAcl:
+    description: |
+      Apply a predefined set of access controls to the file(s).
+      Default is projectPrivate (See https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions)
+    default: projectPrivate
 
 outputs:
   uploaded:
@@ -82,4 +87,5 @@ runs:
         glob: ${{ inputs.glob }}
         destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
         parent: ${{ inputs.parent }}
+        predefinedAcl: ${{ inputs.predefinedAcl }}
         process_gcloudignore: false
