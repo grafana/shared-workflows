@@ -37,7 +37,7 @@ jobs:
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
-          path: public-access.txt
+          path: file.txt
           predefinedAcl: projectPrivate
           environment: "dev
 
