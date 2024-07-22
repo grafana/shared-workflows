@@ -41797,6 +41797,7 @@ async function run() {
           "This action can only be invoked in `merge_group` events. Otherwise, the merge group can't be inferred.",
         );
       }
+      print(mergeGroupContext)
       const { data } = await octokit.rest.pulls.get({
         owner: mergeGroupContext.base.user.login,
         repo: mergeGroupContext.base.repo.name,
