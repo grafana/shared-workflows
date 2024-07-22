@@ -7,10 +7,11 @@ async function run() {
     const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
 
     const eventName = github.context.eventName;
+    let pullRequest;
 
     if (eventName === "pull_request" || eventName === "pull_request_target") {
       const contextPullRequest = github.context.payload.pull_request;
-      const { data: pullRequest } = await octokit.rest.pulls.get({
+      const { data } = await octokit.rest.pulls.get({
         owner: contextPullRequest.base.user.login,
         repo: contextPullRequest.base.repo.name,
         pull_number: contextPullRequest.number,
