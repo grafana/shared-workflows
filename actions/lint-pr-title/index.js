@@ -6,17 +6,28 @@ async function run() {
   try {
     const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
 
-    const contextPullRequest = github.context.payload.pull_request;
-    if (!contextPullRequest) {
+    const eventName = github.context.eventName;
+
+    if (eventName === "pull_request" || eventName === "pull_request_target") {
+      const contextPullRequest = github.context.payload.pull_request;
+      const { data: pullRequest } = await octokit.rest.pulls.get({
+        owner: contextPullRequest.base.user.login,
+        repo: contextPullRequest.base.repo.name,
+        pull_number: contextPullRequest.number,
+      });
+      pullRequest == data;
+    } else if (eventName === "merge_group") {
+      const { data } = await octokit.rest.pulls.get({
+        owner: mergeGroupContext.base.user.login,
+        repo: mergeGroupContext.base.repo.name,
+        pull_number: mergeGroupContext.head_sha,
+      });
+      pullRequest = data;
+    } else {
       throw new Error(
-        "This action can only be invoked in `pull_request_target` or `pull_request` events. Otherwise the pull request can't be inferred.",
+        "This action can only be invoked in `pull_request_target`, `pull_request`, or `merge_group` events.",
       );
     }
-    const { data: pullRequest } = await octokit.rest.pulls.get({
-      owner: contextPullRequest.base.user.login,
-      repo: contextPullRequest.base.repo.name,
-      pull_number: contextPullRequest.number,
-    });
 
     const configPath = core.getInput("config-path");
     const config = configPath
