@@ -33,13 +33,13 @@ jobs:
           path: file.txt
           environment: "dev" # Can be dev/prod (defaults to dev)
 
-        # Upload a single file and apply the publicRead ACL to make it publicly accessible.
+        # Upload a single file and apply a predefined ACL. See `predefinedAcl` for options.
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: public-access.txt
-          predefinedAcl: publicRead # Predefined ACL (defaults to projectPrivate)
-          environment: "dev" # Can be dev/prod (defaults to dev)
+          predefinedAcl: projectPrivate
+          environment: "dev
 
         # Here are 3 equivalent statements to upload a single file and its parent directory to the bucket root
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
@@ -106,15 +106,15 @@ jobs:
 
 ## Inputs
 
-| Name            | Type   | Description                                                                                                                                                                                       |
-| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bucket`        | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                               |
-| `path`          | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action.      |
-| `bucket_path`   | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                           |
-| `environment`   | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                                    |
-| `glob`          | String | Glob pattern.                                                                                                                                                                                     |
-| `parent`        | String | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                                   |
-| `predefinedAcl` | String | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions) for more options. |
+| Name            | Type   | Description                                                                                                                                                                                                      |
+| --------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bucket`        | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                                              |
+| `path`          | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action.                     |
+| `bucket_path`   | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                                          |
+| `environment`   | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                                                   |
+| `glob`          | String | Glob pattern.                                                                                                                                                                                                    |
+| `parent`        | String | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                                                  |
+| `predefinedAcl` | String | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions) for a list of available options. |
 
 ## Outputs
 
