@@ -39,7 +39,7 @@ jobs:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: file.txt
           predefinedAcl: projectPrivate
-          environment: "dev
+          environment: "dev"
 
         # Here are 3 equivalent statements to upload a single file and its parent directory to the bucket root
       - uses: grafana/shared-workflows/actions/push-to-gcs@main
