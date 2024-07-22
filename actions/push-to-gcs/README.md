@@ -106,18 +106,20 @@ jobs:
 
 ## Inputs
 
-| Name            | Type   | Description                                                                                                                                                                                                      |
-| --------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bucket`        | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                                              |
-| `path`          | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action.                     |
-| `bucket_path`   | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                                          |
-| `environment`   | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                                                   |
-| `glob`          | String | Glob pattern.                                                                                                                                                                                                    |
-| `parent`        | String | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                                                  |
-| `predefinedAcl` | String | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions) for a list of available options. |
+| Name            | Type   | Description                                                                                                                                                                                  |
+| --------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bucket`        | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                          |
+| `path`          | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
+| `bucket_path`   | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                      |
+| `environment`   | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                               |
+| `glob`          | String | Glob pattern.                                                                                                                                                                                |
+| `parent`        | String | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                              |
+| `predefinedAcl` | String | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation][gcs-docs-upload-options] for a list of available options.                            |
 
 ## Outputs
 
 | Name       | Type   | Description                                        |
 | ---------- | ------ | -------------------------------------------------- |
 | `uploaded` | String | The list of files that were successfully uploaded. |
+
+[gcs-docs-upload-options]: https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions
