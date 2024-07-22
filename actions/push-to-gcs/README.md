@@ -38,7 +38,7 @@ jobs:
         with:
           bucket: ${{ steps.login-to-gcs.outputs.bucket }}
           path: public-access.txt
-          predefinedAcl: publicRead
+          predefinedAcl: publicRead # Predefined ACL (defaults to projectPrivate)
           environment: "dev" # Can be dev/prod (defaults to dev)
 
         # Here are 3 equivalent statements to upload a single file and its parent directory to the bucket root
