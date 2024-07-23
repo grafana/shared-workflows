@@ -1,17 +1,24 @@
 name: Build Lint PR title
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types: [closed]
+    paths:
+      - .github/workflows/build-lint-pr.yml
+      - actions/lint-pr-title/**
+  pull_request:
+    paths:
+      - .github/workflows/build-lint-pr.yml
+      - actions/lint-pr-title/**
   merge_group:
 
 jobs:
   build-lint-pr-title:
-    if: ${{ github.event.pull_request.merged == true && contains(github.head_ref || github.ref_name, 'dependabot-npm') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js environment
         uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
@@ -26,6 +33,50 @@ jobs:
         working-directory: ./actions/lint-pr-title
         run: yarn build
 
+      - name: Check for diff
+        id: check-for-diff
+        run: |
+          git diff > diff.txt
+
+      - name: Upload diff
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-diff-${{ github.sha }}
+          path: diff.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  check-for-diffs:
+    if: ${{ !contains(github.head_ref || github.ref_name, 'dependabot-npm') }}
+    needs: ["build-lint-pr-title"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Download diff
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/diffs
+          pattern: git-diff-*
+      - name: fail-if-diff
+        run: |
+          if [ -s /tmp/diffs/git-diff-${{ github.sha }}/diff.txt ]; then
+            echo "ERROR: Please run *yarn build* and commit your changes.";
+            exit 1
+          fi
+  create-pr-for-bots:
+    needs: ["build-lint-pr-title"]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged == true && contains(github.head_ref || github.ref_name, 'dependabot-npm') }}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - name: Download diff
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/diffs
+          pattern: git-diff-*
+      - name: Apply git patch
+        run: |
+          git apply /tmp/diffs/git-diff-${{ github.sha }}/diff.txt
       - name: Commit lint-pr-title changes and create new pull request
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
         with:
