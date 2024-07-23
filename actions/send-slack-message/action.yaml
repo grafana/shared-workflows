@@ -27,6 +27,9 @@ outputs:
   channel_id:
     value: ${{ steps.send-slack-message.outputs.channel_id }}
     description: "The channel id of the message that was posted into Slack"
+  workflow_url:
+    value: ${{ steps.export-gha-url.outputs.channel_id }}
+    description: "The full Github Action workflow to be used in slack messages"
 
 runs:
   using: composite
@@ -46,3 +49,9 @@ runs:
         update-ts: ${{ inputs.update-ts }}
       env:
         SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}
+    - name: Export GHA URL
+      id: export-gha-url
+      shell: bash
+      run: |
+        WORKFLOW_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "workflow_url=${WORKFLOW_URL}" >> ${GITHUB_OUTPUT}
