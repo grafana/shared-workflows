@@ -108,7 +108,7 @@ runs:
       shell: bash
       run: |
         REPO_NAME="${{ inputs.repository_name }}"
-        if [ -z "$REPOSITORY_NAME" ]; then
+        if [ -z "$REPO_NAME" ]; then
           REPO_NAME=$(echo "${{ github.repository }}" | awk -F'/' '{print $2}')
         fi
         echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
