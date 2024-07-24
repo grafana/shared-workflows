@@ -62,7 +62,7 @@ inputs:
     default: "docker-container"
   repository_name:
     description: |
-      The name of the GAR repo to push to, in case it differs from the GitHub repo name.
+      Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
     required: false
 
 outputs:
