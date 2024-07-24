@@ -60,6 +60,10 @@ inputs:
       The driver to use for Docker Buildx
     required: false
     default: "docker-container"
+  repository_name:
+    description: |
+      Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
+    required: false
 
 outputs:
   version:
@@ -103,7 +107,10 @@ runs:
       id: get-repository-name
       shell: bash
       run: |
-        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
+        REPO_NAME="${{ inputs.repository_name }}"
+        if [ -z "$REPO_NAME" ]; then
+          REPO_NAME=$(echo "${{ github.repository }}" | awk -F'/' '{print $2}')
+        fi
         echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
     - name: Resolve GCP project
       id: resolve-project
