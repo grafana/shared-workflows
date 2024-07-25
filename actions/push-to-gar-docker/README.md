@@ -35,7 +35,7 @@ jobs:
           environment: "dev" # can be either dev/prod
 ```
 
-[Artifact Registry repositories can't container underscores][underscore-issue].
+[Artifact Registry repositories can't contain underscores][underscore-issue].
 As a convention, this action will replace any underscores in the repository name
 with hyphens. That behaviour can be overridden using the `repository_name`
 input.
