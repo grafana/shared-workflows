@@ -1,0 +1,72 @@
+name: Build, Cache, and Run Go Program
+description: Builds a Go program, caches it, and runs it with given arguments
+
+inputs:
+  source-dir:
+    description: The directory containing the Go source files
+    required: true
+
+  packages:
+    description: The target to build (arguments to go build)
+    required: false
+    default: "."
+
+  run:
+    description: Whether to run the binary after building
+    required: false
+    default: "false"
+
+  args:
+    description: Arguments to pass to the binary
+    required: false
+    default: ""
+
+  working-dir:
+    description: The working directory to run the binary in
+    required: true
+
+outputs:
+  binary:
+    description: The path to the built binary
+    value: ${{ steps.target.outputs.binary }}
+
+runs:
+  using: composite
+  steps:
+    - name: Calculate output dir and target
+      id: target
+      shell: sh
+      run: |
+        dir="${{ runner.temp }}/${{ inputs.source-dir }}/go-build"
+        binary="${output_dir}/target"
+        echo "dir=${dir}" >> "${GITHUB_OUTPUT}"
+        echo "binary=${binary}" >> "${GITHUB_OUTPUT}"
+
+    - name: Cache Go build
+      id: cache
+      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      with:
+        path: ${{ steps.target.outputs.dir }}
+        key: ${{ runner.os }}-${{ runner.arch }}-go-build-${{ inputs.source-dir }}-${{ hashFiles(format('{0}/**', inputs.source-dir)) }}
+
+    - name: Set up Go
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      with:
+        cache-dependency-path: ${{ inputs.source-dir }}/**/go.sum
+        go-version-file: ${{ inputs.source-dir }}/go.mod
+
+    - name: Build Go program
+      id: build
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ inputs.source-dir }}
+      run: |
+        go build -o "${{ steps.target.outputs.binary }}" ${{ inputs.packages }}
+
+    - name: Run Go program
+      shell: bash
+      if: ${{ inputs.run == 'true' }}
+      working-directory: ${{ inputs.working-dir }}
+      run: |
+        "${{ steps.target.outputs.binary }}" ${{ inputs.args }}
