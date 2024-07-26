@@ -15,7 +15,7 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-message@main
         with:
-          channel-id: "Channel Name of ID"
+          channel-id: "Channel Name or ID"
           slack-message: "We are testing, testing, testing all day long"
 
       - name: Update Slack Message
@@ -90,7 +90,7 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-message@main
         with:
-          channel-id: "Channel Name of ID"
+          channel-id: "Channel Name or ID"
           payload: |
             {
               "text": "Deployment started (In Progress)"

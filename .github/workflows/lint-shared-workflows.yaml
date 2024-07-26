@@ -4,6 +4,7 @@ on:
       - "main"
 
   pull_request:
+  merge_group:
 
 permissions:
   contents: read
@@ -24,7 +25,7 @@ jobs:
 
       # Lint .github/workflows/*
       - name: Lint workflow files
-        uses: raven-actions/actionlint@789059c543ab20522fb3e7240794e13b0f69ad67 # v1.0.3
+        uses: raven-actions/actionlint@01fce4f43a270a612932cb1c64d40505a029f821 # v2.0.0
 
       - name: Run ShellCheck on scripts
         uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0

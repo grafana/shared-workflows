@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/aymanbagabas/go-udiff v0.2.0
-	github.com/lmittmann/tint v1.0.4
+	github.com/lmittmann/tint v1.0.5
 	github.com/neilotoole/slogt v1.1.0
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.9.0

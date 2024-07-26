@@ -60,6 +60,10 @@ inputs:
       The driver to use for Docker Buildx
     required: false
     default: "docker-container"
+  repository_name:
+    description: |
+      Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
+    required: false
 
 outputs:
   version:
@@ -99,12 +103,20 @@ runs:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: shared-workflows
+
     - name: Get repository name
       id: get-repository-name
       shell: bash
       run: |
-        REPO_NAME=$(echo ${{ github.repository }} | awk -F'/' '{print $2}')
-        echo "repo_name=${REPO_NAME}" >> ${GITHUB_OUTPUT}
+        REPO_NAME="${{ inputs.repository_name }}"
+        if [ -z "$REPO_NAME" ]; then
+          REPO_NAME="$(echo "${{ github.repository }}" | awk -F'/' '{print $2}')"
+          # In Artifact Registry, underscores are not allowed in repository
+          # names. By convention, we replace them with hyphens.
+          REPO_NAME="${REPO_NAME//_/-}"
+        fi
+        echo "repo_name=${REPO_NAME}" >> "${GITHUB_OUTPUT}"
+
     - name: Resolve GCP project
       id: resolve-project
       shell: bash
@@ -118,21 +130,24 @@ runs:
           exit 1
         fi
         echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
+
     - name: Login to GAR
       uses: ./shared-workflows/actions/login-to-gar
       with:
         environment: ${{ inputs.environment }}
+
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
       with:
         images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
-        create_credentials_file: false
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
       with:
         driver: ${{ inputs.docker-buildx-driver }}
+
     - name: Build the container
       uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
       id: build
