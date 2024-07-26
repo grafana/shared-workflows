@@ -116,3 +116,14 @@ runs:
         push-to-registry: ${{ inputs.push }}
         subject-digest: ${{ steps.build-push.outputs.digest }}
         subject-name: index.docker.io/${{ inputs.repository }}
+
+    - name: Install cosign
+      uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+
+    - name: Sign image
+      shell: sh
+      run: >
+        cosign sign
+        --yes
+        --tlog-upload=${{ github.repository_visibility == 'public' && 'true' || 'false' }}
+        index.docker.io/${{ inputs.repository }}@${{ steps.build-push.outputs.digest }}
