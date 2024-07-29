@@ -1,0 +1,46 @@
+name: Generate OpenAPI client
+description: Takes in a locally stored OpenAPI spec and generates a client from it
+
+inputs:
+  generator-version:
+    description: "The version of the OpenAPI generator to use"
+    required: false
+    default: "7.7.0"
+  spec-path:
+    description: "The path to the OpenAPI spec to generate the client from"
+    required: true
+  output-dir:
+    description: "The directory to output the generated client to"
+    required: false
+    default: "."
+  commit-changes:
+    description: If true, the action will commit and push the changes to the repository, if there's a diff.
+    required: false
+    default: "true"
+  commit-message:
+    description: The commit message to use when committing the changes
+    required: false
+    default: "Update clients and publish"
+  package-name:
+    description: The name of the package to generate
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - id: get-repo-name
+      shell: bash
+      run: echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
+    - id: generate
+      shell: bash
+      run: ${GITHUB_ACTION_PATH}/generate.sh
+      env:
+        SPEC_PATH: ${{ inputs.spec-path }}
+        OUTPUT_DIR: ${{ inputs.output-dir }}
+        PACKAGE_NAME: ${{ inputs.package-name }}
+        OPENAPI_GENERATOR_VERSION: ${{ inputs.generator-version }}
+    - id: commit
+      uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+      if: ${{ inputs.commit-changes == 'true' }}
+      with:
+        commit_message: ${{ inputs.commit-message }}
