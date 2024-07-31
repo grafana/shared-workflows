@@ -1,10 +1,6 @@
 #! /usr/bin/env bash
 set -euo pipefail
 
-# Download openapi-generator-cli
-wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${OPENAPI_GENERATOR_VERSION}/openapi-generator-cli-${OPENAPI_GENERATOR_VERSION}.jar" -O ./openapi-generator-cli.jar
-trap "rm -f ./openapi-generator-cli.jar" EXIT
-
 # Generate Go client (TODO: Add support for other languages)
 GO_DIR="${OUTPUT_DIR}/go"
 rm -rf "${GO_DIR}"

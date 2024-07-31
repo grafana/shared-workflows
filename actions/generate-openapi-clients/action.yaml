@@ -28,19 +28,39 @@ inputs:
 runs:
   using: composite
   steps:
-    - id: get-repo-name
-      shell: bash
+    # Get the repository name
+    - shell: bash
       run: echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
-    - id: generate
-      shell: bash
+
+    # Get openapi-generator
+    - id: openapi-generator-cache
+      uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      with:
+        key: openapi-generator-${{ inputs.generator-version }}
+        path: openapi-generator-cli.jar
+    - shell: bash
+      if: steps.openapi-generator-cache.outputs.cache-hit != 'true'
+      run: |
+        wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${{ inputs.generator-version }}/openapi-generator-cli-${{ inputs.generator-version }}.jar" -O ./openapi-generator-cli.jar
+    - uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      with:
+        key: openapi-generator-${{ inputs.generator-version }}
+        path: openapi-generator-cli.jar
+
+    # Generate the client
+    - shell: bash
       run: ${GITHUB_ACTION_PATH}/generate.sh
       env:
         SPEC_PATH: ${{ inputs.spec-path }}
         OUTPUT_DIR: ${{ inputs.output-dir }}
         PACKAGE_NAME: ${{ inputs.package-name }}
-        OPENAPI_GENERATOR_VERSION: ${{ inputs.generator-version }}
-    - id: commit
-      uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+
+    # Delete the openapi-generator-cli.jar file (it shouldn't be committed)
+    - shell: bash
+      run: rm openapi-generator-cli.jar
+
+    # Commit the changes
+    - uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
       if: ${{ inputs.commit-changes == 'true' }}
       with:
         commit_message: ${{ inputs.commit-message }}
