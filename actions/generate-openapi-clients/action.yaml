@@ -43,6 +43,7 @@ runs:
       run: |
         wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${{ inputs.generator-version }}/openapi-generator-cli-${{ inputs.generator-version }}.jar" -O ./openapi-generator-cli.jar
     - uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      if: steps.openapi-generator-cache.outputs.cache-hit != 'true'
       with:
         key: openapi-generator-${{ inputs.generator-version }}
         path: openapi-generator-cli.jar
