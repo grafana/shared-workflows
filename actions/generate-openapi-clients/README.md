@@ -26,8 +26,7 @@ on:
       - main
 
 permissions:
-  contents: write
-  id-token: write
+  contents: write # Only needed if `commit-changes` is set to true
 
 jobs:
   build-and-publish:
@@ -41,5 +40,5 @@ jobs:
         uses: grafana/shared-workflows/actions/generate-openapi-clients@main
         with:
           package-name: slo
-          spec-path: openapi.yaml //
+          spec-path: openapi.yaml
 ```

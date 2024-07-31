@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-set -eo pipefail
+set -euo pipefail
 
 # Download openapi-generator-cli
 wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${OPENAPI_GENERATOR_VERSION}/openapi-generator-cli-${OPENAPI_GENERATOR_VERSION}.jar" -O ./openapi-generator-cli.jar
