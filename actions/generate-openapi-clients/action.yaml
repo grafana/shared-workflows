@@ -24,6 +24,14 @@ inputs:
   package-name:
     description: The name of the package to generate
     required: true
+  modify-spec-script:
+    description: |
+      The path to an executable script that modifies the OpenAPI spec before generating the client. 
+      The spec will be piped into the script and the script should output the modified spec to stdout.
+      Note: This is used as a workaround for the OpenAPI generator not supporting certain features. By using
+      this feature, the spec will be modified temporarily, and the changes will not be committed.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -48,17 +56,32 @@ runs:
         key: openapi-generator-${{ inputs.generator-version }}
         path: openapi-generator-cli.jar
 
+    # Modify the spec if a script is provided
+    - shell: bash
+      run: |
+        if [ -n "${{ inputs.modify-spec-script }}" ]; then
+          cat "${{ inputs.spec-path }}" | "${{ inputs.modify-spec-script }}" > temp-spec.txt
+          echo "SPEC_PATH=temp-spec.txt" >> $GITHUB_ENV
+        else
+          echo "SPEC_PATH=${{ inputs.spec-path }}" >> $GITHUB_ENV
+        fi
+      env:
+        SPEC_PATH: ${{ inputs.spec-path }}
+
     # Generate the client
     - shell: bash
       run: ${GITHUB_ACTION_PATH}/generate.sh
       env:
-        SPEC_PATH: ${{ inputs.spec-path }}
         OUTPUT_DIR: ${{ inputs.output-dir }}
         PACKAGE_NAME: ${{ inputs.package-name }}
 
-    # Delete the openapi-generator-cli.jar file (it shouldn't be committed)
+    # Cleanup files that shouldn't be committed
     - shell: bash
-      run: rm openapi-generator-cli.jar
+      run: |
+        rm openapi-generator-cli.jar
+        if [ -n "${{ inputs.modify-spec-script }}" ]; then
+          rm temp-spec.txt
+        fi
 
     # Commit the changes
     - uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
