@@ -18,20 +18,20 @@ teardown() {
 
 @test "Check if REPO environment variable is set" {
   export REPO=
-  run ./translate-secrets.sh
+  run ./translate-secrets.bash
   [ "$status" -ne 0 ]
   [ "${lines[0]}" = "Error: REPO environment variable is not set." ]
 }
 
 @test "Check if GITHUB_OUTPUT environment variable is set" {
   export GITHUB_OUTPUT=
-  run ./translate-secrets.sh
+  run ./translate-secrets.bash
   [ "$status" -ne 0 ]
   [ "${lines[0]}" = "Error: GITHUB_OUTPUT environment variable is not set." ]
 }
 
 @test "Translate secrets" {
-  run ./translate-secrets.sh
+  run ./translate-secrets.bash
   echo "$output" >&3
   [ "$status" -eq 0 ]
   [ "$output" = "Secrets that will be queried from Vault:
