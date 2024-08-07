@@ -1,0 +1,18 @@
+name: 'grafana-bundle-plugin'
+description: 'Zips and signs a Grafana plugin for release'
+author: 'Grafana Labs'
+
+inputs:
+  distDir:
+    description: 'The dist directory where your plugin is located'
+    required: false
+    default: 'dist'
+  outDir:
+    description:
+      'The directory where the bundled plugin files will be outputted'
+    required: false
+    default: '__to-upload__'
+
+runs:
+  using: node20
+  main: dist/index.js
