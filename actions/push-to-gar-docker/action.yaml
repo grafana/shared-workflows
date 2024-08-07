@@ -104,10 +104,23 @@ runs:
         ref: ${{ env.action_ref }}
         path: shared-workflows
 
-    - name: Get repository name
-      id: get-repository-name
+    - name: Set up variables
+      id: set-repo-variables
       shell: bash
       run: |
+        case "${{ inputs.environment }}" in
+          dev)
+            PROJECT="dev"
+            ;;
+          prod)
+            PROJECT="prod"
+            ;;
+          *)
+            echo "Invalid environment. Valid environments: dev, prod"
+            exit 1
+            ;;
+        esac
+
         REPO_NAME="${{ inputs.repository_name }}"
         if [ -z "$REPO_NAME" ]; then
           REPO_NAME="$(echo "${{ github.repository }}" | awk -F'/' '{print $2}')"
@@ -117,19 +130,7 @@ runs:
         fi
         echo "repo_name=${REPO_NAME}" >> "${GITHUB_OUTPUT}"
 
-    - name: Resolve GCP project
-      id: resolve-project
-      shell: bash
-      run: |
-        if [[ "${{ inputs.environment }}" == "dev" ]]; then
-          PROJECT="grafanalabs-dev"
-        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
-          PROJECT="grafanalabs-global"
-        else
-          echo "Invalid environment. Valid environment variable inputs: dev, prod"
-          exit 1
-        fi
-        echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
+        echo "image=${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${REPO_NAME}-${PROJECT}/${{ inputs.image_name }}" >> "${GITHUB_OUTPUT}"
 
     - name: Login to GAR
       uses: ./shared-workflows/actions/login-to-gar
@@ -140,7 +141,7 @@ runs:
       id: meta
       uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
       with:
-        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
+        images: ${{ steps.set-repo-variables.outputs.image }}
         tags: ${{ inputs.tags }}
 
     - name: Set up Docker Buildx
@@ -152,13 +153,22 @@ runs:
       uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
       id: build
       with:
-        context: ${{ inputs.context }}
+        attests: type=provenance,mode=max
         build-args: ${{ inputs.build-args }}
-        push: ${{ inputs.push == 'true' }}
-        tags: ${{ steps.meta.outputs.tags }}
+        build-contexts: ${{ inputs.build-contexts }}
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
+        context: ${{ inputs.context }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
+        push: ${{ inputs.push == 'true' }}
+        sbom: true
         ssh: ${{ inputs.ssh }}
-        build-contexts: ${{ inputs.build-contexts }}
+        tags: ${{ steps.meta.outputs.tags }}
+
+    - name: Attest build provenance
+      uses: actions/attest-build-provenance@5e9cb68e95676991667494a6a4e59b8a2f13e1d0 # v1.3.3
+      with:
+        push-to-registry: ${{ inputs.push }}
+        subject-digest: ${{ steps.build-push.outputs.digest }}
+        subject-name: ${{ steps.set-repo-variables.outputs.image }}
