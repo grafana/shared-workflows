@@ -2,12 +2,8 @@
 set -euo pipefail
 
 # Generate Go client (TODO: Add support for other languages)
-GO_DIR="${OUTPUT_DIR}/go"
+GO_DIR="${OUTPUT_DIR}/go/${PACKAGE_NAME}"
 rm -rf "${GO_DIR}"
-
-if [[ ${GO_SUBMODULE} == true ]]; then
-  GO_DIR="${GO_DIR}/${PACKAGE_NAME}"
-fi
 java -jar openapi-generator-cli.jar generate \
   -i "${SPEC_PATH}" \
   -g go \
@@ -15,7 +11,7 @@ java -jar openapi-generator-cli.jar generate \
   --git-user-id "grafana" \
   --git-repo-id "${REPO_NAME}/go" \
   --package-name "${PACKAGE_NAME}" \
-  -p isGoSubmodule=${GO_SUBMODULE} \
+  -p isGoSubmodule=true \
   -p disallowAdditionalPropertiesIfNotPresent=false \
   -t "${GITHUB_ACTION_PATH}/templates/go"
 
