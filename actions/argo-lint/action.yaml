@@ -12,16 +12,10 @@ runs:
 
   steps:
     - name: Checkout
-      env:
-        # In a composite action, these two need to be indirected via the
-        # environment, as per the GitHub actions documentation:
-        # https://docs.github.com/en/actions/learn-github-actions/contexts
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
+        repository: ${{ github.action_repository }}
+        ref: ${{ github.action_ref }}
         path: _shared-workflows-argo-lint
 
     - name: Install argo-cli
