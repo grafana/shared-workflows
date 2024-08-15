@@ -24,8 +24,8 @@ runs:
         ref: ${{ env.action_ref }}
         path: _shared-workflows-argo-lint
 
-    - name: Install argo-cli
-      uses: ./_shared-workflows-argo-lint/actions/install-argo-cli
+    - name: Setup Argo
+      uses: ./_shared-workflows-argo-lint/actions/setup-argo
 
     - name: Run
       env:
