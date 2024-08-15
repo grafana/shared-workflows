@@ -11,13 +11,13 @@ runs:
   using: composite
 
   steps:
-    - run: env
-      shell: bash
+  - run: env
+    shell: bash
 
-    - run: echo "$GITHUB_CONTEXT"
-      shell: bash
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
+  - run: echo "$GITHUB_CONTEXT"
+    shell: bash
+    env:
+      GITHUB_CONTEXT: ${{ toJson(github) }}
 
   - name: Checkout
     env:
