@@ -18,13 +18,9 @@ runs:
         path: ${{ github.workspace }}/bin/conftest
         key: conftest-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
 
-    - name: Normalize runner.os to match Conftest release
+    - if: runner.os == 'macOs'
       shell: sh
-      env:
-        OS: ${{ runner.os }}
-      run: |
-        [[ "$OS" == 'macOs' ]] && OS='Darwin'
-        echo "OS=$OS" >> "$GITHUB_ENV"
+      run: echo "OS=Darwin" >> "$GITHUB_ENV"
 
     # runner.arch options: X86, X64, ARM, or ARM64.
     # conftest release: arm64, x86_64, ppc64le, s390x.
