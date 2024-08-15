@@ -11,12 +11,32 @@ runs:
   using: composite
 
   steps:
-    - name: Restore cache
-      id: restore
-      uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+    - name: Setup cache
+      id: cache
+      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
       with:
-        path: ${{ github.workspace }}/bin
-        key: argo-linux-amd64-${{ inputs.version }}
+        path: ${{ github.workspace }}/bin/argo
+        key: argo-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+
+    - name: Normalize runner.os to match Argo release
+      shell: sh
+      env:
+        OS: ${{ runner.os }}
+      run: |
+        OS=$(echo "$OS" | tr '[:upper:]' '[:lower:]')
+        [[ "$OS" == 'macos' ]] && OS='darwin'
+        echo "OS=$OS" >> "$GITHUB_ENV"
+
+    # runner.arch options: X86, X64, ARM, or ARM64.
+    # argo release: arm64, amd64, ppc64le, s390x.
+    # If it ain't arm64 or x86_64, it'll fall back to runner.arch.
+    - if: runner.arch == 'X64'
+      shell: sh
+      run: echo "ARCH=x86_64" >> "$GITHUB_ENV"
+
+    - if: runner.arch == 'ARM64'
+      shell: sh
+      run: echo "ARCH=arm64" >> "$GITHUB_ENV"
 
     - name: Fetch Github Release Asset
       id: fetch_asset
@@ -25,7 +45,7 @@ runs:
       with:
         repo: "argoproj/argo-workflows"
         version: "tags/v${{ inputs.version }}"
-        file: "argo-linux-amd64.gz"
+        file: "argo-${{ env.OS || runner.os }}-${{ env.ARCH || runner.arch }}.gz"
         target: ${{ github.workspace }}/bin/argo.gz
 
     - name: gunzip
@@ -35,14 +55,6 @@ runs:
       run: |
         gunzip ${{ github.workspace }}/bin/argo.gz
         chmod +x ${{ github.workspace }}/bin/argo
-
-    - name: Save to cache
-      id: save
-      if: steps.gunzip.outcome == 'success'
-      uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-      with:
-        path: ${{ github.workspace }}/bin
-        key: ${{ steps.restore.outputs.cache-primary-key }}
 
     - name: Add binary to path
       shell: sh
