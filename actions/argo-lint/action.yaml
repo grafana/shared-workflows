@@ -28,9 +28,9 @@ runs:
         action_ref: ${{ github.action_ref }}
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
-          repository: ${{ env.action_repo }}
-          ref: ${{ env.action_ref }}
-          path: _shared-workflows-argo-lint
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _shared-workflows-argo-lint
 
     - name: Install argo-cli
       uses: ./_shared-workflows-argo-lint/actions/install-argo-cli
