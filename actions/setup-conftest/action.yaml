@@ -16,7 +16,7 @@ runs:
       uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
       with:
         path: ${{ github.workspace }}/bin/conftest
-        key: conftest-linux-amd64-${{ inputs.version }}
+        key: conftest-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
 
     - name: Fetch Github Release Asset
       id: fetch_asset
@@ -25,7 +25,7 @@ runs:
       with:
         repo: "open-policy-agent/conftest"
         version: "tags/v${{ inputs.version }}"
-        file: "conftest_${{ inputs.version }}_Linux_x86_64.tar.gz"
+        file: "conftest_${{ inputs.version }}_${{ runner.os }}_${{ runner.arch }}.tar.gz"
         target: ${{ github.workspace }}/bin/conftest.tgz
 
     - name: Unpack tarball
