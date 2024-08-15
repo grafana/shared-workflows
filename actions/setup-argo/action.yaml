@@ -1,5 +1,5 @@
-name: Install Argo cli
-description: Install Argo cli
+name: Setup Argo
+description: Setup Argo cli and add it to the PATH, this action will pull the binary from GitHub releases and store it in cache for the next run.
 
 inputs:
   version:
