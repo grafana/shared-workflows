@@ -10,4 +10,3 @@ with:
   version: 0.55.0 # Version of conftest to install.
 
 ```
-
