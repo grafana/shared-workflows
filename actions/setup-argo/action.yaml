@@ -45,7 +45,7 @@ runs:
       with:
         repo: "argoproj/argo-workflows"
         version: "tags/v${{ inputs.version }}"
-        file: "argo-${{ env.OS || runner.os }}-${{ env.ARCH || runner.arch }}.gz"
+        file: "argo-${{ env.OS }}-${{ env.ARCH || runner.arch }}.gz"
         target: ${{ github.workspace }}/bin/argo.gz
 
     - name: gunzip
