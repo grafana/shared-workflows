@@ -1,0 +1,62 @@
+name: Setup Argo
+description: Setup Argo cli and add it to the PATH, this action will pull the binary from GitHub releases and store it in cache for the next run.
+
+inputs:
+  version:
+    description: |
+      Version of the Argo CLI to install.
+    default: 3.5.1
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup cache
+      id: cache
+      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      with:
+        path: ${{ github.workspace }}/bin/argo
+        key: argo-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+
+    - name: Normalize runner.os to match Argo release
+      shell: sh
+      env:
+        OS: ${{ runner.os }}
+      run: |
+        OS=$(echo "$OS" | tr '[:upper:]' '[:lower:]')
+        [[ "$OS" == 'macos' ]] && OS='darwin'
+        echo "OS=$OS" >> "$GITHUB_ENV"
+
+    # runner.arch options: X86, X64, ARM, or ARM64.
+    # argo release: arm64, amd64, ppc64le, s390x.
+    # If it ain't arm64 or x86_64, it'll fall back to runner.arch.
+    - if: runner.arch == 'X64'
+      shell: sh
+      run: echo "ARCH=x86_64" >> "$GITHUB_ENV"
+
+    - if: runner.arch == 'ARM64'
+      shell: sh
+      run: echo "ARCH=arm64" >> "$GITHUB_ENV"
+
+    - name: Fetch Github Release Asset
+      id: fetch_asset
+      if: steps.restore.outputs.cache-hit != 'true'
+      uses: dsaltares/fetch-gh-release-asset@a40c8b4a0471f9ab81bdf73a010f74cc51476ad4 # 1.1.1
+      with:
+        repo: "argoproj/argo-workflows"
+        version: "tags/v${{ inputs.version }}"
+        file: "argo-${{ env.OS }}-${{ env.ARCH || runner.arch }}.gz"
+        target: ${{ github.workspace }}/bin/argo.gz
+
+    - name: gunzip
+      id: gunzip
+      if: steps.fetch_asset.outcome == 'success'
+      shell: sh
+      run: |
+        gunzip ${{ github.workspace }}/bin/argo.gz
+        chmod +x ${{ github.workspace }}/bin/argo
+
+    - name: Add binary to path
+      shell: sh
+      run: |
+        echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
