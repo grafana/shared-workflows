@@ -18,7 +18,7 @@ runs:
         path: ${{ github.workspace }}/bin/conftest
         key: conftest-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
 
-    - if: runner.os == 'macOs'
+    - if: runner.os == 'macOS'
       shell: sh
       run: echo "OS=Darwin" >> "$GITHUB_ENV"
 
