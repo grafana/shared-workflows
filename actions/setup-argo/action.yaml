@@ -32,7 +32,7 @@ runs:
     # If it ain't arm64 or x86_64, it'll fall back to runner.arch.
     - if: runner.arch == 'X64'
       shell: sh
-      run: echo "ARCH=x86_64" >> "$GITHUB_ENV"
+      run: echo "ARCH=amd64" >> "$GITHUB_ENV"
 
     - if: runner.arch == 'ARM64'
       shell: sh
