@@ -1,5 +1,5 @@
-name: Install conftest
-description: Install conftest
+name: Setup Conftest
+description: Setup conftest and add it to the PATH, this action will pull the binary from GitHub releases and store it in cache for the next run.
 
 inputs:
   version:
@@ -15,7 +15,7 @@ runs:
       id: restore
       uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
       with:
-        path: ${{ github.workspace }}/bin
+        path: ${{ github.workspace }}/bin/conftest
         key: conftest-linux-amd64-${{ inputs.version }}
 
     - name: Fetch Github Release Asset
@@ -40,9 +40,9 @@ runs:
     - name: Save to cache
       id: save
       if: steps.gunzip.outcome == 'success'
-      uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
       with:
-        path: ${{ github.workspace }}/bin
+        path: ${{ github.workspace }}/bin/conftest
         key: ${{ steps.restore.outputs.cache-primary-key }}
 
     - name: Add binary to path
