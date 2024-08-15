@@ -18,6 +18,14 @@ runs:
         path: ${{ github.workspace }}/bin/conftest
         key: conftest-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
 
+    - name: Normalize runner.os to match Conftest release
+      shell: sh
+      env:
+        OS: ${{ runner.os }}
+      run: |
+        [[ "$OS" == 'macOs' ]] && OS='Darwin'
+        echo "OS=$OS" >> "$GITHUB_ENV"
+
     # runner.arch options: X86, X64, ARM, or ARM64.
     # conftest release: arm64, x86_64, ppc64le, s390x.
     # If it ain't arm64 or x86_64, it'll fall back to runner.arch.
@@ -36,7 +44,7 @@ runs:
       with:
         repo: "open-policy-agent/conftest"
         version: "tags/v${{ inputs.version }}"
-        file: "conftest_${{ inputs.version }}_${{ runner.os }}_${{ env.ARCH || runner.arch }}.tar.gz"
+        file: "conftest_${{ inputs.version }}_${{ env.OS || runner.os }}_${{ env.ARCH || runner.arch }}.tar.gz"
         target: ${{ github.workspace }}/bin/conftest.tgz
 
     - name: Unpack tarball
