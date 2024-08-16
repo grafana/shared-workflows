@@ -19,7 +19,7 @@ runs:
         key: argo-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
 
     - name: Normalize runner.os to match Argo release
-      shell: sh
+      shell: bash
       env:
         OS: ${{ runner.os }}
       run: |
