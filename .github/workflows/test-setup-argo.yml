@@ -1,0 +1,57 @@
+name: Test Setup Argo
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/setup-argo/**
+      - .github/workflows/test-setup-argo.yml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/setup-argo/**
+      - .github/workflows/test-setup-argo.yml
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  setup-argo:
+    runs-on: ubuntu-latest
+    env:
+      # generate a unique cache prefix for each test run, so we can test cache behaviour
+      CACHE_PREFIX: argo-${{ github.run_id }}-${{ github.run_attempt }}
+
+    strategy:
+      matrix:
+        cache-hit: [false, true]
+      max-parallel: 1
+
+    name: "Setup Argo (cache hit: ${{ matrix.cache-hit }})"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          sparse-checkout: |
+            actions/setup-argo
+
+      - name: "Setup Argo (cache: ${{ matrix.cache-hit }})"
+        id: setup-argo
+        uses: ./actions/setup-argo
+        with:
+          cache-prefix: ${{ env.CACHE_PREFIX }}
+          version: 3.5.1
+
+      - name: Assert cache
+        if: fromJson(steps.setup-argo.outputs.cache-hit) != matrix.cache-hit
+        run: |
+          echo "Expected cache hit: '${{ matrix.cache-hit }}' but got '${{ fromJson(steps.setup-argo.outputs.cache-hit) }}'"
+          exit 1
+
+      - name: Check Argo CLI works
+        run: argo version
