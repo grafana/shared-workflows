@@ -53,8 +53,10 @@ runs:
         ref: ${{ env.action_ref }}
         path: _shared-workflows-trigger-argo-workflow
 
-    - name: Install argo-cli
-      uses: ./_shared-workflows-trigger-argo-workflow/actions/install-argo-cli
+    - name: Setup Argo CLI
+      uses: grafana/shared-workflows/actions/setup-argo@main
+      with:
+        version: 3.5.1 # Version of the Argo CLI to install.
 
     - name: Setup go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
