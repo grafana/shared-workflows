@@ -21,11 +21,17 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
         with:
-          node-version: "20"
+          cache: yarn
+          cache-dependency-path: actions/lint-pr-title/yarn.lock
+          node-version-file: actions/lint-pr-title/package.json
 
       - name: Install lint-pr-title dependencies
         working-directory: ./actions/lint-pr-title
         run: yarn install --frozen-lockfile
+
+      - name: Lint
+        working-directory: ./actions/lint-pr-title
+        run: yarn lint
 
       - name: Build lint-pr-title action
         working-directory: ./actions/lint-pr-title

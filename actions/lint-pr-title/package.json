@@ -2,10 +2,16 @@
   "name": "lint-pr-title",
   "version": "0.0.1",
   "description": "Ensure your PR title matches the commit lint specification.",
-  "main": "index.js",
   "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
-    "build": "yarn && rm -rf dist && ncc build index.js --license licenses.txt && cp node_modules/@commitlint/config-validator/lib/commitlint.schema.json dist/"
+    "typecheck": "tsc --noEmit",
+    "build": "yarn && yarn typecheck && rm -rf dist && yarn build-index-js && yarn bundle-extra-files",
+    "build-index-js": "esbuild index.ts --bundle --platform=node --target=es2022 --format=esm --outdir=dist --external:@commitlint/config-validator --external:conventional-changelog-angular",
+    "bundle-extra-files": "cd dist && mkdir node_modules && npm install @commitlint/config-validator @commitlint/config-conventional conventional-changelog-angular && rm package.json package-lock.json",
+    "lint": "eslint ."
   },
   "keywords": [
     "lint-pr-title",
@@ -17,8 +23,9 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
-    "@commitlint/config-validator": "^19.0.3",
+    "@commitlint/config-conventional": "^19.4.1",
     "@commitlint/lint": "^19.2.2",
+    "@commitlint/load": "^19.4.0",
     "@octokit/core": "^6.1.2",
     "@octokit/graphql": "^8.1.1"
   },
@@ -26,6 +33,19 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.1"
+    "@commitlint/types": "^19.0.3",
+    "@eslint/js": "^9.9.1",
+    "@octokit/types": "^13.5.0",
+    "@octokit/webhooks-types": "^7.5.1",
+    "@types/eslint__js": "^8.42.3",
+    "@types/node": "^20.0.0",
+    "@vercel/ncc": "^0.38.1",
+    "esbuild": "^0.23.1",
+    "eslint": "^9.9.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.3.0"
   }
 }
