@@ -18,3 +18,7 @@ jobs:
           config-path: "${{ github.workspace }}/actions/lint-pr-title/commitlint.config.js"
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - id: sleep
+        if: github.event_name == 'merge_group'
+        run: sleep 120
