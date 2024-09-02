@@ -11,7 +11,7 @@ inputs:
     required: true
     description: "ARN of workload role"
   pass-claims:
-    default: "event_name, repository_owner, repository_name, job_workflow_ref, workflow_ref"
+    default: "event_name, repository_owner, repository_name, job_workflow_ref, ref"
     required: true
     description: "`, `-separated claims from GitHub ID token to make available to `role-arn`"
   set-creds-in-environment:
