@@ -27,26 +27,12 @@ runs:
         path: ${{ github.workspace }}/bin/argo
         key: ${{ inputs.cache-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
 
-    - name: Normalize runner.os to match Argo release
+    - name: Map OS and ARCH to Argo release artifact
       if: steps.cache.outputs.cache-hit != 'true'
-      shell: bash
-      env:
-        OS: ${{ runner.os }}
+      shell: sh
       run: |
-        OS=$(echo "$OS" | tr '[:upper:]' '[:lower:]')
-        [[ "$OS" == 'macos' ]] && OS='darwin'
-        echo "OS=$OS" >> "$GITHUB_ENV"
-
-    # runner.arch options: X86, X64, ARM, or ARM64.
-    # argo release: arm64, amd64, ppc64le, s390x.
-    # If it ain't arm64 or amd64, it'll fall back to runner.arch.
-    - if: runner.arch == 'X64' && steps.cache.outputs.cache-hit != 'true'
-      shell: sh
-      run: echo "ARCH=amd64" >> "$GITHUB_ENV"
-
-    - if: runner.arch == 'ARM64' && steps.cache.outputs.cache-hit != 'true'
-      shell: sh
-      run: echo "ARCH=arm64" >> "$GITHUB_ENV"
+        echo "OS=$(go env GOOS)" >> "$GITHUB_ENV"
+        echo "ARCH=$(go env GOARCH)" >> "$GITHUB_ENV"
 
     - name: Fetch Github Release Asset
       id: fetch_asset
@@ -55,7 +41,7 @@ runs:
       with:
         repo: "argoproj/argo-workflows"
         version: "tags/v${{ inputs.version }}"
-        file: "argo-${{ env.OS }}-${{ env.ARCH || runner.arch }}.gz"
+        file: "argo-${{ env.OS }}-${{ env.ARCH }}${{ env.OS == 'windows' && '.exe' || '' }}.gz"
         target: ${{ github.workspace }}/bin/argo.gz
 
     - name: gunzip
