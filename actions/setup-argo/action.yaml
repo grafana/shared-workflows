@@ -41,7 +41,7 @@ runs:
       with:
         repo: "argoproj/argo-workflows"
         version: "tags/v${{ inputs.version }}"
-        file: "argo-${{ env.OS }}-${{ env.ARCH }}${{ env.OS == 'windows' && '.exe' }}.gz"
+        file: "argo-${{ env.OS }}-${{ env.ARCH }}${{ env.OS == 'windows' && '.exe' || '' }}.gz"
         target: ${{ github.workspace }}/bin/argo.gz
 
     - name: gunzip
