@@ -38888,7 +38888,7 @@ const headerCase = (parsed, when = 'always', value = []) => {
 const headerFullStop = (parsed, when = 'always', value = '.') => {
     const { header } = parsed;
     const negated = when === 'never';
-    const hasStop = (header === null || header === void 0 ? void 0 : header[header.length - 1]) === value;
+    const hasStop = header?.[header.length - 1] === value;
     return [
         negated ? !hasStop : hasStop,
         message(['header', negated ? 'may not' : 'must', 'end with full stop']),
@@ -38898,20 +38898,18 @@ const headerFullStop = (parsed, when = 'always', value = '.') => {
 ;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/header-max-length.js
 
 const headerMaxLength = (parsed, _when = undefined, value = 0) => {
-    var _a;
     return [
         max_length(parsed.header, value),
-        `header must not be longer than ${value} characters, current length is ${(_a = parsed.header) === null || _a === void 0 ? void 0 : _a.length}`,
+        `header must not be longer than ${value} characters, current length is ${parsed.header?.length}`,
     ];
 };
 //# sourceMappingURL=header-max-length.js.map
 ;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/header-min-length.js
 
 const headerMinLength = (parsed, _when = undefined, value = 0) => {
-    var _a;
     return [
         min_length(parsed.header, value),
-        `header must not be shorter than ${value} characters, current length is ${(_a = parsed.header) === null || _a === void 0 ? void 0 : _a.length}`,
+        `header must not be shorter than ${value} characters, current length is ${parsed.header?.length}`,
     ];
 };
 //# sourceMappingURL=header-min-length.js.map
@@ -39056,7 +39054,9 @@ const signedOffBy = (parsed, when = 'always', value = '') => {
         Boolean(ln));
     const last = lines[lines.length - 1];
     const negated = when === 'never';
-    const hasSignedOffBy = last.startsWith(value);
+    const hasSignedOffBy = 
+    // empty commit message
+    last ? last.startsWith(value) : false;
     return [
         negated ? !hasSignedOffBy : hasSignedOffBy,
         message(['message', negated ? 'must not' : 'must', 'be signed off']),
@@ -39123,15 +39123,14 @@ const subjectEmpty = (parsed, when = 'always') => {
 ;// CONCATENATED MODULE: ./node_modules/@commitlint/rules/lib/subject-full-stop.js
 
 const subjectFullStop = (parsed, when = 'always', value = '.') => {
-    var _a;
-    const colonIndex = ((_a = parsed.header) === null || _a === void 0 ? void 0 : _a.indexOf(':')) || 0;
+    const colonIndex = parsed.header?.indexOf(':') || 0;
     if (colonIndex > 0 && colonIndex === parsed.header.length - 1) {
         return [true];
     }
     const input = parsed.header;
     const negated = when === 'never';
-    let hasStop = (input === null || input === void 0 ? void 0 : input[input.length - 1]) === value;
-    if ((input === null || input === void 0 ? void 0 : input.slice(-3)) === '...') {
+    let hasStop = input?.[input.length - 1] === value;
+    if (input?.slice(-3) === '...') {
         hasStop = false;
     }
     return [
