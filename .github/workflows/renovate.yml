@@ -1,0 +1,41 @@
+name: Renovate
+on:
+  schedule:
+    # Offset by 12 minutes to avoid busy times on the hour
+    - cron: 12 */4 * * *
+  pull_request:
+    paths:
+      - .github/renovate-app.json
+      - .github/workflows/renovate.yml
+
+jobs:
+  renovate:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          sparse-checkout: .github/renovate-app.json
+
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1.11.0
+        with:
+          app-id: ${{ secrets.RENOVATEGRAFANA_ID }}
+          private-key: ${{ secrets.RENOVATEGRAFANA_PEM }}
+
+      - name: Self-hosted Renovate
+        uses: renovatebot/github-action@e1db501385ddcccbaae6fb9c06befae04f379f23 # v40.2.10
+        with:
+          configurationFile: .github/renovate-config.json
+          renovate-version: 38.84.1@sha256:053fbfbe217029b410bab7c11e25dbab8518fae75db9b542c423bdbdc97aa206
+          token: ${{ steps.generate-token.outputs.token }}
+        env:
+          LOG_LEVEL: ${{ github.event_name == 'pull_request' && 'debug' || 'info' }}
+          RENOVATE_DRY_RUN: ${{ github.event_name == 'pull_request' && 'full' || null }}
+          RENOVATE_PLATFORM: github
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_USERNAME: GrafanaRenovateBot
