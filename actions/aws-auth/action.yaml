@@ -44,7 +44,7 @@ runs:
   using: composite
   steps:
     - id: auth
-      uses: catnekaise/cognito-idpool-auth@83ae9e159de469b3acd87ecb361d6b5957ee35ae # v1.0.1
+      uses: catnekaise/cognito-idpool-auth@41fcec30f55c069bc59f5773077c37477c743bf6 # v1.0.2
       with:
         cognito-identity-pool-id: "us-east-2:3a4bca79-07af-4921-a9fb-e21475708406"
         auth-flow: "enhanced"
