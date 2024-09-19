@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@9550da953dd3b29aedf76cd635101e48eae5eebd # v2.17.4
+        uses: github/codeql-action/init@422b177bb3935638109d3175d95e4dbf97066060 # v2.26.8
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -50,6 +50,6 @@ jobs:
             paths-ignore: ${{ toJSON(matrix.paths-ignore) }}
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@9550da953dd3b29aedf76cd635101e48eae5eebd # v2.17.4
+        uses: github/codeql-action/analyze@422b177bb3935638109d3175d95e4dbf97066060 # v2.26.8
         with:
           category: "/language:${{matrix.language}}"
