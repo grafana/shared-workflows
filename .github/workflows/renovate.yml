@@ -57,7 +57,7 @@ jobs:
           # run. By default, Renovate will clone the main/default branch.
           RENOVATE_BASE_BRANCHES: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || null }}
           # Dry run if the event is pull_request, or workflow_dispatch AND the dry-run input is true
-          RENOVATE_DRY_RUN: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.dry-run) && 'full' || null }}
+          RENOVATE_DRY_RUN: ${{ (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.dry-run == 'true')) && 'full' || null }}
           RENOVATE_PLATFORM: github
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           RENOVATE_USERNAME: GrafanaRenovateBot
