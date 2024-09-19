@@ -56,7 +56,7 @@ runs:
     # See this conversation for more context as to why we don't want to allow pushes on pull requests
     # https://github.com/grafana/shared-workflows/pull/143#discussion_r1628314620
     - name: Check if push is allowed
-      if: ${{ inputs.push == 'true' && github.event_name == 'pull_request' }}
+      if: ${{ false && inputs.push == 'true' && github.event_name == 'pull_request' }}
       shell: sh
       run: |
         >&2 echo "Publishing to DockerHub is not allowed on pull_request events."
@@ -98,15 +98,32 @@ runs:
         tags: ${{ inputs.tags }}
 
     - name: Build and push Docker image
+      id: build-push
       uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
       with:
+        attests: type=provenance,mode=max
         context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        labels: ${{ steps.meta.outputs.labels }}
         platforms: ${{ inputs.platforms }}
+        sbom: true
         push: ${{ inputs.push }}
         tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        file: ${{ inputs.file }}
-        build-args: ${{ inputs.build-args }}
-        target: ${{ inputs.target }}
-        cache-from: ${{ inputs.cache-from }}
-        cache-to: ${{ inputs.cache-to }}
+
+    - name: Attest build provenance
+      uses: actions/attest-build-provenance@5e9cb68e95676991667494a6a4e59b8a2f13e1d0 # v1.3.3
+      with:
+        push-to-registry: ${{ inputs.push }}
+        subject-digest: ${{ steps.build-push.outputs.digest }}
+        subject-name: index.docker.io/${{ inputs.repository }}
+
+    - name: Install cosign
+      uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+
+    - name: Sign image
+      shell: sh
+      run: >
+        cosign sign
+        --yes
+        --tlog-upload=${{ github.repository_visibility == 'public' && 'true' || 'false' }}
+        index.docker.io/${{ inputs.repository }}@${{ steps.build-push.outputs.digest }}
