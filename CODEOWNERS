@@ -6,7 +6,7 @@
 
 # Owned by the Grafana department's Infra O11y Frontend squad
 .github/workflows/build-lint-pr.yml  @grafana/infra-o11y-frontend
-/actions/lint-pr-title/              @grafana/infra-o11y-frontend
+/actions/lint-pr-title/              @grafana/infra-o11y-frontend @grafana/platform-productivity
 
 # Platform CAT
 /actions/generate-openapi-clients @grafana/platform-cat

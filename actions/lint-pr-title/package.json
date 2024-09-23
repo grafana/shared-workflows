@@ -2,9 +2,15 @@
   "name": "lint-pr-title",
   "version": "0.0.1",
   "description": "Ensure your PR title matches the commit lint specification.",
-  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "private": true,
   "scripts": {
-    "build": "yarn && rm -rf dist && ncc build index.js --license licenses.txt"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "bun test"
   },
   "keywords": [
     "lint-pr-title",
@@ -16,13 +22,27 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
-    "@commitlint/lint": "^19.4.1"
-  },
-  "engines": {
-    "node": ">=20"
+    "@commitlint/config-conventional": "^19.5.0",
+    "@commitlint/format": "^19.5.0",
+    "@commitlint/lint": "^19.5.0",
+    "@commitlint/load": "^19.5.0",
+    "@octokit/core": "^6.1.2",
+    "@octokit/graphql": "^8.1.1"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.1"
+    "@commitlint/types": "^19.5.0",
+    "@eslint/js": "^9.10.0",
+    "@octokit/types": "^13.5.0",
+    "@octokit/webhooks-types": "^7.5.1",
+    "@types/bun": "^1.1.9",
+    "@types/eslint__js": "^8.42.3",
+    "eslint": "^9.10.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jest": "^28.8.3",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.5.0"
   },
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  "packageManager": "bun@1.1.27"
 }

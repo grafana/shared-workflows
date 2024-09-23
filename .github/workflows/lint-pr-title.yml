@@ -11,9 +11,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
       - id: lint-pr-title
         uses: ./actions/lint-pr-title
-        with:
-          config-path: "${{ github.workspace }}/actions/lint-pr-title/commitlint.config.js"
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
