@@ -4,7 +4,7 @@ description: Trigger an Argo workflow in the Grafana Labs Argo Workflows instanc
 inputs:
   instance:
     description: |
-      The instance to use (`dev` or `ops`). Defaults to `ops`.
+      The instance to use (`dev`, `dev-aws`, `ops` or `ops-aws`). Defaults to `ops`.
     default: ops
   namespace:
     description: |
@@ -64,13 +64,44 @@ runs:
           actions/trigger-argo-workflow/go.sum
         go-version-file: "_shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow/go.mod"
 
+    - name: Map cluster and vault instance from Argo WF instance
+      id: argo-instance
+      shell: sh
+      run: |
+        # Map the instance to the cluster name to get the correct secret
+        case "${{ inputs.instance }}" in
+          dev-aws)
+            cluster="dev-us-east-0"
+            vault_instance="dev"
+            ;;
+          dev)
+            cluster="dev-us-central-0"
+            vault_instance="dev"
+            ;;
+          ops)
+            cluster="ops-us-east-0"
+            vault_instance="ops"
+            ;;
+          ops-aws)
+            cluster="ops-eu-south-0"
+            vault_instance="ops"
+            ;;
+          *)
+            echo "unknown instance '${{ inputs.instance }}'"
+            exit 1
+            ;;
+        esac
+
+        echo "name=${cluster}" | tee -a "${GITHUB_OUTPUT}"
+        echo "vault-instance=${vault_instance}" | tee -a "${GITHUB_OUTPUT}"
+
     - name: Get Argo Token
       id: get-argo-token
       uses: ./_shared-workflows-trigger-argo-workflow/actions/get-vault-secrets
       with:
-        vault_instance: ${{ inputs.instance }}
+        vault_instance: ${{ steps.argo-instance.outputs.vault-instance }}
         repo_secrets: |
-          ARGO_TOKEN=argo-workflows-trigger:token
+          ARGO_TOKEN=${{ steps.argo-instance.outputs.name }}/argo-workflows-trigger:token
 
     - name: Run
       id: run
