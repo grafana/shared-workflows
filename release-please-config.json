@@ -1,0 +1,105 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "changelog-sections": [
+    {
+      "section": "🎉 Features",
+      "type": "feat"
+    },
+    {
+      "section": "🐛 Bug Fixes",
+      "type": "fix"
+    },
+    {
+      "section": "⚡ Performance Improvements",
+      "type": "perf"
+    },
+    {
+      "section": "🔗 Dependencies",
+      "type": "deps"
+    },
+    {
+      "section": "📝 Documentation",
+      "type": "docs"
+    },
+    {
+      "section": "🏗️ Build System",
+      "type": "build"
+    },
+    {
+      "section": "🤖 Continuous Integration",
+      "type": "ci"
+    },
+    {
+      "section": "🔧 Miscellaneous Chores",
+      "type": "chore"
+    },
+    {
+      "section": "⏪ Reverts",
+      "type": "revert"
+    },
+    {
+      "section": "✅ Tests",
+      "type": "test"
+    },
+    {
+      "section": "💄 Styles",
+      "type": "style"
+    },
+    {
+      "section": "♻️ Code Refactoring",
+      "type": "refactor"
+    }
+  ],
+  "component-no-space": true,
+  "skip-github-release": true,
+  "packages": {
+    "actions/argo-lint": {
+      "package-name": "argo-lint"
+    },
+    "actions/aws-auth": {
+      "package-name": "aws-auth"
+    },
+    "actions/build-push-to-dockerhub": {
+      "package-name": "build-push-to-dockerhub"
+    },
+    "actions/dockerhub-login": {
+      "package-name": "dockerhub-login"
+    },
+    "actions/find-pr-for-commit": {
+      "package-name": "find-pr-for-commit"
+    },
+    "actions/generate-openapi-clients": {
+      "package-name": "generate-openapi-clients"
+    },
+    "actions/get-vault-secrets": {
+      "package-name": "get-vault-secrets"
+    },
+    "actions/lint-pr-title": {
+      "package-name": "lint-pr-title"
+    },
+    "actions/login-to-gar": {
+      "package-name": "login-to-gar"
+    },
+    "actions/login-to-gcs": {
+      "package-name": "login-to-gcs"
+    },
+    "actions/push-to-gar-docker": {
+      "package-name": "push-to-gar-docker"
+    },
+    "actions/push-to-gcs": {
+      "package-name": "push-to-gcs"
+    },
+    "actions/send-slack-message": {
+      "package-name": "send-slack-message"
+    },
+    "actions/setup-argo": {
+      "package-name": "setup-argo"
+    },
+    "actions/setup-conftest": {
+      "package-name": "setup-conftest"
+    }
+  },
+  "pull-request-title-pattern": "chore(${component}): release ${version}",
+  "release-type": "simple",
+  "separate-pull-requests": true
+}
