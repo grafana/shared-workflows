@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"maps"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/lmittmann/tint"
@@ -113,9 +115,10 @@ func main() {
 			EnvVars: []string{"INSTANCE"},
 			Value:   "ops",
 			Action: func(c *cli.Context, instance string) error {
-				// Validate it is "dev" or "ops"
-				if instance != "dev" && instance != "ops" {
-					return fmt.Errorf("invalid instance: `%s`. choose from: dev, ops", instance)
+				// Validate it is a known instance
+				instances := slices.Collect(maps.Keys(instanceToHost))
+				if !slices.Contains(instances, instance) {
+					return fmt.Errorf("invalid instance: `%s`. choose from: %s", instance, strings.Join(instances, ", "))
 				}
 
 				return nil

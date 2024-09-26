@@ -1,6 +1,6 @@
 module github.com/grafana/shared-workflows/actions/trigger-argo-workflow
 
-go 1.21.5
+go 1.23.1
 
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
