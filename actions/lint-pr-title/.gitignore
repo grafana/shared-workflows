@@ -8,5 +8,10 @@ yarn-error.log*
 
 node_modules/
 
+coverage/
+dist/
+
+.*.bun-build
+
 # Editor
 .idea

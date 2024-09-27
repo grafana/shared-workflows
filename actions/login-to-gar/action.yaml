@@ -19,7 +19,7 @@ runs:
       run: |
         SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
-    - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
+    - uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # v2.1.5
       id: gcloud-auth
       with:
         token_format: access_token
@@ -27,7 +27,7 @@ runs:
         service_account: ${{ steps.construct-service-account.outputs.service_account }}
         create_credentials_file: false
     - name: Login to GAR
-      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
       with:
         registry: ${{ inputs.registry }}
         username: oauth2accesstoken
