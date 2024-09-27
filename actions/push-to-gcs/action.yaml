@@ -27,6 +27,11 @@ inputs:
       Whether parent dir should be included in GCS destination.
       Dirs included in the `glob` statement are unaffected by this setting.
     default: "true"
+  predefinedAcl:
+    description: |
+      Apply a predefined set of access controls to the file(s).
+      Default is projectPrivate (See https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions)
+    default: projectPrivate
 
 outputs:
   uploaded:
@@ -40,7 +45,7 @@ runs:
       env:
         action_repo: ${{ github.action_repository }}
         action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
@@ -75,11 +80,12 @@ runs:
         DESTINATION="${DESTINATION%/}"  # strip trailing /
 
         echo "destination=${DESTINATION}" | tee -a ${GITHUB_OUTPUT}
-    - uses: google-github-actions/upload-cloud-storage@22121cd842b0d185e042e28d969925b538c33d77 # v2.1.0
+    - uses: google-github-actions/upload-cloud-storage@e485962f2bef914ac9c3bdd571f821f0ba7946c4 # v2.2.0
       id: upload-files
       with:
         path: ${{ inputs.path }}
         glob: ${{ inputs.glob }}
         destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
         parent: ${{ inputs.parent }}
+        predefinedAcl: ${{ inputs.predefinedAcl }}
         process_gcloudignore: false

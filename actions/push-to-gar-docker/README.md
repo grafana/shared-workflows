@@ -35,6 +35,13 @@ jobs:
           environment: "dev" # can be either dev/prod
 ```
 
+[Artifact Registry repositories can't contain underscores][underscore-issue].
+As a convention, this action will replace any underscores in the repository name
+with hyphens. That behaviour can be overridden using the `repository_name`
+input.
+
+[underscore-issue]: https://issuetracker.google.com/issues/229159012
+
 ## Inputs
 
 | Name                   | Type    | Description                                                                                                                                                                    |
@@ -53,6 +60,7 @@ jobs:
 | `ssh`                  | List    | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)) |
 | `build-contexts`       | List    | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                 |
 | `docker-buildx-driver` | String  | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                                   |
+| `repository_name`      | String  | Override the 'repo_name' which is included as part of the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.       |
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
