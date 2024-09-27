@@ -68,20 +68,22 @@ will ensure actions in this repo are always used at the same commit. To do this:
     some-input: some-value
 ```
 
-### Releasing a version of shared-workflows
+### Releasing a version of a component in shared-workflows
 
 When working with `shared-workflows`, it's essential to avoid breaking backwards compatibility. To ensure this, we must provide releasable actions for engineers to review incoming changes. This also helps automated update tools like `dependabot` and `renovate` to work effectively.
 
-Upon push to main, a new PR with updates in the CHANGELOG.md will be generated. The author needs to review and approve the PR, then merge. When merged, a new tag with a new release will be shown in the repository's GitHub page.
+Upon push to main, a draft PR with updates in the CHANGELOG.md will be updated or created. This can be undrafted and merged at any time to create the next tagged release. Since we're a monorepo, one PR will be created for each action/reusable workflow that has been updated. They can be released individually and tags will be of the form `<name>-<semver version>`.
 
 In order for the release action to work properly, which means to generate a CHANGELOG for the current release, the pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This means that the PR should start with a `type` followed by a colon, and then a `subject` - all in lowercase.
 
-For example:
-
-- `feat: add new release action`
+Minor version bumps are indicated by new features: `feat: add support for eating lollipops`. Major version bumps are indicated by an `!` after the type in the commit message/description, for example: `feat!: rename foo input to bar`.
 
 Also, the PR description needs to be filled and should never be empty.
 
 Failing to follow any of the aforementioned necessary steps, will lead to CI failing on your pull request.
 
 More about how the upstream action works can be found [here](https://github.com/googleapis/release-please-action).
+
+### Add new components to Release Please config file
+
+In order for components to be released, they must be in the [release-please-config.json](./release-please-config.json) file. Always ensure new components are added to this file.
