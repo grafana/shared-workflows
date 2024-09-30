@@ -45,7 +45,7 @@ jobs:
           private-key: ${{ secrets.RENOVATEGRAFANA_PEM }}
 
       - name: Self-hosted Renovate
-        uses: renovatebot/github-action@e1db501385ddcccbaae6fb9c06befae04f379f23 # v40.2.10
+        uses: renovatebot/github-action@180db1547505e30c02d41959fe65ada1523ee207 # v40.3.0
         with:
           configurationFile: .github/renovate-config.json
           renovate-version: 38.84.1@sha256:053fbfbe217029b410bab7c11e25dbab8518fae75db9b542c423bdbdc97aa206
