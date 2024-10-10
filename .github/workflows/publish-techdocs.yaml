@@ -44,17 +44,17 @@ on:
         description: "The name of the GCS bucket to which the docs will be published"
         required: false
         type: string
-        default: ops-us-east-0-backstage
-      workload-identity-provider:
-        description: "The GCP workload identity provider to use for authentication"
+        default: ops-eu-south-0-backstage
+      aws-region:
+        default: "eu-south-2"
         required: false
+        description: "AWS region"
         type: string
-        default: projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider
-      service-account:
-        description: "The GCP service account to use for authentication"
+      aws-role-arn:
+        default: "arn:aws:iam::058264369985:role/github-actions/backstage-techdocs-publisher"
         required: false
+        description: "ARN of workload role"
         type: string
-        default: github-backstage-techdocs@grafanalabs-workload-identity.iam.gserviceaccount.com
 
 jobs:
   generate-and-publish-docs:
@@ -88,13 +88,13 @@ jobs:
           checkout-action-repository: "false"
           checkout-action-repository-path: _shared-workflows-publish-techdocs
 
-      - id: auth
-        name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
+      - id: aws-auth
+        if: inputs.publish
+        uses: ./_shared-workflows-publish-techdocs/actions/aws-auth
         with:
-          create_credentials_file: true
-          workload_identity_provider: ${{ inputs.workload-identity-provider }}
-          service_account: ${{ inputs.service-account }}
+          aws-region: ${{ inputs.aws-region }}
+          role-arn: ${{ inputs.aws-role-arn }}
+          set-creds-in-environment: true
 
       # Pinning until resolved https://github.com/backstage/backstage/issues/25303
       - name: Install techdocs-cli
@@ -115,5 +115,5 @@ jobs:
 
       - name: Publish docs site
         if: inputs.publish
-        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ inputs.bucket }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
+        run: techdocs-cli publish --publisher-type awsS3 --storage-name ${{ inputs.bucket }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
         working-directory: ${{ inputs.default-working-directory }}
