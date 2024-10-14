@@ -61,7 +61,13 @@ runs:
         REPO_SECRETS: ${{ inputs.repo_secrets }}
         COMMON_SECRETS: ${{ inputs.common_secrets }}
         REPO: ${{ github.repository }}
-
+    - id: get-github-jwt-token
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const jwt = await core.getIDToken();
+          core.setSecret(jwt);
+          core.setOutput("github_jwt",jwt);
       # Get the secrets
     - name: Import Secrets
       id: import-secrets
@@ -74,5 +80,6 @@ runs:
         jwtGithubAudience: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
         extraHeaders: |
           Proxy-Authorization: Bearer ${{ steps.vault-iap-auth.outputs.id_token }}
+          Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github_jwt }}
         secrets: |
           ${{ steps.translate-secrets.outputs.secrets }}
