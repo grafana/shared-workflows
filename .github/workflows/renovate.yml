@@ -28,6 +28,7 @@ jobs:
   renovate:
     permissions:
       contents: read
+      id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -35,14 +36,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
-          sparse-checkout: .github/renovate-config.json
+          sparse-checkout: |
+            .github/renovate-config.json
+            actions/get-vault-secrets
+
+      - name: Retrieve renovate secrets
+        id: get-secrets
+        uses: ./actions/get-vault-secrets
+        with:
+          common_secrets: |
+            GRAFANA_RENOVATE_APP_ID=grafana-renovate-app:app-id
+            GRAFANA_RENOVATE_PRIVATE_KEY=grafana-renovate-app:private-key
 
       - name: Generate token
         id: generate-token
         uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1.11.0
         with:
-          app-id: ${{ secrets.RENOVATEGRAFANA_ID }}
-          private-key: ${{ secrets.RENOVATEGRAFANA_PEM }}
+          app-id: ${{ env.GRAFANA_RENOVATE_APP_ID }}
+          private-key: ${{ env.GRAFANA_RENOVATE_PRIVATE_KEY }}
 
       - name: Self-hosted Renovate
         uses: renovatebot/github-action@7743ec9e19ceeb61a3862c5d4131e6710195af11 # v40.3.3
