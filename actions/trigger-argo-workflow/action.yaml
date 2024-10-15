@@ -75,7 +75,7 @@ runs:
             vault_instance="dev"
             ;;
           ops)
-            cluster="ops-us-east-0"
+            cluster="ops-eu-south-0"
             vault_instance="ops"
             ;;
           ops-aws)
