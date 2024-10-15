@@ -75,7 +75,7 @@ runs:
       id: import-secrets
       uses: hashicorp/vault-action@d1720f055e0635fd932a1d2a48f87a666a57906c # v3.0.0
       with:
-        url: "https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net/"
+        url: "https://vault-github-actions-test.grafana-dev.net/"
         role: vault-github-actions
         path: github-actions-oidc
         method: jwt
