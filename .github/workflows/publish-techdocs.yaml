@@ -67,6 +67,18 @@ jobs:
           path: _shared-workflows-publish-techdocs
           submodules: "${{ inputs.checkout-submodules }}"
 
+      - name: print oidc token claims
+        run: |
+            IDTOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" -H "Accept: application/json; api-version=2.0" -H "Content-Type: application/json"  | jq -r '.value')
+            jwtd() {
+              if [[ -x $(command -v jq) ]]; then
+                  jq -R 'split(".") | .[1] | @base64d | fromjson' <<< "${1}" > jwt_claims.json
+                  cat jwt_claims.json
+                  echo ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL}}
+              fi
+            }
+            jwtd $IDTOKEN
+
       - name: Rewrite relative links
         if: inputs.rewrite-relative-links || inputs.rewrite-relative-links-dry-run
         uses: ./_shared-workflows-publish-techdocs/actions/techdocs-rewrite-relative-links
