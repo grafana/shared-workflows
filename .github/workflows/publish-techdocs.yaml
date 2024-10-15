@@ -83,16 +83,19 @@ jobs:
         run: |
           case "${{inputs.instance}}" in
             dev)
-              aws_role_arn=arn:aws:iam::058264369985:role/github-actions/backstage-techdocs-publisher
+              aws_role_arn=arn:aws:iam::663667355653:role/github-actions/backstage-techdocs-publisher
               aws_region=us-east-2
               aws_bucket=dev-us-east-0-backstage
+              ;;
             ops)
               aws_role_arn=arn:aws:iam::058264369985:role/github-actions/backstage-techdocs-publisher
               aws_region=eu-south-2
               aws_bucket=ops-eu-south-0-backstage
+              ;;
             *)
               echo "unknown instance"
               exit 1
+              ;;
           esac
 
           echo "aws-role-arn=${aws_role_arn}" | tee -a "${GITHUB_OUTPUT}"
@@ -103,7 +106,7 @@ jobs:
         if: inputs.publish
         uses: ./_shared-workflows-publish-techdocs/actions/aws-auth
         with:
-          aws-region: ${{ steps.instance-settings.output.aws-region }}
+          aws-region: ${{ steps.instance-settings.outputs.aws-region }}
           role-arn: ${{ steps.instance-settings.outputs.aws-role-arn }}
           set-creds-in-environment: true
 
