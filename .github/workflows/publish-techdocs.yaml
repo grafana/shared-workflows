@@ -40,21 +40,11 @@ on:
         required: false
         type: string
         default: "false"
-      bucket:
-        description: "The name of the GCS bucket to which the docs will be published"
+      instance:
+        description: The instance to use (`dev` or `ops`). Defaults to `ops`.
         required: false
+        default: "ops"
         type: string
-        default: ops-us-east-0-backstage
-      workload-identity-provider:
-        description: "The GCP workload identity provider to use for authentication"
-        required: false
-        type: string
-        default: projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider
-      service-account:
-        description: "The GCP service account to use for authentication"
-        required: false
-        type: string
-        default: github-backstage-techdocs@grafanalabs-workload-identity.iam.gserviceaccount.com
 
 jobs:
   generate-and-publish-docs:
@@ -88,13 +78,37 @@ jobs:
           checkout-action-repository: "false"
           checkout-action-repository-path: _shared-workflows-publish-techdocs
 
-      - id: auth
-        name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
+      - id: instance-settings
+        shell: sh
+        run: |
+          case "${{inputs.instance}}" in
+            dev)
+              aws_role_arn=arn:aws:iam::663667355653:role/github-actions/backstage-techdocs-publisher
+              aws_region=us-east-2
+              aws_bucket=dev-us-east-0-backstage
+              ;;
+            ops)
+              aws_role_arn=arn:aws:iam::058264369985:role/github-actions/backstage-techdocs-publisher
+              aws_region=eu-south-2
+              aws_bucket=ops-eu-south-0-backstage
+              ;;
+            *)
+              echo "unknown instance"
+              exit 1
+              ;;
+          esac
+
+          echo "aws-role-arn=${aws_role_arn}" | tee -a "${GITHUB_OUTPUT}"
+          echo "aws-region=${aws_region}" | tee -a "${GITHUB_OUTPUT}"
+          echo "aws-bucket=${aws_bucket}" | tee -a "${GITHUB_OUTPUT}"
+
+      - id: aws-auth
+        if: inputs.publish
+        uses: ./_shared-workflows-publish-techdocs/actions/aws-auth
         with:
-          create_credentials_file: true
-          workload_identity_provider: ${{ inputs.workload-identity-provider }}
-          service_account: ${{ inputs.service-account }}
+          aws-region: ${{ steps.instance-settings.outputs.aws-region }}
+          role-arn: ${{ steps.instance-settings.outputs.aws-role-arn }}
+          set-creds-in-environment: true
 
       # Pinning until resolved https://github.com/backstage/backstage/issues/25303
       - name: Install techdocs-cli
@@ -115,5 +129,5 @@ jobs:
 
       - name: Publish docs site
         if: inputs.publish
-        run: techdocs-cli publish --publisher-type googleGcs --storage-name ${{ inputs.bucket }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
+        run: techdocs-cli publish --publisher-type awsS3 --storage-name ${{ steps.instance-settings.outputs.aws-bucket }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
         working-directory: ${{ inputs.default-working-directory }}
