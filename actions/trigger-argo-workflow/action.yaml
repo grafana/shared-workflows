@@ -4,7 +4,7 @@ description: Trigger an Argo workflow in the Grafana Labs Argo Workflows instanc
 inputs:
   instance:
     description: |
-      The instance to use (`dev` or `ops`). Defaults to `ops`.
+      The instance to use (`dev`, `ops` or `ops-aws`). Defaults to `ops`.
     default: ops
   namespace:
     description: |
@@ -47,30 +47,57 @@ runs:
         # https://docs.github.com/en/actions/learn-github-actions/contexts
         action_repo: ${{ github.action_repository }}
         action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: _shared-workflows-trigger-argo-workflow
 
-    - name: Install argo-cli
-      uses: ./_shared-workflows-trigger-argo-workflow/actions/install-argo-cli
+    - name: Setup argo
+      uses: ./_shared-workflows-trigger-argo-workflow/actions/setup-argo
 
     - name: Setup go
-      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
       with:
         check-latest: true
         cache-dependency-path: |
           actions/trigger-argo-workflow/go.sum
         go-version-file: "_shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow/go.mod"
 
+    - name: Map cluster and vault instance from Argo WF instance
+      id: argo-instance
+      shell: sh
+      run: |
+        # Map the instance to the cluster name to get the correct secret
+        case "${{ inputs.instance }}" in
+          dev)
+            cluster="dev-us-east-0"
+            vault_instance="dev"
+            ;;
+          ops)
+            cluster="ops-us-east-0"
+            vault_instance="ops"
+            ;;
+          ops-aws)
+            cluster="ops-eu-south-0"
+            vault_instance="ops"
+            ;;
+          *)
+            echo "unknown instance '${{ inputs.instance }}'"
+            exit 1
+            ;;
+        esac
+
+        echo "name=${cluster}" | tee -a "${GITHUB_OUTPUT}"
+        echo "vault-instance=${vault_instance}" | tee -a "${GITHUB_OUTPUT}"
+
     - name: Get Argo Token
       id: get-argo-token
       uses: ./_shared-workflows-trigger-argo-workflow/actions/get-vault-secrets
       with:
-        vault_instance: ${{ inputs.instance }}
+        vault_instance: ${{ steps.argo-instance.outputs.vault-instance }}
         repo_secrets: |
-          ARGO_TOKEN=argo-workflows-trigger:token
+          ARGO_TOKEN=${{ steps.argo-instance.outputs.name }}/argo-workflows-trigger:token
 
     - name: Run
       id: run

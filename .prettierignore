@@ -1,1 +1,4 @@
-actions/lint-pr-title/dist/**
+# Generated files handled by release-please
+
+.release-please-manifest.json
+**/CHANGELOG.md

@@ -1,12 +1,42 @@
 name: Lint pull request title using Javascript
 description: Run lint on the PR title to check if It matches the commitlint specification.
+
 inputs:
   config-path:
-    description: "Absolute path for the commitlint configuration file"
+    default: "./commitlint.config.js"
+    description: "Path to the commitlint configuration file, relative to the action's directory."
     required: false
+
+  title-only:
+    default: "true"
+    description: "Check only the PR/commit title. If false, it will check the whole PR/commit message."
+    required: false
+
 runs:
-  using: "node20"
-  main: "dist/index.js"
+  using: "composite"
+  steps:
+    - name: Install bun package manager
+      uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
+      with:
+        bun-version-file: "${{ github.action_path }}/package.json"
+
+    - name: Install dependencies
+      shell: sh
+      working-directory: ${{ github.action_path }}
+      run: |
+        bun install --frozen-lockfile --production
+
+    - name: Lint PR title
+      shell: sh
+      working-directory: ${{ github.action_path }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        INPUT_CONFIG_PATH: ${{ inputs.config-path }}
+        INPUT_TITLE_ONLY: ${{ inputs.title-only }}
+        NODE_ENV: "production"
+      run: |
+        bun run src/index.ts
+
 branding:
   icon: "shield"
   color: "green"

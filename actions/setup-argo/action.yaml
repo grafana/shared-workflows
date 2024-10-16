@@ -1,0 +1,67 @@
+name: Setup Argo
+description: Setup Argo cli and add it to the PATH, this action will pull the binary from GitHub releases and store it in cache for the next run.
+
+inputs:
+  cache-prefix:
+    description: Prefix for the cache key.
+    default: argo
+
+  version:
+    description: |
+      Version of the Argo CLI to install.
+    default: 3.5.1
+
+outputs:
+  cache-hit:
+    description: Whether the cache was hit or not.
+    value: ${{ steps.cache.outputs.cache-hit || 'false' }}
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup cache
+      id: cache
+      uses: actions/cache@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
+      with:
+        path: ${{ github.workspace }}/bin/argo
+        key: ${{ inputs.cache-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+
+    - name: Map OS and ARCH to Argo release artifact
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: sh
+      run: |
+        echo "OS=$(go env GOOS)" >> "$GITHUB_ENV"
+        echo "ARCH=$(go env GOARCH)" >> "$GITHUB_ENV"
+
+    - name: Fetch Github Release Asset
+      id: fetch_asset
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: dsaltares/fetch-gh-release-asset@aa2ab1243d6e0d5b405b973c89fa4d06a2d0fff7 # 1.1.2
+      with:
+        repo: "argoproj/argo-workflows"
+        version: "tags/v${{ inputs.version }}"
+        file: "argo-${{ env.OS }}-${{ env.ARCH }}${{ env.OS == 'windows' && '.exe' || '' }}.gz"
+        target: ${{ github.workspace }}/bin/argo.gz
+
+    - name: gunzip
+      id: gunzip
+      if: steps.fetch_asset.outcome == 'success'
+      shell: sh
+      run: |
+        # Overwrite the argo binary if it already exists. We assume it's from a
+        # previous run of this action.
+        gunzip --force ${{ github.workspace }}/bin/argo.gz
+        chmod +x ${{ github.workspace }}/bin/argo
+
+    - name: Add binary to path
+      shell: sh
+      run: |
+        # Check if `argo` is already in the PATH
+        if command -v argo >/dev/null; then
+          echo "argo is already in the PATH, not re-adding it"
+          exit 0
+        fi
+
+        echo "Adding '${{ github.workspace }}/bin' to the PATH so the 'argo' binary can be found"
+        echo "${{ github.workspace }}/bin" >> "${GITHUB_PATH}"

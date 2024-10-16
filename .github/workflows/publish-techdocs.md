@@ -41,8 +41,6 @@ jobs:
 | `rewrite-relative-links-dry-run` | boolean | Execute [rewrite-relative-links][rewrite-action] step but only print the diff without modifying the files                                                              |
 | `publish`                        | boolean | Enable or disable publishing after building the docs                                                                                                                   |
 | `checkout-submodules`            | string  | Checkout submodules in the repository. Options are `true` (checkout submodules), `false` (don't checkout submodules), or `recursive` (recursively checkout submodules) |
-| `bucket`                         | string  | The name of the GCS bucket to which the docs will be published                                                                                                         |
-| `workload-identity-provider`     | string  | The GCP workload identity provider to use for authentication                                                                                                           |
-| `service-account`                | string  | The GCP service account to use for authentication                                                                                                                      |
+| `instance`                       | string  | The name of the instance to which the docs should be published (`ops` (default), `dev`)                                                                                |
 
 [rewrite-action]: ../../actions/techdocs-rewrite-relative-links/README.md
