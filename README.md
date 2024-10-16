@@ -68,6 +68,27 @@ will ensure actions in this repo are always used at the same commit. To do this:
     some-input: some-value
 ```
 
+### Use separate files for shell scripts so they're linted
+
+Instead of embedding a shell script in the `run` string, write a separate script and refer to that.
+
+For example, don't use the step:
+
+```yaml
+id: echo-success
+shell: bash
+run: |
+  echo "Success!"
+```
+
+Instead, create the file `echo-success.bash` in the same directory and use the step:
+
+```yaml
+id: echo-success
+shell: bash
+run: ./echo-success.bash
+```
+
 ### Releasing a version of a component in shared-workflows
 
 When working with `shared-workflows`, it's essential to avoid breaking backwards compatibility. To ensure this, we must provide releasable actions for engineers to review incoming changes. This also helps automated update tools like `dependabot` and `renovate` to work effectively.
