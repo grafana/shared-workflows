@@ -63,7 +63,7 @@ runs:
         role: vault-github-actions
         path: github-actions-oidc
         method: jwt
-        jwtGithubAudience: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        jwtGithubAudience: "https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
         extraHeaders: |
           Proxy-Authorization: Bearer ${{ steps.vault-iap-auth.outputs.id_token }}
           Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}
