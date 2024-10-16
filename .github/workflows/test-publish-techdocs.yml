@@ -19,6 +19,12 @@ on:
       - .github/workflows/test-publish-techdocs.yml
       - .github/workflows/test-techdocs-rewrite-relative-links.yml
       - techdocs-rewrite-relative-links/**
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
   merge_group:
 
 concurrency:

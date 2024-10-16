@@ -13,6 +13,12 @@ on:
     paths:
       - actions/setup-argo/**
       - .github/workflows/test-setup-argo.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
   merge_group:
 
 concurrency:

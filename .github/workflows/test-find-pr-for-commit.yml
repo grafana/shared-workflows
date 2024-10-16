@@ -11,6 +11,11 @@ on:
     paths:
       - actions/find-pr-for-commit/**
       - .github/workflows/test-find-pr-for-commit.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
 
 permissions:
   contents: read

@@ -9,6 +9,11 @@ on:
   pull_request:
     paths:
       - "actions/trigger-argo-workflow/**"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
   merge_group:
 
 jobs:

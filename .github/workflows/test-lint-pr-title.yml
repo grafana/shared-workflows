@@ -6,10 +6,17 @@ on:
     paths:
       - .github/workflows/test-lint-pr-title.yml
       - actions/lint-pr-title/**
+
   pull_request:
     paths:
       - .github/workflows/test-lint-pr-title.yml
       - actions/lint-pr-title/**
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
   merge_group:
 
 jobs:
