@@ -68,4 +68,4 @@ runs:
           Proxy-Authorization: Bearer ${{ steps.vault-iap-auth.outputs.id_token }}
           Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}
         secrets: |
-          ${{ steps.translate-secrets.outputs.secrets }}
+          secrets/test-get-vault-secret instance | INSTANCE;
