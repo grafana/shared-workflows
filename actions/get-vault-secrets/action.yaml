@@ -56,7 +56,7 @@ runs:
     # Translate the secrets into a format that the Vault action can understand
     - id: translate-secrets
       shell: bash
-      run: "${GITHUB_ACTION_PATH}/translate-secrets.sh"
+      run: "${GITHUB_ACTION_PATH}/translate-secrets.bash"
       env:
         REPO_SECRETS: ${{ inputs.repo_secrets }}
         COMMON_SECRETS: ${{ inputs.common_secrets }}
