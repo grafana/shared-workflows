@@ -99,9 +99,9 @@ In order for the release action to work properly, which means to generate a CHAN
 
 Minor version bumps are indicated by new features: `feat: add support for eating lollipops`. Major version bumps are indicated by an `!` after the type in the commit message/description, for example: `feat!: rename foo input to bar`.
 
-Also, the PR description needs to be filled and should never be empty.	
+Also, the PR description needs to be filled and should never be empty.
 
-Failing to follow any of the aforementioned necessary steps, will lead to CI failing on your pull request.	
+Failing to follow any of the aforementioned necessary steps, will lead to CI failing on your pull request.
 
 More about how the upstream action works can be found [here](https://github.com/googleapis/release-please-action).
 
