@@ -1,18 +1,16 @@
 # shared-workflows
 
-A public-facing, centralized place to store reusable GitHub workflows and action
-used by Grafana Labs. See the `actions/` directory for the individual actions
-themselves.
+A public-facing, centralized place to store reusable workflows and GitHub Actions used by Grafana Labs.
+Refer to the [`actions/`](./actions) directory for the individual actions themselves.
 
 ## Notes
 
 ### Configure your IDE to run Prettier
 
-[Prettier] will run in CI to ensure that files are formatted correctly. To ensure
-that your code is formatted correctly before you commit, set up your IDE to run
-Prettier on save.
+[Prettier][] runs in CI to ensure that files are formatted correctly.
+To format your code correctly before you commit, set up your IDE to run Prettier on save.
 
-Or from the commandline, you can run Prettier using [`npx`][npx]:
+Or from the command line, you can run Prettier using [`npx`][npx]:
 
 ```sh
 npx prettier --check .
@@ -25,14 +23,12 @@ Or, of course, install it in any other way you want.
 
 ### Pin versions
 
-When referencing third-party actions, [always pin the version to a specific
-commit hash][hardening]. This ensures that the workflow will always use the same
-version of the action, even if the action's maintainers release a new version or
-if the tag itself is updated.
+When using third-party actions, [always pin the version to a specific commit hash][hardening].
+This ensures that the workflow always uses the same version of the action, even if the action's maintainers release a new version or update the Git tag.
 
-Dependabot can update these SHA references when there are new versions. If you
-include a tag in a commend after the SHA, it can update the comment too. For
-example:
+Dependabot updates the SHA references when there are new versions.
+If you include a tag in a comment after the SHA, it updates the comment too.
+For example:
 
 ```yaml
 - uses: action/foo@abcdef0123456789abcdef0123456789 # v1.2.3
@@ -40,10 +36,11 @@ example:
 
 [hardening]: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
 
-### Refer to other `shared-workflows` actions using relative paths
+### Use other `shared-workflows` actions with relative paths
 
-When referencing other actions in this repository, use a relative path. This
-will ensure actions in this repo are always used at the same commit. To do this:
+When using other actions in this repository, use a relative path.
+This means that workflows always use actions at the same commit.
+To do this:
 
 ```yaml
 - name: Checkout
@@ -57,9 +54,9 @@ will ensure actions in this repo are always used at the same commit. To do this:
   with:
     repository: ${{ env.action_repo }}
     ref: ${{ env.action_ref }}
-    # substitute your-action with a unique name (within `shared-repos` for your
+    # Substitute your-action with a unique name (within `shared-repos` for your
     # action), so if multiple actions check `shared-workflows` out, they don't
-    # overwrite each other
+    # overwrite each other.
     path: _shared-workflows-your-action
 
 - name: Use another action
@@ -68,22 +65,30 @@ will ensure actions in this repo are always used at the same commit. To do this:
     some-input: some-value
 ```
 
-### Releasing a version of a component in shared-workflows
+### Version actions and reusable workflows
 
-When working with `shared-workflows`, it's essential to avoid breaking backwards compatibility. To ensure this, we must provide releasable actions for engineers to review incoming changes. This also helps automated update tools like `dependabot` and `renovate` to work effectively.
+To avoid breaking compatibility, each action or reusable workflow is versioned so that engineers consuming the component can review incoming changes.
+This also helps automated update tools like Dependabot and Renovate to work effectively.
 
-Upon push to main, a draft PR with updates in the CHANGELOG.md will be updated or created. This can be undrafted and merged at any time to create the next tagged release. Since we're a monorepo, one PR will be created for each action/reusable workflow that has been updated. They can be released individually and tags will be of the form `<name>-<semver version>`.
+For every push to the `main` branch, Release Please creates or updates a draft PR with updates in the `CHANGELOG.md`.
+Users with write access to the repository can mark a draft pull request as ready for review and then merge the pull request to create the next tagged release.
 
-In order for the release action to work properly, which means to generate a CHANGELOG for the current release, the pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This means that the PR should start with a `type` followed by a colon, and then a `subject` - all in lowercase.
+Release Please creates a pull request for every updated action or reusable workflow.
+Each action released individually and use tags of the form `<NAME>-<SEMANTIC VERSION>`.
 
-Minor version bumps are indicated by new features: `feat: add support for eating lollipops`. Major version bumps are indicated by an `!` after the type in the commit message/description, for example: `feat!: rename foo input to bar`.
+To generate the CHANGELOG for the current release, all pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/).
+This means that the PR should start with a _type_ followed by a colon, and then a _subject_, all in lowercase.
 
-Also, the PR description needs to be filled and should never be empty.
+Pull request titles with the `feat` type, like `feat: add support for eating lollipops`, cause minor version bumps.
 
-Failing to follow any of the aforementioned necessary steps, will lead to CI failing on your pull request.
+Pull request titles that include an exclamation mark (`!`) after the type, like `feat!: rename foo input to bar`, cause major version bumps.
 
-More about how the upstream action works can be found [here](https://github.com/googleapis/release-please-action).
+Each pull request must also have a description that explains the change.
 
-### Add new components to Release Please config file
+CI enforces the use of conventional pull request titles and non-empty pull request descriptions.
 
-In order for components to be released, they must be in the [release-please-config.json](./release-please-config.json) file. Always ensure new components are added to this file.
+For more information about Release Please, refer to their [GitHub repository](https://github.com/googleapis/release-please-action).
+
+### Add new components to Release Please configuration file
+
+For components to be released, they must be in the [`release-please-config.json`](./release-please-config.json) file.
