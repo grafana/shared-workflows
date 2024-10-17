@@ -53,9 +53,6 @@ runs:
         ref: ${{ env.action_ref }}
         path: _shared-workflows-trigger-argo-workflow
 
-    - name: Setup argo
-      uses: ./_shared-workflows-trigger-argo-workflow/actions/setup-argo
-
     - name: Setup go
       uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
       with:
@@ -63,6 +60,9 @@ runs:
         cache-dependency-path: |
           actions/trigger-argo-workflow/go.sum
         go-version-file: "_shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow/go.mod"
+
+    - name: Setup argo
+      uses: ./_shared-workflows-trigger-argo-workflow/actions/setup-argo
 
     - name: Map cluster and vault instance from Argo WF instance
       id: argo-instance
