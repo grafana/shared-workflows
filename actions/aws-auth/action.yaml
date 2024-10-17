@@ -22,6 +22,8 @@ inputs:
     default: "3600"
     required: false
     description: "Role duration in seconds"
+  checkout-actions-repository-path:
+    description: "The path in the filesystem where this repository has been checked out. This is mandatory for setups where executing this action inside a local clone of the repository."
 
 outputs:
   aws_access_key_id:
@@ -62,4 +64,9 @@ runs:
       env:
         AWS_REGION: "${{ inputs.aws-region }}"
         AWS_DEFAULT_REGION: "${{ inputs.aws-region }}"
-      run: ./resolve-aws-region.sh
+        REPOSITORY_PATH: "${{ inputs.checkout-actions-repository-path }}"
+      run: |
+        if [[ ! -z "${REPOSITORY_PATH}" ]]; then
+          cd ${REPOSITORY_PATH}/actions/aws-auth
+        fi
+        ./resolve-aws-region.sh

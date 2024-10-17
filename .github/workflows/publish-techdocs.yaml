@@ -62,7 +62,6 @@ jobs:
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           repository: grafana/shared-workflows
-          # TODO: Replace after merge
           ref: main
           path: _shared-workflows-publish-techdocs
           submodules: "${{ inputs.checkout-submodules }}"
@@ -106,6 +105,7 @@ jobs:
         if: inputs.publish
         uses: ./_shared-workflows-publish-techdocs/actions/aws-auth
         with:
+          checkout-actions-repository-path: ./_shared-workflows-publish-techdocs
           aws-region: ${{ steps.instance-settings.outputs.aws-region }}
           role-arn: ${{ steps.instance-settings.outputs.aws-role-arn }}
           set-creds-in-environment: true
