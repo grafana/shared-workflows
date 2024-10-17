@@ -4,15 +4,15 @@ on:
   workflow_call:
     inputs:
       drone_config_path:
-        description: 'Path to the Drone CI configuration file'
+        description: "Path to the Drone CI configuration file"
         required: true
         type: string
-        default: '.drone.yml'
+        default: ".drone.yml"
       drone_server:
-        description: 'Drone CI server URL'
+        description: "Drone CI server URL"
         required: true
         type: string
-        default: 'https://drone.grafana.net'
+        default: "https://drone.grafana.net"
 
 jobs:
   check-drone-signature:
@@ -39,7 +39,7 @@ jobs:
         run: |
           # Run drone sign command
           drone sign --save ${{ github.repository }} ${{ inputs.drone_config_path }}
-        
+
           # Check if there are any changes to the Drone config file
           if git diff --exit-code ${{ inputs.drone_config_path }}; then
             echo "Drone CI configuration signature is valid."
