@@ -39,7 +39,7 @@ jobs:
           drone sign --save ${{ github.repository }} ${{ inputs.drone_config_path }}
 
           # Check if there are any changes to the Drone config file
-          if git diff --exit-code ${{ inputs.drone_config_path }}; then
+          if git diff --quiet ${{ inputs.drone_config_path }}; then
             echo "Drone CI configuration signature is valid."
           else
             echo "Drone CI configuration signature was updated."
