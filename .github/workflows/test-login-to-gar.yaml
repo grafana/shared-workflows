@@ -12,6 +12,12 @@ on:
     paths:
       - "actions/login-to-gar/**"
       - ".github/workflows/test-login-to-gar.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
   merge_group:
 
 permissions:
