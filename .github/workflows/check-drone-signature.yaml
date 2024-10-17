@@ -43,7 +43,7 @@ jobs:
             echo "Drone CI configuration signature is valid."
           else
             echo "Drone CI configuration signature was updated."
-            echo "Please commit the updated .drone.yml file."
+            echo "Please sign the updated .drone.yml file and commit."
             git --no-pager diff ${{ inputs.drone_config_path }}
             exit 1
           fi
