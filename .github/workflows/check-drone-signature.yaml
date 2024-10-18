@@ -24,7 +24,8 @@ jobs:
 
       - name: Set up Drone CLI
         run: |
-          curl -L https://github.com/drone/drone-cli/releases/latest/download/drone_linux_amd64.tar.gz | tar zx
+          VERSION=v1.8.0
+          curl -L https://github.com/harness/drone-cli/releases/download/$VERSION/drone_linux_amd64.tar.gz | tar zx
           sudo install -t /usr/local/bin drone
 
       - name: Retrieve drone-signature-checker token
