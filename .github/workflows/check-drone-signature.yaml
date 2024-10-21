@@ -1,0 +1,52 @@
+name: Drone CI Signature Check
+
+on:
+  workflow_call:
+    inputs:
+      drone_config_path:
+        description: "Path to the Drone CI configuration file"
+        type: string
+        default: ".drone.yml"
+      drone_server:
+        description: "Drone CI server URL"
+        type: string
+        default: "https://drone.grafana.net"
+
+jobs:
+  check-drone-signature:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+
+      - name: Set up Drone CLI
+        run: |
+          VERSION=v1.8.0
+          curl -L https://github.com/harness/drone-cli/releases/download/$VERSION/drone_linux_amd64.tar.gz | tar zx
+          sudo install -t /usr/local/bin drone
+
+      - name: Retrieve drone-signature-checker token
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          common_secrets: |
+            DRONE_TOKEN=drone-sign-check-machine-user:token
+
+      - name: Check Drone signature
+        run: |
+          # Run drone sign command
+          drone sign --save ${{ github.repository }} ${{ inputs.drone_config_path }}
+
+          # Check if there are any changes to the Drone config file
+          if git diff --quiet ${{ inputs.drone_config_path }}; then
+            echo "Drone CI configuration signature is valid."
+          else
+            echo "Drone CI configuration signature was updated."
+            echo "Please sign the updated .drone.yml file and commit."
+            exit 1
+          fi
+        env:
+          DRONE_SERVER: ${{ inputs.drone_server }}
+          DRONE_TOKEN: ${{ env.DRONE_TOKEN }}
