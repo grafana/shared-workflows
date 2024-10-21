@@ -11,7 +11,7 @@ require (
 	github.com/teekennedy/goldmark-markdown v0.3.0
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/willabides/actionslog v0.5.1
-	github.com/yuin/goldmark v1.7.6
+	github.com/yuin/goldmark v1.7.8
 	golang.org/x/term v0.25.0
 	gopkg.in/yaml.v3 v3.0.1
 )
