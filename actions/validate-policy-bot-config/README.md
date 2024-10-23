@@ -1,6 +1,6 @@
 # validate-policy-bot-config
 
-Generate an SPDX SBOM Report and attached to Release Artifcats on Release Publish
+Validates the `.policy.yml` configuration file.
 
 Example workflow:
 
