@@ -1,0 +1,21 @@
+name: Validate Policy Bot Config
+description: Validates the Policy Bot configuration file.
+
+inputs:
+  validation_endpoint:
+    description: |
+      Validation API endpoint.
+    default: https://github-policy-bot.grafana-ops.net/api/validate
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Policy Bot config
+      shell: bash
+      run: |
+        curl \
+          --silent \
+          --fail-with-body \
+          --request PUT \
+          --upload-file .policy.yml \
+          ${{ inputs.validation_endpoint }}
