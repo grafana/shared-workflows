@@ -4,7 +4,7 @@ description: Trigger an Argo workflow in the Grafana Labs Argo Workflows instanc
 inputs:
   instance:
     description: |
-      The instance to use (`dev`, `ops` or `ops-aws`). Defaults to `ops`.
+      The instance to use (`dev` or `ops`). Defaults to `ops`.
     default: ops
   namespace:
     description: |
@@ -75,10 +75,6 @@ runs:
             vault_instance="dev"
             ;;
           ops)
-            cluster="ops-us-east-0"
-            vault_instance="ops"
-            ;;
-          ops-aws)
             cluster="ops-eu-south-0"
             vault_instance="ops"
             ;;
