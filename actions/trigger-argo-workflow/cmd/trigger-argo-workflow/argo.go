@@ -35,7 +35,6 @@ type App struct {
 var instanceToHost = map[string]string{
 	"dev":     "argo-workflows-dev.grafana.net:443",
 	"ops":     "argo-workflows.grafana.net:443",
-	"ops-aws": "argo-workflows-aws.grafana.net:443",
 }
 
 func (a App) server() string {
