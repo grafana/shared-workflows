@@ -6,7 +6,7 @@ on:
 
   pull_request:
     paths:
-      - .github/renovate-config.json
+      - .github/renovate-config.json5
       - .github/workflows/renovate.yml
     types:
       - edited
@@ -18,7 +18,7 @@ on:
     branches:
       - main
     paths:
-      - .github/renovate-config.json
+      - .github/renovate-config.json5
       - .github/workflows/renovate.yml
 
   workflow_dispatch:
@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           sparse-checkout: |
-            .github/renovate-config.json
+            .github/renovate-config.json5
             actions/get-vault-secrets
 
       - name: Retrieve renovate secrets
@@ -63,7 +63,7 @@ jobs:
       - name: Self-hosted Renovate
         uses: renovatebot/github-action@80eaf969abf68ad62aa94d9ab392421b31621634 # v40.3.4
         with:
-          configurationFile: .github/renovate-config.json
+          configurationFile: .github/renovate-config.json5
           # renovate: datasource=docker depName=ghcr.io/renovatebot/renovate
           renovate-version: 38.135.2@sha256:5a3ab9dc029b410fe782f5479b3d9912ff7619d1218f491aa24ff2de1f8f7bca
           token: ${{ steps.generate-token.outputs.token }}
