@@ -37,7 +37,7 @@ runs:
         echo "Invalid value for vault_instance input: ${{ inputs.vault_instance }}. Must be 'dev' or 'ops'."
         exit 1
     - id: vault-iap-auth
-      uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
+      uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
       with:
         # Note that these aren't secrets, login is secured through Github's OIDC integrations with GCP and Vault.
         # Get with:
