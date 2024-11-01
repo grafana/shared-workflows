@@ -36,6 +36,11 @@
       labels: ["update-digest"],
       matchUpdateTypes: ["digest"],
     },
+    {
+      // Run the custom matcher on early Monday mornings (UTC)
+      schedule: "* 0-4 * * 1",
+      matchPackageNames: ["ghcr.io/renovatebot/renovate"],
+    },
   ],
   platformCommit: "enabled",
   rebaseWhen: "behind-base-branch",
