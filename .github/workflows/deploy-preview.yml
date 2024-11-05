@@ -1,0 +1,195 @@
+name: Deploy preview
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+      branch:
+        required: true
+        type: string
+      event_number:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+
+env:
+  CLOUD_RUN_REGION: us-south1
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    permissions: write-all
+    runs-on: ubuntu-x64-2xlarge
+    container: us-docker.pkg.dev/grafanalabs-dev/website-dev-public/build-image:df0d075450be82108b9daa5285df96da594dca97
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event.action != 'closed'
+        with:
+          sparse-checkout: |
+            assets
+            config
+            content
+            data
+            i18n
+            layouts
+            static
+            scripts
+
+      - name: install-dependencies
+        run: apk add docker python3=~3.11
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          issue-number: ${{ inputs.event_number }}
+          comment-author: "github-actions[bot]"
+          body-includes: Deploy preview available
+
+      - name: Update comment
+        if: steps.fc.outputs.comment-id != '' && github.event.action != 'closed'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ inputs.event_number }}
+          edit-mode: append
+          append-separator: newline
+          body: |
+            :building_construction: Updating deploy preview...
+
+      - uses: "google-github-actions/auth@v2.1.6"
+        with:
+          service_account: "github-website-cloud-run-dev@grafanalabs-workload-identity.iam.gserviceaccount.com"
+          workload_identity_provider: projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
+        if: github.event.action == 'closed'
+        with:
+          project_id: grafanalabs-dev
+
+      - name: Delete deploy preview
+        if: github.event.action == 'closed'
+        run: |
+          gcloud run services delete deploy-preview-${{ inputs.repo }}-${{ inputs.event_number }} --region=${{ env.CLOUD_RUN_REGION }} --project=grafanalabs-dev --quiet
+
+      - name: Create comment
+        if: github.event.action == 'closed'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ inputs.event_number }}
+          body: |
+            :computer: Deploy preview deleted.
+
+      # https://github.com/grafana/website/actions/runs/11515788328/job/32057134368?pr=22384
+      - name: fix-git
+        if: github.event.action != 'closed'
+        run: git config --global --add safe.directory /__w/website/website
+
+      - name: install-hugo
+        if: github.event.action != 'closed'
+        env:
+          HUGO_VERSION: 0.121.2
+        run: make install-docker
+
+      # - name: build-website
+      #   if: github.event.action != 'closed'
+      #   env:
+      #     HUGO_ENV: production
+      #     HUGO_SSI: true
+      #     BASE_URL: ''
+      #     HUGO_BRANCH: ${{ inputs.branch }}
+      #     HUGO_SHA: ${{ inputs.sha }}
+      #     BUILD_FUTURE: true
+      #   run: make prod
+
+      - name: generate-deploy-preview-password
+        if: github.event.action != 'closed'
+        id: password
+        env:
+          DEPLOY_PREVIEW_KEY: ${{ secrets.DEPLOY_PREVIEW_KEY }}
+          DRONE_PULL_REQUEST: ${{ inputs.event_number }}
+        run: make deploy-preview-password
+
+      # - name: prep-docker-image
+      #   if: github.event.action != 'closed'
+      #   env:
+      #     SHA: ${{ inputs.sha }}
+      #   run: make prep-image
+
+      - name: show-info
+        if: github.event.action != 'closed'
+        run: |
+          echo "sha: ${{ inputs.sha }}"
+          echo "pr: ${{ inputs.event_number }}"
+          echo "password: ${{ steps.password.outputs.password }}"
+
+      # - id: push-to-gar
+      #   if: github.event.action != 'closed'
+      #   uses: grafana/shared-workflows/actions/push-to-gar-docker@main
+      #   with:
+      #     registry: us-docker.pkg.dev
+      #     tags: |-
+      #       "${{ inputs.sha }}"
+      #       "${{ inputs.event_number }}"
+      #     context: .
+      #     image_name: website
+      #     environment: dev
+      #     push: true
+      #     build-args: |-
+      #       NGINX_LOCATIONS=locations.conf.preview
+
+      - uses: "google-github-actions/deploy-cloudrun@v2.7.2"
+        if: github.event.action != 'closed'
+        id: deploy
+        with:
+          # image: us-docker.pkg.dev/grafanalabs-dev/docker-website-dev/website:${{ inputs.sha }}
+          image: us-docker.pkg.dev/grafanalabs-dev/docker-website-dev/website:3e1362b54a287802c32e09c7ba46cca009f1f521
+          service: deploy-preview-${{ inputs.repo }}-${{ inputs.event_number }}
+          project_id: grafanalabs-dev
+          region: ${{ env.CLOUD_RUN_REGION }}
+          flags: --port=80 --ingress=all --allow-unauthenticated
+
+      - name: Generate URL
+        if: github.event.action != 'closed'
+        id: deploy_preview_url
+        run: |
+          modified_url=$(echo "${{ steps.deploy.outputs.url }}" | sed "s|^https://|https://grot:${{ steps.password.outputs.password }}@|")
+          echo "url=$modified_url" >> $GITHUB_OUTPUT
+
+      - uses: ouzi-dev/commit-status-updater@v2
+        if: github.event.action != 'closed'
+        with:
+          name: deploy_preview
+          status: "${{ job.status }}"
+          url: "${{ steps.deploy_preview_url.outputs.url }}"
+          description: "grot / ${{ steps.password.outputs.password }}"
+
+      - name: Create comment
+        if: github.event.action != 'closed' && steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ inputs.event_number }}
+          body: |
+            :computer: Deploy preview available: ${{ steps.deploy_preview_url.outputs.url }}
+
+      - name: Update comment
+        if: github.event.action != 'closed' && steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ inputs.event_number }}
+          edit-mode: replace
+          body: |
+            :computer: Deploy preview available: ${{ steps.deploy_preview_url.outputs.url }}
