@@ -3,6 +3,10 @@
 Validates the `.policy.yml` configuration file for [Policy Bot](https://github.com/palantir/policy-bot).
 See [https://github.com/palantir/policy-bot?tab=readme-ov-file#configuration](Policy Bots' documentation) for more informations.
 
+## Inputs
+
+- `validation_endpoint`: The endpoint to validate the configuration against. Defaults to `https://policy-bot.grafana.net/api/v1/validate`.
+
 Example workflow:
 
 ```yaml
