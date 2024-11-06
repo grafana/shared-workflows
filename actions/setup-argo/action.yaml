@@ -31,8 +31,24 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true'
       shell: sh
       run: |
-        echo "OS=$(go env GOOS)" >> "$GITHUB_ENV"
-        echo "ARCH=$(go env GOARCH)" >> "$GITHUB_ENV"
+        OS=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')
+        ARCH=$(echo "${{ runner.arch }}" | tr '[:upper:]' '[:lower:]')
+
+        case "${OS}" in
+            macos)
+                OS=darwin
+                ;;
+        esac
+
+        # Expected inputs: x86, x64, arm, or arm64
+        case "${ARCH}" in
+            x64)
+                ARCH=amd64
+                ;;
+        esac
+
+        echo "OS=${OS}" >> "$GITHUB_ENV"
+        echo "ARCH=${ARCH}" >> "$GITHUB_ENV"
 
     - name: Fetch Github Release Asset
       id: fetch_asset
