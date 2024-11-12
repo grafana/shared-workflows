@@ -1,0 +1,20 @@
+name: Login to Docker Hub pull-through cache
+description: Composite action to log in to Docker Hub pull-through cache
+
+runs:
+  using: composite
+  steps:
+    - uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
+      id: gcloud-auth
+      with:
+        token_format: access_token
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+        service_account: dockerhub-proxy-reader@grafanalabs-workload-identity.iam.gserviceaccount.com
+        create_credentials_file: false
+
+    - name: Login to GAR
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+      with:
+        registry: us-docker.pkg.dev/ops-tools-1203/dockerhub-proxy
+        username: oauth2accesstoken
+        password: ${{ steps.gcloud-auth.outputs.access_token }}
