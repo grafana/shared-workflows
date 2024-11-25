@@ -3,11 +3,13 @@ import type {
   MergeGroupChecksRequestedEvent,
   PullRequestEvent,
 } from "@octokit/webhooks-types";
-
+import { resolve } from "path";
+import fsPromises from "node:fs/promises";
 import { default as commitLint } from "@commitlint/lint";
 import { context } from "@actions/github";
 import { format } from "@commitlint/format";
 import load from "@commitlint/load";
+import { tmpFileAsync } from "./tempfile";
 
 export type Context = typeof context;
 export type WebHookPayload = Context["payload"];
@@ -271,12 +273,37 @@ async function handleMergeGroup(
  * @throws If the config file is invalid.
  */
 export async function loadConfig(configPath: string): Promise<QualifiedConfig> {
-  return load(
+  const parentDirOfThisFile = resolve(__dirname, "..");
+
+  const extension = configPath.split(".").pop();
+
+  if (extension === undefined) {
+    throw new Error(
+      `Couldn't determine file type of "${configPath}" because it has no extension`,
+    );
+  }
+
+  await using file = await tmpFileAsync({
+    template: `commitlint.config.XXXXXX.${extension}`,
+    tmpdir: parentDirOfThisFile,
+  });
+
+  const { name, handle } = file;
+
+  // Read the config file and write it to the temporary file
+  const configPathContents = await fsPromises.readFile(configPath, "utf-8");
+
+  await handle.writeFile(configPathContents);
+
+  const f = await load(
     {},
     {
-      file: configPath,
+      file: name,
+      cwd: parentDirOfThisFile,
     },
   );
+
+  return f;
 }
 
 /**

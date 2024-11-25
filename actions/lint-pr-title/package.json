@@ -27,7 +27,8 @@
     "@commitlint/lint": "19.6.0",
     "@commitlint/load": "19.5.0",
     "@octokit/core": "6.1.2",
-    "@octokit/graphql": "8.1.1"
+    "@octokit/graphql": "8.1.1",
+    "tmp": "0.2.3"
   },
   "devDependencies": {
     "@commitlint/types": "19.5.0",
@@ -36,6 +37,7 @@
     "@octokit/webhooks-types": "7.6.1",
     "@types/bun": "1.1.14",
     "@types/eslint__js": "8.42.3",
+    "@types/tmp": "0.2.6",
     "eslint": "9.15.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-jest": "28.9.0",
