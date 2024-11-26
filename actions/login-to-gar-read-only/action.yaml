@@ -1,0 +1,26 @@
+name: Login to artifact registry
+description: Composite action to push to Google Artifact Registry
+inputs:
+  registry:
+    description: |
+      Google Artifact Registry to authenticate against.
+    default: "us-docker.pkg.dev"
+  environment:
+    description: |
+      Environment for pushing artifacts (can be either dev or prod).
+    default: dev
+
+runs:
+  using: composite
+  steps:
+    - uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
+      id: gcloud-auth
+      with:
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+      with:
+        version: '>= 363.0.0'
+    - name: 'Use gcloud CLI to configure docker'
+      shell: sh
+      run: 'gcloud auth configure-docker ${{ inputs.registry }}'
