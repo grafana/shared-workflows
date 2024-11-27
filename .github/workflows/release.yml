@@ -1,9 +1,7 @@
 name: Release shared-workflows
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
 
 jobs:
   release-please:
