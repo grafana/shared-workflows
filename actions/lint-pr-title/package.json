@@ -30,19 +30,19 @@
     "@octokit/graphql": "^8.1.1"
   },
   "devDependencies": {
-    "@commitlint/types": "^19.5.0",
-    "@eslint/js": "^9.10.0",
-    "@octokit/types": "^13.5.0",
-    "@octokit/webhooks-types": "^7.5.1",
-    "@types/bun": "^1.1.9",
-    "@types/eslint__js": "^8.42.3",
-    "eslint": "^9.10.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-jest": "^28.8.3",
-    "eslint-plugin-prettier": "^5.2.1",
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.2",
-    "typescript-eslint": "^8.5.0"
+    "@commitlint/types": "19.5.0",
+    "@eslint/js": "9.15.0",
+    "@octokit/types": "13.6.2",
+    "@octokit/webhooks-types": "7.6.1",
+    "@types/bun": "1.1.14",
+    "@types/eslint__js": "8.42.3",
+    "eslint": "9.15.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-jest": "28.9.0",
+    "eslint-plugin-prettier": "5.2.1",
+    "prettier": "3.4.1",
+    "typescript": "5.7.2",
+    "typescript-eslint": "8.16.0"
   },
   "packageManager": "bun@1.1.27"
 }
