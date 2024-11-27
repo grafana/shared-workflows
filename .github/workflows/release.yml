@@ -12,7 +12,7 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          target-branch: main
+          target-branch: update-readme-before-releasing-new-version
 
       # We release full semver versions major.minor.patch. We need to make sure
       # that v2 is updated as well as v2.0, so that people can pin to the major
