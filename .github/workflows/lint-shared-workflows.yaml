@@ -37,7 +37,7 @@ jobs:
         uses: raven-actions/actionlint@01fce4f43a270a612932cb1c64d40505a029f821 # v2.0.0
 
       - name: Run ShellCheck on scripts
-        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
 
   # A separate job so we can run in the `yq` container
   lint-action-yaml:
