@@ -2,5 +2,6 @@
     "actions/lint-pr-title": "1.0.0",
     "actions/get-vault-secrets": "1.0.0",
     "actions/dockerhub-login": "1.0.0",
-    "actions/send-slack-message": "1.0.0"
+    "actions/send-slack-message": "1.0.0",
+    "actions/argo-lint": "1.0.0"
 }
