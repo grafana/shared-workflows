@@ -1,3 +1,7 @@
+import load from "@commitlint/load";
+import { QualifiedConfig, RuleConfigSeverity } from "@commitlint/types";
+import { beforeAll, describe, expect, it } from "bun:test";
+
 import {
   Octokit,
   compareCommitsWithBaseheadResponse,
@@ -5,13 +9,10 @@ import {
   lint,
   loadConfig,
 } from "./main";
-import { QualifiedConfig, RuleConfigSeverity } from "@commitlint/types";
-import { beforeAll, describe, expect, it } from "bun:test";
-import { expect_toBeDefined, newContextFromPullRequest } from "./testUtils";
-
 import { compareCommitsWithBaseheadResponses } from "./testUtils/compareCommitsWithBaseheadresponses";
-import load from "@commitlint/load";
 import { mergeQueueContext } from "./testUtils/mergeGroupContext";
+import { expect_toBeDefined, newContextFromPullRequest } from "./testUtils";
+import { tmpFileAsync } from "./tempfile";
 
 const config = await loadConfig("commitlint.config.js");
 
@@ -181,4 +182,42 @@ describe("merge_group", () => {
       expect(checkedSHAs).toEqual(expectedCheckedCommits);
     },
   );
+});
+
+describe("loadConfig", () => {
+  it("should load the default config", async () => {
+    const config = await loadConfig("commitlint.config.js");
+
+    expect(config).toMatchObject({
+      extends: ["@commitlint/config-conventional"],
+    });
+  });
+
+  it("should load a custom config", async () => {
+    const cfg = {
+      extends: ["@commitlint/config-conventional"],
+      rules: {
+        "body-max-line-length": [1, "always", 100],
+      },
+    };
+
+    await using tempFile = await tmpFileAsync({
+      template: "commitlint-XXXXXX.config.js",
+    });
+
+    const { name, handle } = tempFile;
+
+    await handle.writeFile(`module.exports = ${JSON.stringify(cfg)}`);
+
+    const config = await loadConfig(name);
+
+    // `body-max-line-length` here differes from the default so we're making
+    // sure we didn't just load that.
+    expect(config).toMatchObject({
+      extends: ["@commitlint/config-conventional"],
+      rules: {
+        "body-max-line-length": [1, "always", 100],
+      },
+    });
+  });
 });

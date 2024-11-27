@@ -18,4 +18,17 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - id: lint-pr-title
+        name: Lint PR title
         uses: ./actions/lint-pr-title
+
+      # This is an integration test ensuring that we don't regress absolute path
+      # support
+      - name: Copy lint-pr-title config to temp dir
+        run: |
+          cp actions/lint-pr-title/commitlint.config.js "${{ runner.temp }}/commitlint.config.js"
+
+      - id: lint-pr-title-separate-config
+        name: Lint PR title with separate config
+        uses: ./actions/lint-pr-title
+        with:
+          config-path: "${{ runner.temp }}/commitlint.config.js"
