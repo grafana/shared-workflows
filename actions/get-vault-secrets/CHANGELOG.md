@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.0.0...get-vault-secrets-v1.0.1) (2024-11-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/auth action to v2.1.7 ([#509](https://github.com/grafana/shared-workflows/issues/509)) ([41774d7](https://github.com/grafana/shared-workflows/commit/41774d7ebb3ca78e05aa6d2007e5e98c7a2fcf4f))
+* **get-vault-secrets:** remove the iap-auth step from get-vault-secrets ([#520](https://github.com/grafana/shared-workflows/issues/520)) ([cbdc528](https://github.com/grafana/shared-workflows/commit/cbdc528c28586253be7c33b531916b2bd7431324))
+
 ## 1.0.0 (2024-10-16)
 
 
