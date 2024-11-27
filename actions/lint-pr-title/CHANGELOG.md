@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/lint-pr-title-v1.0.0...lint-pr-title-v1.0.1) (2024-11-27)
+
+
+### 🐛 Bug Fixes
+
+* **lint-pr-title:** correctly find the `package.json` ([#429](https://github.com/grafana/shared-workflows/issues/429)) ([fb30f22](https://github.com/grafana/shared-workflows/commit/fb30f224476edf0bc49f4d9a398d454421989d07))
+
 ## 1.0.0 (2024-09-27)
 
 
