@@ -16,7 +16,7 @@
   dependencyDashboard: false,
   enabledManagers: ["bun", "custom.regex", "github-actions", "npm"],
   forkProcessing: "enabled",
-  globalExtends: ["config:best-practices"],
+  globalExtends: [":pinDependencies", "config:best-practices"],
   onboarding: false,
   osvVulnerabilityAlerts: true,
   packageRules: [
