@@ -14,7 +14,7 @@
     },
   ],
   dependencyDashboard: false,
-  enabledManagers: ["custom.regex", "github-actions"],
+  enabledManagers: ["bun", "custom.regex", "github-actions", "npm"],
   forkProcessing: "enabled",
   globalExtends: ["config:best-practices"],
   onboarding: false,
@@ -29,6 +29,7 @@
       matchUpdateTypes: ["minor"],
     },
     {
+      automerge: true,
       labels: ["automerge-patch"],
       matchUpdateTypes: ["patch"],
     },
@@ -46,6 +47,7 @@
   rebaseWhen: "behind-base-branch",
   requireConfig: "optional",
   vulnerabilityAlerts: {
+    automerge: true,
     enabled: true,
     labels: ["automerge-security-update"],
   },
