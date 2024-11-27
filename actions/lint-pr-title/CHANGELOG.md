@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/lint-pr-title-v1.0.0...lint-pr-title-v1.1.0) (2024-11-27)
+
+
+### 🎉 Features
+
+* **lint-pr-title:** load configuration files from our directory ([#546](https://github.com/grafana/shared-workflows/issues/546)) ([62c18df](https://github.com/grafana/shared-workflows/commit/62c18dfbeb9558cfa2736ea1a59731d5dbfb0d98))
+
+
+### 🐛 Bug Fixes
+
+* **deps:** pin dependencies ([#572](https://github.com/grafana/shared-workflows/issues/572)) ([499087b](https://github.com/grafana/shared-workflows/commit/499087be57fff1d24da9a6324c06260d16a52d02))
+* **lint-pr-title:** correctly find the `package.json` ([#429](https://github.com/grafana/shared-workflows/issues/429)) ([fb30f22](https://github.com/grafana/shared-workflows/commit/fb30f224476edf0bc49f4d9a398d454421989d07))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** pin dependencies ([#566](https://github.com/grafana/shared-workflows/issues/566)) ([49a4348](https://github.com/grafana/shared-workflows/commit/49a4348fb372ec3a866f275ce7a98fb21c2788c5))
+
 ## 1.0.0 (2024-09-27)
 
 
