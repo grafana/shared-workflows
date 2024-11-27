@@ -40,6 +40,7 @@ runs:
       id: send-slack-message
       uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
       with:
+        method: chat.postMessage
         channel-id: ${{ inputs.channel-id }}
         payload: ${{ inputs.payload }}
         slack-message: ${{ inputs.slack-message }}
