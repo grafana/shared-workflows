@@ -5,6 +5,8 @@ It uses [OIDC authentication](https://docs.github.com/en/actions/deployment/secu
 which means that only workflows which get triggered based on certain rules can
 trigger these composite workflows.
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: CI
 on:
@@ -24,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       - id: push-to-gar
-        uses: grafana/shared-workflows/actions/push-to-gar-docker@main
+        uses: grafana/shared-workflows/actions/push-to-gar-docker@push-to-gar-docker-v0.1.0
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
           tags: |-
@@ -34,6 +36,8 @@ jobs:
           image_name: "backstage" # name of the image to be published, required
           environment: "dev" # can be either dev/prod
 ```
+
+<!-- x-release-please-end-version -->
 
 [Artifact Registry repositories can't contain underscores][underscore-issue].
 As a convention, this action will replace any underscores in the repository name

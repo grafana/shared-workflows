@@ -18,6 +18,8 @@ _Note: For now, it only generates Go code. But it's structured in a way that any
 
 ## Example workflow
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Generate Clients
 
@@ -38,12 +40,14 @@ jobs:
         with:
           go-version: 1.18
       - name: Generate clients
-        uses: grafana/shared-workflows/actions/generate-openapi-clients@main
+        uses: grafana/shared-workflows/actions/generate-openapi-clients@generate-openapi-clients-v1.0.0
         with:
           package-name: slo
           spec-path: openapi.yaml
           modify-spec-script: .github/workflows/modify-spec.sh # Optional, see "Spec Modifications" section
 ```
+
+<!-- x-release-please-end-version -->
 
 ### Spec Modifications at Runtime
 

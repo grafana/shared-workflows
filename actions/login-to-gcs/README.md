@@ -5,6 +5,8 @@ It uses [OIDC authentication](https://docs.github.com/en/actions/deployment/secu
 which means that only workflows which get triggered based on certain rules can
 trigger these composite workflows.
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Login-to-gcs
 
@@ -21,9 +23,11 @@ jobs:
   login-to-gcs:
     name: login-to-gcs
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gcs@main
+      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs-v0.1.0
         id: login-to-gcs
 ```
+
+<!-- x-release-please-end-version -->
 
 You can now use the shared-workflow `push-to-gcs` or gcloud to push objects from your CI pipeline.
 

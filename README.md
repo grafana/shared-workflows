@@ -108,3 +108,46 @@ More about how the upstream action works can be found [here](https://github.com/
 ### Add new components to Release Please config file
 
 In order for components to be released, they must be in the [release-please-config.json](./release-please-config.json) file. Always ensure new components are added to this file.
+
+`README` files for each component should have embedded versions updated every time there is a new release.
+
+Add a new entry which looks like this:
+
+```json
+  "packages": {
+    "actions/my-new-action": {
+      "package-name": "my-new-action",
+      "extra-files": ["README.md"]
+    },
+  }
+```
+
+Also, the following block should be added in the README file which will be responsible for updating the version with a new one:
+
+`README.md`:
+
+````markdown
+# my-new-action
+
+This is my new action which does awesome stuff!
+
+<!-- x-release-please-start-version -->
+
+```yaml
+name: My new action
+on:
+  pull_request:
+
+jobs:
+  my-new-action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: do-stuff
+        uses: grafana/shared-workflows/actions/my-new-action@my-new-action-v1.0.0
+```
+
+<!-- x-release-please-end-version -->
+````
+
+Every semver-like string between the `x-release-please-start-version` and `x-release-please-end-version` comments will be updated with the new version whenever the component is released.
