@@ -5,5 +5,6 @@
     "actions/send-slack-message": "1.0.0",
     "actions/aws-auth": "1.0.0",
     "actions/setup-conftest": "1.0.0"
+    "actions/setup-argo": "1.0.0"
     "actions/generate-openapi-clients": "1.0.0"
 }
