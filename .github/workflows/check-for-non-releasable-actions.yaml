@@ -47,6 +47,7 @@ jobs:
           folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
 
           # shellcheck disable=SC2207
+          # SC2007=prefer mapfile or read -a to split command output (or quote to avoid splitting)
           folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
 
           # initialize a variable to store missing actions
