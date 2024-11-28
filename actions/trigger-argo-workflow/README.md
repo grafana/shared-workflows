@@ -37,10 +37,12 @@ parameters: |
 
 Here is an example of how to use this action:
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 steps:
   - name: Trigger Argo Workflow
-uses: actions/trigger-argo-workflow@main
+uses: grafana/shared-workflows/actions/trigger-argo-workflow@trigger-argo-workflow-v0.0.1
 with:
   instance: "ops"
   namespace: "mynamespace"
@@ -50,3 +52,5 @@ with:
   extra_args: "--generate-name hello-world-"
   log_level: "debug"
 ```
+
+<!-- x-release-please-end-version -->

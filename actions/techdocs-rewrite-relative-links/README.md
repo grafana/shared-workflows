@@ -23,13 +23,15 @@ Then this link inside the file will be changed to ...
 [outside link](https://github.com/grafana/reponame/blob/main/README.md)
 ```
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 - id: checkout-shared-workflows
   name: Checkout shared workflows
   uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
   with:
     repository: grafana/shared-workflows
-    ref: main
+    ref: techdocs-rewrite-relative-links-v0.0.1
     path: _shared-workflows
 
 - name: Rewrite relative links
@@ -44,6 +46,8 @@ Then this link inside the file will be changed to ...
     checkout-action-repository: true
     checkout-action-repository-path: _shared-workflows
 ```
+
+<!-- x-release-please-end-version -->
 
 Follow that up with the actions that should publish the docs to EngHub. See [the `publish-techdocs.yaml` workflow](https://github.com/grafana/shared-workflows/blob/main/.github/workflows/publish-techdocs.yaml) for details.
 

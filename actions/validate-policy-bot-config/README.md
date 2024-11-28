@@ -9,6 +9,8 @@ See [https://github.com/palantir/policy-bot?tab=readme-ov-file#configuration](Po
 
 Example workflow:
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: validate-policy-bot
 on:
@@ -25,5 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Validate Policy Bot configuration
-        uses: grafana/shared-workflows/actions/validate-policy-bot-config@main
+        uses: grafana/shared-workflows/actions/validate-policy-bot-config@validate-policy-bot-config-v0.0.1
 ```
+
+<!-- x-release-please-end-version -->
