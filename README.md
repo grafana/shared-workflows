@@ -108,3 +108,50 @@ More about how the upstream action works can be found [here](https://github.com/
 ### Add new components to Release Please config file
 
 In order for components to be released, they must be in the [release-please-config.json](./release-please-config.json) file. Always ensure new components are added to this file.
+
+#### Automatically update README files with the latest version
+
+As part of using the latest version of an action, it's a good practice to update the README file of each shared workflow every time there is a new release.
+
+To do so, after adding the name of the new action which needs to be released in the [release-please-config.json](./release-please-config.json) file, the `"extra-files"` field should also be added and include the `README.md` like:
+
+```json
+  ...
+  "packages": {
+    "actions/my-new-action": {
+      "package-name": "my-new-action",
+      "extra-files": ["README.md"]
+    },
+  }
+```
+
+Also, the following block should be added in the README file which will be responsible for updating the version with a new one:
+
+`README.md`:
+````
+# my-new-action
+
+This is my new action which does awesome stuff!
+
+<!-- x-release-please-start-version --> # beginning of the release please block
+
+```yaml
+name: My new action
+on:
+  pull_request:
+
+jobs:
+  my-new-action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: do-stuff
+        uses: grafana/shared-workflows/actions/my-new-action@my-new-action-v1.0.0
+
+```
+
+<!-- x-release-please-end-version --> # end of the release please block
+
+````
+
+Every semver-like string nested in the above release-please block, will be updated with the new semver once it's released.
