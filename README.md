@@ -112,7 +112,7 @@ In order for components to be released, they must be in the [release-please-conf
 
 `README` files for each component should have embedded versions updated every time there is a new release.
 
-To do so, after adding the name of the new action which needs to be released in the [release-please-config.json](./release-please-config.json) file, the `"extra-files"` field should also be added and include the `README.md` like:
+Add a new entry which looks like this:
 
 ```json
   "packages": {
