@@ -47,7 +47,9 @@ jobs:
       - id: compare-package-lists
         run: |
             package_names=$(jq -r '.packages | keys[]' ./release-please-config.json)
-            folder_paths="${{ steps.list-folders.outputs.folders }}"
+            folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
+
+            echo "$folder_paths"
 
             folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
 
