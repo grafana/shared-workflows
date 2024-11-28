@@ -46,10 +46,8 @@ jobs:
 
       - id: compare-package-lists
         run: |
-            package_names=$(jq -r '.packages | keys[]' ./release-please-config.json)
+            package_names_from_json=$(jq -r '.packages | keys[]' ./release-please-config.json)
             folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
-
-            echo "$folder_paths"
 
             folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
 
@@ -59,17 +57,15 @@ jobs:
             for folder in "${folder_paths_array[@]}"; do
                 folder_name=$(echo "$folder" | sed 's/^.\///')
 
-                echo "checking folder: $folder"
-
-                if ! echo "$folder_name" | grep -qwF "$package_names"; then
+                if ! echo "$folder_name" | grep -qwF "$package_names_from_json"; then
                     missing_paths+="$folder_name"$'\n'
                 fi
             done
 
             if [ -n "$missing_paths" ]; then
-                echo "The following actions are missing from the file paths and thus won't be automatically released:"
+                echo "\nThe following actions are missing from the file paths and thus won't be automatically released:"
                 echo -e "$missing_paths"
-                echo "Please add them in release-please-config.json."
+                echo "Please add them in release-please-config.json!"
                 exit 1
             else
                 echo "All actions are present in the file paths."
