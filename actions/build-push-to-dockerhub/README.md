@@ -5,6 +5,8 @@ It uses `get-vault-secrets` action to get the DockerHub username and password fr
 
 Example of how to use this action in a repository:
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Push to DockerHub
 on:
@@ -23,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub-v0.1.0
         with:
           repository: ${{ github.repository }} # or any other dockerhub repository
           context: .
@@ -31,6 +33,8 @@ jobs:
             "2024-04-01-abcd1234"
             "latest"
 ```
+
+<!-- x-release-please-end-version -->
 
 ## Inputs
 

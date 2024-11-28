@@ -5,6 +5,8 @@ You do not need to set up Slack webhooks in order to use this action.
 
 See the docs for the [slackapi/slack-github-action workflow](https://github.com/slackapi/slack-github-action/blob/main/README.md#technique-2-slack-app) for more info. Our installation is via Slack App.
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Send And Update a Slack plain text message
 jobs:
@@ -13,13 +15,13 @@ jobs:
     steps:
       - name: Send Slack Message
         id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v1.0.0
         with:
           channel-id: "Channel Name or ID"
           slack-message: "We are testing, testing, testing all day long"
 
       - name: Update Slack Message
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v1.0.0
         with:
           channel-id: ${{ steps.slack.outputs.channel_id }} # Channel ID is required when updating a message
           slack-message: "This is the updated message"
@@ -34,7 +36,7 @@ jobs:
     steps:
       - name: Send Slack Message via Payload
         id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v1.0.0
         with:
           channel-id: "Channel Name or ID"
           payload: |
@@ -56,7 +58,7 @@ jobs:
             }
 
       - name: Update Slack Message via Payload
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v1.0.0
         with:
           channel-id: ${{ steps.slack.outputs.channel_id }}
           payload: |
@@ -88,7 +90,7 @@ jobs:
     steps:
       - name: Post to a Slack channel
         id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v1.0.0
         with:
           channel-id: "Channel Name or ID"
           payload: |
@@ -96,7 +98,7 @@ jobs:
               "text": "Deployment started (In Progress)"
             }
       - name: Respond to Slack Message
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v1.0.0
         with:
           channel-id: ${{ steps.slack.outputs.channel_id }}
           payload: |
@@ -105,6 +107,8 @@ jobs:
               "text": "Deployment finished (Completed)"
             }
 ```
+
+<!-- x-release-please-end-version -->
 
 ## Inputs
 

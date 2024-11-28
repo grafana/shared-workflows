@@ -4,6 +4,8 @@ This is a composite GitHub Action, used to login to Google Artifact Registry (GA
 It uses [OIDC authentication](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
 which means that only workflows which get triggered based on certain rules can trigger these composite workflows.
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: CI
 on:
@@ -19,9 +21,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gar@main
+      - uses: grafana/shared-workflows/actions/login-to-gar@login-to-gar-v0.1.0
         id: login-to-gar
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev
           environment: "prod" # can be either dev/prod
 ```
+
+<!-- x-release-please-end-version -->

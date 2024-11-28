@@ -4,6 +4,8 @@ This is a composite GitHub Action used to authenticate and access resources in A
 
 Example usage in a repository:
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Authenticate to AWS
 on:
@@ -18,7 +20,7 @@ jobs:
 
     steps:
       - id: aws-auth
-        uses: grafana/shared-workflows/actions/aws-auth@main
+        uses: grafana/shared-workflows/actions/aws-auth@argo-lint-v1.0.0
         with:
           aws-region: "us-west-1"
           role-arn: "arn:aws:iam::366620023056:role/github-actions/s3-test-access"
@@ -30,6 +32,8 @@ jobs:
           aws s3 cp 's3://grafanalabs-github-actions-test-repo/test.txt' 'test.txt'
           cat 'test.txt'
 ```
+
+<!-- x-release-please-end-version -->
 
 ## Inputs
 

@@ -5,6 +5,8 @@ The secret format is defined here: <https://github.com/hashicorp/vault-action>
 
 Example workflow:
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: CI
 on:
@@ -21,7 +23,7 @@ jobs:
 
     steps:
       - id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets-v1.0.1
         with:
           # Secrets placed in the ci/common/<path> path in Vault
           common_secrets: |
@@ -37,3 +39,5 @@ jobs:
           echo "$ENVVAR1"
           echo "${{ env.ENVVAR2 }}"
 ```
+
+<!-- x-release-please-end-version -->
