@@ -114,7 +114,6 @@ Once the component is added, as part of using the latest version of an action, i
 To do so, after adding the name of the new action which needs to be released in the [release-please-config.json](./release-please-config.json) file, the `"extra-files"` field should also be added and include the `README.md` like:
 
 ```json
-  ...
   "packages": {
     "actions/my-new-action": {
       "package-name": "my-new-action",
