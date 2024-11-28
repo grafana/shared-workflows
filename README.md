@@ -127,12 +127,12 @@ Also, the following block should be added in the README file which will be respo
 
 `README.md`:
 
-````
+````markdown
 # my-new-action
 
 This is my new action which does awesome stuff!
 
-<!-- x-release-please-start-version --> # beginning of the release please block
+<!-- x-release-please-start-version -->
 
 ```yaml
 name: My new action
@@ -149,7 +149,7 @@ jobs:
 
 ```
 
-<!-- x-release-please-end-version --> # end of the release please block
+<!-- x-release-please-end-version -->
 
 ````
 
