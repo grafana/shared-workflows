@@ -88,6 +88,30 @@
     "actions/login-to-gar": {
       "package-name": "login-to-gar",
       "extra-files": ["README.md"]
+    },
+    "actions/login-to-gcs": {
+      "package-name": "login-to-gcs",
+      "extra-files": ["README.md"]
+    },
+    "actions/push-to-gar-docker": {
+      "package-name": "push-to-gar-docker",
+      "extra-files": ["README.md"]
+    },
+    "actions/push-to-gcs": {
+      "package-name": "push-to-gcs",
+      "extra-files": ["README.md"]
+    },
+    "actions/send-slack-message": {
+      "package-name": "send-slack-message",
+      "extra-files": ["README.md"]
+    },
+    "actions/setup-argo": {
+      "package-name": "setup-argo",
+      "extra-files": ["README.md"]
+    },
+    "actions/setup-conftest": {
+      "package-name": "setup-conftest",
+      "extra-files": ["README.md"]
     }
   },
   "release-type": "simple",
