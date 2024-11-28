@@ -54,49 +54,40 @@
   "include-v-in-tag": true,
   "packages": {
     "actions/argo-lint": {
-      "package-name": "argo-lint"
+      "package-name": "argo-lint",
+      "extra-files": ["README.md"]
     },
     "actions/aws-auth": {
-      "package-name": "aws-auth"
+      "package-name": "aws-auth",
+      "extra-files": ["README.md"]
     },
     "actions/build-push-to-dockerhub": {
-      "package-name": "build-push-to-dockerhub"
+      "package-name": "build-push-to-dockerhub",
+      "extra-files": ["README.md"]
     },
     "actions/dockerhub-login": {
-      "package-name": "dockerhub-login"
+      "package-name": "dockerhub-login",
+      "extra-files": ["README.md"]
     },
     "actions/find-pr-for-commit": {
-      "package-name": "find-pr-for-commit"
+      "package-name": "find-pr-for-commit",
+      "extra-files": ["README.md"]
     },
     "actions/generate-openapi-clients": {
-      "package-name": "generate-openapi-clients"
+      "package-name": "generate-openapi-clients",
+      "extra-files": ["README.md"]
     },
     "actions/get-vault-secrets": {
-      "package-name": "get-vault-secrets"
+      "package-name": "get-vault-secrets",
+      "extra-files": ["README.md"]
     },
     "actions/lint-pr-title": {
-      "package-name": "lint-pr-title"
+      "package-name": "lint-pr-title",
+      "extra-files": ["README.md"]
     },
     "actions/login-to-gar": {
-      "package-name": "login-to-gar"
-    },
-    "actions/login-to-gcs": {
-      "package-name": "login-to-gcs"
-    },
-    "actions/push-to-gar-docker": {
-      "package-name": "push-to-gar-docker"
-    },
-    "actions/push-to-gcs": {
-      "package-name": "push-to-gcs"
-    },
-    "actions/send-slack-message": {
-      "package-name": "send-slack-message"
-    },
-    "actions/setup-argo": {
-      "package-name": "setup-argo"
-    },
-    "actions/setup-conftest": {
-      "package-name": "setup-conftest"
+      "package-name": "login-to-gar",
+      "extra-files": ["README.md"]
     }
   },
   "release-type": "simple",
