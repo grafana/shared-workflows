@@ -128,6 +128,7 @@ To do so, after adding the name of the new action which needs to be released in 
 Also, the following block should be added in the README file which will be responsible for updating the version with a new one:
 
 `README.md`:
+
 ````
 # my-new-action
 
