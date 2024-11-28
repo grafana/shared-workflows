@@ -109,9 +109,7 @@ More about how the upstream action works can be found [here](https://github.com/
 
 In order for components to be released, they must be in the [release-please-config.json](./release-please-config.json) file. Always ensure new components are added to this file.
 
-#### Automatically update README files with the latest version
-
-As part of using the latest version of an action, it's a good practice to update the README file of each shared workflow every time there is a new release.
+Once the component is added, as part of using the latest version of an action, it's a good practice to update the README file of each shared workflow every time there is a new release.
 
 To do so, after adding the name of the new action which needs to be released in the [release-please-config.json](./release-please-config.json) file, the `"extra-files"` field should also be added and include the `README.md` like:
 
