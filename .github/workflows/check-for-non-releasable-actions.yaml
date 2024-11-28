@@ -31,7 +31,8 @@ jobs:
                 ./actions
                 ./release-please-config.json
 
-      - id: list-folders
+      - name: List folders
+        id: list-folders
         uses: Drafteame/list-folders-action@2138be65c1ec39ea5357a0d47263f330d28b4b02 # v1.0.0
         with:
           paths: |
@@ -40,11 +41,8 @@ jobs:
       - name: Install jsonnet
         run: go install github.com/google/go-jsonnet/cmd/jsonnet@latest
 
-      - id: print-folders
-        run: |
-            echo ${{ steps.list-folders.outputs.folders }}
-
-      - id: compare-package-lists
+      - name: Compare config JSON with directories
+        id: compare-package-lists
         run: |
             package_names_from_json=$(jq -r '.packages | keys[]' ./release-please-config.json)
             folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
@@ -68,7 +66,7 @@ jobs:
                 echo "Please add them in release-please-config.json!"
                 exit 1
             else
-                echo "All actions are present in the file paths."
+                echo "All actions are releasable!"
             fi
 
 
