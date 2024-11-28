@@ -43,10 +43,10 @@ jobs:
 
       - name: Compare config JSON with directories
         run: |
-          # shellcheck disable=SC2207,SC2028
           package_names_from_json=$(jq -r '.packages | keys[]' ./release-please-config.json)
           folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
 
+          # shellcheck disable=SC2207
           folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
 
           # initialize a variable to store missing actions
