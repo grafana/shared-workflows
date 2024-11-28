@@ -153,4 +153,4 @@ jobs:
 
 ````
 
-Every semver-like string nested in the above release-please block, will be updated with the new semver once it's released.
+Every semver-like string between the `x-release-please-start-version` and `x-release-please-end-version` comments will be updated with the new version whenever the component is released.
