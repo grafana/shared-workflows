@@ -27,9 +27,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-            sparse-checkout: |
-                ./actions
-                ./release-please-config.json
+          sparse-checkout: |
+            ./actions
+            ./release-please-config.json
 
       - name: List folders
         id: list-folders
@@ -37,37 +37,34 @@ jobs:
         with:
           paths: |
             ./actions
-    
+
       - name: Install jsonnet
         run: go install github.com/google/go-jsonnet/cmd/jsonnet@latest
 
       - name: Compare config JSON with directories
         id: compare-package-lists
         run: |
-            package_names_from_json=$(jq -r '.packages | keys[]' ./release-please-config.json)
-            folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
+          package_names_from_json=$(jq -r '.packages | keys[]' ./release-please-config.json)
+          folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
 
-            folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
+          folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
 
-            # initialize a variable to store missing actions
-            missing_paths=""
+          # initialize a variable to store missing actions
+          missing_paths=""
 
-            for folder in "${folder_paths_array[@]}"; do
-                folder_name=$(echo "$folder" | sed 's/^.\///')
+          for folder in "${folder_paths_array[@]}"; do
+              folder_name=$(echo "$folder" | sed 's/^.\///')
 
-                if ! echo "$folder_name" | grep -qwF "$package_names_from_json"; then
-                    missing_paths+="$folder_name"$'\n'
-                fi
-            done
+              if ! echo "$folder_name" | grep -qwF "$package_names_from_json"; then
+                  missing_paths+="$folder_name"$'\n'
+              fi
+          done
 
-            if [ -n "$missing_paths" ]; then
-                echo "\nThe following actions are missing from the file paths and thus won't be automatically released:"
-                echo -e "$missing_paths"
-                echo "Please add them in release-please-config.json!"
-                exit 1
-            else
-                echo "All actions are releasable!"
-            fi
-
-
-     
+          if [ -n "$missing_paths" ]; then
+              echo "\nThe following actions are missing from the file paths and thus won't be automatically released:"
+              echo -e "$missing_paths"
+              echo "Please add them in release-please-config.json!"
+              exit 1
+          else
+              echo "All actions are releasable!"
+          fi
