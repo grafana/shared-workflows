@@ -1,0 +1,77 @@
+name: Check for non-releasable actions
+on:
+  pull_request:
+    paths:
+      - actions/
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  push:
+    branches:
+      - main
+    paths:
+      - actions/
+
+jobs:
+  check-for-non-releasable-actions:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+            sparse-checkout: |
+                ./actions
+                ./release-please-config.json
+
+      - id: list-folders
+        uses: Drafteame/list-folders-action@2138be65c1ec39ea5357a0d47263f330d28b4b02 # v1.0.0
+        with:
+          paths: |
+            ./actions
+    
+      - name: Install jsonnet
+        run: go install github.com/google/go-jsonnet/cmd/jsonnet@latest
+
+      - id: print-folders
+        run: |
+            echo ${{ steps.list-folders.outputs.folders }}
+
+      - id: compare-package-lists
+        run: |
+            package_names=$(jq -r '.packages | keys[]' ./release-please-config.json)
+            folder_paths="${{ steps.list-folders.outputs.folders }}"
+
+            folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
+
+            # initialize a variable to store missing actions
+            missing_paths=""
+
+            for folder in "${folder_paths_array[@]}"; do
+                folder_name=$(echo "$folder" | sed 's/^.\///')
+
+                echo "checking folder: $folder"
+
+                if ! echo "$folder_name" | grep -qwF "$package_names"; then
+                    missing_paths+="$folder_name"$'\n'
+                fi
+            done
+
+            if [ -n "$missing_paths" ]; then
+                echo "The following actions are missing from the file paths and thus won't be automatically released:"
+                echo -e "$missing_paths"
+                echo "Please add them in release-please-config.json."
+                exit 1
+            else
+                echo "All actions are present in the file paths."
+            fi
+
+
+     
