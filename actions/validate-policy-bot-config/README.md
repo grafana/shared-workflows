@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Validate Policy Bot configuration
-        uses: grafana/shared-workflows/actions/validate-policy-bot-config@validate-policy-bot-config-v0.0.1
+        uses: grafana/shared-workflows/actions/validate-policy-bot-config@validate-policy-bot-config-v1.0.0
 ```
 
 <!-- x-release-please-end-version -->
