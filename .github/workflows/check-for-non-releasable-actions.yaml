@@ -35,38 +35,28 @@ jobs:
             ./actions
             ./release-please-config.json
 
-      - name: List folders
-        id: list-folders
-        uses: Drafteame/list-folders-action@2138be65c1ec39ea5357a0d47263f330d28b4b02 # v1.0.0
+      - uses: actions/github-script@v7
         with:
-          paths: |
-            ./actions
+          script: |
+            const fs = require('fs/promises');
+            const releasePleaseConfig = JSON.parse(await fs.readFile('release-please-config.json', 'utf-8'));
 
-      - name: Compare config JSON with directories
-        run: |
-          package_names_from_json=$(jq -r '.packages | keys[]' ./release-please-config.json)
-          folder_paths="${{ toJSON(steps.list-folders.outputs.folders) }}"
+            const configuredPackageNames = new Set(Object.keys(releasePleaseConfig.packages));
+            const packageNames = new Set();
 
-          # shellcheck disable=SC2207
-          # SC2007=prefer mapfile or read -a to split command output (or quote to avoid splitting)
-          folder_paths_array=($(echo "$folder_paths" | jq -r '.[]'))
+            const folders = await fs.readdir('actions', { withFileTypes: true });
+            for (const folder of folders) {
+              if (folder.isDirectory()) {
+                packageNames.add('actions/' + folder.name);
+              }
+            }
 
-          # initialize a variable to store missing actions
-          missing_paths=""
+            const missingConfigurations = [...packageNames].filter(pkg => !configuredPackageNames.has(pkg));
 
-          for folder in "${folder_paths_array[@]}"; do
-              folder_name=$(echo "$folder" | sed 's/^.\///')
-
-              if ! echo "$folder_name" | grep -qwF "$package_names_from_json"; then
-                  missing_paths+="$folder_name"$'\n'
-              fi
-          done
-
-          if [ -n "$missing_paths" ]; then
-              echo "The following actions are missing from the release-please-config.json file and thus won't be automatically released:"
-              echo -e "$missing_paths"
-              echo "Please add them in release-please-config.json!"
-              exit 1
-          else
-              echo "All actions are releasable!"
-          fi
+            if (missingConfigurations.length > 0) {
+              console.log('The following actions are missing from the release-please-config.json file and thus won\'t be automatically released:');
+              console.log(missingConfigurations.join('\n'));
+              console.log('Please add them in release-please-config.json!');
+            } else {
+              console.log('All actions are releasable!');
+            }
