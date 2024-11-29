@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Anchore SBOM Action
-        uses: grafana/shared-workflows/actions@syft-sbom-v0.0.1
+        uses: grafana/shared-workflows/actions@syft-sbom-v1.0.0
         with:
           artifact-name: ${{ github.event.repository.name }}-spdx.json
 ```
