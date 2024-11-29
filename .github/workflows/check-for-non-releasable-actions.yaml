@@ -38,7 +38,14 @@ jobs:
           paths: |
             ./actions
 
+      - uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
+        id: jsonnet-cache
+        with:
+          path: ~/go/bin/jsonnet
+          key: jsonnet
+
       - name: Install jsonnet
+        if: ${{ steps.jsonnet-cache.outputs.cache-hit != 'true' }}
         run: go install github.com/google/go-jsonnet/cmd/jsonnet@latest
 
       - name: Compare config JSON with directories
