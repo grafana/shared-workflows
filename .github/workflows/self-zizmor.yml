@@ -1,0 +1,26 @@
+name: zizmor GitHub Actions static analysis
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    paths:
+      - .github/workflows/reusable-zizmor.yml
+      - .github/workflows/self-zizmor.yml
+
+jobs:
+  zizmor:
+    name: Generate
+
+    permissions:
+      actions: read
+      contents: read
+
+      pull-requests: write
+      security-events: write
+
+    uses: ./.github/workflows/reusable-zizmor.yml
+    with:
+      # Don't fail the build while we are working on fixing the results.
+      fail-severity: never
