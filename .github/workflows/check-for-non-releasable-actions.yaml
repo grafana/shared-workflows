@@ -1,0 +1,63 @@
+name: Check for non-releasable actions
+on:
+  pull_request:
+    paths:
+      - actions/
+      - .github/workflows/check-for-non-releasable-actions.yaml
+      - release-please-config.json
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  push:
+    branches:
+      - main
+    paths:
+      - actions/
+      - .github/workflows/check-for-non-releasable-actions.yaml
+      - release-please-config.json
+
+jobs:
+  check-for-non-releasable-actions:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          sparse-checkout: |
+            ./actions
+            ./release-please-config.json
+
+      - name: Check for non-releasable actions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs/promises');
+            const releasePleaseConfig = JSON.parse(await fs.readFile('release-please-config.json', 'utf-8'));
+
+            const configuredPackageNames = new Set(Object.keys(releasePleaseConfig.packages));
+            const packageNames = new Set();
+
+            const folders = await fs.readdir('actions', { withFileTypes: true });
+            for (const folder of folders) {
+              if (folder.isDirectory()) {
+                packageNames.add('actions/' + folder.name);
+              }
+            }
+
+            const missingConfigurations = [...packageNames].filter(pkg => !configuredPackageNames.has(pkg));
+
+            if (missingConfigurations.length > 0) {
+              console.log('The following actions are missing from the release-please-config.json file and thus won\'t be automatically released:');
+              console.log(missingConfigurations.join('\n'));
+              console.log('Please add them in release-please-config.json!');
+            } else {
+              console.log('All actions are releasable!');
+            }

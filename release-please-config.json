@@ -112,6 +112,22 @@
     "actions/setup-conftest": {
       "package-name": "setup-conftest",
       "extra-files": ["README.md"]
+    },
+    "actions/syft-sbom-report": {
+      "package-name": "syft-sbom-report",
+      "extra-files": ["README.md"]
+    },
+    "actions/techdocs-rewrite-relative-links": {
+      "package-name": "techdocs-rewrite-relative-links",
+      "extra-files": ["README.md"]
+    },
+    "actions/trigger-argo-workflow": {
+      "package-name": "trigger-argo-workflow",
+      "extra-files": ["README.md"]
+    },
+    "actions/validate-policy-bot-config": {
+      "package-name": "validate-policy-bot-config",
+      "extra-files": ["README.md"]
     }
   },
   "release-type": "simple",
