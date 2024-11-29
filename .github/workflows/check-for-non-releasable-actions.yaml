@@ -62,7 +62,7 @@ jobs:
           done
 
           if [ -n "$missing_paths" ]; then
-              echo "The following actions are missing from the file paths and thus won't be automatically released:"
+              echo "The following actions are missing from the release-please-config.json file and thus won't be automatically released:"
               echo -e "$missing_paths"
               echo "Please add them in release-please-config.json!"
               exit 1
