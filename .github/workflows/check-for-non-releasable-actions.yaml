@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - actions/
+      - .github/workflows/check-for-non-releasable-actions.yaml
     types:
       - edited
       - opened
@@ -14,6 +15,7 @@ on:
       - main
     paths:
       - actions/
+      - .github/workflows/check-for-non-releasable-actions.yaml
 
 jobs:
   check-for-non-releasable-actions:
