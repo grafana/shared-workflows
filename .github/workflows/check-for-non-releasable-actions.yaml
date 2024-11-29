@@ -2,7 +2,7 @@ name: Check for non-releasable actions
 on:
   pull_request:
     paths:
-      - actions/
+      - actions/**
       - .github/workflows/check-for-non-releasable-actions.yaml
       - release-please-config.json
     types:
@@ -15,7 +15,7 @@ on:
     branches:
       - main
     paths:
-      - actions/
+      - actions/**
       - .github/workflows/check-for-non-releasable-actions.yaml
       - release-please-config.json
 
