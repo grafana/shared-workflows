@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "$schema": "https://raw.githubusercontent.com/dsotirakis/release-please/add-generic-sha-updater/schemas/config.json",
   "changelog-sections": [
     {
       "section": "🎉 Features",
