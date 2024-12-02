@@ -1,9 +1,7 @@
 name: Release shared-workflows
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
 
 jobs:
   release-please:
@@ -14,7 +12,7 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          target-branch: ${{ github.ref_name }}
+          target-branch: test-update-shas-in-readme
 
       # We release full semver versions major.minor.patch. We need to make sure
       # that v2 is updated as well as v2.0, so that people can pin to the major
