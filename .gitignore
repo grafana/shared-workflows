@@ -1,1 +1,14 @@
 .idea/
+
+# JS / Bun bits
+**/node_modules/
+**/.*.bun-build
+
+# Test files
+**/coverage/
+
+# Generated build output
+**/dist/
+
+# Don't commit any log files
+**/*.log

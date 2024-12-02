@@ -1,0 +1,9 @@
+{
+  "name": "shared-workflows",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "internal/*",
+    "actions/lint-pr-title"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "check-for-non-releasable-actions",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "run": "bun run --cwd ../.. internal/check-for-non-releasable-actions/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/workflow-parser": "^0.3.13",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@grafana/eslint-config-shared-workflows": "workspace:*",
+    "@types/bun": "1.1.14",
+    "typescript": "5.7.2"
+  },
+  "packageManager": "bun@1.1.38"
+}
