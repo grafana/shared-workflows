@@ -5,17 +5,23 @@
     "checkJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "es2022",
+    "lib": ["esnext"],
+    "module": "preserve",
     "moduleResolution": "Bundler",
     "newLine": "lf",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
     "outDir": "./dist",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "es2022"
+    "target": "es2024",
+    "verbatimModuleSyntax": true
   },
   "include": ["**/*.ts"]
 }

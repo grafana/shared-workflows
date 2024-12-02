@@ -1,0 +1,23 @@
+{
+  "name": "@grafana/eslint-config-shared-workflows",
+  "version": "0.0.1",
+  "main": "eslint.config.mjs",
+  "license": "BSD-3-Clause",
+  "private": true,
+  "dependencies": {
+    "@eslint/js": "9.16.0",
+    "@types/eslint__js": "8.42.3",
+    "@typescript-eslint/eslint-plugin": "8.16.0",
+    "@typescript-eslint/parser": "8.16.0",
+    "eslint": "9.16.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-config-standard": "17.1.0",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-jest": "28.9.0",
+    "eslint-plugin-prettier": "5.2.1",
+    "eslint-plugin-promise": "7.2.1",
+    "prettier": "3.4.1",
+    "typescript": "5.7.2",
+    "typescript-eslint": "8.16.0"
+  }
+}
