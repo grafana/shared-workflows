@@ -69,6 +69,8 @@ the [`commitlint.config.js` file located in this directory][config].
 In this example the `commitlint.config.js` file is located in the root directory
 of the project which is being linted.
 
+<!-- x-release-please-start-version -->
+
 ```yml
 name: Lint PR title
 
@@ -84,7 +86,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - id: lint-pr-title
-        uses: grafana/shared-workflows/actions/lint-pr-title@main
+        uses: grafana/shared-workflows/actions/lint-pr-title@lint-pr-title-v1.1.0
         with:
           config-path: "${{ github.workspace }}/commitlint.config.js"
           title-only: false
@@ -103,5 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: lint-pr-title
-        uses: grafana/shared-workflows/actions/lint-pr-title@main
+        uses: grafana/shared-workflows/actions/lint-pr-title@lint-pr-title-v1.1.0
 ```
+
+<!-- x-release-please-end-version -->
