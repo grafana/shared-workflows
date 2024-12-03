@@ -113,6 +113,10 @@
       "package-name": "setup-conftest",
       "extra-files": ["README.md"]
     },
+    "actions/setup-crossplane": {
+      "package-name": "setup-crossplane",
+      "extra-files": ["README.md"]
+    },
     "actions/syft-sbom-report": {
       "package-name": "syft-sbom-report",
       "extra-files": ["README.md"]

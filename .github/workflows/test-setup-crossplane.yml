@@ -1,0 +1,63 @@
+name: Test Setup Crossplane
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/setup-crossplane/**
+      - .github/workflows/test-setup-crossplane.yml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/setup-crossplane/**
+      - .github/workflows/test-setup-crossplane.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  setup-crossplane:
+    runs-on: ubuntu-latest
+    env:
+      # generate a unique cache prefix for each test run, so we can test cache behaviour
+      CACHE_PREFIX: crossplane-${{ github.run_id }}-${{ github.run_attempt }}
+
+    strategy:
+      matrix:
+        cache-hit: [false, true]
+      max-parallel: 1
+
+    name: "Setup Crossplane (cache hit: ${{ matrix.cache-hit }})"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          sparse-checkout: |
+            actions/setup-crossplane
+
+      - name: "Setup Crossplane (cache: ${{ matrix.cache-hit }})"
+        id: setup-crossplane
+        uses: ./actions/setup-crossplane
+        with:
+          cache-prefix: ${{ env.CACHE_PREFIX }}
+          version: v1.18.1
+
+      - name: Assert cache
+        if: fromJson(steps.setup-crossplane.outputs.cache-hit) != matrix.cache-hit
+        run: |
+          echo "Expected cache hit: '${{ matrix.cache-hit }}' but got '${{ fromJson(steps.setup-crossplane.outputs.cache-hit) }}'"
+          exit 1
+
+      - name: Check Crossplane CLI works
+        run: crossplane version
