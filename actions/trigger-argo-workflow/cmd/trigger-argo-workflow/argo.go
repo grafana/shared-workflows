@@ -33,8 +33,8 @@ type App struct {
 }
 
 var instanceToHost = map[string]string{
-	"dev":     "argo-workflows-dev.grafana.net:443",
-	"ops":     "argo-workflows.grafana.net:443",
+	"dev": "argo-workflows-dev.grafana.net:443",
+	"ops": "argo-workflows.grafana.net:443",
 }
 
 func (a App) server() string {
@@ -126,6 +126,23 @@ func (a *App) openGitHubOutput() io.WriteCloser {
 	return f
 }
 
+var fatalErrors = []string{
+	"AlreadyExists",
+}
+
+func isFatalError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	for _, fatalError := range fatalErrors {
+		if strings.Contains(err.Error(), fatalError) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a *App) Run(md GitHubActionsMetadata) error {
 	bo := backoff.WithMaxRetries(backoff.NewExponentialBackOff(), a.retries)
 
@@ -135,6 +152,10 @@ func (a *App) Run(md GitHubActionsMetadata) error {
 	run := func() error {
 		var err error
 		uri, out, err = a.runCmd(md)
+
+		if isFatalError(err) {
+			return backoff.Permanent(err)
+		}
 
 		return err
 	}
