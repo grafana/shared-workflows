@@ -109,6 +109,10 @@
       "package-name": "setup-argo",
       "extra-files": ["README.md"]
     },
+    "actions/setup-jrsonnet": {
+      "package-name": "setup-jrsonnet",
+      "extra-files": ["README.md"]
+    },
     "actions/setup-conftest": {
       "package-name": "setup-conftest",
       "extra-files": ["README.md"]
