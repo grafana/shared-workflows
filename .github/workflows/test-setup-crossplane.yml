@@ -60,4 +60,4 @@ jobs:
           exit 1
 
       - name: Check Crossplane CLI works
-        run: crossplane version
+        run: crossplane -h
