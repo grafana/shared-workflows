@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "$schema": "https://raw.githubusercontent.com/dsotirakis/release-please/add-generic-sha-updater/schemas/config.json",
   "changelog-sections": [
     {
       "section": "🎉 Features",
@@ -55,79 +55,12 @@
   "packages": {
     "actions/argo-lint": {
       "package-name": "argo-lint",
-      "extra-files": ["README.md"]
-    },
-    "actions/aws-auth": {
-      "package-name": "aws-auth",
-      "extra-files": ["README.md"]
-    },
-    "actions/build-push-to-dockerhub": {
-      "package-name": "build-push-to-dockerhub",
-      "extra-files": ["README.md"]
-    },
-    "actions/dockerhub-login": {
-      "package-name": "dockerhub-login",
-      "extra-files": ["README.md"]
-    },
-    "actions/find-pr-for-commit": {
-      "package-name": "find-pr-for-commit",
-      "extra-files": ["README.md"]
-    },
-    "actions/generate-openapi-clients": {
-      "package-name": "generate-openapi-clients",
-      "extra-files": ["README.md"]
-    },
-    "actions/get-vault-secrets": {
-      "package-name": "get-vault-secrets",
-      "extra-files": ["README.md"]
-    },
-    "actions/lint-pr-title": {
-      "package-name": "lint-pr-title",
-      "extra-files": ["README.md"]
-    },
-    "actions/login-to-gar": {
-      "package-name": "login-to-gar",
-      "extra-files": ["README.md"]
-    },
-    "actions/login-to-gcs": {
-      "package-name": "login-to-gcs",
-      "extra-files": ["README.md"]
-    },
-    "actions/push-to-gar-docker": {
-      "package-name": "push-to-gar-docker",
-      "extra-files": ["README.md"]
-    },
-    "actions/push-to-gcs": {
-      "package-name": "push-to-gcs",
-      "extra-files": ["README.md"]
-    },
-    "actions/send-slack-message": {
-      "package-name": "send-slack-message",
-      "extra-files": ["README.md"]
-    },
-    "actions/setup-argo": {
-      "package-name": "setup-argo",
-      "extra-files": ["README.md"]
-    },
-    "actions/setup-conftest": {
-      "package-name": "setup-conftest",
-      "extra-files": ["README.md"]
-    },
-    "actions/syft-sbom-report": {
-      "package-name": "syft-sbom-report",
-      "extra-files": ["README.md"]
-    },
-    "actions/techdocs-rewrite-relative-links": {
-      "package-name": "techdocs-rewrite-relative-links",
-      "extra-files": ["README.md"]
-    },
-    "actions/trigger-argo-workflow": {
-      "package-name": "trigger-argo-workflow",
-      "extra-files": ["README.md"]
-    },
-    "actions/validate-policy-bot-config": {
-      "package-name": "validate-policy-bot-config",
-      "extra-files": ["README.md"]
+      "extra-files": [
+        {
+          "type": "sha",
+          "path": "README.md"
+        }
+      ]
     }
   },
   "release-type": "simple",
