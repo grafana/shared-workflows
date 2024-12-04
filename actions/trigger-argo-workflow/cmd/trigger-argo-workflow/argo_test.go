@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"testing"
@@ -150,6 +151,37 @@ func TestSetURIAsJobOutput(t *testing.T) {
 			a.setURIAsJobOutput(tt.uri, &buf)
 
 			require.Equal(t, tt.expectedOutput, buf.String())
+		})
+	}
+}
+
+func TestIsFatalError(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{
+			name:     "nil error",
+			err:      nil,
+			expected: false,
+		},
+		{
+			name:     "error without 'AlreadyExists'",
+			err:      errors.New("rpc error: code = InvalidName desc = workflows.argoproj.io \"my-workflow-@#$#$\" is invalid name"),
+			expected: false,
+		},
+		{
+			name:     "error containing 'AlreadyExists'",
+			err:      errors.New("rpc error: code = AlreadyExists desc = workflows.argoproj.io \"my-workflow-1\" already exists"),
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isFatalError(tt.err)
+			require.Equal(t, result, tt.expected)
 		})
 	}
 }
