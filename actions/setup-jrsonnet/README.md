@@ -1,6 +1,6 @@
-# Setup Jrsonnet
+# Setup jrsonnet
 
-Setup Jrsonnet cli and add it to the PATH, this action will pull the binary from GitHub releases and store it in cache for the next run.
+Setup jrsonnet CLI and add it to the PATH, this action will pull the binary from GitHub releases and store it in cache for the next run.
 
 ## Example
 
