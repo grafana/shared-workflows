@@ -1,5 +1,7 @@
 # Trigger Argo Workflow Action
 
+> If you are at Grafana Labs, follow these steps in the [internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-delivery/argo-workflows/#triggering-a-workflow-from-github-actions) first.
+
 This GitHub action triggers an Argo workflow in one of the Grafana Labs Argo
 Workflows instances. It contains a small wrapper around the `argo` CLI, which is
 downloaded as part of the action.
