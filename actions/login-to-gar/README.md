@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gar@login-to-gar-v0.1.0
+      - uses: grafana/shared-workflows/actions/login-to-gar@login-to-gar-v0.1.1
         id: login-to-gar
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev
