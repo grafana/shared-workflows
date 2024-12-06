@@ -35,12 +35,12 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v1.0.1
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v1.0.1
         with:
           go-version: 1.18
       - name: Generate clients
-        uses: grafana/shared-workflows/actions/generate-openapi-clients@generate-openapi-clients-v1.0.0
+        uses: grafana/shared-workflows/actions/generate-openapi-clients@generate-openapi-clients-v1.0.1
         with:
           package-name: slo
           spec-path: openapi.yaml
