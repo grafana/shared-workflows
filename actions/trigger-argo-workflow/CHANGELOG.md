@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow-v1.0.0...trigger-argo-workflow-v1.0.1) (2024-12-06)
+
+
+### 🐛 Bug Fixes
+
+* **trigger-argo-workflow:** prevent unnecessary retries if a permanent error is encountered ([#631](https://github.com/grafana/shared-workflows/issues/631)) ([81c3771](https://github.com/grafana/shared-workflows/commit/81c377191b9f604bc5f2c64cc2258dfe4bc5ea9c))
+
 ## 1.0.0 (2024-11-29)
 
 
