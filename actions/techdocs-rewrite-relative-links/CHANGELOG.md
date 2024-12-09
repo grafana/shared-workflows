@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.0...techdocs-rewrite-relative-links-v1.0.1) (2024-12-09)
+
+
+### 🏗️ Build System
+
+* **deps:** bump golang.org/x/term from 0.27.0 in /actions/techdocs-rewrite-relative-links ([#640](https://github.com/grafana/shared-workflows/issues/640)) ([afd0338](https://github.com/grafana/shared-workflows/commit/afd0338e2d7a8786b0365156450f3e02d5bf8af8))
+
 ## 1.0.0 (2024-11-29)
 
 
