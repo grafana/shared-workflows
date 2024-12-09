@@ -1,7 +1,6 @@
 # validate-policy-bot-config
 
-Validates the `.policy.yml` configuration file for [Policy Bot](https://github.com/palantir/policy-bot).
-See [https://github.com/palantir/policy-bot?tab=readme-ov-file#configuration](Policy Bots' documentation) for more information.
+Validates the `.policy.yml` configuration file for [Policy Bot](https://github.com/palantir/policy-bot). See [Policy Bot's documentation](https://github.com/palantir/policy-bot?tab=readme-ov-file#configuration) for more information.
 
 ## Inputs
 
