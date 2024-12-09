@@ -1,0 +1,60 @@
+name: Setup Crossplane
+description: Setup Crossplane cli and add it to the PATH, this action will run the install bash script and store the binary in cache for the next run.
+
+inputs:
+  cache-prefix:
+    description: Prefix for the cache key.
+    default: crossplane
+
+  version:
+    description: |
+      Version of the Crossplane CLI to install.
+    default: v1.18.1
+
+  channel:
+    description: |
+      Channel of the Crossplane CLI to install.
+    default: stable
+
+outputs:
+  cache-hit:
+    description: Whether the cache was hit or not.
+    value: ${{ steps.cache.outputs.cache-hit || 'false' }}
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup cache
+      id: cache
+      uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
+      with:
+        path: ${{ github.workspace }}/bin/crossplane
+        key: ${{ inputs.cache-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+
+    - run: "curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh"
+      id: install
+      shell: bash
+      env:
+        XP_VERSION: ${{ inputs.version }}
+        XP_CHANNEL: ${{ inputs.channel }}
+
+    - name: move binary
+      id: move
+      if: steps.install.outcome == 'success'
+      shell: sh
+      run: |
+        mkdir -p ${{ github.workspace }}/bin
+        mv ./crossplane ${{ github.workspace }}/bin/crossplane
+
+    - name: Add binary to path
+      shell: sh
+      run: |
+        # Check if `crossplane` is already in the PATH
+        if command -v crossplane >/dev/null; then
+          echo "crossplane is already in the PATH, not re-adding it"
+          exit 0
+        fi
+
+        echo "Adding '${{ github.workspace }}/bin' to the PATH so the 'crossplane' binary can be found"
+        echo "${{ github.workspace }}/bin" >> "${GITHUB_PATH}"
