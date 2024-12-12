@@ -1,22 +1,14 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   branchPrefix: "grafanarenovatebot/",
-  customManagers: [
-    {
-      customType: "regex",
-      fileMatch: [
-        "(?:^|/)\\.github/(?:workflows|actions)/.+\\.ya?ml$",
-        "(?:^|/)action\\.ya?ml$",
-      ],
-      matchStrings: [
-        "# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\\s]+?)(?: (?:lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?\\s+[A-Za-z0-9_-]+?[_-](?:VERSION|version)\\s*:\\s*[\"']?(?<currentValue>[^@]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?[\"']?",
-      ],
-    },
-  ],
   dependencyDashboard: false,
   enabledManagers: ["bun", "custom.regex", "github-actions", "npm"],
   forkProcessing: "enabled",
-  globalExtends: [":pinDependencies", "config:best-practices"],
+  globalExtends: [
+    ":pinDependencies",
+    "config:best-practices",
+    "customManagers:githubActionsVersions",
+  ],
   onboarding: false,
   osvVulnerabilityAlerts: true,
   packageRules: [
@@ -38,7 +30,9 @@
       matchUpdateTypes: ["digest"],
     },
     {
-      // Run the custom matcher on early Monday mornings (UTC)
+      // Update the Renovate version being used early Monday mornings (UTC). We
+      // have a special case for this as Renovate uses CD and otherwise there
+      // are too many updates.
       schedule: "* 0-4 * * 1",
       matchPackageNames: ["ghcr.io/renovatebot/renovate"],
     },
