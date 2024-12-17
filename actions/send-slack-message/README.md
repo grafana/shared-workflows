@@ -8,27 +8,6 @@ See the docs for the [slackapi/slack-github-action workflow](https://github.com/
 <!-- x-release-please-start-version -->
 
 ```yaml
-name: Send And Update a Slack plain text message
-jobs:
-  send-and-update-slack-message:
-    name: Send and update Slack message
-    steps:
-      - name: Send Slack Message
-        id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
-        with:
-          channel-id: "Channel Name or ID"
-          slack-message: "We are testing, testing, testing all day long"
-
-      - name: Update Slack Message
-        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
-        with:
-          channel-id: ${{ steps.slack.outputs.channel_id }} # Channel ID is required when updating a message
-          slack-message: "This is the updated message"
-          update-ts: ${{ steps.slack.outputs.ts }}
-```
-
-```yaml
 name: Send And Update a Slack message using JSON payload
 jobs:
   send-and-update-slack-message:
@@ -38,9 +17,10 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
         with:
-          channel-id: "Channel Name or ID"
+          method: chat.postMessage
           payload: |
             {
+              "channel": "Channel ID",
               "text": "Deployment started (In Progress)",
               "attachments": [
                 {
@@ -60,9 +40,11 @@ jobs:
       - name: Update Slack Message via Payload
         uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
         with:
-          channel-id: ${{ steps.slack.outputs.channel_id }}
+          method: post.update
+          payload-templated: true
           payload: |
             {
+              "channel": ${{ steps.slack.outputs.channel_id }},
               "text": "Deployment finished (Completed)",
               "attachments": [
                 {
@@ -78,7 +60,6 @@ jobs:
                 }
               ]
             }
-
           update-ts: ${{ steps.slack.outputs.ts }}
 ```
 
@@ -92,17 +73,20 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
         with:
-          channel-id: "Channel Name or ID"
+          method: chat.postMessage 
           payload: |
             {
+              "channel": "Channel ID",
               "text": "Deployment started (In Progress)"
             }
       - name: Respond to Slack Message
         uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
         with:
-          channel-id: ${{ steps.slack.outputs.channel_id }}
+          method: chat.postMessage 
+          payload-templated: true
           payload: |
             {
+              "channel": "Channel ID",
               "thread_ts": "${{ steps.slack.outputs.ts }}",
               "text": "Deployment finished (Completed)"
             }
@@ -114,10 +98,10 @@ jobs:
 
 | Name            | Type   | Description                                                                               |
 | --------------- | ------ | ----------------------------------------------------------------------------------------- |
-| `channel-id`    | String | Name or ID of the channel to send to.                                                     |
-| `payload`       | String | JSON payload to send. Use `payload` or `slack-message`, but not both.                     |
-| `slack-message` | String | Plain text message to send. Use `payload` or `slack-message`, but not both.               |
-| `update-ts`     | String | The timestamp of a previous message posted. Used to update or reply to previous messages. |
+| `payload`       | String | JSON payload to send. Use `payload` or `slack-message`, but not both.                     |             |
+| `method`     | String | The Slack API method to call. |
+| `payload-templated`     | String | The Slack API method to call. |
+| `update-ts`     | String | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true. |
 
 ## Outputs
 
