@@ -73,7 +73,7 @@ jobs:
         id: slack
         uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
         with:
-          method: chat.postMessage 
+          method: chat.postMessage
           payload: |
             {
               "channel": "Channel ID",
@@ -82,7 +82,7 @@ jobs:
       - name: Respond to Slack Message
         uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
         with:
-          method: chat.postMessage 
+          method: chat.postMessage
           payload-templated: true
           payload: |
             {
@@ -96,12 +96,12 @@ jobs:
 
 ## Inputs
 
-| Name            | Type   | Description                                                                               |
-| --------------- | ------ | ----------------------------------------------------------------------------------------- |
-| `payload`       | String | JSON payload to send. Use `payload` or `slack-message`, but not both.                     |             |
-| `method`     | String | The Slack API method to call. |
-| `payload-templated`     | String | The Slack API method to call. |
-| `update-ts`     | String | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true. |
+| Name                | Type   | Description                                                                                                                                        |
+| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `payload`           | String | JSON payload to send. Use `payload` or `slack-message`, but not both.                                                                              |     |
+| `method`            | String | The Slack API method to call.                                                                                                                      |
+| `payload-templated` | String | The Slack API method to call.                                                                                                                      |
+| `update-ts`         | String | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true. |
 
 ## Outputs
 
