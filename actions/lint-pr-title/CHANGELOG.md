@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.1](https://github.com/grafana/shared-workflows/compare/lint-pr-title-v1.1.0...lint-pr-title-v1.1.1) (2024-12-18)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @commitlint/load to v19.6.1 ([#650](https://github.com/grafana/shared-workflows/issues/650)) ([4abacd5](https://github.com/grafana/shared-workflows/commit/4abacd5a5d00df0bca418a08f35c76d487e04632))
+
+
+### 🔧 Miscellaneous Chores
+
+* add release-please block to lint-pr-title ([#602](https://github.com/grafana/shared-workflows/issues/602)) ([14d9a80](https://github.com/grafana/shared-workflows/commit/14d9a8010a8bf34ad60e0aceee9db53f5b21c9ba))
+* **deps:** update dependency prettier to v3.4.2 ([#632](https://github.com/grafana/shared-workflows/issues/632)) ([7416f1f](https://github.com/grafana/shared-workflows/commit/7416f1f508040d389bd6501fad67bc3a279bf485))
+* **deps:** update dependency typescript-eslint to v8.17.0 ([#613](https://github.com/grafana/shared-workflows/issues/613)) ([95f1d8c](https://github.com/grafana/shared-workflows/commit/95f1d8ce881e09d28bb548ae77b2a61578dd49ad))
+* **deps:** update dependency typescript-eslint to v8.18.0 ([#643](https://github.com/grafana/shared-workflows/issues/643)) ([df4dfd1](https://github.com/grafana/shared-workflows/commit/df4dfd1d746263d6a8aa7ef601b0906b5b851668))
+* **deps:** update dependency typescript-eslint to v8.18.1 ([#655](https://github.com/grafana/shared-workflows/issues/655)) ([1be81b5](https://github.com/grafana/shared-workflows/commit/1be81b5ef02240e405b38ea86629b9f045558609))
+* **deps:** update eslint monorepo to v9.16.0 ([#598](https://github.com/grafana/shared-workflows/issues/598)) ([c570011](https://github.com/grafana/shared-workflows/commit/c5700112ba2e4fd4909f6e330b771ff795696b3f))
+* **deps:** update eslint monorepo to v9.17.0 ([#649](https://github.com/grafana/shared-workflows/issues/649)) ([34d9586](https://github.com/grafana/shared-workflows/commit/34d9586edce818433c557b569c79852f00183045))
+
 ## [1.1.0](https://github.com/grafana/shared-workflows/compare/lint-pr-title-v1.0.0...lint-pr-title-v1.1.0) (2024-11-27)
 
 
