@@ -1,8 +1,13 @@
 # shared-workflows
 
+[![OpenSSF Scorecard][scorecard image]][scorecard]
+
 A public-facing, centralized place to store reusable GitHub workflows and action
 used by Grafana Labs. See the `actions/` directory for the individual actions
 themselves.
+
+[scorecard]: https://scorecard.dev/viewer/?uri=github.com/grafana/shared-workflows
+[scorecard image]: https://api.scorecard.dev/projects/github.com/grafana/shared-workflows/badge
 
 ## Notes
 
