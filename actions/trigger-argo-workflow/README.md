@@ -45,7 +45,7 @@ Here is an example of how to use this action:
 ```yaml
 steps:
   - name: Trigger Argo Workflow
-uses: grafana/shared-workflows/actions/trigger-argo-workflow@trigger-argo-workflow-v1.0.0
+uses: grafana/shared-workflows/actions/trigger-argo-workflow@trigger-argo-workflow-v1.1.0
 with:
   instance: "ops"
   namespace: "mynamespace"
