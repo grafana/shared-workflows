@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -77,22 +78,48 @@ func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 	args := a.args(md)
 
 	cmd := exec.Command("argo", args...)
-	cmdOutput := &bytes.Buffer{}
-
 	cmd.Env = a.env()
-	cmd.Stdout = cmdOutput
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get stdout pipe: %w", err)
+	}
+
 	cmd.Stderr = os.Stderr
 
 	a.logger.With("executable", "argo", "command", cmd.Args, "retries", a.retries).Debug("running command")
 
-	err := cmd.Run()
-	if err != nil {
-		return "", "", err
+	if err := cmd.Start(); err != nil {
+		return "", "", fmt.Errorf("failed to start command: %w", err)
 	}
 
-	uri, output := a.outputWithURI(cmdOutput)
+	var uri string
+	var outputBuilder strings.Builder
 
-	return uri, output, nil
+	scanner := bufio.NewScanner(stdoutPipe)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		outputBuilder.WriteString(line + "\n")
+
+		matches := nameRe.FindStringSubmatch(line)
+
+		if len(matches) == 2 && uri == "" {
+			uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+
+			a.logger.With("uri", uri).Info("workflow URI")
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return uri, outputBuilder.String(), fmt.Errorf("error reading command output: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return uri, outputBuilder.String(), fmt.Errorf("command failed: %w", err)
+	}
+
+	return uri, outputBuilder.String(), nil
 }
 
 func (a *App) setURIAsJobOutput(uri string, writer io.Writer) {
@@ -166,8 +193,6 @@ func (a *App) Run(md GitHubActionsMetadata) error {
 	if err != nil {
 		return err
 	}
-
-	a.logger.With("uri", uri).Info("workflow URI")
 
 	writer := a.openGitHubOutput()
 	defer writer.Close()
