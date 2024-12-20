@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub-v0.1.0...build-push-to-dockerhub-v0.1.1) (2024-12-20)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/setup-buildx-action action to v3.8.0 ([#654](https://github.com/grafana/shared-workflows/issues/654)) ([d55f5e9](https://github.com/grafana/shared-workflows/commit/d55f5e910f5f76c0b23ba86ef590e2939c475899))
+* update readme when a new release is available ([#548](https://github.com/grafana/shared-workflows/issues/548)) ([9bf9163](https://github.com/grafana/shared-workflows/commit/9bf9163126c44247bcee6b6b9390eb488f9ead53))
+
 ## 0.1.0 (2024-11-28)
 
 
