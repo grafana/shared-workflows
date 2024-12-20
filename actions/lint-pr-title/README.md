@@ -86,7 +86,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - id: lint-pr-title
-        uses: grafana/shared-workflows/actions/lint-pr-title@lint-pr-title-v1.1.0
+        uses: grafana/shared-workflows/actions/lint-pr-title@lint-pr-title-v1.1.1
         with:
           config-path: "${{ github.workspace }}/commitlint.config.js"
           title-only: false
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: lint-pr-title
-        uses: grafana/shared-workflows/actions/lint-pr-title@lint-pr-title-v1.1.0
+        uses: grafana/shared-workflows/actions/lint-pr-title@lint-pr-title-v1.1.1
 ```
 
 <!-- x-release-please-end-version -->
