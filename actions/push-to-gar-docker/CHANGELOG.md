@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.1.0...push-to-gar-docker-v0.2.0) (2024-12-20)
+
+
+### 🎉 Features
+
+* **docs:** added EngHub doc links to corresponding actions readmes ([#635](https://github.com/grafana/shared-workflows/issues/635)) ([a7d04c1](https://github.com/grafana/shared-workflows/commit/a7d04c1e98496dbf07f8e44602933af07ba62f9f))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/setup-buildx-action action to v3.8.0 ([#654](https://github.com/grafana/shared-workflows/issues/654)) ([d55f5e9](https://github.com/grafana/shared-workflows/commit/d55f5e910f5f76c0b23ba86ef590e2939c475899))
+* update readme when a new release is available ([#548](https://github.com/grafana/shared-workflows/issues/548)) ([9bf9163](https://github.com/grafana/shared-workflows/commit/9bf9163126c44247bcee6b6b9390eb488f9ead53))
+
 ## 0.1.0 (2024-11-28)
 
 
