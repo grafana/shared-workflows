@@ -1,6 +1,6 @@
 module github.com/grafana/shared-workflows/actions/techdocs-rewrite-relative-links
 
-go 1.22.2
+go 1.23.4
 
 require (
 	github.com/aymanbagabas/go-udiff v0.2.0
@@ -8,7 +8,7 @@ require (
 	github.com/neilotoole/slogt v1.1.0
 	github.com/spf13/afero v1.11.0
 	github.com/stretchr/testify v1.10.0
-	github.com/teekennedy/goldmark-markdown v0.3.0
+	github.com/teekennedy/goldmark-markdown v0.4.1
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/willabides/actionslog v0.5.1
 	github.com/yuin/goldmark v1.7.8

@@ -25,26 +25,26 @@
     "@commitlint/config-conventional": "19.6.0",
     "@commitlint/format": "19.5.0",
     "@commitlint/lint": "19.6.0",
-    "@commitlint/load": "19.5.0",
+    "@commitlint/load": "19.6.1",
     "@octokit/core": "6.1.2",
     "@octokit/graphql": "8.1.1",
     "tmp": "0.2.3"
   },
   "devDependencies": {
     "@commitlint/types": "19.5.0",
-    "@eslint/js": "9.16.0",
+    "@eslint/js": "9.17.0",
     "@octokit/types": "13.6.2",
     "@octokit/webhooks-types": "7.6.1",
     "@types/bun": "1.1.14",
     "@types/eslint__js": "8.42.3",
     "@types/tmp": "0.2.6",
-    "eslint": "9.16.0",
+    "eslint": "9.17.0",
     "eslint-config-prettier": "9.1.0",
-    "eslint-plugin-jest": "28.9.0",
+    "eslint-plugin-jest": "28.10.0",
     "eslint-plugin-prettier": "5.2.1",
     "prettier": "3.4.2",
     "typescript": "5.7.2",
-    "typescript-eslint": "8.18.0"
+    "typescript-eslint": "8.18.1"
   },
   "packageManager": "bun@1.1.27"
 }

@@ -38,11 +38,11 @@ runs:
           SLACK_BOT_TOKEN=slack-notifications:oauth-token
     - name: Send Slack Message
       id: send-slack-message
-      uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
+      uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
       with:
-        channel-id: ${{ inputs.channel-id }}
+        method: chat.postMessage
+        channel: ${{ inputs.channel-id }}
         payload: ${{ inputs.payload }}
         slack-message: ${{ inputs.slack-message }}
         update-ts: ${{ inputs.update-ts }}
-      env:
-        SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}
+        token: ${{ env.SLACK_BOT_TOKEN }}
