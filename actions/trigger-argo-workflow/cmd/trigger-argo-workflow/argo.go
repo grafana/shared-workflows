@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"log/slog"
@@ -59,19 +58,28 @@ func (a App) env() []string {
 
 var nameRe = regexp.MustCompile(`^Name:\s+(.+)`)
 
-func (a App) outputWithURI(input *bytes.Buffer) (string, string) {
-	output := strings.TrimSuffix(input.String(), "\n")
+func (a App) outputWithURI(reader io.Reader) (string, string, error) {
+	scanner := bufio.NewScanner(reader)
 
-	matches := nameRe.FindStringSubmatch(output)
+	var uri string
+	var outputBuilder strings.Builder
 
-	if len(matches) != 2 {
-		a.logger.Warn("Couldn't find workflow name in output - can't construct URI for launched workflow")
-		return "", output
+	for scanner.Scan() {
+		line := scanner.Text()
+		outputBuilder.WriteString(line + "\n")
+
+		matches := nameRe.FindStringSubmatch(line)
+		if len(matches) == 2 && uri == "" {
+			uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+			a.logger.With("uri", uri).Info("workflow URI")
+		}
 	}
 
-	uri := fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+	if err := scanner.Err(); err != nil {
+		return uri, outputBuilder.String(), fmt.Errorf("error reading command output: %w", err)
+	}
 
-	return uri, output
+	return uri, outputBuilder.String(), nil
 }
 
 func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
@@ -93,33 +101,16 @@ func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 		return "", "", fmt.Errorf("failed to start command: %w", err)
 	}
 
-	var uri string
-	var outputBuilder strings.Builder
-
-	scanner := bufio.NewScanner(stdoutPipe)
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		outputBuilder.WriteString(line + "\n")
-
-		matches := nameRe.FindStringSubmatch(line)
-
-		if len(matches) == 2 && uri == "" {
-			uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
-
-			a.logger.With("uri", uri).Info("workflow URI")
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return uri, outputBuilder.String(), fmt.Errorf("error reading command output: %w", err)
+	uri, out, scanErr := a.outputWithURI(stdoutPipe)
+	if scanErr != nil {
+		return uri, out, scanErr
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return uri, outputBuilder.String(), fmt.Errorf("command failed: %w", err)
+		return uri, out, fmt.Errorf("command failed: %w", err)
 	}
 
-	return uri, outputBuilder.String(), nil
+	return uri, out, nil
 }
 
 func (a *App) setURIAsJobOutput(uri string, writer io.Writer) {
