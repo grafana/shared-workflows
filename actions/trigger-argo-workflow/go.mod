@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/lmittmann/tint v1.0.5
+	github.com/lmittmann/tint v1.0.6
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/willabides/actionslog v0.5.1
