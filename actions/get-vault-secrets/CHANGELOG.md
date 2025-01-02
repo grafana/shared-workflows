@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.0.1...get-vault-secrets-v1.1.0) (2025-01-02)
+
+
+### 🎉 Features
+
+* **docs:** added EngHub doc links to corresponding actions readmes ([#635](https://github.com/grafana/shared-workflows/issues/635)) ([a7d04c1](https://github.com/grafana/shared-workflows/commit/a7d04c1e98496dbf07f8e44602933af07ba62f9f))
+
+
+### 🔧 Miscellaneous Chores
+
+* update readme when a new release is available ([#548](https://github.com/grafana/shared-workflows/issues/548)) ([9bf9163](https://github.com/grafana/shared-workflows/commit/9bf9163126c44247bcee6b6b9390eb488f9ead53))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.0.0...get-vault-secrets-v1.0.1) (2024-11-28)
 
 
