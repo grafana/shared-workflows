@@ -27,7 +27,7 @@
     "@commitlint/lint": "19.6.0",
     "@commitlint/load": "19.6.1",
     "@octokit/core": "6.1.2",
-    "@octokit/graphql": "8.1.1",
+    "@octokit/graphql": "8.1.2",
     "tmp": "0.2.3"
   },
   "devDependencies": {
@@ -44,7 +44,7 @@
     "eslint-plugin-prettier": "5.2.1",
     "prettier": "3.4.2",
     "typescript": "5.7.2",
-    "typescript-eslint": "8.18.1"
+    "typescript-eslint": "8.19.0"
   },
   "packageManager": "bun@1.1.27"
 }
