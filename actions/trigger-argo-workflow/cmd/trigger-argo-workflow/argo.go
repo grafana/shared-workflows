@@ -68,10 +68,12 @@ func (a App) outputWithURI(reader io.Reader) (string, string, error) {
 		line := scanner.Text()
 		outputBuilder.WriteString(line + "\n")
 
-		matches := nameRe.FindStringSubmatch(line)
-		if len(matches) == 2 && uri == "" {
-			uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
-			a.logger.With("uri", uri).Info("workflow URI")
+		if uri == "" {
+			matches := nameRe.FindStringSubmatch(line)
+			if len(matches) == 2 {
+				uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+				a.logger.With("uri", uri).Info("workflow URI")
+			}
 		}
 	}
 
@@ -101,6 +103,18 @@ func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 		return "", "", fmt.Errorf("failed to start command: %w", err)
 	}
 
+	waitCalled := false
+	pipeClosed := false
+
+	defer func() {
+		if !pipeClosed {
+			_ = stdoutPipe.Close()
+		}
+		if !waitCalled {
+			_ = cmd.Wait()
+		}
+	}()
+
 	uri, out, scanErr := a.outputWithURI(stdoutPipe)
 	if scanErr != nil {
 		return uri, out, scanErr
@@ -109,6 +123,7 @@ func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 	if err := cmd.Wait(); err != nil {
 		return uri, out, fmt.Errorf("command failed: %w", err)
 	}
+	waitCalled = true
 
 	return uri, out, nil
 }
