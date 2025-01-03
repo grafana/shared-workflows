@@ -103,27 +103,16 @@ func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 		return "", "", fmt.Errorf("failed to start command: %w", err)
 	}
 
-	waitCalled := false
-	pipeClosed := false
-
-	defer func() {
-		if !pipeClosed {
-			_ = stdoutPipe.Close()
-		}
-		if !waitCalled {
-			_ = cmd.Wait()
-		}
-	}()
-
 	uri, out, scanErr := a.outputWithURI(stdoutPipe)
 	if scanErr != nil {
+		_ = stdoutPipe.Close()
+		_ = cmd.Wait()
 		return uri, out, scanErr
 	}
 
 	if err := cmd.Wait(); err != nil {
 		return uri, out, fmt.Errorf("command failed: %w", err)
 	}
-	waitCalled = true
 
 	return uri, out, nil
 }
