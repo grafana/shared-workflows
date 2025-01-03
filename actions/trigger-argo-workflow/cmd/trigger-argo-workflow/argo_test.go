@@ -71,8 +71,8 @@ Namespace:           argo
 ServiceAccount:      unset
 Status:              Pending
 Created:             Wed Dec 13 00:00:00 +0000 (now)
-Progress:            
-Parameters:          
+Progress:
+Parameters:
   message:           world
 `
 
@@ -115,9 +115,12 @@ Parameters:
 			a.instance = tt.instance
 			a.namespace = "argo"
 
-			uri, _ := a.outputWithURI(bytes.NewBuffer([]byte(tt.input)))
+			reader := bytes.NewBufferString(tt.input)
+			uri, out, err := a.outputWithURI(reader)
+			require.NoError(t, err, "unexpected error reading command output")
 
 			require.Equal(t, tt.expected, uri)
+			require.Equal(t, tt.input, out)
 		})
 	}
 }
