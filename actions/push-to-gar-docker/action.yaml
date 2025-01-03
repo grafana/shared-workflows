@@ -132,6 +132,7 @@ runs:
         echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
 
     - name: Login to GAR
+      if: ${{ inputs.push == 'true' }}
       uses: ./shared-workflows/actions/login-to-gar
       with:
         environment: ${{ inputs.environment }}
