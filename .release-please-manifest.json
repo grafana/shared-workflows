@@ -15,5 +15,6 @@
     "actions/push-to-gcs": "0.1.0",
     "actions/techdocs-rewrite-relative-links": "1.0.0",
     "actions/validate-policy-bot-config": "1.0.0",
-    "actions/trigger-argo-workflow": "1.0.0"
+    "actions/trigger-argo-workflow": "1.0.0",
+    "actions/syft-sbom-report": "1.0.0"
 }
