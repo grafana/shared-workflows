@@ -13,6 +13,3 @@
 
 # Platform productivity
 /.github/workflows/publish-techdocs.yaml @grafana/platform-productivity
-
-# Platform Security
-/actions/syft-sbom-report @grafana/platform-security

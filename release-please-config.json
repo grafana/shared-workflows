@@ -117,10 +117,6 @@
       "package-name": "setup-conftest",
       "extra-files": ["README.md"]
     },
-    "actions/syft-sbom-report": {
-      "package-name": "syft-sbom-report",
-      "extra-files": ["README.md"]
-    },
     "actions/techdocs-rewrite-relative-links": {
       "package-name": "techdocs-rewrite-relative-links",
       "extra-files": ["README.md"]
