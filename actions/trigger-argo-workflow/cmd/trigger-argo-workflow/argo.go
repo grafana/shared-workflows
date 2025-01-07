@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"io"
 	"log/slog"
@@ -58,41 +58,63 @@ func (a App) env() []string {
 
 var nameRe = regexp.MustCompile(`^Name:\s+(.+)`)
 
-func (a App) outputWithURI(input *bytes.Buffer) (string, string) {
-	output := strings.TrimSuffix(input.String(), "\n")
+func (a App) outputWithURI(reader io.Reader) (string, string, error) {
+	scanner := bufio.NewScanner(reader)
 
-	matches := nameRe.FindStringSubmatch(output)
+	var uri string
+	var outputBuilder strings.Builder
 
-	if len(matches) != 2 {
-		a.logger.Warn("Couldn't find workflow name in output - can't construct URI for launched workflow")
-		return "", output
+	for scanner.Scan() {
+		line := scanner.Text()
+		outputBuilder.WriteString(line + "\n")
+
+		if uri == "" {
+			matches := nameRe.FindStringSubmatch(line)
+			if len(matches) == 2 {
+				uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+				a.logger.With("uri", uri).Info("workflow URI")
+			}
+		}
 	}
 
-	uri := fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+	if err := scanner.Err(); err != nil {
+		return uri, outputBuilder.String(), fmt.Errorf("error reading command output: %w", err)
+	}
 
-	return uri, output
+	return uri, outputBuilder.String(), nil
 }
 
 func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 	args := a.args(md)
 
 	cmd := exec.Command("argo", args...)
-	cmdOutput := &bytes.Buffer{}
-
 	cmd.Env = a.env()
-	cmd.Stdout = cmdOutput
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get stdout pipe: %w", err)
+	}
+
 	cmd.Stderr = os.Stderr
 
 	a.logger.With("executable", "argo", "command", cmd.Args, "retries", a.retries).Debug("running command")
 
-	err := cmd.Run()
-	if err != nil {
-		return "", "", err
+	if err := cmd.Start(); err != nil {
+		return "", "", fmt.Errorf("failed to start command: %w", err)
 	}
 
-	uri, output := a.outputWithURI(cmdOutput)
+	uri, out, scanErr := a.outputWithURI(stdoutPipe)
+	if scanErr != nil {
+		_ = stdoutPipe.Close()
+		_ = cmd.Wait()
+		return uri, out, scanErr
+	}
 
-	return uri, output, nil
+	if err := cmd.Wait(); err != nil {
+		return uri, out, fmt.Errorf("command failed: %w", err)
+	}
+
+	return uri, out, nil
 }
 
 func (a *App) setURIAsJobOutput(uri string, writer io.Writer) {
@@ -166,8 +188,6 @@ func (a *App) Run(md GitHubActionsMetadata) error {
 	if err != nil {
 		return err
 	}
-
-	a.logger.With("uri", uri).Info("workflow URI")
 
 	writer := a.openGitHubOutput()
 	defer writer.Close()
