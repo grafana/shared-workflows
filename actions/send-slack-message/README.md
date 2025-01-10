@@ -40,7 +40,7 @@ jobs:
       - name: Update Slack Message via Payload
         uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message-v2.0.0
         with:
-          method: post.update
+          method: chat.update
           payload-templated: true
           payload: |
             {
