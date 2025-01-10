@@ -41,7 +41,7 @@ runs:
       uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
       with:
         payload-templated: ${{ inputs.payload-templated }}
-        method: chat.postMessage
+        method: ${{ inputs.method }}
         payload: ${{ inputs.payload }}
         update-ts: ${{ inputs.update-ts }}
         token: ${{ env.SLACK_BOT_TOKEN }}

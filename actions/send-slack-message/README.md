@@ -46,6 +46,7 @@ jobs:
             {
               "channel": ${{ steps.slack.outputs.channel_id }},
               "text": "Deployment finished (Completed)",
+              "ts": ${{ steps.slack.outputs.ts }},
               "attachments": [
                 {
                   "pretext": "Deployment finished",
@@ -60,7 +61,6 @@ jobs:
                 }
               ]
             }
-          update-ts: ${{ steps.slack.outputs.ts }}
 ```
 
 ```yaml
