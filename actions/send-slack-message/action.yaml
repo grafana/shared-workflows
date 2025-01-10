@@ -5,9 +5,6 @@ inputs:
   payload:
     description: "JSON payload to send. Use `payload` or `slack-message`, but not both"
     required: false
-  update-ts:
-    description: "The timestamp of a previous message posted. Used to update or reply to existing messages"
-    required: false
   method:
     description: "The Slack API method to call"
     required: true
@@ -43,5 +40,4 @@ runs:
         payload-templated: ${{ inputs.payload-templated }}
         method: ${{ inputs.method }}
         payload: ${{ inputs.payload }}
-        update-ts: ${{ inputs.update-ts }}
         token: ${{ env.SLACK_BOT_TOKEN }}
