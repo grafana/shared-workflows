@@ -7,7 +7,7 @@ Shared workflow to lint Argo workflow files.
 <!-- x-release-please-start-version -->
 
 ```
-uses: grafana/shared-workflows/actions/argo-lint@argo-lint-v1.0.0
+uses: grafana/shared-workflows/actions/argo-lint@argo-lint-v1.0.1
 with:
   path: /path/to/files # Paths to files for linting
 
