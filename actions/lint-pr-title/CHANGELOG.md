@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.1.1](https://github.com/grafana/shared-workflows/compare/lint-pr-title-v1.1.0...lint-pr-title-v1.1.1) (2025-01-10)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @commitlint/load to v19.6.1 ([#650](https://github.com/grafana/shared-workflows/issues/650)) ([4abacd5](https://github.com/grafana/shared-workflows/commit/4abacd5a5d00df0bca418a08f35c76d487e04632))
+* **deps:** update dependency @octokit/core to v6.1.3 ([#671](https://github.com/grafana/shared-workflows/issues/671)) ([49409b4](https://github.com/grafana/shared-workflows/commit/49409b4b91cbc6b9925c4c322fb0e4e02245b9f5))
+* **deps:** update dependency @octokit/graphql to v8.1.2 ([#669](https://github.com/grafana/shared-workflows/issues/669)) ([422ddae](https://github.com/grafana/shared-workflows/commit/422ddaef434c10a8338f5ca8015eee81b3395fa8))
+
+
+### 🔧 Miscellaneous Chores
+
+* add release-please block to lint-pr-title ([#602](https://github.com/grafana/shared-workflows/issues/602)) ([14d9a80](https://github.com/grafana/shared-workflows/commit/14d9a8010a8bf34ad60e0aceee9db53f5b21c9ba))
+* **deps:** update dependency @octokit/types to v13.7.0 ([#682](https://github.com/grafana/shared-workflows/issues/682)) ([a2f3280](https://github.com/grafana/shared-workflows/commit/a2f328087c2584edeefaa00bd8c041ffae7f9a1a))
+* **deps:** update dependency @types/bun to v1.1.15 ([#677](https://github.com/grafana/shared-workflows/issues/677)) ([4881459](https://github.com/grafana/shared-workflows/commit/4881459e64c35a709ec818c2c2cc14f3eb7b2c3a))
+* **deps:** update dependency @types/bun to v1.1.16 ([#683](https://github.com/grafana/shared-workflows/issues/683)) ([d778589](https://github.com/grafana/shared-workflows/commit/d778589582ad0b2d75c49543742173c2e98694a0))
+* **deps:** update dependency eslint-plugin-jest to v28.10.0 ([#660](https://github.com/grafana/shared-workflows/issues/660)) ([2a9412a](https://github.com/grafana/shared-workflows/commit/2a9412ae237aabd4f2844d03974f0eedb165ee7d))
+* **deps:** update dependency prettier to v3.4.2 ([#632](https://github.com/grafana/shared-workflows/issues/632)) ([7416f1f](https://github.com/grafana/shared-workflows/commit/7416f1f508040d389bd6501fad67bc3a279bf485))
+* **deps:** update dependency typescript to v5.7.3 ([#681](https://github.com/grafana/shared-workflows/issues/681)) ([008044c](https://github.com/grafana/shared-workflows/commit/008044c9e0dc5c2723e33bd08118b7ed95ac2676))
+* **deps:** update dependency typescript-eslint to v8.17.0 ([#613](https://github.com/grafana/shared-workflows/issues/613)) ([95f1d8c](https://github.com/grafana/shared-workflows/commit/95f1d8ce881e09d28bb548ae77b2a61578dd49ad))
+* **deps:** update dependency typescript-eslint to v8.18.0 ([#643](https://github.com/grafana/shared-workflows/issues/643)) ([df4dfd1](https://github.com/grafana/shared-workflows/commit/df4dfd1d746263d6a8aa7ef601b0906b5b851668))
+* **deps:** update dependency typescript-eslint to v8.18.1 ([#655](https://github.com/grafana/shared-workflows/issues/655)) ([1be81b5](https://github.com/grafana/shared-workflows/commit/1be81b5ef02240e405b38ea86629b9f045558609))
+* **deps:** update dependency typescript-eslint to v8.18.2 ([#668](https://github.com/grafana/shared-workflows/issues/668)) ([5a401ea](https://github.com/grafana/shared-workflows/commit/5a401ea5bf3826791c93755d0732895ba64c1a8a))
+* **deps:** update dependency typescript-eslint to v8.19.0 ([5a401ea](https://github.com/grafana/shared-workflows/commit/5a401ea5bf3826791c93755d0732895ba64c1a8a))
+* **deps:** update dependency typescript-eslint to v8.19.1 ([#676](https://github.com/grafana/shared-workflows/issues/676)) ([fbf42c9](https://github.com/grafana/shared-workflows/commit/fbf42c96746483134f6eb21ea9483e36c9609fd7))
+* **deps:** update eslint monorepo to v9.16.0 ([#598](https://github.com/grafana/shared-workflows/issues/598)) ([c570011](https://github.com/grafana/shared-workflows/commit/c5700112ba2e4fd4909f6e330b771ff795696b3f))
+* **deps:** update eslint monorepo to v9.17.0 ([#649](https://github.com/grafana/shared-workflows/issues/649)) ([34d9586](https://github.com/grafana/shared-workflows/commit/34d9586edce818433c557b569c79852f00183045))
+
 ## [1.1.0](https://github.com/grafana/shared-workflows/compare/lint-pr-title-v1.0.0...lint-pr-title-v1.1.0) (2024-11-27)
 
 
