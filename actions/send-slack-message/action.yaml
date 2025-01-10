@@ -2,17 +2,14 @@ name: Send Slack Message
 description: Composite action to send a Slack message
 
 inputs:
-  channel-id:
-    description: "Name or ID of the channel to send to"
-    required: true
   payload:
     description: "JSON payload to send. Use `payload` or `slack-message`, but not both"
     required: false
-  slack-message:
-    description: "Plain text message to send. Use `payload` or `slack-message`, but not both"
-    required: false
-  update-ts:
-    description: "The timestamp of a previous message posted. Used to update or reply to existing messages"
+  method:
+    description: "The Slack API method to call"
+    required: true
+  payload-templated:
+    description: "To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true"
     required: false
 outputs:
   time:
@@ -40,9 +37,7 @@ runs:
       id: send-slack-message
       uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
       with:
-        method: chat.postMessage
-        channel: ${{ inputs.channel-id }}
+        payload-templated: ${{ inputs.payload-templated }}
+        method: ${{ inputs.method }}
         payload: ${{ inputs.payload }}
-        slack-message: ${{ inputs.slack-message }}
-        update-ts: ${{ inputs.update-ts }}
         token: ${{ env.SLACK_BOT_TOKEN }}
