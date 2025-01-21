@@ -33,7 +33,7 @@ jobs:
       - name: Install bun package manager
         uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
         with:
-          bun-version-file: "actions/lint-pr-title/package.json"
+          bun-version-file: actions/lint-pr-title/.bun-version
 
       - name: Install lint-pr-title dependencies
         run: bun install --frozen-lockfile
