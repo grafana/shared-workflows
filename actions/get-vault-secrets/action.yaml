@@ -15,7 +15,7 @@ inputs:
     description: |
       Common secrets mapping. Only Grafana Labs employees can list these secrets in Vault.
       These secrets are stored in the `ci/data/common/<secret path>` path in Vault.
-      Ex:
+      Ex :
       ```
       repo_secrets: |
         ENVVAR1=secretpath:key
