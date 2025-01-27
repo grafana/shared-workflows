@@ -32,6 +32,10 @@ inputs:
       Apply a predefined set of access controls to the file(s).
       Default is projectPrivate (See https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions)
     default: projectPrivate
+  custom_service_account:
+    description: |
+      Custom service account to use for authentication.
+    default: ""
 
 outputs:
   uploaded:
@@ -69,6 +73,7 @@ runs:
       with:
         bucket: ${{ inputs.bucket }}
         environment: ${{ inputs.environment }}
+        custom-service-account: ${{ inputs.bucket && inputs.custom-service-account || '' }}
     - name: Construct path
       id: construct-path
       shell: bash
