@@ -23,7 +23,7 @@ jobs:
   login-to-gcs:
     name: login-to-gcs
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs-v0.1.0
+      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs-v0.2.0
         id: login-to-gcs
 ```
 
@@ -39,10 +39,11 @@ $ gcloud storage cp OBJECT_LOCATION gs://DESTINATION_BUCKET_NAME
 
 ## Inputs
 
-| Name          | Type   | Description                                                                                |
-| ------------- | ------ | ------------------------------------------------------------------------------------------ |
-| `bucket`      | String | Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment} |
-| `environment` | String | Environment for pushing artifacts (can be either dev or prod).                             |
+| Name              | Type   | Description                                                                                                       |
+| ----------------- | ------ | ----------------------------------------------------------------------------------------------------------------- |
+| `bucket`          | String | Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}                        |
+| `environment`     | String | Environment for pushing artifacts (can be either dev or prod).                                                    |
+| `service_account` | String | Service account to use for authentication. Use it only when the service account is different than the default one |
 
 ## Outputs
 

@@ -9,6 +9,10 @@ inputs:
     description: |
       Environment for uploading objects (can be either dev or prod).
     default: dev
+  service_account:
+    description: |
+      Custom service account to use for authentication.
+    default: ""
 
 outputs:
   bucket:
@@ -48,7 +52,11 @@ runs:
         echo "bucket=${BUCKET}" | tee -a ${GITHUB_OUTPUT}
 
         # Construct service account
-        SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        if [[ "${{ inputs.service_account }}" == "" ]]; then
+          SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        else
+          SERVICE_ACCOUNT="${{ inputs.service_account }}"
+        fi
         echo "service_account=${SERVICE_ACCOUNT}" | tee -a ${GITHUB_OUTPUT}
     - uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
       id: gcloud-auth
