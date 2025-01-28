@@ -73,7 +73,7 @@ runs:
       with:
         bucket: ${{ inputs.bucket }}
         environment: ${{ inputs.environment }}
-        custom-service-account: ${{ inputs.bucket && inputs.custom-service-account || '' }}
+        service_account: ${{ inputs.bucket && inputs.service_account || '' }}
     - name: Construct path
       id: construct-path
       shell: bash
