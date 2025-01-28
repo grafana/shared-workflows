@@ -113,16 +113,16 @@ jobs:
 
 ## Inputs
 
-| Name                     | Type   | Description                                                                                                                                                                                  |
-| ------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bucket`                 | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                          |
-| `path`                   | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
-| `bucket_path`            | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                      |
-| `environment`            | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                               |
-| `custom_service_account` | String | Custom service account to use for authentication. Used only when bucket input is not empty                                                                                                   |
-| `glob`                   | String | Glob pattern.                                                                                                                                                                                |
-| `parent`                 | String | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                              |
-| `predefinedAcl`          | String | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation][gcs-docs-upload-options] for a list of available options.                            |
+| Name              | Type   | Description                                                                                                                                                                                  |
+| ----------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bucket`          | String | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                          |
+| `path`            | String | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
+| `bucket_path`     | String | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                      |
+| `environment`     | String | Environment for pushing artifacts (can be either dev or prod).                                                                                                                               |
+| `service_account` | String | Service account to use for authentication, different than the default one. Used only when bucket input is not empty (i.e. when the bucket is not the default one).                           |
+| `glob`            | String | Glob pattern.                                                                                                                                                                                |
+| `parent`          | String | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                              |
+| `predefinedAcl`   | String | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation][gcs-docs-upload-options] for a list of available options.                            |
 
 ## Outputs
 
