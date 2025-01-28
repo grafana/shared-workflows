@@ -5,7 +5,7 @@
 
 ### 🎉 Features
 
-* add `custom-service-account` input to `*-to-gcs` actions ([#720](https://github.com/grafana/shared-workflows/issues/720)) ([b4868e3](https://github.com/grafana/shared-workflows/commit/b4868e355b1e41a3ea54a272aa9970a809ec7ef1))
+* add `service-account` input to `*-to-gcs` actions ([#720](https://github.com/grafana/shared-workflows/issues/720)) ([b4868e3](https://github.com/grafana/shared-workflows/commit/b4868e355b1e41a3ea54a272aa9970a809ec7ef1))
 
 
 ### 🔧 Miscellaneous Chores
