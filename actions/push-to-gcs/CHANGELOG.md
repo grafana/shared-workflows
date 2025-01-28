@@ -5,7 +5,7 @@
 
 ### 🎉 Features
 
-* add `custom-service-account` input to `*-to-gcs` actions ([#720](https://github.com/grafana/shared-workflows/issues/720)) ([b4868e3](https://github.com/grafana/shared-workflows/commit/b4868e355b1e41a3ea54a272aa9970a809ec7ef1))
+* add `service-account` input to `*-to-gcs` actions ([#720](https://github.com/grafana/shared-workflows/issues/720)) ([b4868e3](https://github.com/grafana/shared-workflows/commit/b4868e355b1e41a3ea54a272aa9970a809ec7ef1))
 * **docs:** added EngHub doc links to corresponding actions readmes ([#635](https://github.com/grafana/shared-workflows/issues/635)) ([a7d04c1](https://github.com/grafana/shared-workflows/commit/a7d04c1e98496dbf07f8e44602933af07ba62f9f))
 
 
