@@ -23,7 +23,7 @@ jobs:
   login-to-gcs:
     name: login-to-gcs
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs-v0.1.0
+      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs-v0.2.0
         id: login-to-gcs
 ```
 
