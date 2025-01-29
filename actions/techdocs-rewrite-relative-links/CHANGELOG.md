@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.0...techdocs-rewrite-relative-links-v1.0.1) (2025-01-29)
+
+
+### 🐛 Bug Fixes
+
+* **techdocs-rewrite-relative-links:** run `go mod tidy` ([#653](https://github.com/grafana/shared-workflows/issues/653)) ([a4e8131](https://github.com/grafana/shared-workflows/commit/a4e8131f2eb342771e1c5564fd934444767c04b0))
+
+
+### 🏗️ Build System
+
+* **deps:** bump github.com/lmittmann/tint to 1.0.6 in techdocs-rewrite-relative-links ([#666](https://github.com/grafana/shared-workflows/issues/666)) ([9e7784d](https://github.com/grafana/shared-workflows/commit/9e7784dfb059f9d0fad48bb206e3431410611386))
+* **deps:** bump github.com/spf13/afero 1.12.0 in techdocs-rewrite-relative-links ([#692](https://github.com/grafana/shared-workflows/issues/692)) ([7feb8f8](https://github.com/grafana/shared-workflows/commit/7feb8f8d1f37971a6beaa099429a5ed515978124))
+* **deps:** bump golang.org/x/term from 0.27.0 in /actions/techdocs-rewrite-relative-links ([#640](https://github.com/grafana/shared-workflows/issues/640)) ([afd0338](https://github.com/grafana/shared-workflows/commit/afd0338e2d7a8786b0365156450f3e02d5bf8af8))
+* **deps:** bump golang.org/x/term from 0.27.0 to 0.28.0 in techdocs-rewrite-relative-links ([#674](https://github.com/grafana/shared-workflows/issues/674)) ([6ce83c7](https://github.com/grafana/shared-workflows/commit/6ce83c79478658ca7e65a1c6be3d4ab4d003483e))
+* **deps:** bump goldmark-markdown from 0.3.0 to 0.4.1 in techdocs-rewrite-relative-links ([#652](https://github.com/grafana/shared-workflows/issues/652)) ([5b45f78](https://github.com/grafana/shared-workflows/commit/5b45f78444eda7dd8b4e08d99bc91e55aa3cb007))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v5.2.0 ([#646](https://github.com/grafana/shared-workflows/issues/646)) ([bf4b9d4](https://github.com/grafana/shared-workflows/commit/bf4b9d4275d219cda56ae308981df427575b880e))
+* **deps:** update actions/setup-go action to v5.3.0 ([#707](https://github.com/grafana/shared-workflows/issues/707)) ([42df8ce](https://github.com/grafana/shared-workflows/commit/42df8cefcbb9c0a25cf060c7566c96eab5d5de69))
+
 ## 1.0.0 (2024-11-29)
 
 
