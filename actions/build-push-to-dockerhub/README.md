@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub-v0.1.0
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub-v0.1.1
         with:
           repository: ${{ github.repository }} # or any other dockerhub repository
           context: .
