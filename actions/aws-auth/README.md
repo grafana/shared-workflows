@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - id: aws-auth
-        uses: grafana/shared-workflows/actions/aws-auth@argo-lint-v1.0.0
+        uses: grafana/shared-workflows/actions/aws-auth@argo-lint-v1.0.1
         with:
           aws-region: "us-west-1"
           role-arn: "arn:aws:iam::366620023056:role/github-actions/s3-test-access"
