@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/validate-policy-bot-config-v1.0.0...validate-policy-bot-config-v1.1.0) (2025-01-29)
+
+
+### 🎉 Features
+
+* **docs:** added EngHub doc links to corresponding actions readmes ([#635](https://github.com/grafana/shared-workflows/issues/635)) ([a7d04c1](https://github.com/grafana/shared-workflows/commit/a7d04c1e98496dbf07f8e44602933af07ba62f9f))
+
 ## 1.0.0 (2024-11-29)
 
 
