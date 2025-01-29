@@ -40,12 +40,16 @@ jobs:
                 const { data } = await github.rest.git.getRef({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  ref
+                  ref: `tags/${tag}`, // Use tags/${tag} for getRef - see https://github.com/octokit/rest.js/issues/339
                 });
 
                 existingRef = data;
+                console.log(`Tag ${tag} exists:`, existingRef);
               } catch (e) {
-                if (e.status !== 404) {
+                if (e.status === 404) {
+                  console.log(`Tag ${tag} does not exist.`);
+                } else {
+                  console.error(`Error fetching tag ${tag}:`, e);
                   throw e;
                 }
               }
@@ -55,7 +59,7 @@ jobs:
                 await github.rest.git.updateRef({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  ref,
+                  ref: `tags/${tag}`, // Use tags/${tag} for updateRef - see https://github.com/octokit/rest.js/issues/339
                   sha,
                   force: true
                 });
@@ -78,7 +82,6 @@ jobs:
             }
 
             const releases = JSON.parse(process.env.RELEASES);
-
             // Filter `releases` to get the `*--release_created` outputs where
             // the value is `"true"`. Then strip off that suffix to get an array
             // of components that were released.
