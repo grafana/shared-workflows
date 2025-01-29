@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/setup-argo-v1.0.0...setup-argo-v1.0.1) (2025-01-29)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v4.2.0 ([#636](https://github.com/grafana/shared-workflows/issues/636)) ([c4422fc](https://github.com/grafana/shared-workflows/commit/c4422fc4a4fa6cddae3862c7df7b4ec5f251053f))
+* update readme when a new release is available ([#548](https://github.com/grafana/shared-workflows/issues/548)) ([9bf9163](https://github.com/grafana/shared-workflows/commit/9bf9163126c44247bcee6b6b9390eb488f9ead53))
+
 ## 1.0.0 (2024-11-28)
 
 

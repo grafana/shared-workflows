@@ -3,17 +3,21 @@
     "actions/get-vault-secrets": "1.1.0",
     "actions/dockerhub-login": "1.0.1",
     "actions/send-slack-message": "2.0.1",
-    "actions/push-to-gar-docker": "0.1.0",
-    "actions/aws-auth": "1.0.0",
-    "actions/build-push-to-dockerhub": "0.1.0",
-    "actions/login-to-gar": "0.1.0",
+    "actions/push-to-gar-docker": "0.2.0",
+    "actions/aws-auth": "1.0.1",
+    "actions/build-push-to-dockerhub": "0.1.1",
+    "actions/login-to-gar": "0.1.1",
     "actions/login-to-gcs": "0.2.0",
-    "actions/argo-lint": "1.0.0",
+    "actions/argo-lint": "1.0.1",
     "actions/setup-conftest": "1.0.1",
-    "actions/setup-argo": "1.0.0",
+    "actions/setup-argo": "1.0.1",
     "actions/generate-openapi-clients": "1.0.1",
     "actions/push-to-gcs": "0.2.0",
-    "actions/techdocs-rewrite-relative-links": "1.0.0",
+    "actions/techdocs-rewrite-relative-links": "1.0.1",
+    "actions/validate-policy-bot-config": "1.1.0",
+    "actions/trigger-argo-workflow": "1.1.0"
+    "actions/techdocs-rewrite-relative-links": "1.0.1",
     "actions/validate-policy-bot-config": "1.0.0",
-    "actions/trigger-argo-workflow": "1.0.0"
+    "actions/trigger-argo-workflow": "1.1.0"
+    "actions/setup-jrsonnet": "1.0.0"
 }
