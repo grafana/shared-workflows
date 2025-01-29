@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow-v1.0.0...trigger-argo-workflow-v1.1.0) (2025-01-29)
+
+
+### 🎉 Features
+
+* **docs:** added EngHub doc links to corresponding actions readmes ([#635](https://github.com/grafana/shared-workflows/issues/635)) ([a7d04c1](https://github.com/grafana/shared-workflows/commit/a7d04c1e98496dbf07f8e44602933af07ba62f9f))
+* print workflow uri immediately even when using --wait flag ([#663](https://github.com/grafana/shared-workflows/issues/663)) ([32bb517](https://github.com/grafana/shared-workflows/commit/32bb517d371b3f8349345cc16365e859be76c323))
+
+
+### 🐛 Bug Fixes
+
+* **trigger-argo-workflow:** prevent unnecessary retries if a permanent error is encountered ([#631](https://github.com/grafana/shared-workflows/issues/631)) ([81c3771](https://github.com/grafana/shared-workflows/commit/81c377191b9f604bc5f2c64cc2258dfe4bc5ea9c))
+
+
+### 🏗️ Build System
+
+* **deps:** bump github.com/lmittmann/tint to 1.0.6 in trigger-argo-workflow ([#665](https://github.com/grafana/shared-workflows/issues/665)) ([a094a39](https://github.com/grafana/shared-workflows/commit/a094a395da63897275978d860fb1c79dc45d8895))
+* **deps:** bump golang.org/x/term from 0.26.0 to 0.27.0 in /actions/trigger-argo-workflow ([#639](https://github.com/grafana/shared-workflows/issues/639)) ([648f46e](https://github.com/grafana/shared-workflows/commit/648f46efa76a0370d1e0f25c8b81c2f4c7214f0c))
+* **deps:** bump golang.org/x/term from 0.27.0 to 0.28.0 in /actions/trigger-argo-workflow ([#673](https://github.com/grafana/shared-workflows/issues/673)) ([ee7ca4e](https://github.com/grafana/shared-workflows/commit/ee7ca4ed19ef4f64d0a42a22685a83666da5a99f))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v5.2.0 ([#646](https://github.com/grafana/shared-workflows/issues/646)) ([bf4b9d4](https://github.com/grafana/shared-workflows/commit/bf4b9d4275d219cda56ae308981df427575b880e))
+* **deps:** update actions/setup-go action to v5.3.0 ([#707](https://github.com/grafana/shared-workflows/issues/707)) ([42df8ce](https://github.com/grafana/shared-workflows/commit/42df8cefcbb9c0a25cf060c7566c96eab5d5de69))
+
 ## 1.0.0 (2024-11-29)
 
 
