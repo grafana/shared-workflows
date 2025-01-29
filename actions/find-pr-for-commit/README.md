@@ -30,6 +30,8 @@ Here is an example of how to use the `Find PR for Commit` action:
 You might use this if you want to comment on a PR from a workflow triggered by a
 push event, e.g. after merging to `main`.
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 on:
   push:
@@ -45,7 +47,7 @@ jobs:
     steps:
       - name: Find PR for current commit
         id: find-pr
-        uses: grafana/shared-workflows/actions/find-pr-for-commit@main
+        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit-v1.0.0
 
       - name: Use PR number
         run: echo "PR Number is ${{ steps.find-pr.outputs.pr_number }}"
@@ -68,7 +70,7 @@ jobs:
     steps:
       - name: Find PR for specific commit
         id: find-pr
-        uses: grafana/shared-workflows/actions/find-pr-for-commit@main
+        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit-v1.0.0
         with:
           commitrev: "1234567890abcdef1234567890abcdef12345678"
 
@@ -93,7 +95,7 @@ jobs:
     steps:
       - name: Find PR for named revision
         id: find-pr
-        uses: grafana/shared-workflows/actions/find-pr-for-commit@main
+        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit-v1.0.0
         with:
         commitrev: "HEAD~2"
 
@@ -118,7 +120,7 @@ jobs:
         steps:
           - name: Find PR for commit in another repository
               id: find-pr
-              uses: grafana/shared-workflows/actions/find-pr-for-commit@main
+              uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit-v1.0.0
               with:
                 owner: "grafana"
                 repo: "grafana"
@@ -131,3 +133,5 @@ jobs:
 
 Note that `permissions` are not required in this case, as they only affect the
 default `${{ github.token }}` and we are supplying our own.
+
+<!-- x-release-please-end-version -->
