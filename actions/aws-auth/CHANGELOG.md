@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/aws-auth-v1.0.0...aws-auth-v1.0.1) (2025-01-29)
+
+
+### 🔧 Miscellaneous Chores
+
+* update readme when a new release is available ([#548](https://github.com/grafana/shared-workflows/issues/548)) ([9bf9163](https://github.com/grafana/shared-workflows/commit/9bf9163126c44247bcee6b6b9390eb488f9ead53))
+
 ## 1.0.0 (2024-11-27)
 
 
