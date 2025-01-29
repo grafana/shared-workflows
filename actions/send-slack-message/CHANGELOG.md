@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.0...send-slack-message-v2.0.1) (2025-01-29)
+
+
+### 📝 Documentation
+
+* update instructions after slack action v2 update ([#658](https://github.com/grafana/shared-workflows/issues/658)) ([077bbfe](https://github.com/grafana/shared-workflows/commit/077bbfebaf982b30cd01297eca94f9e3f02ccff9))
+
 ## [2.0.0](https://github.com/grafana/shared-workflows/compare/send-slack-message-v1.0.0...send-slack-message-v2.0.0) (2024-12-17)
 
 ### BREAKING CHANGE
