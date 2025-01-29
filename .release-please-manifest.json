@@ -6,7 +6,7 @@
     "actions/push-to-gar-docker": "0.1.0",
     "actions/aws-auth": "1.0.0",
     "actions/build-push-to-dockerhub": "0.1.0",
-    "actions/login-to-gar": "0.1.0",
+    "actions/login-to-gar": "0.1.1",
     "actions/login-to-gcs": "0.2.0",
     "actions/argo-lint": "1.0.0",
     "actions/setup-conftest": "1.0.1",
