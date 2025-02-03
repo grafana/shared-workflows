@@ -19,7 +19,7 @@ runs:
       run: |
         SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
-    - uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
+    - uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
       id: gcloud-auth
       with:
         token_format: access_token
