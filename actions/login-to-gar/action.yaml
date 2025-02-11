@@ -78,4 +78,4 @@ runs:
     - name: "Use gcloud CLI to configure docker"
       if: steps.check_service_account.outputs.service_account_exists == 'false'
       shell: sh
-      run: "gcloud auth configure-docker us.gcr.io,gcr.io,us-docker.pkg.dev"
+      run: "gcloud auth configure-docker ${{ inputs.registry }}"
