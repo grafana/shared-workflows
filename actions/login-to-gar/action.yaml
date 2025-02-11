@@ -55,7 +55,7 @@ runs:
       if: steps.check_service_account.outputs.service_account_exists == 'true'
       shell: sh
       run: |
-        echo "::warning::Warning: Authenticating with a service account is going to be deprecated on April 30. \
+        echo "::warning::Warning: Authenticating with a Service Account is going to be deprecated on April 30. \
         If you don't want to be affected by this change, either pin your action according to \
         https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gar/README.md or go to your repository config \
         and stop using Service Accounts."
