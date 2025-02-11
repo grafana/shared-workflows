@@ -55,7 +55,10 @@ runs:
       if: steps.check_service_account.outputs.service_account_exists == 'true'
       shell: sh
       run: |
-        echo "::warning:: Warning: Service account authentication is going to be deprecated on April 30. If you don't want to be affected by this change, please do..."
+        echo "::warning::Warning: Authenticating with a service account is going to be deprecated on April 30. \
+        If you don't want to be affected by this change, either pin your action according to \
+        https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gar/README.md or go to your repository config \
+        and stop using Service Accounts."
     # authenticate using the access_token from the auth_with_service_account step
     - name: Login to GAR
       uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
