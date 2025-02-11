@@ -64,7 +64,7 @@ runs:
       uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
       if: steps.check_service_account.outputs.service_account_exists == 'true'
       with:
-        registry: us-docker.pkg.dev
+        registry: ${{ inputs.registry }}
         username: oauth2accesstoken
         password: ${{ steps.auth_with_service_account.outputs.access_token }}
     # if service account doesn't exist, then authenticate using direct workload identity federation
