@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.1.1...login-to-gar-v0.2.0) (2025-02-12)
+
+
+### 🎉 Features
+
+* update login-to-gar action to include direct wif ([#772](https://github.com/grafana/shared-workflows/issues/772)) ([ed6261d](https://github.com/grafana/shared-workflows/commit/ed6261dda7dd83c57740658f195030be6e9723e8))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** pin google-github-actions/setup-gcloud action to 6189d56 ([#774](https://github.com/grafana/shared-workflows/issues/774)) ([315dfc8](https://github.com/grafana/shared-workflows/commit/315dfc8f3d82295337d2032840f9c22848868296))
+* **deps:** update google-github-actions/auth action to v2.1.8 ([#740](https://github.com/grafana/shared-workflows/issues/740)) ([f75f620](https://github.com/grafana/shared-workflows/commit/f75f620c6800b60d1a31262154e90b5c7a3ee955))
+* **deps:** update google-github-actions/auth action to v2.1.8 ([#775](https://github.com/grafana/shared-workflows/issues/775)) ([c773be9](https://github.com/grafana/shared-workflows/commit/c773be9039d28ffb2cf9740e39789eccc1c701e3))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.1.0...login-to-gar-v0.1.1) (2025-01-29)
 
 
