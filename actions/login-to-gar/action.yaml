@@ -28,7 +28,7 @@ runs:
         service_account: "github-describe-service-acc@grafanalabs-workload-identity.iam.gserviceaccount.com"
     - name: "Set up Cloud SDK"
       if: steps.cache-cloud-sdk.outputs.cache-hit != 'true'
-      uses: "google-github-actions/setup-gcloud@v2"
+      uses: "google-github-actions/setup-gcloud@6189d56e4096ee891640bb02ac264be376592d6a" # v2
       with:
         version: ">= 363.0.0"
     - name: Check if service account exists
