@@ -20,15 +20,62 @@ runs:
         SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
         echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
     - uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
-      id: gcloud-auth
+      name: Auth with github-describe-service-acc
+      id: gcloud-auth-describe-service-acc
+      with:
+        token_format: access_token
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+        service_account: "github-describe-service-acc@grafanalabs-workload-identity.iam.gserviceaccount.com"
+    - name: "Set up Cloud SDK"
+      if: steps.cache-cloud-sdk.outputs.cache-hit != 'true'
+      uses: "google-github-actions/setup-gcloud@v2"
+      with:
+        version: ">= 363.0.0"
+    - name: Check if service account exists
+      shell: sh
+      id: check_service_account
+      run: |
+        if gcloud iam service-accounts describe ${{ steps.construct-service-account.outputs.service_account }} > /dev/null 2>&1; then
+          echo "Service account exists"
+          echo "service_account_exists=true" >> ${GITHUB_OUTPUT}
+        else
+          echo "Service account does not exist"
+          echo "service_account_exists=false" >> ${GITHUB_OUTPUT}
+        fi
+    # if service account exists, then authenticate using the service account
+    - uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
+      name: Auth with service account
+      if: steps.check_service_account.outputs.service_account_exists == 'true'
+      id: auth_with_service_account
       with:
         token_format: access_token
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: ${{ steps.construct-service-account.outputs.service_account }}
-        create_credentials_file: false
+    - name: Service account deprecation warning
+      if: steps.check_service_account.outputs.service_account_exists == 'true'
+      shell: sh
+      run: |
+        echo "::warning::Warning: Authenticating with a Service Account is going to be deprecated on April 30. \
+        If you don't want to be affected by this change, either pin your action according to \
+        https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gar/README.md or go to your repository config \
+        and stop using Service Accounts."
+    # authenticate using the access_token from the auth_with_service_account step
     - name: Login to GAR
       uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+      if: steps.check_service_account.outputs.service_account_exists == 'true'
       with:
         registry: ${{ inputs.registry }}
         username: oauth2accesstoken
-        password: ${{ steps.gcloud-auth.outputs.access_token }}
+        password: ${{ steps.auth_with_service_account.outputs.access_token }}
+    # if service account doesn't exist, then authenticate using direct workload identity federation
+    - uses: google-github-actions/auth@5a50e581162a13f4baa8916d01180d2acbc04363 # v2.1.0
+      name: Auth with direct WIF
+      id: auth_with_direct_wif
+      if: steps.check_service_account.outputs.service_account_exists == 'false'
+      with:
+        project_id: "grafanalabs-workload-identity"
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+    - name: "Use gcloud CLI to configure docker"
+      if: steps.check_service_account.outputs.service_account_exists == 'false'
+      shell: sh
+      run: "gcloud auth configure-docker ${{ inputs.registry }}"
