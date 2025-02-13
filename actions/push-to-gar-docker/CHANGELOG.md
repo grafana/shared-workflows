@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.2.0...push-to-gar-docker-v0.2.1) (2025-02-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/setup-buildx-action action to v3.9.0 ([#755](https://github.com/grafana/shared-workflows/issues/755)) ([8dd62e3](https://github.com/grafana/shared-workflows/commit/8dd62e320f60df7426d30b67c9b26f17af352ed7))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.1.0...push-to-gar-docker-v0.2.0) (2025-01-29)
 
 
