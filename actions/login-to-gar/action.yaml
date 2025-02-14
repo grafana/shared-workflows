@@ -26,7 +26,6 @@ runs:
         token_format: access_token
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: "github-describe-service-acc@grafanalabs-workload-identity.iam.gserviceaccount.com"
-        create_credentials_file: false
     - name: "Set up Cloud SDK"
       if: steps.cache-cloud-sdk.outputs.cache-hit != 'true'
       uses: "google-github-actions/setup-gcloud@6189d56e4096ee891640bb02ac264be376592d6a" # v2
