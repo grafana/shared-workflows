@@ -27,6 +27,7 @@ runs:
         token_format: access_token
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: ${{ steps.construct-service-account.outputs.service_account }}
+      continue-on-error: true
     - name: Check if access_token exists
       id: set-access-token
       shell: sh
