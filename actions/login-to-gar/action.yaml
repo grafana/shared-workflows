@@ -27,8 +27,17 @@ runs:
         token_format: access_token
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: ${{ steps.construct-service-account.outputs.service_account }}
+    - name: Check if access_token exists
+      id: set-access-token
+      shell: sh
+      run: |
+        if [ -n "${{ steps.auth_with_service_account.outputs.access_token }}" ]; then
+          echo "auth_service_account_status=true" >> $GITHUB_ENV
+        else
+          echo "auth_service_account_status=false" >> $GITHUB_ENV
+        fi
     - name: Service account deprecation warning
-      if: success()
+      if: env.auth_service_account_status == 'true'
       shell: sh
       run: |
         echo "::warning::Warning: Authenticating with a Service Account is going to be deprecated on April 30. \
@@ -37,7 +46,7 @@ runs:
         and stop using Service Accounts."
     # authenticate using the access_token from the auth_with_service_account step
     - name: Login to GAR
-      if: success()
+      if: env.auth_service_account_status == 'true'
       uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
       with:
         registry: ${{ inputs.registry }}
@@ -45,13 +54,13 @@ runs:
         password: ${{ steps.auth_with_service_account.outputs.access_token }}
     # if service account doesn't exist, then authenticate using direct workload identity federation
     - uses: google-github-actions/auth@71f986410dfbc7added4569d411d040a91dc6935 # v2.1.8
-      if: failure()
+      if: env.auth_service_account_status == 'false'
       name: Auth with direct WIF
       id: auth_with_direct_wif
       with:
         project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
     - name: "Use gcloud CLI to configure docker"
-      if: failure()
+      if: env.auth_service_account_status == 'false'
       shell: sh
       run: "gcloud auth configure-docker ${{ inputs.registry }}"
