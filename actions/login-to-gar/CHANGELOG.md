@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.2.0...login-to-gar-v0.2.1) (2025-02-17)
+
+
+### ♻️ Code Refactoring
+
+* simplify login-to-gar, removes describe service account ([#781](https://github.com/grafana/shared-workflows/issues/781)) ([4e593d1](https://github.com/grafana/shared-workflows/commit/4e593d17433d7b3968ae727e0dc509b77a074ebe))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.1.1...login-to-gar-v0.2.0) (2025-02-12)
 
 
