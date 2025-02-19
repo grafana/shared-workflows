@@ -157,6 +157,7 @@ runs:
         build-args: ${{ inputs.build-args }}
         push: ${{ inputs.push == 'true' }}
         tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
