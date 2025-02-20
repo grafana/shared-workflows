@@ -64,6 +64,10 @@ inputs:
     description: |
       Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
     required: false
+  labels:
+    description: |
+      List of custom labels to add to the image as metadata.
+    required: false
 
 outputs:
   version:
@@ -157,6 +161,7 @@ runs:
         build-args: ${{ inputs.build-args }}
         push: ${{ inputs.push == 'true' }}
         tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ inputs.labels }}
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
