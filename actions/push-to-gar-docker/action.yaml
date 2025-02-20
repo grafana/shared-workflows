@@ -66,7 +66,7 @@ inputs:
     required: false
   labels:
     description: |
-      List of metadata to apply to the image.
+      List of custom labels to add to the image as metadata.
     required: false
 
 outputs:
