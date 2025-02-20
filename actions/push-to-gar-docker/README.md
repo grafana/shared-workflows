@@ -68,7 +68,7 @@ input.
 | `build-contexts`       | List    | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                 |
 | `docker-buildx-driver` | String  | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                                   |
 | `repository_name`      | String  | Override the 'repo_name' which is included as part of the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.       |
-| `labels`               | List    | List of custom labels to add to the image as metadata (see the [metadata-action](https://github.com/docker/metadata-action?tab=readme-ov-file#inputs)) for details                 |
+| `labels`               | List    | List of custom labels to add to the image as metadata (see the [metadata-action](https://github.com/docker/metadata-action?tab=readme-ov-file#inputs)) for details             |
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
