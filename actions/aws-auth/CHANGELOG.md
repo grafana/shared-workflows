@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/aws-auth-v1.0.1...aws-auth-v1.0.2) (2025-02-21)
+
+
+### 📝 Documentation
+
+* fix wrong aws-auth reference in readme ([#731](https://github.com/grafana/shared-workflows/issues/731)) ([c0ae660](https://github.com/grafana/shared-workflows/commit/c0ae660365599f4f1a8550c941e08d4a6de268e5))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/aws-auth-v1.0.0...aws-auth-v1.0.1) (2025-01-29)
 
 
