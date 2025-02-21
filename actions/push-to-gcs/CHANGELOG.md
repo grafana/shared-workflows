@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/push-to-gcs-v0.2.0...push-to-gcs-v0.2.1) (2025-02-21)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/upload-cloud-storage action to v2.2.2 ([#741](https://github.com/grafana/shared-workflows/issues/741)) ([5f7a536](https://github.com/grafana/shared-workflows/commit/5f7a5361daa274f9a1994893a4c21a8967cf2a24))
+* **deps:** update google-github-actions/upload-cloud-storage action to v2.2.2 ([#749](https://github.com/grafana/shared-workflows/issues/749)) ([948bff0](https://github.com/grafana/shared-workflows/commit/948bff0b53f9d51876b8bca2cb1408384b4ce3b5))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/push-to-gcs-v0.1.0...push-to-gcs-v0.2.0) (2025-01-28)
 
 
