@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.2](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub-v0.1.1...build-push-to-dockerhub-v0.1.2) (2025-02-21)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v6.14.0 ([#793](https://github.com/grafana/shared-workflows/issues/793)) ([d750654](https://github.com/grafana/shared-workflows/commit/d750654d770aefa0516e11735cdfdb89b7a380a1))
+* **deps:** update docker/setup-buildx-action action to v3.9.0 ([#755](https://github.com/grafana/shared-workflows/issues/755)) ([8dd62e3](https://github.com/grafana/shared-workflows/commit/8dd62e320f60df7426d30b67c9b26f17af352ed7))
+* **deps:** update docker/setup-qemu-action action to v3.4.0 ([#756](https://github.com/grafana/shared-workflows/issues/756)) ([753c87a](https://github.com/grafana/shared-workflows/commit/753c87a0ea97496f0088e51c025e1f4c69be6626))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub-v0.1.0...build-push-to-dockerhub-v0.1.1) (2025-01-29)
 
 
