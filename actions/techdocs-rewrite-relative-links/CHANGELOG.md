@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.1...techdocs-rewrite-relative-links-v1.0.2) (2025-02-21)
+
+
+### 🏗️ Build System
+
+* **deps:** bump github.com/lmittmann/tint to 1.0.7 in techdocs-rewrite-relative-links ([#745](https://github.com/grafana/shared-workflows/issues/745)) ([c0b8808](https://github.com/grafana/shared-workflows/commit/c0b8808645927e0cac30b99b8d158883c0bac9e1))
+* **deps:** bump golang.org/x/term from 0.28.0 to 0.29.0 in techdocs-rewrite-relative-links ([#767](https://github.com/grafana/shared-workflows/issues/767)) ([fa04ad7](https://github.com/grafana/shared-workflows/commit/fa04ad7b8f4a44f7b541aaaf40d38f197bea6a64))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.0...techdocs-rewrite-relative-links-v1.0.1) (2025-01-29)
 
 
