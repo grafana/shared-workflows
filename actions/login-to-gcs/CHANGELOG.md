@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/login-to-gcs-v0.2.0...login-to-gcs-v0.2.1) (2025-02-21)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/auth action to v2.1.8 ([#740](https://github.com/grafana/shared-workflows/issues/740)) ([f75f620](https://github.com/grafana/shared-workflows/commit/f75f620c6800b60d1a31262154e90b5c7a3ee955))
+* fix changelog for login-to-gcs action ([#725](https://github.com/grafana/shared-workflows/issues/725)) ([f289c6b](https://github.com/grafana/shared-workflows/commit/f289c6b169d712f5025dfcdd4a3c361ee3e5ffa4))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/login-to-gcs-v0.1.0...login-to-gcs-v0.2.0) (2025-01-28)
 
 
