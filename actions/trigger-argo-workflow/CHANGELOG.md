@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow-v1.1.0...trigger-argo-workflow-v1.1.1) (2025-02-21)
+
+
+### 🏗️ Build System
+
+* **deps:** bump github.com/lmittmann/tint to 1.0.7 in trigger-argo-workflow ([#744](https://github.com/grafana/shared-workflows/issues/744)) ([8b9c841](https://github.com/grafana/shared-workflows/commit/8b9c841229499e16241a0f8026038eaff4fc0ae3))
+* **deps:** bump golang.org/x/term from 0.28.0 to 0.29.0 in /actions/trigger-argo-workflow ([#768](https://github.com/grafana/shared-workflows/issues/768)) ([a54a6c2](https://github.com/grafana/shared-workflows/commit/a54a6c2bde469713c4af68a1bd5e0fd6eec1f537))
+
 ## [1.1.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow-v1.0.0...trigger-argo-workflow-v1.1.0) (2025-01-29)
 
 
