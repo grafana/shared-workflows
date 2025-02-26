@@ -3,7 +3,7 @@
     "actions/get-vault-secrets": "1.1.0",
     "actions/dockerhub-login": "1.0.1",
     "actions/send-slack-message": "2.0.1",
-    "actions/push-to-gar-docker": "0.2.1",
+    "actions/push-to-gar-docker": "0.3.1",
     "actions/aws-auth": "1.0.1",
     "actions/build-push-to-dockerhub": "0.1.1",
     "actions/login-to-gar": "0.2.2",

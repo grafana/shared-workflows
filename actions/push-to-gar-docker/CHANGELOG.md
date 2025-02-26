@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.2.1...push-to-gar-docker-v0.3.1) (2025-02-26)
+
+
+### 🎉 Features
+
+* **push-to-gar-docker:** add custom label input ([#795](https://github.com/grafana/shared-workflows/issues/795)) ([b6aa0b6](https://github.com/grafana/shared-workflows/commit/b6aa0b6312f7cd58416885007204ac9a4a71c094))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v6.14.0 ([#793](https://github.com/grafana/shared-workflows/issues/793)) ([d750654](https://github.com/grafana/shared-workflows/commit/d750654d770aefa0516e11735cdfdb89b7a380a1))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.2.0...push-to-gar-docker-v0.2.1) (2025-02-13)
 
 
