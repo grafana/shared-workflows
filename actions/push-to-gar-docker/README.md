@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v4
 
       - id: push-to-gar
-        uses: grafana/shared-workflows/actions/push-to-gar-docker@push-to-gar-docker-v0.2.1
+        uses: grafana/shared-workflows/actions/push-to-gar-docker@push-to-gar-docker-v0.3.1
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
           tags: |-
