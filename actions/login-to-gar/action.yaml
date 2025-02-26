@@ -52,6 +52,11 @@ runs:
       with:
         project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+    - name: "Set up Cloud SDK"
+      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
+      uses: "google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a" # v2.1.4
+      with:
+        version: ">= 363.0.0"
     - name: "Use gcloud CLI to configure docker"
       if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       shell: sh
