@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.2](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.2.1...login-to-gar-v0.2.2) (2025-02-26)
+
+
+### 🐛 Bug Fixes
+
+* install gcloud in login-to-gar action ([#813](https://github.com/grafana/shared-workflows/issues/813)) ([935970b](https://github.com/grafana/shared-workflows/commit/935970b13327698aa89e768f511a45432285f5cd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.2.0...login-to-gar-v0.2.1) (2025-02-17)
 
 
