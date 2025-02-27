@@ -16,6 +16,7 @@ runs:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: _shared-workflows-dockerhub-login
+        persist-credentials: false
 
     - name: Get secrets for DockerHub login
       id: get-secrets

@@ -54,6 +54,7 @@ runs:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: shared-workflows
+        persist-credentials: false
     - name: Resolve GCP project
       id: resolve-project
       shell: bash

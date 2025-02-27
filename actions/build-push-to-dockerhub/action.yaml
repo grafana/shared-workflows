@@ -75,6 +75,7 @@ runs:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: _shared-workflows-build-push-to-dockerhub
+        persist-credentials: false
 
     - name: Login to DockerHub
       if: ${{ inputs.push == 'true' }}

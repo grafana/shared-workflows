@@ -52,6 +52,7 @@ runs:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: _shared-workflows-trigger-argo-workflow
+        persist-credentials: false
 
     - name: Setup argo
       uses: ./_shared-workflows-trigger-argo-workflow/actions/setup-argo
