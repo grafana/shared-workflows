@@ -23,6 +23,7 @@ runs:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: _shared-workflows-argo-lint
+        persist-credentials: false
 
     - name: Setup Argo
       uses: ./_shared-workflows-argo-lint/actions/setup-argo

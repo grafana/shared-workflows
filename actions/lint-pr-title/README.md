@@ -83,7 +83,9 @@ jobs:
   lint-pr-title:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - id: lint-pr-title
         uses: grafana/shared-workflows/actions/lint-pr-title@lint-pr-title-v1.1.1

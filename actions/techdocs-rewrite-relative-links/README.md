@@ -33,6 +33,7 @@ Then this link inside the file will be changed to ...
     repository: grafana/shared-workflows
     ref: techdocs-rewrite-relative-links-v1.0.1
     path: _shared-workflows
+    persist-credentials: false
 
 - name: Rewrite relative links
   uses: ./_shared-workflows/actions/techdocs-rewrite-relative-links

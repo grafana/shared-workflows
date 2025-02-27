@@ -107,6 +107,7 @@ runs:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: shared-workflows
+        persist-credentials: false
 
     - name: Get repository name
       id: get-repository-name

@@ -27,6 +27,8 @@ jobs:
     steps:
       - id: checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - id: push-to-gar
         uses: grafana/shared-workflows/actions/push-to-gar-docker@push-to-gar-docker-v0.3.1

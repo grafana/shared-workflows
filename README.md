@@ -61,6 +61,7 @@ will ensure actions in this repo are always used at the same commit. To do this:
     # action), so if multiple actions check `shared-workflows` out, they don't
     # overwrite each other
     path: _shared-workflows-your-action
+    persist-credentials: false
 
 - name: Use another action
   uses: ./_shared-workflows-your-action/actions/some-action
