@@ -23,6 +23,8 @@ jobs:
     steps:
       - id: checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - id: push-to-dockerhub
         uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub-v0.1.1

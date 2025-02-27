@@ -28,6 +28,9 @@ jobs:
     runs-on: ubuntu-x64-small
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - uses: grafana/shared-workflows/actions/login-to-gcs@main
         id: login-to-gcs
 
