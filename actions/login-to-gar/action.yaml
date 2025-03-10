@@ -60,4 +60,4 @@ runs:
     - name: "Use gcloud CLI to configure docker"
       if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       shell: sh
-      run: "gcloud auth configure-docker --quiet ${{ inputs.registry }}"
+      run: "gcloud auth configure-docker --verbosity error ${{ inputs.registry }}"
