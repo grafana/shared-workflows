@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.1.0...get-vault-secrets-v1.1.1) (2025-03-10)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update hashicorp/vault-action action to v3.3.0 ([#831](https://github.com/grafana/shared-workflows/issues/831)) ([98384a8](https://github.com/grafana/shared-workflows/commit/98384a8bf33e1bea6957186fa78b999da95dd657))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [1.1.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.0.1...get-vault-secrets-v1.1.0) (2025-01-28)
 
 
