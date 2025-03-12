@@ -149,18 +149,24 @@ runs:
         images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
 
-    - name: Build the container
-      uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
-      id: build
-      env:
-        DOCKER_BUILD_SUMMARY: false
-      with:
-        context: ${{ inputs.context }}
-        build-args: ${{ inputs.build-args }}
-        push: ${{ inputs.push == 'true' }}
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ inputs.labels }}
-        file: ${{ inputs.file }}
-        platforms: ${{ inputs.platforms }}
-        ssh: ${{ inputs.ssh }}
-        build-contexts: ${{ inputs.build-contexts }}
+    - name: Docker push
+      id: docker-push
+      shell: bash
+      run:
+        docker build us-docker.pkg.dev/grafanalabs-dev/docker-dsotirakis-test-repo-dev/test-image:test .
+        docker push us-docker.pkg.dev/grafanalabs-dev/docker-dsotirakis-test-repo-dev/test-image:test
+    # - name: Build the container
+    #   uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+    #   id: build
+    #   env:
+    #     DOCKER_BUILD_SUMMARY: false
+    #   with:
+    #     context: ${{ inputs.context }}
+    #     build-args: ${{ inputs.build-args }}
+    #     push: ${{ inputs.push == 'true' }}
+    #     tags: ${{ steps.meta.outputs.tags }}
+    #     labels: ${{ inputs.labels }}
+    #     file: ${{ inputs.file }}
+    #     platforms: ${{ inputs.platforms }}
+    #     ssh: ${{ inputs.ssh }}
+    #     build-contexts: ${{ inputs.build-contexts }}
