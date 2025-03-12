@@ -151,8 +151,8 @@ runs:
 
     - name: Docker push
       id: docker-push
-      shell: bash
-      run:
+      shell: sh
+      run: |
         docker build us-docker.pkg.dev/grafanalabs-dev/docker-dsotirakis-test-repo-dev/test-image:test .
         docker push us-docker.pkg.dev/grafanalabs-dev/docker-dsotirakis-test-repo-dev/test-image:test
     # - name: Build the container
