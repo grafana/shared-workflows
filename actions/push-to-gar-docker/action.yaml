@@ -149,12 +149,6 @@ runs:
         images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
-      with:
-        driver: ${{ inputs.docker-buildx-driver }}
-        driver-opts: image=moby/buildkit:master
-
     - name: Build the container
       uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
       id: build
