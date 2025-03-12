@@ -165,8 +165,6 @@ runs:
         push: ${{ inputs.push == 'true' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ inputs.labels }}
-        cache-from: ${{ inputs.cache-from }}
-        cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
