@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.2](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.3.1...push-to-gar-docker-v0.3.2) (2025-03-14)
+
+
+### 🐛 Bug Fixes
+
+* ensure every action disables git credential persistence ([#821](https://github.com/grafana/shared-workflows/issues/821)) ([31ebf3f](https://github.com/grafana/shared-workflows/commit/31ebf3f8e5d0f8709e6ec4ef73b39dd2bd08f959))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v6.15.0 ([#816](https://github.com/grafana/shared-workflows/issues/816)) ([0ae253d](https://github.com/grafana/shared-workflows/commit/0ae253d4a198408407a161de482680eddf2dfa42))
+* **deps:** update docker/metadata-action action to v5.7.0 ([#818](https://github.com/grafana/shared-workflows/issues/818)) ([9f9b2eb](https://github.com/grafana/shared-workflows/commit/9f9b2eb3897a39fd65e5b92f17a60704925f94c4))
+* **deps:** update docker/setup-buildx-action action to v3.10.0 ([#819](https://github.com/grafana/shared-workflows/issues/819)) ([09fb633](https://github.com/grafana/shared-workflows/commit/09fb633eb9f6c77153fa941e662be7cd418ca1fb))
+
 ## [0.3.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.2.1...push-to-gar-docker-v0.3.1) (2025-02-26)
 
 
