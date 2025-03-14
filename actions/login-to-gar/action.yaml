@@ -39,7 +39,7 @@ runs:
     # authenticate using the access_token from the auth_with_service_account step
     - name: Login to GAR
       if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
-      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
       with:
         registry: ${{ inputs.registry }}
         username: oauth2accesstoken
@@ -54,7 +54,7 @@ runs:
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
     - name: Login to GAR
       if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
-      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
       with:
         registry: ${{ inputs.registry }}
         username: oauth2accesstoken
