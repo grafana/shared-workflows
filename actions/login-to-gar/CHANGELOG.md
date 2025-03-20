@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.2.2...login-to-gar-v0.3.0) (2025-03-20)
+
+
+### 🎉 Features
+
+* use auth_token in login-to-gar action ([#846](https://github.com/grafana/shared-workflows/issues/846)) ([e65ba18](https://github.com/grafana/shared-workflows/commit/e65ba18704a12d05c4c5ad00439c31d5861ba9a1))
+
+
+### 🤖 Continuous Integration
+
+* make configure-docker less verbose ([#824](https://github.com/grafana/shared-workflows/issues/824)) ([623010a](https://github.com/grafana/shared-workflows/commit/623010ae889725b324e1ae1b3572d1be621b76b9))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/login-action action to v3.4.0 ([#848](https://github.com/grafana/shared-workflows/issues/848)) ([117d851](https://github.com/grafana/shared-workflows/commit/117d8511cbc5da0337972deeb400c4298b057af3))
+
 ## [0.2.2](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.2.1...login-to-gar-v0.2.2) (2025-02-26)
 
 
