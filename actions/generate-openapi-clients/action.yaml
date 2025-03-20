@@ -42,7 +42,7 @@ runs:
 
     # Get openapi-generator
     - id: openapi-generator-cache
-      uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+      uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
       with:
         key: openapi-generator-${{ inputs.generator-version }}
         path: openapi-generator-cli.jar
@@ -50,7 +50,7 @@ runs:
       if: steps.openapi-generator-cache.outputs.cache-hit != 'true'
       run: |
         wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${{ inputs.generator-version }}/openapi-generator-cli-${{ inputs.generator-version }}.jar" -O ./openapi-generator-cli.jar
-    - uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+    - uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
       if: steps.openapi-generator-cache.outputs.cache-hit != 'true'
       with:
         key: openapi-generator-${{ inputs.generator-version }}
