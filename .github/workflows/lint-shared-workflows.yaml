@@ -61,7 +61,7 @@ jobs:
 
       - name: Restore github-action.json schema
         id: restore-schema
-        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: |
             github-action.json
@@ -108,7 +108,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Save github-action.json schema to cache
-        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         if: steps.download-schema.outputs.schema-changed == 'true'
         with:
           path: |
