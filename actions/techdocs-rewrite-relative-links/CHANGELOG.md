@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.1...techdocs-rewrite-relative-links-v1.0.2) (2025-03-20)
+
+
+### 🐛 Bug Fixes
+
+* ensure every action disables git credential persistence ([#821](https://github.com/grafana/shared-workflows/issues/821)) ([31ebf3f](https://github.com/grafana/shared-workflows/commit/31ebf3f8e5d0f8709e6ec4ef73b39dd2bd08f959))
+
+
+### 🏗️ Build System
+
+* **deps:** bump github.com/lmittmann/tint ([c0b8808](https://github.com/grafana/shared-workflows/commit/c0b8808645927e0cac30b99b8d158883c0bac9e1))
+* **deps:** bump github.com/lmittmann/tint to 1.0.7 in techdocs-rewrite-relative-links ([#745](https://github.com/grafana/shared-workflows/issues/745)) ([c0b8808](https://github.com/grafana/shared-workflows/commit/c0b8808645927e0cac30b99b8d158883c0bac9e1))
+* **deps:** bump github.com/spf13/afero ([556a668](https://github.com/grafana/shared-workflows/commit/556a6680c0417f5cdf8c29037d09c2984d2fc4ca))
+* **deps:** bump github.com/spf13/afero from 1.12.0 to 1.14.0 ([#851](https://github.com/grafana/shared-workflows/issues/851)) ([556a668](https://github.com/grafana/shared-workflows/commit/556a6680c0417f5cdf8c29037d09c2984d2fc4ca))
+* **deps:** bump golang.org/x/term ([fa04ad7](https://github.com/grafana/shared-workflows/commit/fa04ad7b8f4a44f7b541aaaf40d38f197bea6a64))
+* **deps:** bump golang.org/x/term from 0.28.0 to 0.29.0 in techdocs-rewrite-relative-links ([#767](https://github.com/grafana/shared-workflows/issues/767)) ([fa04ad7](https://github.com/grafana/shared-workflows/commit/fa04ad7b8f4a44f7b541aaaf40d38f197bea6a64))
+* **deps:** bump the go group ([6837a3b](https://github.com/grafana/shared-workflows/commit/6837a3bd4a49e1fa5e4da9b061fd5e94087bcdac))
+* **deps:** bump the go group in /actions/techdocs-rewrite-relative-links with 2 updates ([#842](https://github.com/grafana/shared-workflows/issues/842)) ([6837a3b](https://github.com/grafana/shared-workflows/commit/6837a3bd4a49e1fa5e4da9b061fd5e94087bcdac))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v5.4.0 ([#856](https://github.com/grafana/shared-workflows/issues/856)) ([2a39322](https://github.com/grafana/shared-workflows/commit/2a39322a1f089f759684c4a4fa1a8219a77d6494))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.0...techdocs-rewrite-relative-links-v1.0.1) (2025-01-29)
 
 
