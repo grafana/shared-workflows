@@ -21,31 +21,31 @@ func TestUpdateRelativeLinks(t *testing.T) {
 	}{
 		"rewrites-outside-link": {
 			testDirectorySetup: func(fs afero.Fs, rootDir string) {
-				afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
-				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md)"), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md)"), 0600)
 			},
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [inside](./README.md) [outside](https://github.com/grafana/dummy/blob/main/README.md)\n",
 		},
 		"rewrites-outside-link-with-hashname": {
 			testDirectorySetup: func(fs afero.Fs, rootDir string) {
-				afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
-				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md#somewhere)"), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md#somewhere)"), 0600)
 			},
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [inside](./README.md) [outside](https://github.com/grafana/dummy/blob/main/README.md#somewhere)\n",
 		},
 		"ignores-external-links": {
 			testDirectorySetup: func(fs afero.Fs, rootDir string) {
-				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [external](https://example.org)"), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [external](https://example.org)"), 0600)
 			},
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [external](https://example.org)",
 		},
 		"dry-run-does-not-modify": {
 			testDirectorySetup: func(fs afero.Fs, rootDir string) {
-				afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
-				afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md)"), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "README.md"), []byte("outside file"), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [inside](./README.md) [outside](../README.md)"), 0600)
 			},
 			fileUnderTest:       "docs/README.md",
 			expectedFileContent: "Hello world [inside](./README.md) [outside](../README.md)",
@@ -92,14 +92,14 @@ func TestGetDocsRoot(t *testing.T) {
 		"mkdocs-yml-relative-docs-dir": {
 			expectError: false,
 			rootDirectorySetup: func(fs afero.Fs, rootDir string) {
-				afero.WriteFile(fs, filepath.Join(rootDir, "mkdocs.yml"), []byte(`docs_dir: "docs"`), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "mkdocs.yml"), []byte(`docs_dir: "docs"`), 0600)
 			},
 			expectedRelativeDocsDir: "docs",
 		},
 		"mkdocs-yml-absolute-docs-dir": {
 			expectError: false,
 			rootDirectorySetup: func(fs afero.Fs, rootDir string) {
-				afero.WriteFile(fs, filepath.Join(rootDir, "mkdocs.yml"), []byte(`docs_dir: "/tmp/docs"`), 0600)
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "mkdocs.yml"), []byte(`docs_dir: "/tmp/docs"`), 0600)
 			},
 			expectedAbsoluteDocsDir: "/tmp/docs",
 		},
@@ -132,16 +132,5 @@ func TestGetDocsRoot(t *testing.T) {
 				require.Equal(t, filepath.Join(rootDir, test.expectedRelativeDocsDir), docsDir)
 			}
 		})
-	}
-}
-
-func createTestDirectory(t *testing.T, filesys afero.Fs, rootDir string, content map[string]string) {
-	t.Helper()
-	for filename, filecontent := range content {
-		dir := filepath.Dir(filename)
-		fullPath := filepath.Join(rootDir, dir)
-		require.NoError(t, filesys.MkdirAll(fullPath, 0700))
-		fullFilePath := filepath.Join(rootDir, filename)
-		require.NoError(t, afero.WriteFile(filesys, fullFilePath, []byte(filecontent), 0600))
 	}
 }
