@@ -123,7 +123,7 @@ func (a *App) setURIAsJobOutput(uri string, writer io.Writer) {
 		return
 	}
 
-	_, err := writer.Write([]byte(fmt.Sprintf("uri=%s\n", uri)))
+	_, err := fmt.Fprintf(writer, "uri=%s\n", uri)
 	if err != nil {
 		a.logger.With("error", err).Error("failed to write to file, won't set job output")
 	}
@@ -190,7 +190,9 @@ func (a *App) Run(md GitHubActionsMetadata) error {
 	}
 
 	writer := a.openGitHubOutput()
-	defer writer.Close()
+	defer func() {
+		_ = writer.Close()
+	}()
 
 	if writer != nil && uri != "" {
 		a.setURIAsJobOutput(uri, writer)

@@ -114,8 +114,12 @@ func main() {
 		},
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
-	app.RunContext(ctx, os.Args)
+	if err := app.RunContext(ctx, os.Args); err != nil {
+		cancel()
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+	cancel()
 }
 
 type controller struct {
@@ -230,7 +234,7 @@ type relativeLinkASTTransformer struct {
 }
 
 func (transformer *relativeLinkASTTransformer) Transform(node *ast.Document, reader text.Reader, pc parser.Context) {
-	ast.Walk(node, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+	_ = ast.Walk(node, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if entering {
 			return ast.WalkContinue, nil
 		}
