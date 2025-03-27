@@ -1,0 +1,36 @@
+name: Test Trigger Argo Workflow
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/trigger-argo-workflow/**
+      - .github/workflows/test-trigger-argo-workflow.yml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/trigger-argo-workflow/**
+      - .github/workflows/test-trigger-argo-workflow.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  trigger-argo-workflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: grafana/shared-workflows/actions/trigger-argo-workflow@main
+        with:
+          namespace: "does-not-exist"
+          workflow_template: "does-not-exist"
