@@ -115,6 +115,9 @@ runs:
           parameters+=("--workflow-template" "${{ inputs.workflow_template }}")
         fi
 
+        # Explicitly disable Go workspace support in case the repo uses that:
+        export GOWORK=off
+
         go run github.com/grafana/shared-workflows/actions/trigger-argo-workflow/cmd/trigger-argo-workflow \
           --log-level "${{ inputs.log_level }}" \
           --namespace "${{ inputs.namespace }}" \
