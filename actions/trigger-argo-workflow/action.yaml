@@ -115,7 +115,7 @@ runs:
           parameters+=("--workflow-template" "${{ inputs.workflow_template }}")
         fi
 
-        go run github.com/grafana/shared-workflows/actions/trigger-argo-workflow/cmd/trigger-argo-workflow \
+        go run ./cmd/trigger-argo-workflow \
           --log-level "${{ inputs.log_level }}" \
           --namespace "${{ inputs.namespace }}" \
           --instance "${{ inputs.instance }}" \
