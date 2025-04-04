@@ -1,0 +1,54 @@
+name: Run Grafana Renovate bot
+description: Run the Grafana Renovate bot to keep dependencies up to date
+inputs:
+  configuration_file:
+    description: |
+      The renovate app configuration file. Defaults to .github/renovate-app.json.
+    default: .github/renovate-app.json
+    required: false
+    type: string
+  log_level:
+    description: |
+      The log level for the renovate app. Valid values are debug, info, warn, error and fatal. Defaults to warn.
+    default: warn
+    required: false
+    type: string
+  dry-run:
+    description: |
+      Run Renovate in dry-run mode.
+    required: false
+    default: false
+    type: boolean
+
+runs:
+  using: composite
+  steps:
+    - name: Retrieve renovate secrets
+      id: get-secrets
+      uses: grafana/shared-workflows/actions/get-vault-secrets@d6e6319117708d6fb7c1757b3707a6f50c61b7e8
+      with:
+        common_secrets: |
+          GRAFANA_RENOVATE_APP_ID=grafana-renovate-app:app-id
+          GRAFANA_RENOVATE_PRIVATE_KEY=grafana-renovate-app:private-key
+
+    - name: Create GitHub app token for renovate
+      id: app-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ env.GRAFANA_RENOVATE_APP_ID }}
+        private-key: ${{ env.GRAFANA_RENOVATE_PRIVATE_KEY }}
+        owner: ${{ github.repository_owner }}
+
+    - name: Run self-hosted Renovate
+      uses: renovatebot/github-action@dd4d265eb8646cd04fc5f86ff8bc8d496d75a251 # v40.2.8
+      with:
+        renovate-version: 37.420.1@sha256:528f003c9aa77f6e916e3f9f5cc2fb9ae16fcf285af66f412a34325124f4a00e
+        configurationFile: ${{ inputs.configuration_file }}
+        token: '${{ steps.app-token.outputs.token }}'
+      env:
+        LOG_LEVEL: ${{ inputs.log_level }}
+        RENOVATE_BASE_BRANCHES: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || null }}
+        RENOVATE_DRY_RUN: ${{ github.event.inputs.dry-run == 'true' && 'full' || null }}
+        RENOVATE_PLATFORM: github
+        RENOVATE_REPOSITORIES: ${{ github.repository }}
+        RENOVATE_USERNAME: GrafanaRenovateBot
