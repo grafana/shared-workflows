@@ -106,7 +106,7 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        path: shared-workflows
+        path: /tmp/shared-workflows
         persist-credentials: false
 
     - name: Get repository name
@@ -138,7 +138,7 @@ runs:
 
     - name: Login to GAR
       if: ${{ inputs.push == 'true' }}
-      uses: ./shared-workflows/actions/login-to-gar
+      uses: /tmp/shared-workflows/actions/login-to-gar
       with:
         environment: ${{ inputs.environment }}
 
