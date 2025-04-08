@@ -63,3 +63,4 @@ runs:
       with:
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: ${{ steps.construct-account-vars.outputs.service_account }}
+        create_credentials_file: false
