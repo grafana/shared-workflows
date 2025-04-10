@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/setup-jrsonnet-v1.0.0...setup-jrsonnet-v1.0.1) (2025-04-10)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v4.2.1 ([#788](https://github.com/grafana/shared-workflows/issues/788)) ([e26a7f2](https://github.com/grafana/shared-workflows/commit/e26a7f265ddef3a68c322a94a716e6453f656cba))
+* **deps:** update actions/cache action to v4.2.2 ([#822](https://github.com/grafana/shared-workflows/issues/822)) ([0c036cd](https://github.com/grafana/shared-workflows/commit/0c036cdbfb4c912c287f0023073c4c07c10a76e7))
+* **deps:** update actions/cache action to v4.2.3 ([#858](https://github.com/grafana/shared-workflows/issues/858)) ([bc9486e](https://github.com/grafana/shared-workflows/commit/bc9486e0e7cbe24b54d0dcdf8be459eb777567b0))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## 1.0.0 (2025-01-29)
 
 
