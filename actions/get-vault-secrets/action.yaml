@@ -27,6 +27,11 @@ inputs:
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
     default: ops
 
+  export_env:
+    description: |
+      Whether to export secrets as environment variables, making them available to all subsequent steps. Defaults to `true`.
+    default: "true"
+
 runs:
   using: composite
   steps:
@@ -68,3 +73,4 @@ runs:
           Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}
         secrets: |
           ${{ steps.translate-secrets.outputs.secrets }}
+        exportEnv: ${{ inputs.export_env }}
