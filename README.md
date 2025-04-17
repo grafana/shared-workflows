@@ -134,7 +134,7 @@ Also, the following block should be added in the README file which will be respo
 
 `README.md`:
 
-```markdown
+````markdown
 # my-new-action
 
 This is my new action which does awesome stuff!
@@ -154,5 +154,6 @@ jobs:
       - id: do-stuff
         uses: grafana/shared-workflows/actions/my-new-action@my-new-action-v1.0.0
 ```
+````
 
 <!-- x-release-please-end-version -->
