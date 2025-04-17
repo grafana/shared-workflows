@@ -67,6 +67,13 @@ will ensure actions in this repo are always used at the same commit. To do this:
   uses: ./_shared-workflows-your-action/actions/some-action
   with:
     some-input: some-value
+
+# This step ensures the checkout directory is cleaned up even if previous steps fail
+- name: Cleanup checkout directory
+  if: ${{ !cancelled() }}
+  shell: bash
+  run: |
+    rm -rf _shared-workflows-your-action
 ```
 
 ### Use separate files for shell scripts so they're linted
@@ -127,7 +134,7 @@ Also, the following block should be added in the README file which will be respo
 
 `README.md`:
 
-````markdown
+```markdown
 # my-new-action
 
 This is my new action which does awesome stuff!
@@ -149,6 +156,3 @@ jobs:
 ```
 
 <!-- x-release-please-end-version -->
-````
-
-Every semver-like string between the `x-release-please-start-version` and `x-release-please-end-version` comments will be updated with the new version whenever the component is released.
