@@ -177,7 +177,7 @@ runs:
         build-contexts: ${{ inputs.build-contexts }}
 
     - name: Cleanup checkout directory
-      if: always()
+      if: ${{ !cancelled() }}
       shell: bash
       run: |
         rm -rf _shared-workflows-push-to-gar
