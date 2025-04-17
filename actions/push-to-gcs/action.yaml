@@ -53,7 +53,7 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        path: shared-workflows
+        path: _shared-workflows-push-to-gcs
         persist-credentials: false
     - name: Resolve GCP project
       id: resolve-project
@@ -70,7 +70,7 @@ runs:
         echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
     - name: Login to GCS
       id: login-to-gcs
-      uses: ./shared-workflows/actions/login-to-gcs
+      uses: ./_shared-workflows-push-to-gcs/actions/login-to-gcs
       with:
         bucket: ${{ inputs.bucket }}
         environment: ${{ inputs.environment }}
