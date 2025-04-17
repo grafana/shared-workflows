@@ -68,6 +68,10 @@ inputs:
     description: |
       List of custom labels to add to the image as metadata.
     required: false
+  target:
+    description: |
+      Sets the target stage to build
+    required: false
 
 outputs:
   version:
@@ -164,6 +168,7 @@ runs:
         push: ${{ inputs.push == 'true' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ inputs.labels }}
+        target: ${{ inputs.target }}
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         file: ${{ inputs.file }}
