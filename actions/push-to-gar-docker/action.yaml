@@ -175,3 +175,9 @@ runs:
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
         build-contexts: ${{ inputs.build-contexts }}
+
+    - name: Cleanup checkout directory
+      if: always()
+      shell: bash
+      run: |
+        rm -rf _shared-workflows-push-to-gar
