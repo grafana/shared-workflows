@@ -97,7 +97,12 @@ runs:
         process_gcloudignore: false
 
     - name: Cleanup checkout directory
-      if: always()
+      if: ${{ !cancelled() }}
       shell: bash
       run: |
+        # Check that the directory looks OK before removing it
+        if ! [ -d "_shared-workflows-push-to-gcs/.git" ]; then
+          echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
+          exit 0
+        fi
         rm -rf _shared-workflows-push-to-gcs
