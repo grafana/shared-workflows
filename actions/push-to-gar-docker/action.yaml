@@ -110,7 +110,7 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        path: shared-workflows
+        path: _shared-workflows-push-to-gar
         persist-credentials: false
 
     - name: Get repository name
@@ -142,7 +142,7 @@ runs:
 
     - name: Login to GAR
       if: ${{ inputs.push == 'true' }}
-      uses: ./shared-workflows/actions/login-to-gar
+      uses: ./_shared-workflows-push-to-gar/actions/login-to-gar
       with:
         environment: ${{ inputs.environment }}
 
@@ -175,3 +175,15 @@ runs:
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
         build-contexts: ${{ inputs.build-contexts }}
+
+    - name: Cleanup checkout directory
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: |
+        # Check that the directory looks OK before removing it
+        if ! [ -d "_shared-workflows-push-to-gar/.git" ]; then
+          echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
+          exit 0
+        fi
+
+        rm -rf _shared-workflows-push-to-gar

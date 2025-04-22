@@ -67,6 +67,18 @@ will ensure actions in this repo are always used at the same commit. To do this:
   uses: ./_shared-workflows-your-action/actions/some-action
   with:
     some-input: some-value
+
+# This step ensures the checkout directory is cleaned up even if previous steps fail
+  - name: Cleanup checkout directory
+    if: ${{ !cancelled() }}
+    shell: bash
+    run: |
+      # Check that the directory looks OK before removing it
+      if ! [ -d "_shared-workflows-push-to-gar/.git" ]; then
+      echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
+      exit 0
+      fi
+      rm -rf _shared-workflows-push-to-gar
 ```
 
 ### Use separate files for shell scripts so they're linted
