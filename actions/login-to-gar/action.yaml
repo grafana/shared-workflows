@@ -56,6 +56,6 @@ runs:
       uses: StevenACoffman/setup-docker-credential-gcr@v0.0.3
       with:
         version: v0.14.1
-    - name: 'Configure GCP Artifact Registry'
+    - name: "Configure GCP Artifact Registry"
       shell: sh
       run: docker-credential-gcr configure-docker --registries="us-docker.pkg.dev"
