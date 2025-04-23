@@ -55,7 +55,7 @@ runs:
     - name: Login to GAR
       uses: StevenACoffman/setup-docker-credential-gcr@v0.0.3
       with:
-        version: v0.14.1
+        version: v2.1.28
     - name: "Configure GCP Artifact Registry"
       shell: sh
       run: docker-credential-gcr configure-docker --registries="us-docker.pkg.dev"
