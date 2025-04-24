@@ -52,10 +52,12 @@ runs:
       with:
         project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-    - name: Login to GAR
+    - name: Setup docker-credential-gcr
+      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       uses: StevenACoffman/setup-docker-credential-gcr@v0.0.3
       with:
         version: v2.1.28
     - name: "Configure GCP Artifact Registry"
+      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       shell: sh
-      run: docker-credential-gcr configure-docker --registries="us-docker.pkg.dev"
+      run: docker-credential-gcr configure-docker --registries=$REGISTRY
