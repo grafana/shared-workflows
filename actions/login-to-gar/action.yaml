@@ -60,4 +60,4 @@ runs:
     - name: "Configure GCP Artifact Registry"
       if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       shell: sh
-      run: docker-credential-gcr configure-docker --registries=$REGISTRY
+      run: docker-credential-gcr configure-docker --registries=${{ inputs.registry }}
