@@ -13,7 +13,7 @@ inputs:
     description: |
       Delete the credentials file after the action is finished. 
       If you want to keep the credentials file, set this to false.
-    default: "true"
+    default: "false"
 
 runs:
   using: composite
@@ -71,7 +71,6 @@ runs:
       shell: sh
       run: rm -f ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
     - name: Verify credentials file deletion (TEMP)
-      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
       shell: sh
       run: |
         if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
