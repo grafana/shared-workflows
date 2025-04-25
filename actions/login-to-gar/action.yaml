@@ -12,6 +12,7 @@ inputs:
   delete_credentials_file:
     description: |
       Delete the credentials file after the action is finished. 
+      If you want to keep the credentials file for a later step, set this to false.
     default: "true"
 
 runs:
