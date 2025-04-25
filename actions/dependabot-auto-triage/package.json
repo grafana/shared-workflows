@@ -1,0 +1,22 @@
+{
+  "name": "auto-dismiss-dependabot-alerts",
+  "version": "1.0.0",
+  "description": "GitHub action to auto-dismiss Dependabot alerts based on manifest path patterns",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@octokit/request-error": "^5.0.1",
+    "@octokit/rest": "^19.0.8",
+    "minimatch": "^9.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "bun": "^1.0.0"
+  }
+}
