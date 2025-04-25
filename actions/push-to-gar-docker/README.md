@@ -53,25 +53,26 @@ input.
 
 ## Inputs
 
-| Name                   | Type    | Description                                                                                                                                                                    |
-| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `registry`             | String  | Google Artifact Registry to store docker images in.                                                                                                                            |
-| `tags`                 | List    | Tags that should be used for the image (see the [metadata-action][mda] for details)                                                                                            |
-| `context`              | List    | Path to the Docker build context.                                                                                                                                              |
-| `environment`          | Bool    | Environment for pushing artifacts (can be either dev or prod).                                                                                                                 |
-| `image_name`           | String  | Name of the image to be pushed to GAR.                                                                                                                                         |
-| `build-args`           | String  | List of arguments necessary for the Docker image to be built.                                                                                                                  |
-| `push`                 | Boolean | Whether to push the image to the registry.                                                                                                                                     |
-| `file`                 | String  | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`)                                                                                           |
-| `platforms`            | List    | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)                                                                                               |
-| `cache-from`           | String  | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))                 |
-| `cache-to`             | String  | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))                    |
-| `ssh`                  | List    | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)) |
-| `build-contexts`       | List    | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                 |
-| `docker-buildx-driver` | String  | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                                   |
-| `repository_name`      | String  | Override the 'repo_name' which is included as part of the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.       |
-| `labels`               | List    | List of custom labels to add to the image as metadata (see the [metadata-action](https://github.com/docker/metadata-action?tab=readme-ov-file#inputs)) for details             |
-| `target`               | String  | Name of the [build stage](https://docs.docker.com/build/building/multi-stage/) to target.                                                                                      |
+| Name                      | Type    | Description                                                                                                                                                                    |
+| ------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `registry`                | String  | Google Artifact Registry to store docker images in.                                                                                                                            |
+| `tags`                    | List    | Tags that should be used for the image (see the [metadata-action][mda] for details)                                                                                            |
+| `context`                 | List    | Path to the Docker build context.                                                                                                                                              |
+| `environment`             | Bool    | Environment for pushing artifacts (can be either dev or prod).                                                                                                                 |
+| `image_name`              | String  | Name of the image to be pushed to GAR.                                                                                                                                         |
+| `build-args`              | String  | List of arguments necessary for the Docker image to be built.                                                                                                                  |
+| `push`                    | Boolean | Whether to push the image to the registry.                                                                                                                                     |
+| `file`                    | String  | Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`)                                                                                           |
+| `platforms`               | List    | List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)                                                                                               |
+| `cache-from`              | String  | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))                 |
+| `cache-to`                | String  | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))                    |
+| `ssh`                     | List    | List of SSH agent socket or keys to expose to the build ([more about ssh for docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)) |
+| `build-contexts`          | List    | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                 |
+| `docker-buildx-driver`    | String  | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                                   |
+| `repository_name`         | String  | Override the 'repo_name' which is included as part of the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.       |
+| `labels`                  | List    | List of custom labels to add to the image as metadata (see the [metadata-action](https://github.com/docker/metadata-action?tab=readme-ov-file#inputs)) for details             |
+| `target`                  | String  | Name of the [build stage](https://docs.docker.com/build/building/multi-stage/) to target.                                                                                      |
+| `delete_credentials_file` | Boolean | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. (Default: `true`)                      |
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
