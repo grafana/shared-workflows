@@ -16,8 +16,8 @@ name: Auto Dismiss Dependabot Alerts
 on:
   # Run daily to dismiss new alerts
   schedule:
-    - cron: '0 0 * * *'
-  
+    - cron: "0 0 * * *"
+
   # Allow manual triggering
   workflow_dispatch:
 
@@ -62,13 +62,13 @@ jobs:
 
 ### Inputs
 
-| Name | Description | Required | Default |
-|------|-------------|----------|---------|
-| `token` | GitHub token with permissions to dismiss alerts | Yes | N/A |
-| `alert-types` | Comma-separated list of alert types to dismiss | No | `dependency` |
-| `paths` | Multi-line list of glob patterns to match manifest paths to dismiss | Yes | N/A |
-| `dismissal-comment` | Default comment to add when dismissing alerts | No | `Auto-dismissed based on manifest path configuration` |
-| `dismissal-reason` | Default reason for dismissal (options: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`) | No | `not_used` |
+| Name                | Description                                                                                                       | Required | Default                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
+| `token`             | GitHub token with permissions to dismiss alerts                                                                   | Yes      | N/A                                                   |
+| `alert-types`       | Comma-separated list of alert types to dismiss                                                                    | No       | `dependency`                                          |
+| `paths`             | Multi-line list of glob patterns to match manifest paths to dismiss                                               | Yes      | N/A                                                   |
+| `dismissal-comment` | Default comment to add when dismissing alerts                                                                     | No       | `Auto-dismissed based on manifest path configuration` |
+| `dismissal-reason`  | Default reason for dismissal (options: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`) | No       | `not_used`                                            |
 
 ### How It Works
 
@@ -83,7 +83,7 @@ The action uses [minimatch](https://github.com/isaacs/minimatch) for glob patter
 - `**/*.json` - Match all JSON files in any directory
 - `terraform/modules/**` - Match all files in terraform/modules and subdirectories
 - `docker/vendor/**/package-lock.json` - Match all package-lock.json files in docker/vendor and subdirectories
-- `ksonnet/lib/*/charts/**` - Match all files in any charts subdirectory under ksonnet/lib/*/
+- `ksonnet/lib/*/charts/**` - Match all files in any charts subdirectory under ksonnet/lib/\*/
 
 ### Permissions
 
@@ -94,6 +94,7 @@ Due to API limitations, accessing and dismissing Dependabot alerts requires a Gi
 To use this action, you need:
 
 1. A GitHub App with the following permissions:
+
    - Repository permissions:
      - **Dependabot alerts**: Read & Write
 
