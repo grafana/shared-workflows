@@ -98,6 +98,7 @@ jobs:
           category: zizmor
 
       - name: Run zizmor with plain output
+        if: always()
         id: zizmor-plain
         shell: bash
         env:
@@ -129,6 +130,7 @@ jobs:
           echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Hide any previous comments
+        if: always()
         id: hide-comments
         uses: int128/hide-comment-action@dafbbede100206f5401d06fa852a1c6997984cb3 # v1.37.0
         with:
