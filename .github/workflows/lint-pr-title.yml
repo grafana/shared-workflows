@@ -12,10 +12,17 @@ on:
 
 jobs:
   lint-pr-title:
+    permissions:
+      contents: read
+      pull-requests: read
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - id: lint-pr-title
         name: Lint PR title

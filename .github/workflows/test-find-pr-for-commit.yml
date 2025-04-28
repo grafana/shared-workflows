@@ -41,10 +41,15 @@ jobs:
             pr_number_regex: "^$"
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: ${{ matrix.test_name }}
         id: test-find-pr-for-commit
@@ -53,12 +58,13 @@ jobs:
           commitrev: ${{ matrix.commitrev }}
 
       - name: Check PR number
+        env:
+          PR_NUMBER: "${{ steps.test-find-pr-for-commit.outputs.pr_number }}"
+          PR_NUMBER_REGEX: "${{ matrix.pr_number_regex }}"
         run: |
           set -x
 
-          PR_NUMBER_REGEX='${{ matrix.pr_number_regex }}'
-
-          if ! [[ "${{ steps.test-find-pr-for-commit.outputs.pr_number }}" =~ ${PR_NUMBER_REGEX} ]]; then
+          if ! [[ "${PR_NUMBER}" =~ ${PR_NUMBER_REGEX} ]]; then
             echo "Test failed: PR number does not match expected value"
             exit 1
           fi

@@ -28,8 +28,19 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Checkout shared workflows
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _shared-workflows-slack
+        persist-credentials: false
+
     - name: Get a Slack token
-      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+      uses: ./_shared-workflows-slack/actions/get-vault-secrets
       with:
         common_secrets: |
           SLACK_BOT_TOKEN=slack-notifications:oauth-token
@@ -41,3 +52,15 @@ runs:
         method: ${{ inputs.method }}
         payload: ${{ inputs.payload }}
         token: ${{ env.SLACK_BOT_TOKEN }}
+
+    # Cleanup checkout directory
+    - name: Cleanup shared workflows checkout
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: |
+        # Check that the directory looks OK before removing it
+        if ! [ -d "_shared-workflows-slack/.git" ]; then
+          echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
+          exit 0
+        fi
+        rm -rf _shared-workflows-slack

@@ -49,13 +49,16 @@ runs:
   steps:
     - id: workflow-ref
       name: Determine workflow ref
+      env:
+        WORKFLOW_REF: ${{ github.workflow_ref }}
+        HEAD_REF: ${{ github.head_ref }}
       if: ${{ inputs.checkout-action-repository == 'true' }}
       shell: bash
       run: |
-        ref=$(echo "${{ github.workflow_ref }}" | awk '{split($0,a,"@");printf "%s",a[2]}')
+        ref=$(echo "${WORKFLOW_REF}" | awk '{split($0,a,"@");printf "%s",a[2]}')
         # pull request refs cannot be checked out, so we need to fall back:
         if [[ "${ref}" =~ ^refs/pull/ ]]; then
-          printf "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          printf "ref=${HEAD_REF}" >> $GITHUB_OUTPUT
         else
           printf "ref=%s" $ref >> $GITHUB_OUTPUT
         fi
@@ -87,17 +90,29 @@ runs:
 
     - name: Run
       id: run
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
+        CHECKOUT_PATH: ${{ inputs.checkout-action-repository-path }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        REPO_URL: ${{ inputs.repo-url }}
+        # Safely handle boolean flags
+        DRY_RUN_FLAG: ${{ inputs.dry-run == 'true' && '--dry-run' || '' }}
+        DEBUG_FLAG: ${{ inputs.debug == 'true' && '--debug' || '' }}
+        VERBOSE_FLAG: ${{ inputs.verbose == 'true' && '--verbose' || '' }}
       shell: bash
       run: |
-        root_dir=$(realpath ${{ inputs.working-directory }})
-        cd ${{ inputs.checkout-action-repository-path }}/actions/techdocs-rewrite-relative-links
+        root_dir=$(realpath "${WORKING_DIR}")
+        cd "${CHECKOUT_PATH}"/actions/techdocs-rewrite-relative-links
         go run . \
-        --root-dir=${root_dir} \
-        --default-branch=${{inputs.default-branch}} \
-        --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run == 'true' && '--dry-run' || '' }} ${{ inputs.debug == 'true' && '--debug' || '' }} ${{ inputs.verbose == 'true' && '--verbose' || '' }}
+        --root-dir="${root_dir}" \
+        --default-branch="${DEFAULT_BRANCH}" \
+        --repo-url="${REPO_URL}" \
+        ${DRY_RUN_FLAG} ${DEBUG_FLAG} ${VERBOSE_FLAG}
 
     - name: Cleanup
-      if: ${{ always() && inputs.checkout-action-repository == 'true' }}
+      env:
+        CHECKOUT_PATH: ${{ inputs.checkout-action-repository-path }}
+      if: ${{ !cancelled() && inputs.checkout-action-repository == 'true' }}
       shell: bash
       run: |
-        rm -rf ${{ inputs.checkout-action-repository-path }}
+        rm -rf "${CHECKOUT_PATH}"
