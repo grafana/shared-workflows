@@ -35,7 +35,7 @@ inputs:
 outputs:
   secrets:
     description: "JSON object containing all the secrets"
-    value: ${{ steps.import-secrets.outputs.secrets }}
+    value: ${{ toJSON(steps.import-secrets.outputs) }}
 
 runs:
   using: composite
