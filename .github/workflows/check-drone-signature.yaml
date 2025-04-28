@@ -57,6 +57,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Set up Drone CLI
         run: |
@@ -64,25 +66,51 @@ jobs:
           curl -L https://github.com/harness/drone-cli/releases/download/$VERSION/drone_linux_amd64.tar.gz | tar zx
           sudo install -t /usr/local/bin drone
 
+      - name: Checkout shared workflows
+        env:
+          # In a composite action, these two need to be indirected via the
+          # environment, as per the GitHub actions documentation:
+          # https://docs.github.com/en/actions/learn-github-actions/contexts
+          action_repo: ${{ github.action_repository }}
+          action_ref: ${{ github.action_ref }}
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ env.action_repo }}
+          ref: ${{ env.action_ref }}
+          path: _shared-workflows-check-drone-signature
+          persist-credentials: false
+
       - name: Retrieve drone-signature-checker token
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: ./_shared-workflows-check-drone-signature/actions/get-vault-secrets
         with:
           common_secrets: |
             DRONE_TOKEN=drone-sign-check-machine-user:token
 
+      - name: Remove shared workflows
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          # Check that the directory looks OK before removing it
+          if ! [ -d "_shared-workflows-check-drone-signature/.git" ]; then
+            echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
+            exit 0
+          fi
+
+          rm -rf _shared-workflows-check-drone-signature
+
       - name: Check Drone signature
+        env:
+          DRONE_CONFIG_PATH: ${{ inputs.drone_config_path }}
+          DRONE_SERVER: ${{ inputs.drone_server }}
         run: |
           # Run drone sign command
-          drone sign --save ${{ github.repository }} ${{ inputs.drone_config_path }}
+          drone sign --save ${{ github.repository }} "${DRONE_CONFIG_PATH}"
 
           # Check if there are any changes to the Drone config file
-          if git diff --quiet ${{ inputs.drone_config_path }}; then
+          if git diff --quiet "${DRONE_CONFIG_PATH}"; then
             echo "Drone CI configuration signature is valid."
           else
             echo "Drone CI configuration signature was updated."
             echo "Please sign the updated .drone.yml file and commit."
             exit 1
           fi
-        env:
-          DRONE_SERVER: ${{ inputs.drone_server }}
-          DRONE_TOKEN: ${{ env.DRONE_TOKEN }}

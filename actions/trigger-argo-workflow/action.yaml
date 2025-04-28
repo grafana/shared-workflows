@@ -67,10 +67,12 @@ runs:
 
     - name: Map cluster and vault instance from Argo WF instance
       id: argo-instance
+      env:
+        INSTANCE: ${{ inputs.instance }}
       shell: sh
       run: |
         # Map the instance to the cluster name to get the correct secret
-        case "${{ inputs.instance }}" in
+        case "${INSTANCE}" in
           dev)
             cluster="dev-us-east-0"
             vault_instance="dev"
@@ -80,7 +82,7 @@ runs:
             vault_instance="ops"
             ;;
           *)
-            echo "unknown instance '${{ inputs.instance }}'"
+            echo "unknown instance '${INSTANCE}'"
             exit 1
             ;;
         esac
@@ -99,31 +101,38 @@ runs:
     - name: Run
       id: run
       shell: bash
+      env:
+        ARGO_TOKEN: ${{ env.ARGO_TOKEN }}
+        EXTRA_ARGS: ${{ inputs.extra_args }}
+        INSTANCE: ${{ inputs.instance }}
+        LOG_LEVEL: ${{ inputs.log_level }}
+        NAMESPACE: ${{ inputs.namespace }}
+        PARAMETERS: ${{ inputs.parameters }}
+        WORKFLOW_TEMPLATE: ${{ inputs.workflow_template }}
       run: |
         cd _shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow
 
         # Split the parameters into an array and pass them to the action as --parameter PARAM
+        parameters=()
         while read -r line; do
           if [ -z "${line}" ]; then
             continue
           fi
 
           parameters+=("--parameter" "$line")
-        done <<< "${{ inputs.parameters }}"
+        done <<< "${PARAMETERS}"
 
-        if [ -n "${{ inputs.workflow_template }}" ]; then
-          parameters+=("--workflow-template" "${{ inputs.workflow_template }}")
+        if [ -n "${WORKFLOW_TEMPLATE}" ]; then
+          parameters+=("--workflow-template" "${WORKFLOW_TEMPLATE}")
         fi
 
         # Explicitly disable Go workspace support in case the repo uses that:
         export GOWORK=off
 
         go run github.com/grafana/shared-workflows/actions/trigger-argo-workflow/cmd/trigger-argo-workflow \
-          --log-level "${{ inputs.log_level }}" \
-          --namespace "${{ inputs.namespace }}" \
-          --instance "${{ inputs.instance }}" \
+          --log-level "${LOG_LEVEL}" \
+          --namespace "${NAMESPACE}" \
+          --instance "${INSTANCE}" \
           "${parameters[@]}" \
           submit \
-          ${{ inputs.extra_args }}
-      env:
-        ARGO_TOKEN: ${{ env.ARGO_TOKEN }}
+          ${EXTRA_ARGS}

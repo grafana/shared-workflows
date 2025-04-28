@@ -116,8 +116,9 @@ runs:
     - name: Get repository name
       id: get-repository-name
       shell: bash
+      env:
+        REPO_NAME: ${{ inputs.repository_name }}
       run: |
-        REPO_NAME="${{ inputs.repository_name }}"
         if [ -z "$REPO_NAME" ]; then
           REPO_NAME="$(echo "${{ github.repository }}" | awk -F'/' '{print $2}')"
           # In Artifact Registry, underscores are not allowed in repository
@@ -129,10 +130,12 @@ runs:
     - name: Resolve GCP project
       id: resolve-project
       shell: bash
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
       run: |
-        if [[ "${{ inputs.environment }}" == "dev" ]]; then
+        if [[ "${ENVIRONMENT}" == "dev" ]]; then
           PROJECT="grafanalabs-dev"
-        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
+        elif [[ "${ENVIRONMENT}" == "prod" ]]; then
           PROJECT="grafanalabs-global"
         else
           echo "Invalid environment. Valid environment variable inputs: dev, prod"

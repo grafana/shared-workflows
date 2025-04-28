@@ -26,17 +26,19 @@ runs:
       id: resolve-project
       shell: bash
       run: |
-        if [[ "${{ inputs.environment }}" == "dev" ]]; then
+        if [[ "${ENVIRONMENT}" == "dev" ]]; then
           PROJECT="grafanalabs-dev"
-        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
+        elif [[ "${ENVIRONMENT}" == "prod" ]]; then
           PROJECT="grafanalabs-global"
         else
           echo "Invalid environment. Valid environment variable inputs: dev, prod"
           exit 1
         fi
         echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
     - name: Construct dynamic account vars
-      id: construct-account-vars
+      id: vars
       shell: bash
       run: |
         # Construct repo name
@@ -44,20 +46,24 @@ runs:
         echo "repo_name=${REPO_NAME}" | tee -a ${GITHUB_OUTPUT}
 
         # Construct bucket name
-        if [[ "${{ inputs.bucket }}" == "" ]]; then
-          BUCKET="grafanalabs-${REPO_NAME}-${{ inputs.environment }}"
+        if [[ "${BUCKET}" == "" ]]; then
+          BUCKET="grafanalabs-${REPO_NAME}-${ENVIRONMENT}"
         else
-          BUCKET="${{ inputs.bucket }}"
+          BUCKET="${BUCKET}"
         fi
         echo "bucket=${BUCKET}" | tee -a ${GITHUB_OUTPUT}
 
         # Construct service account
-        if [[ "${{ inputs.service_account }}" == "" ]]; then
-          SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        if [[ "${SERVICE_ACCOUNT}" == "" ]]; then
+          SERVICE_ACCOUNT="github-${{ github.repository_id }}-${ENVIRONMENT}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
         else
-          SERVICE_ACCOUNT="${{ inputs.service_account }}"
+          SERVICE_ACCOUNT="${SERVICE_ACCOUNT}"
         fi
         echo "service_account=${SERVICE_ACCOUNT}" | tee -a ${GITHUB_OUTPUT}
+      env:
+        BUCKET: ${{ inputs.bucket }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        SERVICE_ACCOUNT: ${{ inputs.service_account }}
     - uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2.1.10
       id: gcloud-auth
       with:

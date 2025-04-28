@@ -38,8 +38,10 @@ runs:
     - id: check-vault-instance
       if: inputs.vault_instance != 'dev' && inputs.vault_instance != 'ops'
       shell: sh
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
       run: |
-        echo "Invalid value for vault_instance input: ${{ inputs.vault_instance }}. Must be 'dev' or 'ops'."
+        echo "Invalid value for vault_instance input: ${VAULT_INSTANCE}. Must be 'dev' or 'ops'."
         exit 1
 
     # Translate the secrets into a format that the Vault action can understand
@@ -53,9 +55,11 @@ runs:
 
     - id: get-github-jwt-token
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken("vault-github-actions-grafana-${{ inputs.vault_instance }}");
+          const jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
           core.setSecret(jwt);
           core.setOutput("github-jwt",jwt);
 

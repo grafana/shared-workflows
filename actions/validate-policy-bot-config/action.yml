@@ -11,6 +11,8 @@ runs:
   using: composite
   steps:
     - name: Validate Policy Bot config
+      env:
+        VALIDATION_ENDPOINT: ${{ inputs.validation_endpoint }}
       shell: bash
       run: |
         curl \
@@ -18,4 +20,4 @@ runs:
           --fail-with-body \
           --request PUT \
           --upload-file .policy.yml \
-          ${{ inputs.validation_endpoint }}
+          "${VALIDATION_ENDPOINT}"
