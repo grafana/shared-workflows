@@ -38,11 +38,11 @@ jobs:
             ENVVAR2=test-secret:key1
 
       # Use the secrets
-      # You can use the envvars directly in scripts or use the `${{ env.* }}` accessor in the workflow
+      # You can use the envvars directly in scripts
       - name: echo
         run: |
           echo "$ENVVAR1"
-          echo "${{ env.ENVVAR2 }}"
+          echo "${ENVVAR2}"
 ```
 
 <!-- x-release-please-end-version -->
@@ -81,11 +81,11 @@ jobs:
       # Use the secrets from the JSON output in the env block
       - name: echo
         env:
-          SECRET1: ${{ fromJSON(steps.get-secrets.outputs.secrets).SECRET1 }}
-          SECRET2: ${{ fromJSON(steps.get-secrets.outputs.secrets).SECRET2 }}
+          ENVVAR1: ${{ fromJSON(steps.get-secrets.outputs.secrets).SECRET1 }}
+          ENVVAR2: ${{ fromJSON(steps.get-secrets.outputs.secrets).SECRET2 }}
         run: |
-          echo "$SECRET1"
-          echo "${{ env.SECRET2 }}"
+          echo "$ENVVAR1"
+          echo "${ENVVAR2}"
 ```
 
 This approach is useful when you need to pass secrets to other actions or reusable workflows as inputs, while keeping them secure. It's also beneficial when you want to limit which steps have access to the secrets, as environment variables are available to all subsequent steps in a job, whereas outputs require explicit passing to each step that needs them.
