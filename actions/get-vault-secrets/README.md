@@ -51,6 +51,8 @@ jobs:
 
 You can also use the action with `export_env: false` to get secrets as outputs instead of environment variables:
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: CI
 on:
@@ -87,5 +89,7 @@ jobs:
           echo "$ENVVAR1"
           echo "${ENVVAR2}"
 ```
+
+<!-- x-release-please-end-version -->
 
 This approach is useful when you need to pass secrets to other actions or reusable workflows as inputs, while keeping them secure. It's also beneficial when you want to limit which steps have access to the secrets, as environment variables are available to all subsequent steps in a job, whereas outputs require explicit passing to each step that needs them.
