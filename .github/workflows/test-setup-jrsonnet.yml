@@ -28,6 +28,9 @@ concurrency:
 jobs:
   setup-jrsonnet:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write # needed for cache
     env:
       # generate a unique cache prefix for each test run, so we can test cache behaviour
       CACHE_PREFIX: jrsonnet-${{ github.run_id }}-${{ github.run_attempt }}
@@ -43,6 +46,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          persist-credentials: false
           sparse-checkout: |
             actions/setup-jrsonnet
 

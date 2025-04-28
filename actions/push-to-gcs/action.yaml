@@ -58,10 +58,12 @@ runs:
     - name: Resolve GCP project
       id: resolve-project
       shell: bash
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
       run: |
-        if [[ "${{ inputs.environment }}" == "dev" ]]; then
+        if [[ "${ENVIRONMENT}" == "dev" ]]; then
           PROJECT="grafanalabs-dev"
-        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
+        elif [[ "${ENVIRONMENT}" == "prod" ]]; then
           PROJECT="grafanalabs-global"
         else
           echo "Invalid environment. Valid environment variable inputs: dev, prod"
@@ -79,10 +81,11 @@ runs:
       id: construct-path
       shell: bash
       env:
-        bucket: ${{ steps.login-to-gcs.outputs.bucket }}
+        BUCKET: ${{ steps.login-to-gcs.outputs.bucket }}
+        BUCKET_PATH: ${{ inputs.bucket_path }}
       run: |
         # Join bucket name with bucket_path (Ex: bucket_name/path/to/file)
-        DESTINATION="${{ env.bucket }}/${{ inputs.bucket_path }}"
+        DESTINATION="${BUCKET}/${BUCKET_PATH}"
         DESTINATION="${DESTINATION%/}"  # strip trailing /
 
         echo "destination=${DESTINATION}" | tee -a ${GITHUB_OUTPUT}

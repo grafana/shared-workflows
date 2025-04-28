@@ -56,11 +56,14 @@ jobs:
       - id: checkout
         name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - id: checkout-shared-workflows
         name: Checkout shared workflows
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          persist-credentials: false
           repository: grafana/shared-workflows
           ref: main
           path: _shared-workflows-publish-techdocs
@@ -79,8 +82,10 @@ jobs:
 
       - id: instance-settings
         shell: sh
+        env:
+          INSTANCE_ENV: ${{ inputs.instance }}
         run: |
-          case "${{inputs.instance}}" in
+          case "${INSTANCE_ENV}" in
             dev)
               aws_role_arn=arn:aws:iam::663667355653:role/github-actions/backstage-techdocs-publisher
               aws_region=us-east-2
@@ -137,5 +142,10 @@ jobs:
 
       - name: Publish docs site
         if: inputs.publish
-        run: techdocs-cli publish --publisher-type awsS3 --storage-name ${{ steps.instance-settings.outputs.aws-bucket }} --entity ${{ inputs.namespace }}/${{ inputs.kind }}/${{ inputs.name }}
+        env:
+          AWS_BUCKET_ENV: ${{ steps.instance-settings.outputs.aws-bucket }}
+          NAMESPACE_ENV: ${{ inputs.namespace }}
+          KIND_ENV: ${{ inputs.kind }}
+          NAME_ENV: ${{ inputs.name }}
         working-directory: ${{ inputs.default-working-directory }}
+        run: techdocs-cli publish --publisher-type awsS3 --storage-name "${AWS_BUCKET_ENV}" --entity "${NAMESPACE_ENV}/${KIND_ENV}/${NAME_ENV}"
