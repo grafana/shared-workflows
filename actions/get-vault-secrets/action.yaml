@@ -32,6 +32,11 @@ inputs:
       Whether to export secrets as environment variables, making them available to all subsequent steps. Defaults to `true`.
     default: "true"
 
+outputs:
+  secrets:
+    description: "JSON object containing all the secrets"
+    value: ${{ steps.import-secrets.outputs.secrets }}
+
 runs:
   using: composite
   steps:
