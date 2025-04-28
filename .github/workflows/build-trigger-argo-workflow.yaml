@@ -16,8 +16,14 @@ on:
       - synchronize
   merge_group:
 
+permissions:
+  contents: read
+
 jobs:
   lint-test-build:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: read  # for golangci/golangci-lint-action to fetch pull requests
     runs-on: ubuntu-latest
     defaults:
       run:

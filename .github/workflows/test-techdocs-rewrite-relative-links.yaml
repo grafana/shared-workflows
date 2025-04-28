@@ -20,8 +20,14 @@ on:
 
   merge_group:
 
+permissions:
+  contents: read
+
 jobs:
   test:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: read  # for golangci/golangci-lint-action to fetch pull requests
     runs-on: ubuntu-latest
 
     steps:

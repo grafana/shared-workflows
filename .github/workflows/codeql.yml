@@ -20,6 +20,9 @@ on:
   # To trigger a CodeQL analysis manually
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})

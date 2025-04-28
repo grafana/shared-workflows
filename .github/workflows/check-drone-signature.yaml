@@ -12,6 +12,9 @@ on:
         type: string
         default: "https://drone.grafana.net"
 
+permissions:
+  contents: read
+
 jobs:
   # This job checks if we should run the drone signature check.
   # If the repository is under the "grafana" org, we will run the signature check.
@@ -65,7 +68,7 @@ jobs:
           sudo install -t /usr/local/bin drone
 
       - name: Retrieve drone-signature-checker token
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@75804962c1ba608148988c1e2dc35fbb0ee21746 # main
         with:
           common_secrets: |
             DRONE_TOKEN=drone-sign-check-machine-user:token
