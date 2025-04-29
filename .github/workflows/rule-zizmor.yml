@@ -1,11 +1,11 @@
-name: zizmor GitHub Actions static analysis
+name: Run Zizmor Ruleset
 on:
   push:
   pull_request:
 
 jobs:
   zizmor:
-    name: Run zizmor from current branch (self test)
+    name: Zizmor Ruleset
 
     permissions:
       actions: read
