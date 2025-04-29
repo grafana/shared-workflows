@@ -32,6 +32,8 @@ jobs:
           - dev
           - prod
     runs-on: ubuntu-latest
+    # Don't run for forks - they don't have access to secrets
+    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
