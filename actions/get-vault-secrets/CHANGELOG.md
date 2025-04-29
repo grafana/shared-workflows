@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.2.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.1.0...get-vault-secrets-v1.2.0) (2025-04-29)
+
+
+### 🎉 Features
+
+* expose exportenv in get-vault-secrets ([4ea1476](https://github.com/grafana/shared-workflows/commit/4ea1476b297f17f388a7d9003ae28216c05bdb59))
+* expose exportEnv in get-vault-secrets ([#903](https://github.com/grafana/shared-workflows/issues/903)) ([4ea1476](https://github.com/grafana/shared-workflows/commit/4ea1476b297f17f388a7d9003ae28216c05bdb59))
+
+
+### 🐛 Bug Fixes
+
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+* **get-vault-secrets:** add outputs for export_env false ([#931](https://github.com/grafana/shared-workflows/issues/931)) ([7580496](https://github.com/grafana/shared-workflows/commit/75804962c1ba608148988c1e2dc35fbb0ee21746))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update hashicorp/vault-action action to v3.3.0 ([#831](https://github.com/grafana/shared-workflows/issues/831)) ([98384a8](https://github.com/grafana/shared-workflows/commit/98384a8bf33e1bea6957186fa78b999da95dd657))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [1.1.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.0.1...get-vault-secrets-v1.1.0) (2025-01-28)
 
 
