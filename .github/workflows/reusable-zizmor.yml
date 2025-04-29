@@ -139,7 +139,7 @@ jobs:
       - name: Hide any previous comments
         if: always()
         id: hide-comments
-        uses: int128/hide-comment-action@dafbbede100206f5401d06fa852a1c6997984cb3 # v1.37.0
+        uses: int128/hide-comment-action@0a9e7919192e41201af6ebd979df163956982d07 # v1.41.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
