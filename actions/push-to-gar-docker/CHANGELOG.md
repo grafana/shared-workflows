@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.4.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.3.1...push-to-gar-docker-v0.4.0) (2025-04-29)
+
+
+### 🎉 Features
+
+* **push-to-gar-docker:** add target input for multi-stage builds ([#904](https://github.com/grafana/shared-workflows/issues/904)) ([fd2e2da](https://github.com/grafana/shared-workflows/commit/fd2e2da52d1a729ae0985fdf6ff85b33710381f9))
+
+
+### 🐛 Bug Fixes
+
+* ensure every action disables git credential persistence ([#821](https://github.com/grafana/shared-workflows/issues/821)) ([31ebf3f](https://github.com/grafana/shared-workflows/commit/31ebf3f8e5d0f8709e6ec4ef73b39dd2bd08f959))
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+* update buildx version to `latest` ([#895](https://github.com/grafana/shared-workflows/issues/895)) ([f366250](https://github.com/grafana/shared-workflows/commit/f366250e45bf8aadca4bb5e00802eb3854fb111d))
+
+
+### 🤖 Continuous Integration
+
+* don't persist shared workflows folder after action is done ([#905](https://github.com/grafana/shared-workflows/issues/905)) ([9a34c93](https://github.com/grafana/shared-workflows/commit/9a34c9302d2064c48e03cf7c4c7cd45998c4615e))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v6.15.0 ([#816](https://github.com/grafana/shared-workflows/issues/816)) ([0ae253d](https://github.com/grafana/shared-workflows/commit/0ae253d4a198408407a161de482680eddf2dfa42))
+* **deps:** update docker/build-push-action action to v6.16.0 ([#923](https://github.com/grafana/shared-workflows/issues/923)) ([a301072](https://github.com/grafana/shared-workflows/commit/a30107276148b4f29eaeaef05a3f9173d1aa0ad9))
+* **deps:** update docker/metadata-action action to v5.7.0 ([#818](https://github.com/grafana/shared-workflows/issues/818)) ([9f9b2eb](https://github.com/grafana/shared-workflows/commit/9f9b2eb3897a39fd65e5b92f17a60704925f94c4))
+* **deps:** update docker/setup-buildx-action action to v3.10.0 ([#819](https://github.com/grafana/shared-workflows/issues/819)) ([09fb633](https://github.com/grafana/shared-workflows/commit/09fb633eb9f6c77153fa941e662be7cd418ca1fb))
+
 ## [0.3.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.2.1...push-to-gar-docker-v0.3.1) (2025-02-26)
 
 
