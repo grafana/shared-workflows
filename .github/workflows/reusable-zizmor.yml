@@ -137,14 +137,14 @@ jobs:
           echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Hide any previous comments
-        if: always()
+        if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
         uses: int128/hide-comment-action@0a9e7919192e41201af6ebd979df163956982d07 # v1.41.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
-        if: steps.zizmor-plain.outputs.zizmor-exit-code != 0
+        if: steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
         uses: int128/comment-action@f81cfa94a4c24151591df1d74268a640875bfc8d # v1.37.0
         with:
           post: |
