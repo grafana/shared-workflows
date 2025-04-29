@@ -23,6 +23,9 @@ permissions:
 
 jobs:
   test:
+    # TODO: fix the tests to work with forks
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
     strategy:
       max-parallel: 1
       matrix:
