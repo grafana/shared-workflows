@@ -19,10 +19,13 @@ show the current results.
 name: Zizmor GitHub Actions static analysis
 on:
   pull_request:
-
+    paths:
+      - ".github/**"
   push:
     branches:
       - main
+    paths:
+      - ".github/**"
 
 jobs:
   scorecard:
@@ -45,12 +48,13 @@ jobs:
 
 ## Inputs
 
-| Name           | Type   | Description                                                                                                               | Default Value | Required |
-| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
-| min-severity   | string | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                  | medium        | false    |
-| min-confidence | string | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                         | low           | false    |
-| fail-severity  | string | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high] | high          | false    |
-| runs-on        | string | The runner to use for jobs. Configure this to use self-hosted runners.                                                    | ubuntu-latest | false    |
+| Name           | Type    | Description                                                                                                               | Default Value | Required |
+| -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
+| min-severity   | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                  | medium        | false    |
+| min-confidence | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                         | low           | false    |
+| fail-severity  | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high] | high          | false    |
+| runs-on        | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                    | ubuntu-latest | false    |
+| codeql-enabled | boolean | If Code Scanning is enabled in the repo to upload to GitHub security                                                      | true          | false    |
 
 ## Getting started
 
