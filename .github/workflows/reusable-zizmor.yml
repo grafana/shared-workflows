@@ -69,12 +69,12 @@ jobs:
         shell: sh
         env:
           # renovate: datasource=github-tags depName=woodruffw/zizmor
-          ZIZMOR_RELEASE: 1.6.0
+          ZIZMOR_VERSION: 1.6.0
         run: >-
           RUSTFLAGS=-Awarnings
           cargo
           install
-          --version "${ZIZMOR_RELEASE}"
+          --version "${ZIZMOR_VERSION}"
           zizmor
 
       - name: Run zizmor
