@@ -27,6 +27,27 @@ on:
         type: string
         default: "ubuntu-latest"
 
+      # TODO: This should _not_ be inline. It should be a file like
+      # `.github/zizmor.yml` alongside the reusable workflow. But
+      # unfortunately we didn't find a way to load such a file so far.
+      default-config:
+        description: The default configuration to use.
+        required: false
+        type: string
+        default: |
+          rules:
+            unpinned-uses:
+              config:
+                policies:
+                  actions/*: any # trust GitHub
+                  grafana/*: any # trust Grafana
+
+      always-use-default-config:
+        description: Whether to always use the default configuration.
+        required: false
+        type: boolean
+        default: false
+
 permissions: {}
 
 jobs:
@@ -54,6 +75,38 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Zizmor configuration
+        id: setup-config
+        env:
+          DEFAULT_ZIZMOR_CONFIG: ${{ inputs.default-config }}
+          FORCE_DEFAULT_CONFIG: ${{ inputs.always-use-default-config && 'true' || '' }}
+        shell: sh
+        run: |
+          if [ -z "${FORCE_DEFAULT_CONFIG}" ]; then
+            echo "Checking for user-provided zizmor configuration..."
+            if [ -f "zizmor.yml" ]; then
+              # No action needed, zizmor will find it
+              echo "Using zizmor.yml found in repository root."
+              exit 0
+            fi
+
+            if [ -f ".github/zizmor.yml" ]; then
+              # No action needed, zizmor will find it
+              echo "Using .github/zizmor.yml found in repository."
+              exit 0
+            fi
+
+            echo "No user-provided zizmor.yml found in root or .github/. Using default zizmor config."
+          else
+            echo "always-use-default-config is set. Using default config."
+          fi
+
+          ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
+          cat <<EOC | tee ${ZIZMOR_CONFIG}
+          ${DEFAULT_ZIZMOR_CONFIG}
+          EOC
+          echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
+
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@9d7e65c320fdb52dcd45ffaa68deb6c02c8754d9 # v1.12.0
         with:
@@ -74,12 +127,14 @@ jobs:
       - name: Run zizmor
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
         shell: sh
         run: >-
           zizmor
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
+          ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
           .
           > results.sarif
@@ -104,6 +159,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
         run: |
           set -o pipefail
 
@@ -116,6 +172,7 @@ jobs:
             --min-severity "${MIN_SEVERITY}" \
             --min-confidence "${MIN_CONFIDENCE}" \
             ${RUNNER_DEBUG:+"--verbose"} \
+            ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
             . \
             | tee -a "${GITHUB_OUTPUT}"
           zizmor_exit_code=$?
@@ -129,6 +186,12 @@ jobs:
           fi
 
           echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Remove zizmor config
+        env:
+          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
+        if: steps.setup-config.outputs.zizmor-config
+        run: rm "${ZIZMOR_CONFIG}"
 
       - name: Hide any previous comments
         if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
