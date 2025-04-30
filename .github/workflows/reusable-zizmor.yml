@@ -104,10 +104,8 @@ jobs:
             --min-severity   "$MIN_SEVERITY" \
             --min-confidence "$MIN_CONFIDENCE" \
             ${CFG:+--config "$CFG"} \
-            . >"$sarif"
+            . | tee "$sarif" | jq -r '.runs[].results[]?.message.text' >"$plain"
           code=$?
-
-          jq -r '.runs[].results[]?.message.text' "$sarif" >"$plain" || true
 
           {
             echo "code=$code"
