@@ -13,7 +13,7 @@ inputs:
     description: |
       Delete the credentials file after the action is finished. 
       If you want to keep the credentials file for a later step, set this to false.
-    default: "true"
+    default: "false"
 
 runs:
   using: composite
