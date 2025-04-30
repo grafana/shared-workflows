@@ -87,6 +87,16 @@ jobs:
 
       - uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
 
+      - name: 🐍 Create UV venv & install Zizmor
+        shell: bash
+        env:
+          ZIZMOR_VERSION: ${{ env.ZIZMOR_VERSION }}
+        run: |
+          echo "🐣 Creating UV virtualenv"
+          uv venv
+          echo "⬇️ Installing Zizmor ${ZIZMOR_VERSION}"
+          uv pip install --no-cache-dir "zizmor==${ZIZMOR_VERSION}"
+
       - name: 🚀 Run Zizmor (SARIF)
         id: scan-sarif
         shell: bash
@@ -97,7 +107,7 @@ jobs:
           set -euo pipefail
           sarif="$RUNNER_TEMP/zizmor.sarif"
           echo "⬇️ Running Zizmor → SARIF"
-          uvx zizmor=="${ZIZMOR_VERSION}" \
+          uvx zizmor \
             --format sarif \
             --min-severity   "$MIN_SEVERITY" \
             --min-confidence "$MIN_CONFIDENCE" \
@@ -133,7 +143,7 @@ jobs:
           plain="$RUNNER_TEMP/zizmor.txt"
           echo "⬇️ Running Zizmor → plain text"
           set +e
-          uvx zizmor=="${ZIZMOR_VERSION}" \
+          uvx zizmor \
             --format plain \
             --min-severity   "$MIN_SEVERITY" \
             --min-confidence "$MIN_CONFIDENCE" \
