@@ -92,7 +92,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CFG:      ${{ steps.cfg.outputs.file }}
+          CFG: ${{ steps.cfg.outputs.file }}
         run: |
           set -euo pipefail
           sarif="$RUNNER_TEMP/zizmor.sarif"
