@@ -107,22 +107,7 @@ jobs:
           EOC
           echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
 
-      - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@9d7e65c320fdb52dcd45ffaa68deb6c02c8754d9 # v1.12.0
-        with:
-          cache-on-failure: true
-
-      - name: Get zizmor
-        shell: sh
-        env:
-          # renovate: datasource=github-tags depName=woodruffw/zizmor
-          ZIZMOR_VERSION: 1.6.0
-        run: >-
-          RUSTFLAGS=-Awarnings
-          cargo
-          install
-          --version "${ZIZMOR_VERSION}"
-          zizmor
+      - uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
 
       - name: Run zizmor
         env:
@@ -130,7 +115,7 @@ jobs:
           ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
         shell: sh
         run: >-
-          zizmor
+          uvx zizmor
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
