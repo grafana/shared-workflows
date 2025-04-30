@@ -48,6 +48,12 @@ on:
         type: boolean
         default: false
 
+      github-token:
+        description: "The GitHub token to use for the job"
+        required: false
+        type: string
+        default: ${{ github.token }}
+
 permissions: {}
 
 jobs:
@@ -126,7 +132,7 @@ jobs:
 
       - name: Run zizmor
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ inputs.github-token }}
           ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
         shell: sh
         run: >-
