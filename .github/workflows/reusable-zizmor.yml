@@ -132,7 +132,6 @@ jobs:
           set -euo pipefail
           plain="$RUNNER_TEMP/zizmor.txt"
           echo "⬇️ Running Zizmor → plain text"
-          # allow errors without exiting
           set +e
           uvx zizmor=="${ZIZMOR_VERSION}" \
             --format plain \
