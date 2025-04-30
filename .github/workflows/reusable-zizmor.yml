@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   analysis:
-    name: Generate and upload zizmor results 🌈
+    name: Generate and upload Zizmor results 🌈
     runs-on: ${{ inputs.runs-on }}
 
     permissions:
@@ -87,8 +87,8 @@ jobs:
 
       - uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
 
-      - name: 🚀 Run Zizmor
-        id: scan
+      - name: 🚀 Run Zizmor (SARIF)
+        id: scan-sarif
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,61 +96,76 @@ jobs:
         run: |
           set -euo pipefail
           sarif="$RUNNER_TEMP/zizmor.sarif"
-          plain="$RUNNER_TEMP/zizmor.txt"
-
-          echo "⬇️ Installing/reusing zizmor ${ZIZMOR_VERSION} …"
+          echo "⬇️ Running Zizmor → SARIF"
           uvx zizmor=="${ZIZMOR_VERSION}" \
             --format sarif \
             --min-severity   "$MIN_SEVERITY" \
             --min-confidence "$MIN_CONFIDENCE" \
             ${CFG:+--config "$CFG"} \
-            . | tee "$sarif" | jq -r '.runs[].results[]?.message.text' >"$plain"
+            . >"$sarif"
           code=$?
-
-          {
-            echo "code=$code"
-            echo "sarif=$sarif"
-            echo "plain=$plain"
-            echo "plain_contents<<EOF"
-            cat "$plain"
-            echo "EOF"
-          } >>"$GITHUB_OUTPUT"
+          echo "code=$code"    >>"$GITHUB_OUTPUT"
+          echo "sarif=$sarif"  >>"$GITHUB_OUTPUT"
 
       - name: 📦 Upload SARIF artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: zizmor-sarif
-          path: ${{ steps.scan.outputs.sarif }}
+          path: ${{ steps.scan-sarif.outputs.sarif }}
           retention-days: 5
 
       - name: ☁️ Upload to Code-scanning
         uses: github/codeql-action/upload-sarif@28deaeda66b76a05916b6923827895f2b14ab387 # v3.28.16
         with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
+          sarif_file: ${{ steps.scan-sarif.outputs.sarif }}
           category: zizmor
         continue-on-error: true
 
+      - name: 🌈 Run Zizmor (plain text)
+        id: scan-plain
+        shell: bash
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CFG: ${{ steps.cfg.outputs.file }}
+        run: |
+          set -euo pipefail
+          plain="$RUNNER_TEMP/zizmor.txt"
+          echo "⬇️ Running Zizmor → plain text"
+          # allow errors without exiting
+          set +e
+          uvx zizmor=="${ZIZMOR_VERSION}" \
+            --format plain \
+            --min-severity   "$MIN_SEVERITY" \
+            --min-confidence "$MIN_CONFIDENCE" \
+            ${CFG:+--config "$CFG"} \
+            . >"$plain"
+          code=$?
+          set -e
+          # publish outputs for comment-step
+          echo "plain_code=$code"           >>"$GITHUB_OUTPUT"
+          echo "plain=$plain"               >>"$GITHUB_OUTPUT"
+          echo "plain_contents<<EOF"        >>"$GITHUB_OUTPUT"
+          cat "$plain"                     >>"$GITHUB_OUTPUT"
+          echo "EOF"                       >>"$GITHUB_OUTPUT"
+
       - name: 🙈 Hide previous comments
-        if: >-
-          !cancelled() &&
-          github.event.pull_request.head.repo.full_name == github.repository
+        if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: int128/hide-comment-action@0a9e7919192e41201af6ebd979df163956982d07 # v1.41.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: 📝 Comment with Zizmor results
-        if: >-
-          steps.scan.outputs.code != '0' &&
-          github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.zizmor-plain.outputs.plain_code != 0 && github.event.pull_request.head.repo.full_name == github.repository
         uses: int128/comment-action@f81cfa94a4c24151591df1d74268a640875bfc8d # v1.37.0
         with:
           post: |
-            :cry: **Zizmor** detected issues (exit `${{ steps.scan.outputs.code }}`).
+            :cry: **Zizmor** detected issues (exit `${{ steps.scan-plain.outputs.plain_code }}`).
 
             <details><summary>Expand for full output</summary>
 
             ```
-            ${{ steps.scan.outputs.plain_contents }}
+            ${{ steps.scan-plain.outputs.plain_contents }}
             ```
             </details>
             <!-- comment-action/${{ github.workflow }}/${{ github.job }} -->
@@ -159,7 +174,7 @@ jobs:
         if: inputs.fail-severity != 'never'
         shell: bash
         env:
-          CODE: ${{ steps.scan.outputs.code }}
+          CODE: ${{ steps.scan-sarif.outputs.code }}
           FAIL_SEV: ${{ env.FAIL_SEV }}
         run: |
           declare -A map=([any]=10 [informational]=11 [low]=12 [medium]=13 [high]=14)
