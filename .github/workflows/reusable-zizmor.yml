@@ -92,19 +92,22 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CFG: ${{ steps.cfg.outputs.file }}
+          CFG:      ${{ steps.cfg.outputs.file }}
         run: |
           set -euo pipefail
           sarif="$RUNNER_TEMP/zizmor.sarif"
           plain="$RUNNER_TEMP/zizmor.txt"
 
+          echo "⬇️ Installing/reusing zizmor ${ZIZMOR_VERSION} …"
           uvx zizmor=="${ZIZMOR_VERSION}" \
-            --format sarif,plain \
+            --format sarif \
             --min-severity   "$MIN_SEVERITY" \
             --min-confidence "$MIN_CONFIDENCE" \
             ${CFG:+--config "$CFG"} \
-            . | tee "$plain" >"$sarif"
+            . >"$sarif"
           code=$?
+
+          jq -r '.runs[].results[]?.message.text' "$sarif" >"$plain" || true
 
           {
             echo "code=$code"
