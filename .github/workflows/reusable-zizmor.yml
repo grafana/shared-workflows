@@ -3,15 +3,16 @@ name: zizmor (reusable)
 on:
   workflow_call:
     inputs:
-      min-severity: { default: low } # unknown|informational|low|medium|high
-      min-confidence: { default: low } # unknown|low|medium|high
-      fail-severity: { default: high } # never|any|informational|low|medium|high
-      runs-on: { default: ubuntu-latest }
+      min-severity: { type: string, default: low } # unknown|informational|low|medium|high
+      min-confidence: { type: string, default: low } # unknown|low|medium|high
+      fail-severity: { type: string, default: high } # never|any|informational|low|medium|high
+      runs-on: { type: string, default: ubuntu-latest }
 
       # TODO: This should _not_ be inline. It should be a file like
       # `.github/zizmor.yml` alongside the reusable workflow. But
       # unfortunately we didn't find a way to load such a file so far.
-      default-config:
+      default-config: 
+        type: string
         description: Fallback Zizmor YAML when the repo doesn't provide its own
         default: |
           rules:
@@ -88,7 +89,7 @@ jobs:
 
       - name: 🚀 Run Zizmor
         id: scan
-        shell: sh
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CFG: ${{ steps.cfg.outputs.file }}
@@ -104,9 +105,15 @@ jobs:
             ${CFG:+--config "$CFG"} \
             . | tee "$plain" >"$sarif"
           code=$?
-          echo "code=$code"   >>"$GITHUB_OUTPUT"
-          echo "sarif=$sarif" >>"$GITHUB_OUTPUT"
-          echo "plain=$plain" >>"$GITHUB_OUTPUT"
+
+          {
+            echo "code=$code"
+            echo "sarif=$sarif"
+            echo "plain=$plain"
+            echo "plain_contents<<EOF"
+            cat "$plain"
+            echo "EOF"
+          } >>"$GITHUB_OUTPUT"
 
       - name: 📦 Upload SARIF artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -149,7 +156,7 @@ jobs:
 
       - name: 💥 Fail build if severity threshold met
         if: inputs.fail-severity != 'never'
-        shell: sh
+        shell: bash
         env:
           CODE: ${{ steps.scan.outputs.code }}
           FAIL_SEV: ${{ env.FAIL_SEV }}
