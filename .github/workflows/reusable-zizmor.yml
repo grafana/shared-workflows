@@ -47,7 +47,7 @@ jobs:
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       FAIL_SEV: ${{ inputs.fail-severity }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: '1.6.0'
+      ZIZMOR_VERSION: "1.6.0"
 
     steps:
       - name: Checkout code
@@ -153,7 +153,7 @@ jobs:
         if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: int128/hide-comment-action@0a9e7919192e41201af6ebd979df163956982d07 # v1.41.0
         with:
-          ends-with: '<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->'
+          ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: 📝 Comment with Zizmor results
         if: steps.scan-plain.outputs.plain_code != '0' && github.event.pull_request.head.repo.full_name == github.repository
