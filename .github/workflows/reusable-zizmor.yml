@@ -138,7 +138,7 @@ jobs:
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
-      - name: 📝 Comment with zizmor results
+      - name: 📝 Comment with Zizmor results
         if: >-
           steps.scan.outputs.code != '0' &&
           github.event.pull_request.head.repo.full_name == github.repository
