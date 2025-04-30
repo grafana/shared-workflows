@@ -3,37 +3,16 @@ name: zizmor (reusable)
 on:
   workflow_call:
     inputs:
-      min-severity:
-        description: "Only show results at or above this severity [possible values: unknown, informational, low, medium, high]"
-        required: false
-        type: string
-        default: "low"
-
-      min-confidence:
-        description: "Only show results at or above this confidence level [possible values: unknown, low, medium, high]"
-        required: false
-        type: string
-        default: "low"
-
-      fail-severity:
-        description: "Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]"
-        required: false
-        type: string
-        default: "high"
-
-      runs-on:
-        description: "The runner to use for jobs"
-        required: false
-        type: string
-        default: "ubuntu-latest"
+      min-severity: { default: low } # unknown|informational|low|medium|high
+      min-confidence: { default: low } # unknown|low|medium|high
+      fail-severity: { default: high } # never|any|informational|low|medium|high
+      runs-on: { default: ubuntu-latest }
 
       # TODO: This should _not_ be inline. It should be a file like
       # `.github/zizmor.yml` alongside the reusable workflow. But
       # unfortunately we didn't find a way to load such a file so far.
       default-config:
-        description: The default configuration to use.
-        required: false
-        type: string
+        description: Fallback Zizmor YAML when the repo doesn't provide its own
         default: |
           rules:
             unpinned-uses:
@@ -42,24 +21,21 @@ on:
                   actions/*: any # trust GitHub
                   grafana/*: any # trust Grafana
 
-      always-use-default-config:
-        description: Whether to always use the default configuration.
-        required: false
-        type: boolean
-        default: false
+      always-use-default-config: { type: boolean, default: false }
 
-permissions: {}
+permissions: { contents: read }
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analysis:
     name: Generate and upload zizmor results 🌈
-
     runs-on: ${{ inputs.runs-on }}
 
     permissions:
-      actions: read
       contents: read
-
       # comment with the results
       pull-requests: write
       # upload the results to code-scanning dashboard.
@@ -68,184 +44,124 @@ jobs:
     env:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
+      FAIL_SEV: ${{ inputs.fail-severity }}
+      # renovate: datasource=pypi depName=zizmor
+      ZIZMOR_VERSION: "1.6.0"
 
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          persist-credentials: false
+        with: { persist-credentials: false }
 
-      - name: Set up Zizmor configuration
-        id: setup-config
-        env:
-          DEFAULT_ZIZMOR_CONFIG: ${{ inputs.default-config }}
-          FORCE_DEFAULT_CONFIG: ${{ inputs.always-use-default-config && 'true' || '' }}
+      - name: 🛂 Validate inputs
         shell: sh
         run: |
-          if [ -z "${FORCE_DEFAULT_CONFIG}" ]; then
-            echo "Checking for user-provided zizmor configuration..."
-            if [ -f "zizmor.yml" ]; then
-              # No action needed, zizmor will find it
-              echo "Using zizmor.yml found in repository root."
-              exit 0
-            fi
+          set -e
+          validate() { case " $2 " in *" $1 "*) :;; *) echo "Invalid $3: $1"; exit 1;; esac; }
+          validate "$MIN_SEVERITY"   "unknown informational low medium high"  min-severity
+          validate "$MIN_CONFIDENCE" "unknown low medium high"               min-confidence
+          validate "$FAIL_SEV"       "never any informational low medium high" fail-severity
 
-            if [ -f ".github/zizmor.yml" ]; then
-              # No action needed, zizmor will find it
-              echo "Using .github/zizmor.yml found in repository."
-              exit 0
-            fi
-
-            echo "No user-provided zizmor.yml found in root or .github/. Using default zizmor config."
+      - name: 🔧 Set up Zizmor configuration
+        id: cfg
+        shell: sh
+        env:
+          DEF_CFG: ${{ inputs.default-config }}
+          FORCE: ${{ inputs.always-use-default-config && '1' || '' }}
+        run: |
+          if [ -z "$FORCE" ]; then
+            echo "🔍 Searching for user-provided zizmor.yml…"
+            for f in zizmor.yml .github/zizmor.yml; do
+              [ -f "$f" ] && { echo "✅ using $f"; exit 0; }
+            done
+            echo "None found - will fall back to default."
           else
-            echo "always-use-default-config is set. Using default config."
+            echo "🔒 always-use-default-config=true - forcing default config."
           fi
 
-          ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
-          cat <<EOC | tee ${ZIZMOR_CONFIG}
-          ${DEFAULT_ZIZMOR_CONFIG}
-          EOC
-          echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
+          file="$RUNNER_TEMP/zizmor.yml"
+          printf '%s\n' "$DEF_CFG" > "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          echo "✅ wrote default config to $file"
 
-      - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@9d7e65c320fdb52dcd45ffaa68deb6c02c8754d9 # v1.12.0
-        with:
-          cache-on-failure: true
+      - uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
 
-      - name: Get zizmor
+      - name: 🚀 Run Zizmor
+        id: scan
         shell: sh
-        env:
-          # renovate: datasource=github-tags depName=woodruffw/zizmor
-          ZIZMOR_VERSION: 1.6.0
-        run: >-
-          RUSTFLAGS=-Awarnings
-          cargo
-          install
-          --version "${ZIZMOR_VERSION}"
-          zizmor
-
-      - name: Run zizmor
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
-        shell: sh
-        run: >-
-          zizmor
-          --format sarif
-          --min-severity "${MIN_SEVERITY}"
-          --min-confidence "${MIN_CONFIDENCE}"
-          ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
-          ${RUNNER_DEBUG:+"--verbose"}
-          .
-          > results.sarif
+          CFG: ${{ steps.cfg.outputs.file }}
+        run: |
+          set -euo pipefail
+          sarif="$RUNNER_TEMP/zizmor.sarif"
+          plain="$RUNNER_TEMP/zizmor.txt"
 
-      - name: Upload artifact
+          uvx zizmor=="${ZIZMOR_VERSION}" \
+            --format sarif,plain \
+            --min-severity   "$MIN_SEVERITY" \
+            --min-confidence "$MIN_CONFIDENCE" \
+            ${CFG:+--config "$CFG"} \
+            . | tee "$plain" >"$sarif"
+          code=$?
+          echo "code=$code"   >>"$GITHUB_OUTPUT"
+          echo "sarif=$sarif" >>"$GITHUB_OUTPUT"
+          echo "plain=$plain" >>"$GITHUB_OUTPUT"
+
+      - name: 📦 Upload SARIF artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: SARIF file
-          path: results.sarif
+          name: zizmor-sarif
+          path: ${{ steps.scan.outputs.sarif }}
           retention-days: 5
 
-      - name: Upload to code-scanning
+      - name: ☁️ Upload to Code-scanning
         uses: github/codeql-action/upload-sarif@28deaeda66b76a05916b6923827895f2b14ab387 # v3.28.16
-        continue-on-error: true
         with:
-          sarif_file: results.sarif
+          sarif_file: ${{ steps.scan.outputs.sarif }}
           category: zizmor
+        continue-on-error: true
 
-      - name: Run zizmor with plain output
-        if: always()
-        id: zizmor-plain
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
-        run: |
-          set -o pipefail
-
-          echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
-          # don't fail the build if zizmor fails - we want to capture the output
-          # and the exit code
-          set +e
-          zizmor \
-            --format plain \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
-            . \
-            | tee -a "${GITHUB_OUTPUT}"
-          zizmor_exit_code=$?
-          set -e
-          echo "EOF" >> "${GITHUB_OUTPUT}"
-
-          # Error 1 is a failure of zizmor itself
-          if [ "${zizmor_exit_code}" -eq 1 ]; then
-            echo "zizmor itself failed - check the above output. failing the workflow."
-            exit 1
-          fi
-
-          echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
-
-      - name: Remove zizmor config
-        env:
-          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
-        if: steps.setup-config.outputs.zizmor-config
-        run: rm "${ZIZMOR_CONFIG}"
-
-      - name: Hide any previous comments
-        if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
-        id: hide-comments
+      - name: 🙈 Hide previous comments
+        if: >-
+          !cancelled() &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: int128/hide-comment-action@0a9e7919192e41201af6ebd979df163956982d07 # v1.41.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
-      - name: Comment with zizmor results
-        if: steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
+      - name: 📝 Comment with zizmor results
+        if: >-
+          steps.scan.outputs.code != '0' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: int128/comment-action@f81cfa94a4c24151591df1d74268a640875bfc8d # v1.37.0
         with:
           post: |
-            :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
+            :cry: **Zizmor** detected issues (exit `${{ steps.scan.outputs.code }}`).
 
-            <details>
-            <summary>Expand for full output</summary>
+            <details><summary>Expand for full output</summary>
 
             ```
-            ${{ steps.zizmor-plain.outputs.zizmor-results }}
+            ${{ file(steps.scan.outputs.plain) }}
             ```
             </details>
-            ${{ steps.hide-comments.outputs.ends-with }}
+            <!-- comment-action/${{ github.workflow }}/${{ github.job }} -->
 
-      - name: Fail the build
-        if: inputs.fail-severity != 'never' && steps.zizmor-plain.outputs.zizmor-exit-code != 0
+      - name: 💥 Fail build if severity threshold met
+        if: inputs.fail-severity != 'never'
         shell: sh
         env:
-          FAIL_LEVEL: ${{ inputs.fail-severity }}
-          EXIT_CODE: ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}
+          CODE: ${{ steps.scan.outputs.code }}
+          FAIL_SEV: ${{ env.FAIL_SEV }}
         run: |
-          case "${FAIL_LEVEL}" in
-            any)
-              FAIL_EXIT_CODE=10
-              ;;
-            informational)
-              FAIL_EXIT_CODE=11
-              ;;
-            low)
-              FAIL_EXIT_CODE=12
-              ;;
-            medium)
-              FAIL_EXIT_CODE=13
-              ;;
-            high)
-              FAIL_EXIT_CODE=14
-              ;;
-            *)
-              echo "Unknown fail level: ${FAIL_LEVEL}"
-              exit 1
-              ;;
-          esac
-
-          if [ "${EXIT_CODE}" -ge "${FAIL_EXIT_CODE}" ]; then
-            echo "Failing the build due to findings at or above ${FAIL_LEVEL} severity."
+          declare -A map=([any]=10 [informational]=11 [low]=12 [medium]=13 [high]=14)
+          need=${map[$FAIL_SEV]:--1}
+          if [ "$need" -ge 0 ] && [ "$CODE" -ge "$need" ]; then
+            echo "🚨 Findings at or above $FAIL_SEV - failing the build."
             exit 1
           fi
+          echo "✅ No findings at or above $FAIL_SEV"
+
+      - if: steps.cfg.outputs.file
+        name: 🧹 Remove temporary config
+        run: rm -f "${{ steps.cfg.outputs.file }}"
