@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.4.0](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.3.0...login-to-gar-v0.4.0) (2025-04-30)
+
+
+### 🎉 Features
+
+* use `docker-credential-gcr` instead of `auth_token` for `login-to-gar` action ([#921](https://github.com/grafana/shared-workflows/issues/921)) ([cac9a09](https://github.com/grafana/shared-workflows/commit/cac9a09f00dfb7c7743500f1986d8faebca72f9f))
+
+
+### 🐛 Bug Fixes
+
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+* make default `delete_credentials_file` value false ([#950](https://github.com/grafana/shared-workflows/issues/950)) ([71ec5a1](https://github.com/grafana/shared-workflows/commit/71ec5a1861019932272c4ec12a8d7903049797c5))
+
+
+### 🤖 Continuous Integration
+
+* remove gcp credentials after composite action finishes ([#925](https://github.com/grafana/shared-workflows/issues/925)) ([62f8dda](https://github.com/grafana/shared-workflows/commit/62f8ddaa78b23147b22ba6a38df2b97963dab4b3))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/auth action to v2.1.10 ([#926](https://github.com/grafana/shared-workflows/issues/926)) ([fa48192](https://github.com/grafana/shared-workflows/commit/fa48192dac470ae356b3f7007229f3ac28c48a25))
+* **deps:** update google-github-actions/auth action to v2.1.9 ([#924](https://github.com/grafana/shared-workflows/issues/924)) ([2774f26](https://github.com/grafana/shared-workflows/commit/2774f26e2321f825e20c85e424a1c6fa8298d820))
+
 ## [0.3.0](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.2.2...login-to-gar-v0.3.0) (2025-04-23)
 
 
