@@ -40,6 +40,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Debug OIDC Claims
+      uses: github/actions-oidc-debugger@0ac6a1f7fefa4229fabe4ce05f17d9ad03a5b328
+      with:
+        audience: "vault-github-actions-grafana-${{ inputs.vault_instance }}"
+
     - id: check-vault-instance
       if: inputs.vault_instance != 'dev' && inputs.vault_instance != 'ops'
       shell: sh
