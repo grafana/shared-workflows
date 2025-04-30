@@ -149,7 +149,7 @@ jobs:
             <details><summary>Expand for full output</summary>
 
             ```
-            ${{ file(steps.scan.outputs.plain) }}
+            ${{ steps.scan.outputs.plain_contents }}
             ```
             </details>
             <!-- comment-action/${{ github.workflow }}/${{ github.job }} -->
