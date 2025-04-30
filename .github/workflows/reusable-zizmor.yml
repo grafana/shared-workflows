@@ -142,12 +142,13 @@ jobs:
             . >"$plain"
           code=$?
           set -e
-          # publish outputs for comment-step
-          echo "plain_code=$code"           >>"$GITHUB_OUTPUT"
-          echo "plain=$plain"               >>"$GITHUB_OUTPUT"
-          echo "plain_contents<<EOF"        >>"$GITHUB_OUTPUT"
-          cat "$plain"                     >>"$GITHUB_OUTPUT"
-          echo "EOF"                       >>"$GITHUB_OUTPUT"
+          {
+            echo "plain_code=$code"
+            echo "plain=$plain"
+            echo "plain_contents<<EOF"
+            cat "$plain"
+            echo "EOF"
+          } >>"$GITHUB_OUTPUT"
 
       - name: 🙈 Hide previous comments
         if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
