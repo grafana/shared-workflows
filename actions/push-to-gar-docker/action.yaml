@@ -72,6 +72,11 @@ inputs:
     description: |
       Sets the target stage to build
     required: false
+  delete_credentials_file:
+    description: |
+      Delete the credentials file after the action is finished.
+      If you want to keep the credentials file for a later step, set this to false.
+    default: "true"
 
 outputs:
   version:
@@ -148,7 +153,7 @@ runs:
       uses: ./_shared-workflows-push-to-gar/actions/login-to-gar
       with:
         environment: ${{ inputs.environment }}
-
+        delete_credentials_file: false
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
@@ -190,3 +195,14 @@ runs:
         fi
 
         rm -rf _shared-workflows-push-to-gar
+
+    - name: Delete Google Application Credentials file
+      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
+      shell: sh
+      run: |
+        if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
+          rm -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+          echo "::notice::Successfully deleted credentials file"
+        else
+          echo "::warning::Credentials file not found at ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+        fi

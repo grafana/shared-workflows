@@ -13,6 +13,11 @@ inputs:
     description: |
       Custom service account to use for authentication.
     default: ""
+  delete_credentials_file:
+    description: |
+      Delete the credentials file after the action is finished.
+      If you want to keep the credentials file for a later step, set this to false.
+    default: "true"
 
 outputs:
   bucket:
@@ -69,3 +74,13 @@ runs:
       with:
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: ${{ steps.construct-account-vars.outputs.service_account }}
+    - name: Delete Google Application Credentials file
+      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
+      shell: sh
+      run: |
+        if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
+          rm -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+          echo "::notice::Successfully deleted credentials file"
+        else
+          echo "::warning::Credentials file not found at ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+        fi

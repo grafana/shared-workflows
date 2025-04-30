@@ -9,6 +9,11 @@ inputs:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
     default: dev
+  delete_credentials_file:
+    description: |
+      Delete the credentials file after the action is finished. 
+      If you want to keep the credentials file for a later step, set this to false.
+    default: "true"
 
 runs:
   using: composite
@@ -66,3 +71,13 @@ runs:
       env:
         REGISTRY: ${{ inputs.registry }}
       run: docker-credential-gcr configure-docker --registries="${REGISTRY}"
+    - name: Delete Google Application Credentials file
+      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
+      shell: sh
+      run: |
+        if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
+          rm -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+          echo "::notice::Successfully deleted credentials file"
+        else
+          echo "::warning::Credentials file not found at ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+        fi
