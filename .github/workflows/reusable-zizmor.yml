@@ -172,4 +172,9 @@ jobs:
 
       - if: steps.cfg.outputs.file
         name: 🧹 Remove temporary config
-        run: rm -f "${{ steps.cfg.outputs.file }}"
+        env:
+          TMP_CFG: ${{ steps.cfg.outputs.file }}
+        run: |
+          set -euo pipefail
+          safe_cfg=$(printf '%s' "$TMP_CFG" | tr -cd '/A-Za-z0-9._-')
+          rm -f "$safe_cfg"
