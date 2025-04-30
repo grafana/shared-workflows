@@ -11,7 +11,7 @@ on:
       # TODO: This should _not_ be inline. It should be a file like
       # `.github/zizmor.yml` alongside the reusable workflow. But
       # unfortunately we didn't find a way to load such a file so far.
-      default-config: 
+      default-config:
         type: string
         description: Fallback Zizmor YAML when the repo doesn't provide its own
         default: |
