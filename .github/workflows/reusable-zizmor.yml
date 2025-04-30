@@ -140,7 +140,7 @@ jobs:
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
-          --offline
+          --gh-token="${GH_TOKEN}"
           ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
           .
@@ -165,7 +165,7 @@ jobs:
         id: zizmor-plain
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ inputs.github-token }}
           ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
         run: |
           set -o pipefail
@@ -178,7 +178,7 @@ jobs:
             --format plain \
             --min-severity "${MIN_SEVERITY}" \
             --min-confidence "${MIN_CONFIDENCE}" \
-            --offline \
+            --gh-token="${GH_TOKEN}" \
             ${RUNNER_DEBUG:+"--verbose"} \
             ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
             . \
