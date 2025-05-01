@@ -74,6 +74,8 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       GH_TOKEN: ${{ inputs.github-token || github.token }}
+      # renovate: datasource=pypi depName=zizmor
+      ZIZMOR_VERSION: 1.6.0
 
     steps:
       - name: Checkout code
@@ -113,22 +115,19 @@ jobs:
           EOC
           echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
 
-      - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@9d7e65c320fdb52dcd45ffaa68deb6c02c8754d9 # v1.12.0
+      - name: Setup UV
+        uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6.0.1
         with:
-          cache-on-failure: true
+          enable-cache: true
+          activate-environment: true
+          cache-suffix: ${{ env.ZIZMOR_VERSION }}
+          cache-dependency-glob: ""
 
-      - name: Get zizmor
-        shell: sh
-        env:
-          # renovate: datasource=github-tags depName=woodruffw/zizmor
-          ZIZMOR_VERSION: 1.6.0
-        run: >-
-          RUSTFLAGS=-Awarnings
-          cargo
-          install
-          --version "${ZIZMOR_VERSION}"
-          zizmor
+      - name: Install Zizmor
+        shell: bash
+        run: |
+          echo "Installing Zizmor ${ZIZMOR_VERSION}"
+          uv pip install --no-cache-dir "zizmor==${ZIZMOR_VERSION}"
 
       - name: Zizmor cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
@@ -142,7 +141,7 @@ jobs:
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         shell: sh
         run: >-
-          zizmor
+          uvx zizmor
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
@@ -180,7 +179,7 @@ jobs:
           # don't fail the build if zizmor fails - we want to capture the output
           # and the exit code
           set +e
-          zizmor \
+          uvx zizmor \
             --format plain \
             --min-severity "${MIN_SEVERITY}" \
             --min-confidence "${MIN_CONFIDENCE}" \
