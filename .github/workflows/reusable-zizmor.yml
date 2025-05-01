@@ -113,16 +113,18 @@ jobs:
           EOC
           echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
 
-      - uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
+      - name: Setup UV
+        uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6.0.1
+        with:
+          enable-cache: true
+          activate-environment: true
 
-      - name: Create UV venv & install Zizmor
+      - name: Install Zizmor
         shell: bash
         env:
           # renovate: datasource=pypi depName=zizmor
           ZIZMOR_VERSION: 1.6.0
         run: |
-          echo "Creating UV virtualenv"
-          uv venv
           echo "Installing Zizmor ${ZIZMOR_VERSION}"
           uv pip install --no-cache-dir "zizmor==${ZIZMOR_VERSION}"
 
