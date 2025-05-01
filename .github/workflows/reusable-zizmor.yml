@@ -85,7 +85,6 @@ jobs:
         env:
           DEFAULT_ZIZMOR_CONFIG: ${{ inputs.default-config }}
           FORCE_DEFAULT_CONFIG: ${{ inputs.always-use-default-config && 'true' || '' }}
-          RUNNER_TEMP: ${{ runner.temp }}
         shell: sh
         run: |
           if [ -z "${FORCE_DEFAULT_CONFIG}" ]; then
@@ -107,7 +106,7 @@ jobs:
             echo "always-use-default-config is set. Using default config."
           fi
 
-          ZIZMOR_CONFIG="${RUNNER_TEMP}/zizmor.yml"
+          ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
           cat <<EOC | tee ${ZIZMOR_CONFIG}
           ${DEFAULT_ZIZMOR_CONFIG}
           EOC
