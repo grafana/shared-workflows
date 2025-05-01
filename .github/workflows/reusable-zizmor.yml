@@ -121,6 +121,7 @@ jobs:
           enable-cache: true
           activate-environment: true
           cache-suffix: ${{ env.ZIZMOR_VERSION }}
+          cache-dependency-glob: ''
 
       - name: Install Zizmor
         shell: bash
