@@ -74,6 +74,8 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       GH_TOKEN: ${{ inputs.github-token || github.token }}
+      # renovate: datasource=pypi depName=zizmor
+      ZIZMOR_VERSION: 1.6.0
 
     steps:
       - name: Checkout code
@@ -118,12 +120,10 @@ jobs:
         with:
           enable-cache: true
           activate-environment: true
+          cache-suffix: ${{ env.ZIZMOR_VERSION }}
 
       - name: Install Zizmor
         shell: bash
-        env:
-          # renovate: datasource=pypi depName=zizmor
-          ZIZMOR_VERSION: 1.6.0
         run: |
           echo "Installing Zizmor ${ZIZMOR_VERSION}"
           uv pip install --no-cache-dir "zizmor==${ZIZMOR_VERSION}"
