@@ -133,7 +133,7 @@ jobs:
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: ${{ runner.temp }}/.cache/zizmor
-          key: zizmor-${{ runner.os }}-${{ runner.arch }}
+          key: zizmor-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/.github/workflows/*', '**/action.{yaml,yml}') }}
 
       - name: Run zizmor
         env:
