@@ -113,22 +113,18 @@ jobs:
           EOC
           echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
 
-      - name: Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@9d7e65c320fdb52dcd45ffaa68deb6c02c8754d9 # v1.12.0
-        with:
-          cache-on-failure: true
+      - uses: astral-sh/setup-uv@c7f87aa956e4c323abf06d5dec078e358f6b4d04 # v6.0.0
 
-      - name: Get zizmor
-        shell: sh
+      - name: 🐍 Create UV venv & install Zizmor
+        shell: bash
         env:
-          # renovate: datasource=github-tags depName=woodruffw/zizmor
+          # renovate: datasource=pypi depName=zizmor
           ZIZMOR_VERSION: 1.6.0
-        run: >-
-          RUSTFLAGS=-Awarnings
-          cargo
-          install
-          --version "${ZIZMOR_VERSION}"
-          zizmor
+        run: |
+          echo "🐣 Creating UV virtualenv"
+          uv venv
+          echo "⬇️ Installing Zizmor ${ZIZMOR_VERSION}"
+          uv pip install --no-cache-dir "zizmor==${ZIZMOR_VERSION}"
 
       - name: Zizmor cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
@@ -142,7 +138,7 @@ jobs:
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         shell: sh
         run: >-
-          zizmor
+          uvx zizmor
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
@@ -180,7 +176,7 @@ jobs:
           # don't fail the build if zizmor fails - we want to capture the output
           # and the exit code
           set +e
-          zizmor \
+          uvx zizmor \
             --format plain \
             --min-severity "${MIN_SEVERITY}" \
             --min-confidence "${MIN_CONFIDENCE}" \
