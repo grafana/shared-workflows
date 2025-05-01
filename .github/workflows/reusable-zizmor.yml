@@ -85,6 +85,7 @@ jobs:
         env:
           DEFAULT_ZIZMOR_CONFIG: ${{ inputs.default-config }}
           FORCE_DEFAULT_CONFIG: ${{ inputs.always-use-default-config && 'true' || '' }}
+          RUNNER_TEMP: ${{ runner.temp }}
         shell: sh
         run: |
           if [ -z "${FORCE_DEFAULT_CONFIG}" ]; then
@@ -106,7 +107,7 @@ jobs:
             echo "always-use-default-config is set. Using default config."
           fi
 
-          ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
+          ZIZMOR_CONFIG="${RUNNER_TEMP}/zizmor.yml"
           cat <<EOC | tee ${ZIZMOR_CONFIG}
           ${DEFAULT_ZIZMOR_CONFIG}
           EOC
@@ -129,16 +130,24 @@ jobs:
           --version "${ZIZMOR_VERSION}"
           zizmor
 
+      - name: Zizmor cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ${{ runner.temp }}/.cache/zizmor
+          key: zizmor-${{ runner.os }}-${{ runner.arch }}
+
       - name: Run zizmor
         env:
           GH_TOKEN: ${{ inputs.github-token || github.token }}
           ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
+          ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         shell: sh
         run: >-
           zizmor
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
+          --cache-dir "${ZIZMOR_CACHE_DIR}"
           ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
           .
@@ -165,6 +174,7 @@ jobs:
         env:
           GH_TOKEN: ${{ inputs.github-token || github.token }}
           ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
+          ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         run: |
           set -o pipefail
 
@@ -176,6 +186,7 @@ jobs:
             --format plain \
             --min-severity "${MIN_SEVERITY}" \
             --min-confidence "${MIN_CONFIDENCE}" \
+            --cache-dir "${ZIZMOR_CACHE_DIR}" \
             ${RUNNER_DEBUG:+"--verbose"} \
             ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
             . \
