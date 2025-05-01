@@ -14,6 +14,10 @@ jobs:
       actions: read
       contents: read
 
+      # used in the `job-workflow-ref` job to fetch an OIDC token, which allows
+      # the run to determine its ref
+      id-token: write
+
       pull-requests: write
       security-events: write
 

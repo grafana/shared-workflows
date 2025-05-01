@@ -27,21 +27,6 @@ on:
         type: string
         default: "ubuntu-latest"
 
-      # TODO: This should _not_ be inline. It should be a file like
-      # `.github/zizmor.yml` alongside the reusable workflow. But
-      # unfortunately we didn't find a way to load such a file so far.
-      default-config:
-        description: The default configuration to use.
-        required: false
-        type: string
-        default: |
-          rules:
-            unpinned-uses:
-              config:
-                policies:
-                  actions/*: any # trust GitHub
-                  grafana/*: any # trust Grafana
-
       always-use-default-config:
         description: Whether to always use the default configuration.
         required: false
@@ -56,7 +41,165 @@ on:
 permissions: {}
 
 jobs:
+  # The default config file is in `.github/zizmor.yml`. When we're called by a
+  # remote repository, this file won't be available - in reusable workflows the
+  # workflow's repo isn't checked out. In order to make something like:
+  #
+  # ```yaml
+  # uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<SHA>`
+  # ```
+  #
+  # work, we need to figure out the reference we were called at, and then fetch
+  # the file from there. This `job-workflow-ref` job does the first part of
+  # that. The way to do that is a little bit indirect. You can ask GitHub's OIDC
+  # endpoint for a token, and fetch the info out of the `job_workflow_ref`claim.
+  # This runs in a separate job because the main job doesn't need `id-token:
+  # write` permissons, and this one doesn't need anything but that. We can keep
+  # the permissions as minimal as possible this way.
+  job-workflow-ref:
+    permissions:
+      id-token: write
+
+    runs-on: ${{ inputs.runs-on }}
+
+    outputs:
+      owner: ${{ steps.get-job-workflow-ref.outputs.owner }}
+      repo: ${{ steps.get-job-workflow-ref.outputs.repo }}
+      sha: ${{ steps.get-job-workflow-ref.outputs.sha }}
+
+    steps:
+      - id: setup-node
+        name: Setup node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20.x"
+
+      - id: install-jose
+        name: Install `jose` library for JWT verification
+        env:
+          # Keep this updated in a simpler way than needing a full package.json.
+          # renovate: datasource=npm depName=jose
+          JOSE_VERSION: 6.0.10
+        run: npm install "jose@${JOSE_VERSION}"
+
+      - id: get-job-workflow-ref
+        name: Fetch the job_workflow_ref of this run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const { jwtVerify, createRemoteJWKSet } = require('jose');
+
+            async function retrieveIdToken(audience) {
+              core.debug(`Attempting to retrieve ID token with audience: ${audience}...`);
+
+              const idToken = await core.getIDToken(audience);
+              if (idToken === undefined) {
+                throw new Error('Failed to retrieve ID token');
+              }
+
+              core.debug('ID token retrieved successfully.');
+              return idToken;
+            }
+
+            async function verifyToken(idToken, audience) {
+              const JWKS = createRemoteJWKSet(
+                new URL('https://token.actions.githubusercontent.com/.well-known/jwks')
+              );
+
+              return await jwtVerify(
+                idToken,
+                JWKS,
+                {
+                  issuer: 'https://token.actions.githubusercontent.com',
+                  audience: audience,
+                }
+              );
+            }
+
+            function extractWorkflowRef(payload) {
+              const { job_workflow_ref } = payload;
+              if (job_workflow_ref === undefined) {
+                throw new Error(`Claim 'job_workflow_ref' not found in ID token payload.\n\n${JSON.stringify(payload, null, 2)}`);
+              }
+
+              core.debug(`Found job_workflow_ref claim: ${job_workflow_ref}`);
+              return job_workflow_ref;
+            }
+
+            function parseWorkflowRef(job_workflow_ref) {
+              // Format: owner/repo/.github/workflows/workflow.yml@ref
+              const regex = /^(?<owner>[^/]+)\/(?<repo>[^/]+)\/.+@(?<ref>.+)$/;
+              const match = job_workflow_ref.match(regex);
+
+              if (!match || !match.groups) {
+                throw new Error(`Failed to parse owner, repo and ref from \`job_workflow_ref\` claim \`${job_workflow_ref}\``);
+              }
+
+              const { owner, repo, ref } = match.groups;
+
+              return { owner, repo, ref };
+            }
+
+            /**
+             * Derefence the input ref to a SHA. This is because we cache the
+             * file, and refs can be updated to point to other objects, so they
+             * aren't suitable cache keys.
+             */
+            async function getRefSha(owner, repo, ref) {
+              if (!ref.startsWith('refs/')) {
+                return ref;
+              }
+
+              core.debug(`Getting SHA for ref: ${ref} in ${owner}/${repo}`);
+
+              // Remove `refs/` from the start, as the API expects a reference
+              // without it.
+              ref = ref.substring(5);
+
+              try {
+                const response = await github.rest.git.getRef({
+                  owner,
+                  repo,
+                  ref,
+                });
+
+                const sha = response.data.object.sha;
+                core.debug(`Found SHA: ${sha} for ref: ${ref}`);
+
+                return sha;
+              } catch (error) {
+                throw new Error(`Failed to resolve ref ${ref} to a SHA: ${error.message}`);
+              }
+            }
+
+            const AUDIENCE = 'zizmor-job-workflow-ref';
+
+            try {
+              const idToken = await retrieveIdToken(AUDIENCE);
+
+              const { payload } = await verifyToken(idToken, AUDIENCE);
+
+              const job_workflow_ref = extractWorkflowRef(payload);
+
+              const { owner, repo, ref } = parseWorkflowRef(job_workflow_ref);
+              const sha = await getRefSha(owner, repo, ref);
+
+              console.log(`This run is: owner: \`${owner}\`, repo: \`${repo}\`, ref: \`${ref}\`, sha: ${sha}`);
+
+              core.setOutput('owner', owner);
+              core.setOutput('repo', repo);
+              core.setOutput('sha', sha);
+            } catch (error) {
+              core.setFailed(`Script failed: ${error.message}`);
+
+              if (error.stack) {
+                console.error(`Stack trace: ${error.stack}`);
+              }
+            }
+
   analysis:
+    needs: job-workflow-ref
+
     name: Generate and upload zizmor results 🌈
 
     runs-on: ${{ inputs.runs-on }}
@@ -89,10 +232,79 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Restore config from cache
+        id: cache-config
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ runner.temp }}/zizmor.yml
+          key: zizmor-config-${{ needs.job-workflow-ref.outputs.repo }}-${{ needs.job-workflow-ref.outputs.sha }}
+
+      - name: Fetch Zizmor Config
+        id: fetch-config
+        if: steps.cache-config.outputs.cache-hit != 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          OWNER: ${{ needs.job-workflow-ref.outputs.owner }}
+          REPO: ${{ needs.job-workflow-ref.outputs.repo }}
+          SHA: ${{ needs.job-workflow-ref.outputs.sha }}
+        with:
+          script: |
+            const fs = require('fs').promises;
+            const path = require('path');
+
+            const owner = process.env.OWNER;
+            const repo = process.env.REPO;
+            const sha = process.env.SHA;
+
+            if (!owner || !repo || !sha) {
+              core.warning('Missing owner, repo or sha. Did the job-workflow-ref step run OK?');
+
+              return;
+            }
+
+            console.log(`Fetching config from ${owner}/${repo}@${sha}`);
+
+            try {
+              const response = await github.rest.repos.getContent({
+                owner,
+                repo,
+                path: '.github/zizmor.yml',
+                ref: sha
+              });
+
+              // File exists, decode content from base64
+              if (response.status !== 200 || response.data.content === undefined) {
+                throw new Error(`received unexpected response: ${response.status}`);
+              }
+
+              const contentBase64 = response.data.content;
+              const configContent = Buffer.from(contentBase64, 'base64').toString('utf8');
+
+              console.log('Config file successfully fetched from GitHub. Contents:');
+              console.log(configContent);
+
+              const destinationPath = path.join(process.env.RUNNER_TEMP, 'zizmor.yml');
+              await fs.writeFile(destinationPath, configContent);
+            } catch (err) {
+              // Don't fail the workflow on errors - we just won't have a
+              // default config.
+
+              if ('status' in err && err.status === 404) {
+                core.warning('Config file not found in repository');
+                return;
+              }
+
+              core.error(`Error fetching config: ${err.message}`);
+              if (err.stack) {
+                core.error(`Stack trace: ${err.stack}`);
+              }
+
+              return;
+            }
+
       - name: Set up Zizmor configuration
         id: setup-config
         env:
-          DEFAULT_ZIZMOR_CONFIG: ${{ inputs.default-config }}
           FORCE_DEFAULT_CONFIG: ${{ inputs.always-use-default-config && 'true' || '' }}
         shell: sh
         run: |
@@ -116,9 +328,6 @@ jobs:
           fi
 
           ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
-          cat <<EOC | tee ${ZIZMOR_CONFIG}
-          ${DEFAULT_ZIZMOR_CONFIG}
-          EOC
           echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Setup UV
