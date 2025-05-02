@@ -370,7 +370,7 @@ jobs:
           --cache-dir "${ZIZMOR_CACHE_DIR}"
           ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
-          ${ZIZMOR_OFFLINE:+--offline}
+          ${ZIZMOR_OFFLINE:+"--offline"}
           .
           > results.sarif
 
@@ -408,8 +408,8 @@ jobs:
             --min-confidence "${MIN_CONFIDENCE}" \
             --cache-dir "${ZIZMOR_CACHE_DIR}" \
             ${RUNNER_DEBUG:+"--verbose"} \
+            ${ZIZMOR_OFFLINE:+"--offline"} \
             ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
-            ${ZIZMOR_OFFLINE:+--offline} \
             . \
             | tee -a "${GITHUB_OUTPUT}"
           zizmor_exit_code=$?
