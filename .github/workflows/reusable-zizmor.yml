@@ -364,13 +364,13 @@ jobs:
         shell: sh
         run: >-
           uvx zizmor
+          ${ZIZMOR_OFFLINE:+"--offline"}
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
           --cache-dir "${ZIZMOR_CACHE_DIR}"
           ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
-          ${ZIZMOR_OFFLINE:+"--offline"}
           .
           > results.sarif
 
