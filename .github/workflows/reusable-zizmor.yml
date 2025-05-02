@@ -38,6 +38,12 @@ on:
         required: false
         type: string
 
+      offline:
+        description: Enable Zizmor to be run in offline mode to avoid GitHub API limits
+        required: false
+        type: boolean
+        default: false
+
 permissions: {}
 
 jobs:
@@ -219,6 +225,7 @@ jobs:
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       # renovate: datasource=pypi depName=zizmor
       ZIZMOR_VERSION: 1.6.0
+      ZIZMOR_OFFLINE: ${{ inputs.offline && 'true' || '' }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -363,6 +370,7 @@ jobs:
           --cache-dir "${ZIZMOR_CACHE_DIR}"
           ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
+          ${ZIZMOR_OFFLINE:+--offline}
           .
           > results.sarif
 
@@ -401,6 +409,7 @@ jobs:
             --cache-dir "${ZIZMOR_CACHE_DIR}" \
             ${RUNNER_DEBUG:+"--verbose"} \
             ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
+            ${ZIZMOR_OFFLINE:+--offline} \
             . \
             | tee -a "${GITHUB_OUTPUT}"
           zizmor_exit_code=$?
