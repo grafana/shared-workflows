@@ -36,6 +36,9 @@ outputs:
   secrets:
     description: "JSON object containing all the secrets"
     value: ${{ toJSON(steps.import-secrets.outputs) }}
+  github-jwt:
+    description: "GitHub JWT token"
+    value: ${{ steps.get-github-jwt-token.outputs.github-jwt }}
 
 runs:
   using: composite
