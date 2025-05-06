@@ -44,6 +44,11 @@ runs:
         https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gar/README.md or go to your repository config \
         and stop using Service Accounts."
     # authenticate using the access_token from the auth_with_service_account step
+    # need to create a cache directory since we don't checkout any code
+    - name: Create cache directory
+      if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
+      shell: sh
+      run: mkdir -p ${{ github.workspace }}/.cache/google-cloud-sdk
     - name: Login to GAR
       if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
       uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -59,20 +64,32 @@ runs:
       with:
         project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-    - name: Setup docker-credential-gcr
-      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
-      uses: StevenACoffman/setup-docker-credential-gcr@a8f1898ecad516cb17f55ebd1dd2583abc584352 # v0.0.3
+    - name: "Cache Cloud SDK"
+      if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
+      id: cache-cloud-sdk
+      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
       with:
-        version: v2.1.28
-    - name: "Configure GCP Artifact Registry"
-      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
-      id: configure-docker
+        path: ${{ github.workspace }}/.cache/google-cloud-sdk
+        key: ${{ runner.os }}-gcloud-${{ hashFiles('actions/auth-read-kubernetes-dev/action.yaml') }}
+        restore-keys: ${{ runner.os }}-gcloud-
+    - name: "Set up Cloud SDK"
+      if: ${{ steps.cache-cloud-sdk.outputs.cache-hit != 'true' && steps.auth_with_service_account.outputs.access_token != '' }}
+      uses: "google-github-actions/setup-gcloud@v2"
+      with:
+        version: ">= 363.0.0"
+    - name: "Authenticate using service account credentials"
+      if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
+      shell: sh
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.gcloud-auth.outputs.credentials_file_path }}
+      run: |
+        gcloud auth login --quiet --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
+    - name: "Use gcloud CLI to configure docker"
+      if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
       shell: sh
       env:
         REGISTRY: ${{ inputs.registry }}
-      run: |
-        docker-credential-gcr config --token-source="gcloud"
-        docker-credential-gcr configure-docker -include-artifact-registry --registries="${REGISTRY}"
+      run: "gcloud auth configure-docker $REGISTRY"
     - name: Delete Google Application Credentials file
       if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
       shell: sh
