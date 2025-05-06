@@ -22,6 +22,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   publish-docs:
+    permissions:
+      contents: read # to clone the repository to read its docs
+      id-token: write # to use OIDC to auth with AWS and push the docs to S3
     uses: grafana/shared-workflows/.github/workflows/publish-techdocs.yaml@main
     with:
       namespace: default
