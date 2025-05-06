@@ -65,7 +65,7 @@ runs:
         project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
     - name: "Cache Cloud SDK"
-      if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
+      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       id: cache-cloud-sdk
       uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
       with:
@@ -78,20 +78,20 @@ runs:
       with:
         version: ">= 363.0.0"
     - name: "Authenticate using service account credentials"
-      if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
+      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       shell: sh
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.gcloud-auth.outputs.credentials_file_path }}
       run: |
         gcloud auth login --quiet --cred-file=$GOOGLE_APPLICATION_CREDENTIALS
     - name: "Use gcloud CLI to configure docker"
-      if: ${{ steps.auth_with_service_account.outputs.access_token != '' }}
+      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       shell: sh
       env:
         REGISTRY: ${{ inputs.registry }}
       run: "gcloud auth configure-docker $REGISTRY"
     - name: Delete Google Application Credentials file
-      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
+      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS == '' }}
       shell: sh
       run: |
         if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
