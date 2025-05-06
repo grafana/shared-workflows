@@ -1,0 +1,359 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  name: shared-workflows
+  title: shared-workflows
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  type: library
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Lint Argo workflow files
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/argo-lint/README.md
+  name: argo-lint
+  title: argo-lint
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Authenticate to AWS from GitHub Actions via OpenID Connect
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/aws-auth/README.md
+  name: aws-auth
+  title: aws-auth
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Build and publish docker images to DockerHub
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/build-push-to-dockerhub/README.md
+  name: build-push-to-dockerhub
+  title: build-push-to-dockerhub
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Using the shared Grafana Labs DockerHub credentials, log in to DockerHub
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/dockerhub-login/README.md
+  name: dockerhub-login
+  title: dockerhub-login
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Find the PR associated with a commit
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/find-pr-for-commit/README.md
+  name: find-pr-for-commit
+  title: find-pr-for-commit
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Takes in a locally stored OpenAPI spec and generates a client from
+    it
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/generate-openapi-clients/README.md
+  name: generate-openapi-clients
+  title: generate-openapi-clients
+spec:
+  lifecycle: production
+  owner: group:platform-cat
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action (step) to get secrets from Grafana Labs' Vault instance.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/get-vault-secrets/README.md
+  name: get-vault-secrets
+  title: get-vault-secrets
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Run lint on the PR title to check if It matches the commitlint specification.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/lint-pr-title/README.md
+  name: lint-pr-title
+  title: lint-pr-title
+spec:
+  lifecycle: production
+  owner: group:infra-o11y-frontend
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action to push to Google Artifact Registry
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gar/README.md
+  name: login-to-gar
+  title: login-to-gar
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action to login to Google Cloud Storage
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gcs/README.md
+  name: login-to-gcs
+  title: login-to-gcs
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action to push to Google Artifact Registry
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/push-to-gar-docker/README.md
+  name: push-to-gar-docker
+  title: push-to-gar-docker
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action to push to Google Cloud Storage
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/push-to-gcs/README.md
+  name: push-to-gcs
+  title: push-to-gcs
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action to send a Slack message
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/send-slack-message/README.md
+  name: send-slack-message
+  title: send-slack-message
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Setup Argo cli and add it to the PATH, this action will pull the binary
+    from GitHub releases and store it in cache for the next run.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/setup-argo/README.md
+  name: setup-argo
+  title: setup-argo
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Setup conftest and add it to the PATH, this action will pull the binary
+    from GitHub releases and store it in cache for the next run.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/setup-conftest/README.md
+  name: setup-conftest
+  title: setup-conftest
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Setup jrsonnet CLI and add it to the PATH, this action will pull the
+    binary from GitHub releases and store it in cache for the next run.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/setup-jrsonnet/README.md
+  name: setup-jrsonnet
+  title: setup-jrsonnet
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Rewrite links inside techdocs pointing to outside resources
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/techdocs-rewrite-relative-links/README.md
+  name: techdocs-rewrite-relative-links
+  title: techdocs-rewrite-relative-links
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Trigger an Argo workflow in the Grafana Labs Argo Workflows instance
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/trigger-argo-workflow/README.md
+  name: trigger-argo-workflow
+  title: trigger-argo-workflow
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Validates the Policy Bot configuration file.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/validate-policy-bot-config/README.md
+  name: validate-policy-bot-config
+  title: validate-policy-bot-config
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
