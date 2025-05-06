@@ -70,7 +70,9 @@ runs:
       shell: sh
       env:
         REGISTRY: ${{ inputs.registry }}
-      run: docker-credential-gcr configure-docker -include-artifact-registry --registries="${REGISTRY}"
+      run: |
+        docker-credential-gcr config --token-source="gcloud"
+        docker-credential-gcr configure-docker -include-artifact-registry --registries="${REGISTRY}"
     - name: Delete Google Application Credentials file
       if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
       shell: sh
