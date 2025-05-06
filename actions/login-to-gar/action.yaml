@@ -89,7 +89,7 @@ runs:
         REGISTRY: ${{ inputs.registry }}
       run: "gcloud auth configure-docker $REGISTRY"
     - name: Delete Google Application Credentials file
-      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS == '' }}
+      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
       shell: sh
       run: |
         if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
