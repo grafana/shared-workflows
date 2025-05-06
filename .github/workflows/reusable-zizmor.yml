@@ -370,7 +370,7 @@ jobs:
           --cache-dir "${ZIZMOR_CACHE_DIR}"
           ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
-          ${ZIZMOR_EXTRA_ARGS}
+          "${ZIZMOR_EXTRA_ARGS}"
           .
           > results.sarif
 
@@ -409,7 +409,7 @@ jobs:
             --cache-dir "${ZIZMOR_CACHE_DIR}" \
             ${RUNNER_DEBUG:+"--verbose"} \
             ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
-            ${ZIZMOR_EXTRA_ARGS} \
+            "${ZIZMOR_EXTRA_ARGS}" \
             . \
             | tee -a "${GITHUB_OUTPUT}"
           zizmor_exit_code=$?
