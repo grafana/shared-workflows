@@ -34,6 +34,20 @@ async function run() {
     const dismissalComment = process.env.INPUT_DISMISSAL_COMMENT;
     const dismissalReason = process.env.INPUT_DISMISSAL_REASON;
 
+    const allowedDismissalReasons = [
+      "fix_started",
+      "inaccurate",
+      "no_bandwidth",
+      "not_used",
+      "tolerable_risk",
+    ];
+
+    if (dismissalReason && !allowedDismissalReasons.includes(dismissalReason)) {
+      throw new Error(
+        `Invalid dismissal reason: ${dismissalReason}. Must be one of ${allowedDismissalReasons.join(", ")}`,
+      );
+    }
+
     if (!token) {
       throw new Error("Missing required env var GITHUB_TOKEN");
     }
@@ -93,7 +107,7 @@ async function run() {
         const manifestPath = alert.dependency?.manifest_path;
         if (manifestPath && matchesAnyPattern(manifestPath, pathPatterns)) {
           console.log(
-            `Alert #${alert.number} for ${alert.dependency?.package?.name ?? 'unknown package'} in ${manifestPath} matches patterns`,
+            `Alert #${alert.number} for ${alert.dependency?.package?.name ?? "unknown package"} in ${manifestPath} matches patterns`,
           );
           alertsToProcess.push(alert.number);
         } else {
@@ -228,9 +242,7 @@ async function fetchAllAlerts(
   const filteredAlerts = allAlerts.filter(
     (alert) =>
       alertTypes.includes(alert.security_advisory?.severity as string) ||
-      alertTypes.includes(
-        alert.security_vulnerability?.severity as string,
-      ) ||
+      alertTypes.includes(alert.security_vulnerability?.severity as string) ||
       alertTypes.includes("dependency"),
   );
 
