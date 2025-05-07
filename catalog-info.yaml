@@ -234,6 +234,23 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/remove-checkout-credentials/README.md
+  name: remove-checkout-credentials
+  title: remove-checkout-credentials
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Composite action to send a Slack message
   links:
   - title: README
