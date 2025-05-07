@@ -33,11 +33,6 @@ on:
         type: boolean
         default: false
 
-      github-token:
-        description: "The GitHub token to use for the job"
-        required: false
-        type: string
-
       extra-args:
         description: Extra arguments to pass to Zizmor
         required: false
@@ -222,7 +217,6 @@ jobs:
     env:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
-      GH_TOKEN: ${{ inputs.github-token || github.token }}
       # renovate: datasource=pypi depName=zizmor
       ZIZMOR_VERSION: 1.6.0
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
