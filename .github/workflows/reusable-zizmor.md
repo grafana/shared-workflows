@@ -15,6 +15,10 @@ show the current results.
 [zizmor]: https://woodruffw.github.io/zizmor/
 [zizmor-checks]: https://woodruffw.github.io/zizmor/audits/
 
+## Examples
+
+**Fast Offline Checks**
+
 ```yaml
 name: Zizmor GitHub Actions static analysis
 on:
@@ -50,17 +54,51 @@ jobs:
       fail-severity: any
 ```
 
+**Slower Online Checks**
+
+```yaml
+name: Zizmor GitHub Actions static analysis (online checks)
+on:
+  pull_request:
+    paths:
+      - ".github/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/**"
+
+jobs:
+  scorecard:
+    name: Analyse
+
+    permissions:
+      actions: read
+      contents: read
+
+      # required to comment on pull requests with the results of the check
+      pull-requests: write
+      # required to upload the results to GitHub's code scanning service
+      security-events: write
+
+    uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<some sha>
+    with:
+      # example: fail if there are any findings
+      fail-severity: any
+      extra-args: "--gh-token=${{ github.token }}"
+```
+
 ## Inputs
 
-| Name                      | Type    | Description                                                                                                                                                                                                                        | Default Value   | Required |
-| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
-| min-severity              | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                                           | medium          | false    |
-| min-confidence            | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                                                  | low             | false    |
-| fail-severity             | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]                                                                                                          | high            | false    |
-| runs-on                   | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                                                                                                                             | ubuntu-latest   | false    |
-| default-config            | boolean | The default Zizmor configuration to use. If `always-use-default-config` is `true`, this configuration will always be used. Otherwise, it will be used if the repository does not have a `.github/zizmor.yml` or `zizmor.yml` file. | true            | false    |
-| always-use-default-config | boolean | Whether to always use `default-config`.                                                                                                                                                                                            | false           | false    |
-| github-token              | string  | The GitHub token to use when authenticating with the GitHub API                                                                                                                                                                    | ${github.token} | false    |
+| Name                      | Type    | Description                                                                                                                                                                                                                        | Default Value | Required |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
+| min-severity              | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                                           | medium        | false    |
+| min-confidence            | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                                                  | low           | false    |
+| fail-severity             | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]                                                                                                          | high          | false    |
+| runs-on                   | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                                                                                                                             | ubuntu-latest | false    |
+| default-config            | boolean | The default Zizmor configuration to use. If `always-use-default-config` is `true`, this configuration will always be used. Otherwise, it will be used if the repository does not have a `.github/zizmor.yml` or `zizmor.yml` file. | true          | false    |
+| always-use-default-config | boolean | Whether to always use `default-config`.                                                                                                                                                                                            | false         | false    |
+| extra-args                | string  | Extra arguments to pass into zizmor                                                                                                                                                                                                | ""            | false    |
 
 ## Getting started
 
