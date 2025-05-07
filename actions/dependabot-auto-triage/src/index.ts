@@ -2,6 +2,23 @@ import { Octokit } from "@octokit/rest";
 import { minimatch } from "minimatch";
 import { RequestError } from "@octokit/request-error";
 
+// Define a simplified type for DependabotAlert with used properties
+interface DependabotAlert {
+  number: number;
+  dependency?: {
+    package?: {
+      name?: string;
+    };
+    manifest_path?: string;
+  };
+  security_advisory?: {
+    severity?: string;
+  };
+  security_vulnerability?: {
+    severity?: string;
+  };
+}
+
 async function run() {
   try {
     const token = process.env.GITHUB_TOKEN;
@@ -71,12 +88,12 @@ async function run() {
       }
 
       // Process matching alerts
-      const alertsToProcess = [];
+      const alertsToProcess: number[] = [];
       for (const alert of alerts) {
         const manifestPath = alert.dependency?.manifest_path;
         if (manifestPath && matchesAnyPattern(manifestPath, pathPatterns)) {
           console.log(
-            `Alert #${alert.number} for ${alert.dependency.package.name} in ${manifestPath} matches patterns`,
+            `Alert #${alert.number} for ${alert.dependency?.package?.name ?? 'unknown package'} in ${manifestPath} matches patterns`,
           );
           alertsToProcess.push(alert.number);
         } else {
@@ -196,46 +213,28 @@ async function fetchAllAlerts(
   owner: string,
   repo: string,
   alertTypes: string[],
-) {
-  const alerts = [];
-  let page = 1;
-  let hasMorePages = true;
+): Promise<DependabotAlert[]> {
+  const allAlerts: DependabotAlert[] = await octokit.paginate(
+    "GET /repos/{owner}/{repo}/dependabot/alerts",
+    {
+      owner,
+      repo,
+      state: "open",
+      per_page: 100,
+    },
+  );
 
-  try {
-    while (hasMorePages) {
-      // Using the dependabot alerts endpoint directly
-      const response = await octokit.request(
-        "GET /repos/{owner}/{repo}/dependabot/alerts",
-        {
-          owner,
-          repo,
-          state: "open",
-          per_page: 100,
-          page,
-        },
-      );
+  // Filter alerts based on severity or 'dependency' type
+  const filteredAlerts = allAlerts.filter(
+    (alert) =>
+      alertTypes.includes(alert.security_advisory?.severity as string) ||
+      alertTypes.includes(
+        alert.security_vulnerability?.severity as string,
+      ) ||
+      alertTypes.includes("dependency"),
+  );
 
-      if (response.data.length === 0) {
-        hasMorePages = false;
-      } else {
-        const filteredAlerts = response.data.filter(
-          (alert) =>
-            alertTypes.includes(alert.security_advisory?.severity as string) ||
-            alertTypes.includes(
-              alert.security_vulnerability?.severity as string,
-            ) ||
-            alertTypes.includes("dependency"),
-        );
-        alerts.push(...filteredAlerts);
-        page++;
-      }
-    }
-
-    return alerts;
-  } catch (error) {
-    // Re-throw to be handled by the main function
-    throw error;
-  }
+  return filteredAlerts;
 }
 
 function matchesAnyPattern(
