@@ -34,7 +34,9 @@ on:
         default: ${{ github.token }}
 
       always-use-default-config:
-        description: Whether to always use the default configuration.
+        description: |
+          Whether to always use the default configuration. When `false`,
+          `.zizmor.yml` or `.github/zizmor.yml` will be used, if present.
         required: false
         type: boolean
         default: false
