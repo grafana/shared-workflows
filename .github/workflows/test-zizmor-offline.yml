@@ -1,0 +1,22 @@
+name: Test reusable Zizmor in offline mode
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor-offline:
+    name: Run zizmor offline for current branch (self test)
+
+    permissions:
+      actions: read
+      contents: read
+
+      pull-requests: write
+      security-events: write
+
+    uses: ./.github/workflows/reusable-zizmor.yml
+    with:
+      extra-args: --offline --collect=all
