@@ -257,7 +257,10 @@ export function matchesAnyPattern(
 
   return patterns.some((pattern) => {
     try {
-      return minimatch(manifestPath, pattern, { matchBase: true, strict: true } as any);
+      return minimatch(manifestPath, pattern, {
+        matchBase: true,
+        strict: true,
+      } as any);
     } catch (error) {
       console.error(
         `Error matching pattern ${pattern}:`,

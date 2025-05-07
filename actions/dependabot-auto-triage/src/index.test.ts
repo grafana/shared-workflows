@@ -1,5 +1,18 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import { matchesAnyPattern, fetchAllAlerts, run, DependabotAlert } from "./index";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
+import {
+  matchesAnyPattern,
+  fetchAllAlerts,
+  run,
+  DependabotAlert,
+} from "./index";
 import { Octokit } from "@octokit/rest";
 import { RequestError } from "@octokit/request-error";
 import * as minimatchModule from "minimatch"; // Import for spying
@@ -32,7 +45,9 @@ describe("Dependabot Auto Triage Action", () => {
     // Spy on console messages and process.exit
     consoleLogSpy = spyOn(console, "log").mockImplementation(() => {});
     consoleErrorSpy = spyOn(console, "error").mockImplementation(() => {});
-    processExitSpy = spyOn(process, "exit").mockImplementation((() => {}) as (code?: number) => never);
+    processExitSpy = spyOn(process, "exit").mockImplementation((() => {}) as (
+      code?: number,
+    ) => never);
   });
 
   afterEach(() => {
@@ -55,9 +70,9 @@ describe("Dependabot Auto Triage Action", () => {
       // Assuming `minimatch` is the function name exported by the 'minimatch' module.
       // If it's a default export, the spying mechanism might differ slightly or how it's referenced.
       // For `import { minimatch } from 'minimatch'`, it's typically a named export.
-      // However, to ensure we're spying on what's used by `./index.ts` which also does `import { minimatch }`, 
+      // However, to ensure we're spying on what's used by `./index.ts` which also does `import { minimatch }`,
       // we spy on the module's export.
-      minimatchSpy = spyOn(minimatchModule, 'minimatch');
+      minimatchSpy = spyOn(minimatchModule, "minimatch");
     });
 
     afterEach(() => {
@@ -70,8 +85,10 @@ describe("Dependabot Auto Triage Action", () => {
       // Let original minimatch work or mock its successful return
       minimatchSpy.mockImplementation((path: string, pattern: string) => {
         // Basic mock for successful non-throwing calls in other tests if needed
-        if (pattern === "**/package-lock.json" && path === manifestPath) return true;
-        if (pattern === "**/gemfile.lock" && path === manifestPath) return false; 
+        if (pattern === "**/package-lock.json" && path === manifestPath)
+          return true;
+        if (pattern === "**/gemfile.lock" && path === manifestPath)
+          return false;
         return false; // Default
       });
       expect(matchesAnyPattern(manifestPath, patterns)).toBe(true);
@@ -99,30 +116,47 @@ describe("Dependabot Auto Triage Action", () => {
 
     it("should handle glob patterns correctly", () => {
       minimatchSpy.mockImplementation((path: string, pattern: string) => {
-        if (path === "frontend/package.json" && pattern === "frontend/**") return true;
-        if (path === "backend/package.json" && pattern === "frontend/**") return false;
+        if (path === "frontend/package.json" && pattern === "frontend/**")
+          return true;
+        if (path === "backend/package.json" && pattern === "frontend/**")
+          return false;
         return false;
       });
-      expect(matchesAnyPattern("frontend/package.json", ["frontend/**"])).toBe(true);
-      expect(matchesAnyPattern("backend/package.json", ["frontend/**"])).toBe(false);
+      expect(matchesAnyPattern("frontend/package.json", ["frontend/**"])).toBe(
+        true,
+      );
+      expect(matchesAnyPattern("backend/package.json", ["frontend/**"])).toBe(
+        false,
+      );
     });
 
     it("should use matchBase option for minimatch", () => {
       // This test implicitly tests options if we assume the actual minimatch is called.
       // With a full mock, we'd need to check options passed to the spy.
       // For now, let's simplify by having the spy return expected values.
-      minimatchSpy.mockImplementation((path: string, pattern: string, options: any) => {
-        // A more robust mock would call the *actual* minimatch here for non-erroring tests
-        // For example: return minimatchModule.minimatch(path, pattern, options)
-        // But to keep it simple for now:
-        if (options && (options as any).matchBase) {
-            if (path === "package-lock.json" && pattern === "package-lock.json") return true;
-            if (path === "sub/package-lock.json" && pattern === "package-lock.json") return true;
-        }
-        return false;
-      });
-      expect(matchesAnyPattern("package-lock.json", ["package-lock.json"])).toBe(true);
-      expect(matchesAnyPattern("sub/package-lock.json", ["package-lock.json"])).toBe(true);
+      minimatchSpy.mockImplementation(
+        (path: string, pattern: string, options: any) => {
+          // A more robust mock would call the *actual* minimatch here for non-erroring tests
+          // For example: return minimatchModule.minimatch(path, pattern, options)
+          // But to keep it simple for now:
+          if (options && (options as any).matchBase) {
+            if (path === "package-lock.json" && pattern === "package-lock.json")
+              return true;
+            if (
+              path === "sub/package-lock.json" &&
+              pattern === "package-lock.json"
+            )
+              return true;
+          }
+          return false;
+        },
+      );
+      expect(
+        matchesAnyPattern("package-lock.json", ["package-lock.json"]),
+      ).toBe(true);
+      expect(
+        matchesAnyPattern("sub/package-lock.json", ["package-lock.json"]),
+      ).toBe(true);
     });
 
     it("should log an error, handle it, and continue matching with other patterns", () => {
@@ -141,13 +175,13 @@ describe("Dependabot Auto Triage Action", () => {
         })
         .mockImplementationOnce((path: string, pattern: string) => {
           // For the second pattern (goodPattern)
-          return (pattern === goodPattern && path === manifestPath); // True if it matches
+          return pattern === goodPattern && path === manifestPath; // True if it matches
         });
 
       expect(matchesAnyPattern(manifestPath, patterns)).toBe(true);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         `Error matching pattern ${badPattern}:`,
-        simulatedErrorMessage
+        simulatedErrorMessage,
       );
       expect(minimatchSpy).toHaveBeenCalledTimes(2);
     });
@@ -157,7 +191,12 @@ describe("Dependabot Auto Triage Action", () => {
     const mockOwner = "owner";
     const mockRepo = "repo";
 
-    const createMockAlert = (number: number, severity: string, packageName: string, manifestPath: string): DependabotAlert => ({
+    const createMockAlert = (
+      number: number,
+      severity: string,
+      packageName: string,
+      manifestPath: string,
+    ): DependabotAlert => ({
       number,
       dependency: {
         package: { name: packageName },
@@ -176,7 +215,12 @@ describe("Dependabot Auto Triage Action", () => {
       mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
 
       const octokitInstance = new Octokit(); // Real instance not used due to global mock
-      const filteredAlerts = await fetchAllAlerts(octokitInstance, mockOwner, mockRepo, ["critical", "high"]);
+      const filteredAlerts = await fetchAllAlerts(
+        octokitInstance,
+        mockOwner,
+        mockRepo,
+        ["critical", "high"],
+      );
 
       expect(mockOctokit.paginate).toHaveBeenCalledWith(
         "GET /repos/{owner}/{repo}/dependabot/alerts",
@@ -185,12 +229,12 @@ describe("Dependabot Auto Triage Action", () => {
           repo: mockRepo,
           state: "open",
           per_page: 100,
-        }
+        },
       );
       expect(filteredAlerts).toHaveLength(2);
-      expect(filteredAlerts.find(a => a.number === 1)).toBeDefined();
-      expect(filteredAlerts.find(a => a.number === 2)).toBeDefined();
-      expect(filteredAlerts.find(a => a.number === 3)).toBeUndefined();
+      expect(filteredAlerts.find((a) => a.number === 1)).toBeDefined();
+      expect(filteredAlerts.find((a) => a.number === 2)).toBeDefined();
+      expect(filteredAlerts.find((a) => a.number === 3)).toBeUndefined();
     });
 
     it("should fetch and filter alerts for 'dependency' type if no severity matches", async () => {
@@ -200,7 +244,12 @@ describe("Dependabot Auto Triage Action", () => {
       ];
       mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
       const octokitInstance = new Octokit();
-      const filteredAlerts = await fetchAllAlerts(octokitInstance, mockOwner, mockRepo, ["dependency"]);
+      const filteredAlerts = await fetchAllAlerts(
+        octokitInstance,
+        mockOwner,
+        mockRepo,
+        ["dependency"],
+      );
 
       expect(filteredAlerts).toHaveLength(2);
     });
@@ -212,7 +261,12 @@ describe("Dependabot Auto Triage Action", () => {
       ];
       mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
       const octokitInstance = new Octokit();
-      const filteredAlerts = await fetchAllAlerts(octokitInstance, mockOwner, mockRepo, ["critical", "dependency"]);
+      const filteredAlerts = await fetchAllAlerts(
+        octokitInstance,
+        mockOwner,
+        mockRepo,
+        ["critical", "dependency"],
+      );
       // The filter is OR based, so both alerts should be returned because 'dependency' matches all, and critical matches one.
       // The current implementation will include all if 'dependency' is present.
       expect(filteredAlerts).toHaveLength(2);
@@ -224,7 +278,12 @@ describe("Dependabot Auto Triage Action", () => {
       ];
       mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
       const octokitInstance = new Octokit();
-      const filteredAlerts = await fetchAllAlerts(octokitInstance, mockOwner, mockRepo, ["low"]);
+      const filteredAlerts = await fetchAllAlerts(
+        octokitInstance,
+        mockOwner,
+        mockRepo,
+        ["low"],
+      );
 
       expect(filteredAlerts).toHaveLength(0);
     });
@@ -232,28 +291,38 @@ describe("Dependabot Auto Triage Action", () => {
     it("should handle empty list of alerts from paginate", async () => {
       mockOctokit.paginate.mockResolvedValue([]);
       const octokitInstance = new Octokit();
-      const filteredAlerts = await fetchAllAlerts(octokitInstance, mockOwner, mockRepo, ["critical"]);
+      const filteredAlerts = await fetchAllAlerts(
+        octokitInstance,
+        mockOwner,
+        mockRepo,
+        ["critical"],
+      );
       expect(filteredAlerts).toHaveLength(0);
     });
   });
 
   // More tests for fetchAllAlerts and run will be added here
   describe("run", () => {
-    const createMockAlert = (number: number, severity: string, packageName: string, manifestPath: string): DependabotAlert => ({
+    const createMockAlert = (
+      number: number,
+      severity: string,
+      packageName: string,
+      manifestPath: string,
+    ): DependabotAlert => ({
       number,
       dependency: {
         package: { name: packageName },
         manifest_path: manifestPath,
       },
       security_advisory: { severity },
-      security_vulnerability: { severity }, 
+      security_vulnerability: { severity },
     });
 
     it("should successfully fetch, filter, and dismiss alerts", async () => {
       const mockAlerts: DependabotAlert[] = [
         createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
-        createMockAlert(2, "critical", "pkg-b", "other/yarn.lock"), 
-        createMockAlert(3, "low", "pkg-c", "nomatch/package.json"), 
+        createMockAlert(2, "critical", "pkg-b", "other/yarn.lock"),
+        createMockAlert(3, "low", "pkg-c", "nomatch/package.json"),
       ];
       mockOctokit.paginate.mockResolvedValue(mockAlerts as any);
       mockOctokit.request.mockResolvedValue({ status: 200 }); // For dismissal
@@ -263,7 +332,10 @@ describe("Dependabot Auto Triage Action", () => {
         if (route === "GET /repos/{owner}/{repo}") {
           return { data: { owner: { login: "test-user" } } };
         }
-        if (route === "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}") {
+        if (
+          route ===
+          "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+        ) {
           return { status: 200 };
         }
         return {};
@@ -273,47 +345,72 @@ describe("Dependabot Auto Triage Action", () => {
 
       await run();
 
-      expect(consoleLogSpy).toHaveBeenCalledWith("Fetching dependabot alerts for owner/repo...");
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Fetching dependabot alerts for owner/repo...",
+      );
       expect(consoleLogSpy).toHaveBeenCalledWith("Using path patterns:");
       expect(consoleLogSpy).toHaveBeenCalledWith("- src/package-lock.json");
       expect(consoleLogSpy).toHaveBeenCalledWith("- other/yarn.lock");
-      expect(consoleLogSpy).toHaveBeenCalledWith(`Found ${mockAlerts.length} open alerts`);
-      expect(consoleLogSpy).toHaveBeenCalledWith("Alert #1 for pkg-a in src/package-lock.json matches patterns");
-      expect(consoleLogSpy).toHaveBeenCalledWith("Alert #2 for pkg-b in other/yarn.lock matches patterns");
-      expect(consoleLogSpy).toHaveBeenCalledWith("Skipping alert #3 for nomatch/package.json (does not match any pattern)");
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        `Found ${mockAlerts.length} open alerts`,
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #1 for pkg-a in src/package-lock.json matches patterns",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #2 for pkg-b in other/yarn.lock matches patterns",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Skipping alert #3 for nomatch/package.json (does not match any pattern)",
+      );
       expect(consoleLogSpy).toHaveBeenCalledWith("Dismissing 2 alerts...");
       expect(mockOctokit.request).toHaveBeenCalledWith(
         "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}",
-        expect.objectContaining({ alert_number: 1, state: "dismissed" })
+        expect.objectContaining({ alert_number: 1, state: "dismissed" }),
       );
       expect(mockOctokit.request).toHaveBeenCalledWith(
         "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}",
-        expect.objectContaining({ alert_number: 2, state: "dismissed" })
+        expect.objectContaining({ alert_number: 2, state: "dismissed" }),
       );
-      expect(consoleLogSpy).toHaveBeenCalledWith("Alert #1 dismissed successfully");
-      expect(consoleLogSpy).toHaveBeenCalledWith("Alert #2 dismissed successfully");
-      expect(consoleLogSpy).toHaveBeenCalledWith("Successfully dismissed 2 alerts.");
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #1 dismissed successfully",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #2 dismissed successfully",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Successfully dismissed 2 alerts.",
+      );
       expect(processExitSpy).not.toHaveBeenCalled();
     });
 
     it("should exit if GITHUB_TOKEN is missing", async () => {
       delete process.env.GITHUB_TOKEN;
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error:", "Missing required env var GITHUB_TOKEN");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error:",
+        "Missing required env var GITHUB_TOKEN",
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should exit if INPUT_PATHS is missing", async () => {
       process.env.INPUT_PATHS = "";
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error:", "No path patterns provided. Please specify paths to match.");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error:",
+        "No path patterns provided. Please specify paths to match.",
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("should exit if INPUT_DISMISSAL_REASON is invalid", async () => {
       process.env.INPUT_DISMISSAL_REASON = "wrong_reason";
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error:", "Invalid dismissal reason: wrong_reason. Must be one of fix_started, inaccurate, no_bandwidth, not_used, tolerable_risk");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error:",
+        "Invalid dismissal reason: wrong_reason. Must be one of fix_started, inaccurate, no_bandwidth, not_used, tolerable_risk",
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
@@ -348,7 +445,9 @@ describe("Dependabot Auto Triage Action", () => {
 
       process.env.INPUT_PATHS = "src/package-lock.json";
       await run();
-      expect(consoleLogSpy).toHaveBeenCalledWith("No alerts matched the provided path patterns.");
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "No alerts matched the provided path patterns.",
+      );
       expect(processExitSpy).not.toHaveBeenCalled();
     });
 
@@ -361,7 +460,9 @@ describe("Dependabot Auto Triage Action", () => {
       });
 
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error authenticating with GitHub. Please check your token.");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error authenticating with GitHub. Please check your token.",
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith("Error:", "Auth failed");
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
@@ -373,10 +474,17 @@ describe("Dependabot Auto Triage Action", () => {
         }
         return {};
       });
-      mockOctokit.paginate.mockRejectedValue(new RequestError("Not Found", 404, { request: { headers: {}, url: "http://dummy.url/api" } as any, response: {headers: {}, status: 404, url: "", data: {}} }));
+      mockOctokit.paginate.mockRejectedValue(
+        new RequestError("Not Found", 404, {
+          request: { headers: {}, url: "http://dummy.url/api" } as any,
+          response: { headers: {}, status: 404, url: "", data: {} },
+        }),
+      );
 
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error: Repository owner/repo not found or Dependabot alerts are not enabled.");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error: Repository owner/repo not found or Dependabot alerts are not enabled.",
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
@@ -387,10 +495,17 @@ describe("Dependabot Auto Triage Action", () => {
         }
         return {};
       });
-      mockOctokit.paginate.mockRejectedValue(new RequestError("Forbidden", 403, { request: { headers: {}, url: "http://dummy.url/api" } as any, response: {headers: {}, status: 403, url: "", data: {}} }));
-      
+      mockOctokit.paginate.mockRejectedValue(
+        new RequestError("Forbidden", 403, {
+          request: { headers: {}, url: "http://dummy.url/api" } as any,
+          response: { headers: {}, status: 403, url: "", data: {} },
+        }),
+      );
+
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("ERROR: Cannot access Dependabot alerts."));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("ERROR: Cannot access Dependabot alerts."),
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
@@ -401,10 +516,17 @@ describe("Dependabot Auto Triage Action", () => {
         }
         return {};
       });
-      mockOctokit.paginate.mockRejectedValue(new RequestError("Server Error", 500, { request: { headers: {}, url: "http://dummy.url/api" } as any, response: {headers: {}, status: 500, url: "", data: {}} }));
-      
+      mockOctokit.paginate.mockRejectedValue(
+        new RequestError("Server Error", 500, {
+          request: { headers: {}, url: "http://dummy.url/api" } as any,
+          response: { headers: {}, status: 500, url: "", data: {} },
+        }),
+      );
+
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith("API Error 500: Server Error");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "API Error 500: Server Error",
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
@@ -413,44 +535,63 @@ describe("Dependabot Auto Triage Action", () => {
         createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
       ];
       mockOctokit.paginate.mockResolvedValue(mockAlerts as any);
-      mockOctokit.request.mockImplementation(async (route: string, options: any) => {
-        if (route === "GET /repos/{owner}/{repo}") {
-          return { data: { owner: { login: "test-user" } } };
-        }
-        if (route === "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}") {
-          throw new RequestError("Forbidden for dismiss", 403, { request: { headers: {}, url: "http://dummy.url/api" } as any, response: {headers: {}, status: 403, url: "", data: {}} });
-        }
-        return {};
-      });
+      mockOctokit.request.mockImplementation(
+        async (route: string, options: any) => {
+          if (route === "GET /repos/{owner}/{repo}") {
+            return { data: { owner: { login: "test-user" } } };
+          }
+          if (
+            route ===
+            "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+          ) {
+            throw new RequestError("Forbidden for dismiss", 403, {
+              request: { headers: {}, url: "http://dummy.url/api" } as any,
+              response: { headers: {}, status: 403, url: "", data: {} },
+            });
+          }
+          return {};
+        },
+      );
 
       process.env.INPUT_PATHS = "src/package-lock.json";
       await run();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error: Permission denied when trying to dismiss alerts.");
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Make sure the GITHUB_TOKEN has 'security-events: write' permission.");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error: Permission denied when trying to dismiss alerts.",
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Make sure the GITHUB_TOKEN has 'security-events: write' permission.",
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
-     it("should handle non-RequestError when dismissing alerts", async () => {
+    it("should handle non-RequestError when dismissing alerts", async () => {
       const mockAlerts: DependabotAlert[] = [
         createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
       ];
       mockOctokit.paginate.mockResolvedValue(mockAlerts as any);
-      mockOctokit.request.mockImplementation(async (route: string, options: any) => {
-        if (route === "GET /repos/{owner}/{repo}") {
-          return { data: { owner: { login: "test-user" } } };
-        }
-        if (route === "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}") {
-          throw new Error("Some other dismiss error");
-        }
-        return {};
-      });
+      mockOctokit.request.mockImplementation(
+        async (route: string, options: any) => {
+          if (route === "GET /repos/{owner}/{repo}") {
+            return { data: { owner: { login: "test-user" } } };
+          }
+          if (
+            route ===
+            "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+          ) {
+            throw new Error("Some other dismiss error");
+          }
+          return {};
+        },
+      );
 
       process.env.INPUT_PATHS = "src/package-lock.json";
       await run();
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error dismissing alerts:", "Some other dismiss error");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error dismissing alerts:",
+        "Some other dismiss error",
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
-
   });
-}); 
+});
