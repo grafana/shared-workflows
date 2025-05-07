@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.4.0...push-to-gar-docker-v0.4.1) (2025-05-07)
+
+
+### 🤖 Continuous Integration
+
+* remove gcp credentials after composite action finishes ([#925](https://github.com/grafana/shared-workflows/issues/925)) ([62f8dda](https://github.com/grafana/shared-workflows/commit/62f8ddaa78b23147b22ba6a38df2b97963dab4b3))
+
 ## [0.4.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.3.1...push-to-gar-docker-v0.4.0) (2025-04-29)
 
 
