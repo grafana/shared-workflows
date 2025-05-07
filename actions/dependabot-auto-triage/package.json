@@ -1,11 +1,14 @@
 {
   "name": "auto-dismiss-dependabot-alerts",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "GitHub action to auto-dismiss Dependabot alerts based on manifest path patterns",
   "main": "src/index.ts",
   "type": "module",
+  "private": true,
   "scripts": {
-    "start": "bun run src/index.ts"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "bun test"
   },
   "dependencies": {
     "@octokit/request-error": "^5.0.1",
@@ -13,8 +16,13 @@
     "minimatch": "^9.0.3"
   },
   "devDependencies": {
-    "@types/node": "^20.5.0",
-    "typescript": "^5.1.6"
+    "@eslint/js": "^9.26.0",
+    "@types/bun": "^1.2.12",
+    "eslint-config-prettier": "^10.1.3",
+    "eslint-plugin-jest": "^28.11.0",
+    "eslint-plugin-prettier": "^5.4.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0"
   },
   "engines": {
     "bun": "^1.0.0"

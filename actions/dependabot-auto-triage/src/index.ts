@@ -3,7 +3,7 @@ import { minimatch } from "minimatch";
 import { RequestError } from "@octokit/request-error";
 
 // Define a simplified type for DependabotAlert with used properties
-interface DependabotAlert {
+export interface DependabotAlert {
   number: number;
   dependency?: {
     package?: {
@@ -19,7 +19,7 @@ interface DependabotAlert {
   };
 }
 
-async function run() {
+export async function run() {
   try {
     const token = process.env.GITHUB_TOKEN;
     const alertTypes = (process.env.INPUT_ALERT_TYPES || "dependency")
@@ -222,7 +222,7 @@ https://github.com/${owner}/${repo}/security/dependabot
   }
 }
 
-async function fetchAllAlerts(
+export async function fetchAllAlerts(
   octokit: Octokit,
   owner: string,
   repo: string,
@@ -249,7 +249,7 @@ async function fetchAllAlerts(
   return filteredAlerts;
 }
 
-function matchesAnyPattern(
+export function matchesAnyPattern(
   manifestPath: string | undefined,
   patterns: string[],
 ): boolean {
@@ -257,7 +257,7 @@ function matchesAnyPattern(
 
   return patterns.some((pattern) => {
     try {
-      return minimatch(manifestPath, pattern, { matchBase: true });
+      return minimatch(manifestPath, pattern, { matchBase: true, strict: true } as any);
     } catch (error) {
       console.error(
         `Error matching pattern ${pattern}:`,
@@ -268,4 +268,6 @@ function matchesAnyPattern(
   });
 }
 
-run();
+if (import.meta.main) {
+  run();
+}
