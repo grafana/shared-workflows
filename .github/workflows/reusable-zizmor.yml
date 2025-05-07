@@ -27,16 +27,23 @@ on:
         type: string
         default: "ubuntu-latest"
 
+      github-token:
+        description: Use a different token to the default
+        required: false
+        type: string
+        default: ${{ github.token }}
+
       always-use-default-config:
         description: Whether to always use the default configuration.
         required: false
         type: boolean
         default: false
 
-      github-token:
-        description: "The GitHub token to use for the job"
+      extra-args:
+        description: Extra arguments to pass to Zizmor
         required: false
         type: string
+        default: ""
 
 permissions: {}
 
@@ -216,9 +223,10 @@ jobs:
     env:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
-      GH_TOKEN: ${{ inputs.github-token || github.token }}
       # renovate: datasource=pypi depName=zizmor
       ZIZMOR_VERSION: 1.6.0
+      GH_TOKEN: ${{ inputs.github-token || github.token }}
+      ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -338,12 +346,6 @@ jobs:
           cache-suffix: ${{ env.ZIZMOR_VERSION }}
           cache-dependency-glob: ""
 
-      - name: Install Zizmor
-        shell: bash
-        run: |
-          echo "Installing Zizmor ${ZIZMOR_VERSION}"
-          uv pip install --no-cache-dir "zizmor==${ZIZMOR_VERSION}"
-
       - name: Zizmor cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
@@ -356,13 +358,14 @@ jobs:
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         shell: sh
         run: >-
-          uvx zizmor
+          uvx zizmor@"${ZIZMOR_VERSION}"
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
           --cache-dir "${ZIZMOR_CACHE_DIR}"
           ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
           ${RUNNER_DEBUG:+"--verbose"}
+          ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}}
           .
           > results.sarif
 
@@ -394,13 +397,14 @@ jobs:
           # don't fail the build if zizmor fails - we want to capture the output
           # and the exit code
           set +e
-          uvx zizmor \
+          uvx zizmor@"${ZIZMOR_VERSION}" \
             --format plain \
             --min-severity "${MIN_SEVERITY}" \
             --min-confidence "${MIN_CONFIDENCE}" \
             --cache-dir "${ZIZMOR_CACHE_DIR}" \
             ${RUNNER_DEBUG:+"--verbose"} \
             ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
+            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
             . \
             | tee -a "${GITHUB_OUTPUT}"
           zizmor_exit_code=$?

@@ -15,6 +15,10 @@ show the current results.
 [zizmor]: https://woodruffw.github.io/zizmor/
 [zizmor-checks]: https://woodruffw.github.io/zizmor/audits/
 
+## Examples
+
+**Online Checks**
+
 ```yaml
 name: Zizmor GitHub Actions static analysis
 on:
@@ -50,6 +54,40 @@ jobs:
       fail-severity: any
 ```
 
+**Faster Offline Checks**
+
+```yaml
+name: Zizmor GitHub Actions static analysis (online checks)
+on:
+  pull_request:
+    paths:
+      - ".github/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/**"
+
+jobs:
+  scorecard:
+    name: Analyse
+
+    permissions:
+      actions: read
+      contents: read
+
+      # required to comment on pull requests with the results of the check
+      pull-requests: write
+      # required to upload the results to GitHub's code scanning service
+      security-events: write
+
+    uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<some sha>
+    with:
+      # example: fail if there are any findings
+      fail-severity: any
+      extra-args: "--offline"
+```
+
 ## Inputs
 
 | Name                      | Type    | Description                                                                                                                                                                                                                        | Default Value   | Required |
@@ -60,7 +98,8 @@ jobs:
 | runs-on                   | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                                                                                                                             | ubuntu-latest   | false    |
 | default-config            | boolean | The default Zizmor configuration to use. If `always-use-default-config` is `true`, this configuration will always be used. Otherwise, it will be used if the repository does not have a `.github/zizmor.yml` or `zizmor.yml` file. | true            | false    |
 | always-use-default-config | boolean | Whether to always use `default-config`.                                                                                                                                                                                            | false           | false    |
-| github-token              | string  | The GitHub token to use when authenticating with the GitHub API                                                                                                                                                                    | ${github.token} | false    |
+| github-token              | string  | Use a different token to the default                                                                                                                                                                                               | ${github.token} | false    |
+| extra-args                | string  | Extra arguments to pass into zizmor                                                                                                                                                                                                | ""              | false    |
 
 ## Getting started
 
