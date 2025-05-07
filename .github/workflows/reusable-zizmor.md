@@ -35,6 +35,10 @@ jobs:
       actions: read
       contents: read
 
+      # used in the `job-workflow-ref` job to fetch an OIDC token, which allows
+      # the run to determine its ref
+      id-token: write
+
       # required to comment on pull requests with the results of the check
       pull-requests: write
       # required to upload the results to GitHub's code scanning service
