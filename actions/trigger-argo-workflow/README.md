@@ -36,6 +36,21 @@ parameters: |
 
 - `uri`: The URI of the workflow that was created.
 
+## Required permissions
+
+This action needs a couple of explicit `GITHUB_TOKEN` scopes because it:
+
+- authenticates to Vault via GitHub OIDC (needs **`id-token: write`**)
+- checks out / reads Go files from the repo (needs **`contents: read`**)
+
+Ideally, place these permissions at the job level to avoid zizmor flagging them as [excessive permissions](https://woodruffw.github.io/zizmor/audits/#excessive-permissions).
+
+```yaml
+permissions:
+  contents: read # allows actions/checkout and setup-go to read the repo
+  id-token: write # allows get-vault-secrets to create an OIDC token for Vault
+```
+
 ## Usage
 
 Here is an example of how to use this action:
@@ -43,17 +58,27 @@ Here is an example of how to use this action:
 <!-- x-release-please-start-version -->
 
 ```yaml
-steps:
-  - name: Trigger Argo Workflow
-uses: grafana/shared-workflows/actions/trigger-argo-workflow@trigger-argo-workflow-v1.1.0
-with:
-  instance: "ops"
-  namespace: "mynamespace"
-  workflow_template: "hello"
-  parameters: |
-    message=world
-  extra_args: "--generate-name hello-world-"
-  log_level: "debug"
+name: Trigger Argo Workflow
+on:
+  pull_request:
+
+jobs:
+  trigger-argo-workflow:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Trigger Argo Workflow
+        uses: grafana/shared-workflows/actions/trigger-argo-workflow@trigger-argo-workflow-v1.1.0
+        with:
+          instance: "ops"
+          namespace: "mynamespace"
+          workflow_template: "hello"
+          parameters: |
+            message=world
+          extra_args: "--generate-name hello-world-"
+          log_level: "debug"
 ```
 
 <!-- x-release-please-end-version -->
