@@ -17,7 +17,7 @@ show the current results.
 
 ## Examples
 
-**Fast Offline Checks**
+**Online Checks**
 
 ```yaml
 name: Zizmor GitHub Actions static analysis
@@ -54,7 +54,7 @@ jobs:
       fail-severity: any
 ```
 
-**Slower Online Checks**
+**Faster Offline Checks**
 
 ```yaml
 name: Zizmor GitHub Actions static analysis (online checks)
@@ -85,20 +85,21 @@ jobs:
     with:
       # example: fail if there are any findings
       fail-severity: any
-      extra-args: "--gh-token=${{ github.token }}"
+      extra-args: "--offline"
 ```
 
 ## Inputs
 
-| Name                      | Type    | Description                                                                                                                                                                                                                        | Default Value | Required |
-| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
-| min-severity              | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                                           | medium        | false    |
-| min-confidence            | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                                                  | low           | false    |
-| fail-severity             | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]                                                                                                          | high          | false    |
-| runs-on                   | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                                                                                                                             | ubuntu-latest | false    |
-| default-config            | boolean | The default Zizmor configuration to use. If `always-use-default-config` is `true`, this configuration will always be used. Otherwise, it will be used if the repository does not have a `.github/zizmor.yml` or `zizmor.yml` file. | true          | false    |
-| always-use-default-config | boolean | Whether to always use `default-config`.                                                                                                                                                                                            | false         | false    |
-| extra-args                | string  | Extra arguments to pass into zizmor                                                                                                                                                                                                | ""            | false    |
+| Name                      | Type    | Description                                                                                                                                                                                                                        | Default Value   | Required |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
+| min-severity              | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                                           | medium          | false    |
+| min-confidence            | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                                                  | low             | false    |
+| fail-severity             | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]                                                                                                          | high            | false    |
+| runs-on                   | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                                                                                                                             | ubuntu-latest   | false    |
+| default-config            | boolean | The default Zizmor configuration to use. If `always-use-default-config` is `true`, this configuration will always be used. Otherwise, it will be used if the repository does not have a `.github/zizmor.yml` or `zizmor.yml` file. | true            | false    |
+| always-use-default-config | boolean | Whether to always use `default-config`.                                                                                                                                                                                            | false           | false    |
+| github-token              | string  | Use a different token to the default                                                                                                                                                                                               | ${github.token} | false    |
+| extra-args                | string  | Extra arguments to pass into zizmor                                                                                                                                                                                                | ""              | false    |
 
 ## Getting started
 

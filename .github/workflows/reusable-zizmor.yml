@@ -27,6 +27,27 @@ on:
         type: string
         default: "ubuntu-latest"
 
+      github-token:
+        description: Use a different token to the default
+        required: false
+        type: string
+        default: ${{ github.token }}
+
+      # TODO: This should _not_ be inline. It should be a file like
+      # `.github/zizmor.yml` alongside the reusable workflow. But
+      # unfortunately we didn't find a way to load such a file so far.
+      default-config:
+        description: The default configuration to use.
+        required: false
+        type: string
+        default: |
+          rules:
+            unpinned-uses:
+              config:
+                policies:
+                  actions/*: any # trust GitHub
+                  grafana/*: any # trust Grafana
+
       always-use-default-config:
         description: Whether to always use the default configuration.
         required: false
@@ -219,6 +240,7 @@ jobs:
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
       ZIZMOR_VERSION: 1.6.0
+      GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
 
     steps:
