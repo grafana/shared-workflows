@@ -31,7 +31,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       # Get GitHub App token with Dependabot alerts permissions
       - name: Retrieve GitHub App secrets
