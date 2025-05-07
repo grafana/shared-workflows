@@ -101,6 +101,10 @@
       "package-name": "push-to-gcs",
       "extra-files": ["README.md"]
     },
+    "actions/remove-checkout-credentials": {
+      "package-name": "remove-checkout-credentials",
+      "extra-files": ["README.md"]
+    },
     "actions/send-slack-message": {
       "package-name": "send-slack-message",
       "extra-files": ["README.md"]
