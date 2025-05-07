@@ -33,21 +33,6 @@ on:
         type: string
         default: ${{ github.token }}
 
-      # TODO: This should _not_ be inline. It should be a file like
-      # `.github/zizmor.yml` alongside the reusable workflow. But
-      # unfortunately we didn't find a way to load such a file so far.
-      default-config:
-        description: The default configuration to use.
-        required: false
-        type: string
-        default: |
-          rules:
-            unpinned-uses:
-              config:
-                policies:
-                  actions/*: any # trust GitHub
-                  grafana/*: any # trust Grafana
-
       always-use-default-config:
         description: Whether to always use the default configuration.
         required: false
