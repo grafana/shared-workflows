@@ -103,7 +103,8 @@
     },
     "actions/remove-checkout-credentials": {
       "package-name": "remove-checkout-credentials",
-      "extra-files": ["README.md"]
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     },
     "actions/send-slack-message": {
       "package-name": "send-slack-message",
