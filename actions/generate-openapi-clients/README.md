@@ -28,12 +28,11 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write # Only needed if `commit-changes` is set to true
-
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Only needed if `commit-changes` is set to true
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v1.0.1
         with:

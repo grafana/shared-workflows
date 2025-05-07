@@ -11,13 +11,11 @@ name: Authenticate to AWS
 on:
   pull_request:
 
-permissions:
-  id-token: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      id-token: write
     steps:
       - id: aws-auth
         uses: grafana/shared-workflows/actions/aws-auth@aws-auth-v1.0.1

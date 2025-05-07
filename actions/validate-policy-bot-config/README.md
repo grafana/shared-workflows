@@ -20,7 +20,8 @@ on:
       - ".policy.yml"
   push:
     paths:
-      - ".policy.yml
+      - ".policy.yml"
+
 jobs:
   validate-policy-bot:
     runs-on: ubuntu-latest

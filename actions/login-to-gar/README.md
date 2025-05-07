@@ -11,15 +11,13 @@ name: CI
 on:
   pull_request:
 
-# These permissions are needed to assume roles from Github's OIDC.
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   login:
     runs-on: ubuntu-latest
-
+    # These permissions are needed to assume roles from Github's OIDC.
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: grafana/shared-workflows/actions/login-to-gar@login-to-gar-v0.4.0
         id: login-to-gar

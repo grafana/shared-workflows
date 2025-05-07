@@ -6,18 +6,16 @@ For `actions/checkout` it is recommended to pass the `persist-credentials: false
 
 ## Example
 
-```
+```yaml
 name: CI
 on:
   pull_request: {}
 
-permissions:
-  contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:

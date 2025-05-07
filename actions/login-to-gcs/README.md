@@ -15,13 +15,12 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   login-to-gcs:
     name: login-to-gcs
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs-v0.2.0
         id: login-to-gcs

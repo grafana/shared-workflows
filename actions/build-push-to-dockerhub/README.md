@@ -12,14 +12,12 @@ name: Push to DockerHub
 on:
   pull_request:
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - id: checkout
         uses: actions/checkout@v4

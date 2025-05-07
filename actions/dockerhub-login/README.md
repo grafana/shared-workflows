@@ -12,14 +12,12 @@ name: Push to DockerHub
 on:
   pull_request:
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Login to DockerHub
         uses: grafana/shared-workflows/actions/dockerhub-login@dockerhub-login-v1.0.1
