@@ -10,6 +10,8 @@ This action can be used in a workflow to automatically dismiss Dependabot alerts
 
 Create a workflow file (e.g., `.github/workflows/auto-dismiss-dependabot-alerts.yml`) with the following content:
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Auto Dismiss Dependabot Alerts
 
@@ -49,7 +51,7 @@ jobs:
 
       # Use the token with the auto-triage action
       - name: Auto Dismiss Dependabot Alerts
-        uses: ./.github/actions/auto-triage
+        uses: grafana/shared-workflows/actions/dependabot-auto-triage@dependabot-auto-triage-v0.1.0
         with:
           token: ${{ steps.generate-token.outputs.token }}
           paths: |
@@ -59,6 +61,8 @@ jobs:
           dismissal-reason: "not_used"
           dismissal-comment: "These dependencies are not used in production and pose no risk"
 ```
+
+<!-- x-release-please-end-version -->
 
 ### Inputs
 
