@@ -363,7 +363,7 @@ jobs:
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         shell: sh
         run: >-
-          uvx zizmor
+          uvx zizmor@${ZIZMOR_VERSION}
           --format sarif
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
@@ -402,7 +402,7 @@ jobs:
           # don't fail the build if zizmor fails - we want to capture the output
           # and the exit code
           set +e
-          uvx zizmor \
+          uvx zizmor@${ZIZMOR_VERSION} \
             --format plain \
             --min-severity "${MIN_SEVERITY}" \
             --min-confidence "${MIN_CONFIDENCE}" \
