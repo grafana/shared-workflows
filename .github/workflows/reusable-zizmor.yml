@@ -346,12 +346,6 @@ jobs:
           cache-suffix: ${{ env.ZIZMOR_VERSION }}
           cache-dependency-glob: ""
 
-      - name: Install Zizmor
-        shell: bash
-        run: |
-          echo "Installing Zizmor ${ZIZMOR_VERSION}"
-          uv pip install --no-cache-dir "zizmor==${ZIZMOR_VERSION}"
-
       - name: Zizmor cache
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
