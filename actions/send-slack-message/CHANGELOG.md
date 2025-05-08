@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.2](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.1...send-slack-message-v2.0.2) (2025-05-08)
+
+
+### 🐛 Bug Fixes
+
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [2.0.1](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.0...send-slack-message-v2.0.1) (2025-01-29)
 
 
