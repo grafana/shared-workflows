@@ -99,6 +99,15 @@ jobs:
             const { jwtVerify, createRemoteJWKSet } = require('jose');
 
             async function retrieveIdToken(audience) {
+              // Perform an explicit check to see if we can get the ID token or
+              // not, so we can show a better error.
+              const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL']
+              if (!runtimeUrl) {
+                throw new Error(
+                  "We're unable to look up the version of the Zizmor workflow being called, so we can't fetch the `grafana` default configuration. Zizmor's own default will be used. Is the `is-token: write` permission set? If so, is this a run from a fork? Unfortunately we're unable to do this lookup for pull requests from forks currently."
+                )
+              }
+
               core.debug(`Attempting to retrieve ID token with audience: ${audience}...`);
 
               const idToken = await core.getIDToken(audience);
@@ -199,7 +208,9 @@ jobs:
               core.setOutput('repo', repo);
               core.setOutput('sha', sha);
             } catch (error) {
-              core.setFailed(`Script failed: ${error.message}`);
+              // On errors, we log an error messge, but we don't fail. It's
+              // better to run with the default config than not run at all.
+              core.error(`Script failed: ${error.message}`);
 
               if (error.stack) {
                 console.error(`Stack trace: ${error.stack}`);
