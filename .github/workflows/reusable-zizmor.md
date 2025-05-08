@@ -17,7 +17,7 @@ show the current results.
 
 ## Examples
 
-**Online Checks**
+### Online Checks
 
 ```yaml
 name: Zizmor GitHub Actions static analysis
@@ -39,13 +39,17 @@ jobs:
       actions: read
       contents: read
 
-      # used in the `job-workflow-ref` job to fetch an OIDC token, which allows
-      # the run to determine its ref
+      # used in the `job-workflow-ref` job to fetch an OIDC token, which
+      # allows the run to determine its ref. That's used to find the default
+      # configuration file. This doesn't work from forks. In that case,
+      # Zizmor's default config behaviour will be used.
       id-token: write
 
       # required to comment on pull requests with the results of the check
       pull-requests: write
-      # required to upload the results to GitHub's code scanning service
+      # required to upload the results to GitHub's code scanning service. This
+      # doesn't work if the repo doesn't have Advanced Security enabled. In that
+      # case we'll skip the upload.
       security-events: write
 
     uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<some sha>
@@ -54,7 +58,7 @@ jobs:
       fail-severity: any
 ```
 
-**Faster Offline Checks**
+### Faster Offline Checks
 
 ```yaml
 name: Zizmor GitHub Actions static analysis (online checks)
@@ -76,9 +80,17 @@ jobs:
       actions: read
       contents: read
 
+      # used in the `job-workflow-ref` job to fetch an OIDC token, which
+      # allows the run to determine its ref. That's used to find the default
+      # configuration file. This doesn't work from forks. In that case,
+      # Zizmor's default config behaviour will be used.
+      id-token: write
+
       # required to comment on pull requests with the results of the check
       pull-requests: write
-      # required to upload the results to GitHub's code scanning service
+      # required to upload the results to GitHub's code scanning service. This
+      # doesn't work if the repo doesn't have Advanced Security enabled. In that
+      # case we'll skip the upload.
       security-events: write
 
     uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<some sha>
