@@ -133,6 +133,10 @@
     "actions/validate-policy-bot-config": {
       "package-name": "validate-policy-bot-config",
       "extra-files": ["README.md"]
+    },
+    "actions/dependabot-auto-triage": {
+      "package-name": "dependabot-auto-triage",
+      "extra-files": ["README.md"]
     }
   },
   "release-type": "simple",

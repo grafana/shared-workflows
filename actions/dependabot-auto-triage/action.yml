@@ -1,0 +1,52 @@
+name: "Auto Dismiss Dependabot Alerts"
+description: "Auto dismiss Dependabot alerts based on manifest path"
+inputs:
+  token:
+    description: "GitHub token with permissions to dismiss alerts"
+    required: true
+  alert-types:
+    description: 'Comma-separated list of alert types to dismiss (default: "dependency")'
+    required: false
+    default: "dependency"
+  paths:
+    description: "Multi-line list of glob patterns to match manifest paths to dismiss"
+    required: true
+    # Example: |
+    #   terraform/modules/**/*.json
+    #   docker/vendor/**
+  dismissal-comment:
+    description: "Default comment to add when dismissing alerts"
+    required: false
+    default: "Auto-dismissed based on manifest path configuration"
+  dismissal-reason:
+    description: "Default reason for dismissal"
+    required: false
+    default: "not_used"
+    # Options: 'fix_started', 'inaccurate', 'no_bandwidth', 'not_used', 'tolerable_risk'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install bun package manager
+      uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
+      with:
+        bun-version-file: ${{ github.action_path }}/.bun-version
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        bun install --frozen-lockfile --production
+
+    - name: Auto dismiss Dependabot alerts
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        INPUT_ALERT_TYPES: ${{ inputs.alert-types }}
+        INPUT_PATHS: ${{ inputs.paths }}
+        INPUT_DISMISSAL_COMMENT: ${{ inputs.dismissal-comment }}
+        INPUT_DISMISSAL_REASON: ${{ inputs.dismissal-reason }}
+        NODE_ENV: "production"
+      run: |
+        bun run src/index.ts
