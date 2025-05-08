@@ -38,12 +38,11 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  pull-requests: read
-
 jobs:
   comment-on-pr-for-commit:
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Find PR for current commit
         id: find-pr
@@ -61,12 +60,11 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  pull-requests: read
-
 jobs:
   comment-on-pr-for-commit:
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Find PR for specific commit
         id: find-pr
@@ -86,12 +84,11 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  pull-requests: read
-
 jobs:
   comment-on-pr-for-commit:
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Find PR for named revision
         id: find-pr

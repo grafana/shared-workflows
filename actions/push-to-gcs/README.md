@@ -18,14 +18,13 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   upload-to-gcs:
     name: upload
     runs-on: ubuntu-x64-small
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:

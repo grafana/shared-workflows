@@ -15,15 +15,13 @@ name: CI
 on:
   pull_request:
 
-# These permissions are needed to assume roles from Github's OIDC.
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
+    # These permissions are needed to assume roles from Github's OIDC.
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - id: checkout
         uses: actions/checkout@v4
