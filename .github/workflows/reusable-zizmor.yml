@@ -348,8 +348,13 @@ jobs:
             echo "always-use-default-config is set. Using default config."
           fi
 
+          # Some forks are having issues with cloning the zizmor config file, so in the worst case
+          # we'll use the default configuration that's built in.
+
           ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
-          echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
+          if [ -f "${ZIZMOR_CONFIG}" ]; then
+            echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
+          fi
 
       - name: Setup UV
         uses: astral-sh/setup-uv@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca # v6.0.1
