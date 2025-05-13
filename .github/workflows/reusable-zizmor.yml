@@ -352,9 +352,6 @@ jobs:
             echo "always-use-default-config is set. Using default config."
           fi
 
-          # Some forks are having issues with cloning the zizmor config file, so in the worst case
-          # we'll use the default configuration that's built in.
-
           ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
           if [ -n "${DEFAULT_ZIZMOR_CONFIG_DOWNLOADED}" ]; then
             echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
