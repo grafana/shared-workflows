@@ -3,7 +3,7 @@ description: Composite action to send a Slack message
 
 inputs:
   payload:
-    description: "JSON payload to send. Use `payload` or `slack-message`, but not both"
+    description: "JSON payload to send"
     required: false
   method:
     description: "The Slack API method to call"

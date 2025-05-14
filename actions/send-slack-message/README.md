@@ -3,7 +3,7 @@
 This is a composite GitHub Action used to send Slack messages to the Grafana workspace.
 You do not need to set up Slack webhooks in order to use this action.
 
-See the docs for the [slackapi/slack-github-action workflow](https://github.com/slackapi/slack-github-action/blob/main/README.md#technique-2-slack-app) for more info. Our installation is via Slack App.
+See the docs for the [slackapi/slack-github-action workflow](https://tools.slack.dev/slack-github-action/sending-techniques/sending-data-slack-api-method/#usage) for more info.
 
 <!-- x-release-please-start-version -->
 
@@ -96,10 +96,10 @@ jobs:
 
 ## Inputs
 
-| Name                | Type   | Description                                                                                                                                        |
-| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `payload`           | String | JSON payload to send. Use `payload` or `slack-message`, but not both.                                                                              |
-| `method`            | String | The Slack API method to call.                                                                                                                      |
+| Name                | Type   | Description                                                                                                                                       |
+| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `payload`           | String | JSON payload to send.                                                                             |
+| `method`            | String | The Slack API method to call.                                                                                                                     |
 | `payload-templated` | String | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true. |
 
 ## Outputs
