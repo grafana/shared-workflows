@@ -96,10 +96,10 @@ jobs:
 
 ## Inputs
 
-| Name                | Type   | Description                                                                                                                                       |
-| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `payload`           | String | JSON payload to send.                                                                             |
-| `method`            | String | The Slack API method to call.                                                                                                                     |
+| Name                | Type   | Description                                                                                                                                        |
+| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `payload`           | String | JSON payload to send.                                                                                                                              |
+| `method`            | String | The Slack API method to call.                                                                                                                      |
 | `payload-templated` | String | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true. |
 
 ## Outputs
