@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.1](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.4.0...login-to-gar-v0.4.1) (2025-05-15)
+
+
+### 📝 Documentation
+
+* add inputs section in login-to-gar action ([#961](https://github.com/grafana/shared-workflows/issues/961)) ([3ce65db](https://github.com/grafana/shared-workflows/commit/3ce65db098d2e00917a8b98c49a5417dd7a8797a))
+* **multiple-actions:** move permissions to job level in workflow examples ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple-actions:** move permissions to job level in workflows ([#969](https://github.com/grafana/shared-workflows/issues/969)) ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+
 ## [0.4.0](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.3.0...login-to-gar-v0.4.0) (2025-04-30)
 
 
