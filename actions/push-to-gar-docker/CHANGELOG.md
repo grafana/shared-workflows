@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.2](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.4.1...push-to-gar-docker-v0.4.2) (2025-05-15)
+
+
+### 📝 Documentation
+
+* **multiple-actions:** move permissions to job level in workflow examples ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple-actions:** move permissions to job level in workflows ([#969](https://github.com/grafana/shared-workflows/issues/969)) ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+
 ## [0.4.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.4.0...push-to-gar-docker-v0.4.1) (2025-05-07)
 
 
