@@ -21,7 +21,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/argo-lint/README.md
-  name: argo-lint
+  name: shared-workflows-argo-lint
   title: argo-lint
 spec:
   lifecycle: production
@@ -39,7 +39,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/aws-auth/README.md
-  name: aws-auth
+  name: shared-workflows-aws-auth
   title: aws-auth
 spec:
   lifecycle: production
@@ -57,8 +57,26 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/build-push-to-dockerhub/README.md
-  name: build-push-to-dockerhub
+  name: shared-workflows-build-push-to-dockerhub
   title: build-push-to-dockerhub
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Auto dismiss Dependabot alerts based on manifest path
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/dependabot-auto-triage/README.md
+  name: shared-workflows-dependabot-auto-triage
+  title: dependabot-auto-triage
 spec:
   lifecycle: production
   owner: group:platform-productivity
@@ -75,7 +93,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/dockerhub-login/README.md
-  name: dockerhub-login
+  name: shared-workflows-dockerhub-login
   title: dockerhub-login
 spec:
   lifecycle: production
@@ -93,7 +111,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/find-pr-for-commit/README.md
-  name: find-pr-for-commit
+  name: shared-workflows-find-pr-for-commit
   title: find-pr-for-commit
 spec:
   lifecycle: production
@@ -112,7 +130,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/generate-openapi-clients/README.md
-  name: generate-openapi-clients
+  name: shared-workflows-generate-openapi-clients
   title: generate-openapi-clients
 spec:
   lifecycle: production
@@ -130,7 +148,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/get-vault-secrets/README.md
-  name: get-vault-secrets
+  name: shared-workflows-get-vault-secrets
   title: get-vault-secrets
 spec:
   lifecycle: production
@@ -148,7 +166,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/lint-pr-title/README.md
-  name: lint-pr-title
+  name: shared-workflows-lint-pr-title
   title: lint-pr-title
 spec:
   lifecycle: production
@@ -166,7 +184,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gar/README.md
-  name: login-to-gar
+  name: shared-workflows-login-to-gar
   title: login-to-gar
 spec:
   lifecycle: production
@@ -184,7 +202,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gcs/README.md
-  name: login-to-gcs
+  name: shared-workflows-login-to-gcs
   title: login-to-gcs
 spec:
   lifecycle: production
@@ -202,7 +220,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/push-to-gar-docker/README.md
-  name: push-to-gar-docker
+  name: shared-workflows-push-to-gar-docker
   title: push-to-gar-docker
 spec:
   lifecycle: production
@@ -220,7 +238,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/push-to-gcs/README.md
-  name: push-to-gcs
+  name: shared-workflows-push-to-gcs
   title: push-to-gcs
 spec:
   lifecycle: production
@@ -234,10 +252,11 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: This action removes credentials stored by the actions/checkout action
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/remove-checkout-credentials/README.md
-  name: remove-checkout-credentials
+  name: shared-workflows-remove-checkout-credentials
   title: remove-checkout-credentials
 spec:
   lifecycle: production
@@ -255,7 +274,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/send-slack-message/README.md
-  name: send-slack-message
+  name: shared-workflows-send-slack-message
   title: send-slack-message
 spec:
   lifecycle: production
@@ -274,7 +293,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/setup-argo/README.md
-  name: setup-argo
+  name: shared-workflows-setup-argo
   title: setup-argo
 spec:
   lifecycle: production
@@ -293,7 +312,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/setup-conftest/README.md
-  name: setup-conftest
+  name: shared-workflows-setup-conftest
   title: setup-conftest
 spec:
   lifecycle: production
@@ -312,7 +331,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/setup-jrsonnet/README.md
-  name: setup-jrsonnet
+  name: shared-workflows-setup-jrsonnet
   title: setup-jrsonnet
 spec:
   lifecycle: production
@@ -330,7 +349,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/techdocs-rewrite-relative-links/README.md
-  name: techdocs-rewrite-relative-links
+  name: shared-workflows-techdocs-rewrite-relative-links
   title: techdocs-rewrite-relative-links
 spec:
   lifecycle: production
@@ -348,7 +367,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/trigger-argo-workflow/README.md
-  name: trigger-argo-workflow
+  name: shared-workflows-trigger-argo-workflow
   title: trigger-argo-workflow
 spec:
   lifecycle: production
@@ -366,7 +385,7 @@ metadata:
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/validate-policy-bot-config/README.md
-  name: validate-policy-bot-config
+  name: shared-workflows-validate-policy-bot-config
   title: validate-policy-bot-config
 spec:
   lifecycle: production

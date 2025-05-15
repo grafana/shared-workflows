@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/hairyhenderson/go-codeowners"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/yaml"
 )
 
@@ -147,7 +148,7 @@ func main() {
 			APIVersion: "backstage.io/v1alpha1",
 			Kind:       "Component",
 			Metadata: CatalogInfoMetadata{
-				Name:        action.Slug,
+				Name:        "shared-workflows-" + action.Slug,
 				Title:       action.Slug,
 				Description: action.Description,
 				Annotations: map[string]string{
@@ -166,6 +167,11 @@ func main() {
 				Owner:          fmt.Sprintf("group:%s", primaryOwner),
 				SubcomponentOf: "component:shared-workflows",
 			},
+		}
+
+		if errors := validation.IsQualifiedName(info.Metadata.Name); len(errors) > 0 {
+			logger.Error("entity name invalid", "entity-name", info.Metadata.Name, "errors", errors)
+			os.Exit(1)
 		}
 		err := writeYAML(&output, info)
 		if err != nil {
