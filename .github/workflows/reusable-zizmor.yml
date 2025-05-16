@@ -75,7 +75,6 @@ jobs:
       owner: ${{ steps.get-job-workflow-ref.outputs.owner }}
       repo: ${{ steps.get-job-workflow-ref.outputs.repo }}
       sha: ${{ steps.get-job-workflow-ref.outputs.sha }}
-      success: ${{ steps.get-job-workflow-ref.outputs.success }}
 
     steps:
       - id: setup-node
@@ -208,7 +207,6 @@ jobs:
               core.setOutput('owner', owner);
               core.setOutput('repo', repo);
               core.setOutput('sha', sha);
-              core.setOutput('success', 'true');
             } catch (error) {
               // On errors, we log an error messge, but we don't fail. It's
               // better to run with the default config than not run at all.
@@ -242,6 +240,7 @@ jobs:
       ZIZMOR_VERSION: 1.6.0
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
+      DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -258,14 +257,14 @@ jobs:
       - name: Restore config from cache
         id: cache-config
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        if: needs.job-workflow-ref.outputs.success == 'true'
+        if: env.DEFAULT_ZIZMOR_CONFIG_DOWNLOADED
         with:
           path: ${{ runner.temp }}/zizmor.yml
           key: zizmor-config-${{ needs.job-workflow-ref.outputs.repo }}-${{ needs.job-workflow-ref.outputs.sha }}
 
       - name: Fetch Zizmor Config
         id: fetch-config
-        if: steps.cache-config.outputs.cache-hit != 'true' && needs.job-workflow-ref.outputs.success == 'true'
+        if: steps.cache-config.outputs.cache-hit != 'true' && env.DEFAULT_ZIZMOR_CONFIG_DOWNLOADED
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           OWNER: ${{ needs.job-workflow-ref.outputs.owner }}
@@ -330,7 +329,6 @@ jobs:
         id: setup-config
         env:
           FORCE_DEFAULT_CONFIG: ${{ inputs.always-use-default-config && 'true' || '' }}
-          DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.success == 'true' && 'true' || '' }}
         shell: sh
         run: |
           if [ -z "${FORCE_DEFAULT_CONFIG}" ]; then
