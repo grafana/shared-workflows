@@ -53,11 +53,6 @@ jobs:
 | `docker-buildx-driver` | String | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                   |
 | `secrets`              | List   | Secret(s) to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.            |
 
-```yaml
-secrets: |
-  GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
-```
-
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
 ## Notes

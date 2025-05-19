@@ -73,11 +73,6 @@ input.
 | `delete_credentials_file` | Boolean | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. (Default: `true`)                      |
 | `secrets`                 | List    | Secret(s) to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.                            |
 
-```yaml
-secrets: |
-  GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
-```
-
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
 ## Outputs
