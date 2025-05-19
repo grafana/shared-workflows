@@ -80,11 +80,7 @@ inputs:
     default: "true"
   secrets:
     description: |
-      List of secrets to expose to the build.
-      Building from the current repository automatically uses the GitHub token, so it does not need to be passed.
-      If you want to authentiated against a different private repository, you will need to pass a secret named `GIT_AUTH_TOKEN` to be able to authenticate against it with Buildx.
-      `secrets: |
-        GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}`
+      Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
     required: false
 
 outputs:
