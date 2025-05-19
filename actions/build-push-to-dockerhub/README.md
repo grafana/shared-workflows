@@ -51,6 +51,13 @@ jobs:
 | `cache-from`           | String | Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)) |
 | `cache-to`             | String | Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))    |
 | `docker-buildx-driver` | String | The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx                                   |
+| `buildkit_secrets`     | List   | Secret(s) to expose to the build. Only needed when autheticating to private repositories separate from the repository in which the image is being built.       |
+
+```yaml
+buildkit_secrets: |
+  GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
+```
+
 
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
