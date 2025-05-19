@@ -1,0 +1,27 @@
+{
+  "name": "get-latest-workflow-artifact-action",
+  "version": "1.0.0",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grafana/get-latest-workflow-artifact-action.git"
+  },
+  "main": "dist/main.js",
+  "dependencies": {
+    "@actions/artifact": "^2.3.2",
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.15.18"
+  },
+  "bugs": {
+    "url": "https://github.com/grafana/get-latest-workflow-artifact-action/issues"
+  },
+  "description": "",
+  "homepage": "https://github.com/grafana/get-latest-workflow-artifact-action#readme",
+  "license": "ISC",
+  "private": true,
+  "scripts": {}
+}

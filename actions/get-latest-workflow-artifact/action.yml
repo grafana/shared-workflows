@@ -1,0 +1,65 @@
+name: get-latest-workflow-artifact
+description: Retrieve a specific artifact of the latest run of a workflow for a pull request
+inputs:
+  artifact-name:
+    description: Name of a specific artifact
+    required: true
+  workflow-id:
+    description: ID of the workflow inside the current repository
+    required: true
+  repository:
+    description: Repository of the target workflow (e.g. `grafana/grafana`)
+    required: false
+    default: ${{ github.repository }}
+  pr-number:
+    description: Pull request the workflow run is associated with
+    required: false
+    default: ${{ github.event.pull_request.number }}
+  github-token:
+    description: GitHub token to access the workflow and artifact
+    required: false
+    default: ${{ github.token }}
+  path:
+    description: Destination path
+    required: false
+    default: ${{ github.workspace }}
+
+outputs:
+  artifact-download-path:
+    description: Path of the downloaded artifact
+    value: ${{ steps.get-artifact.outputs.artifact-download-path }}
+  artifact-id:
+    description: ID of the downloaded artifact
+    value: ${{ steps.get-artifact.outputs.artifact-id }}
+  workflow-run-id:
+    description: ID of the considered workflow run
+    value: ${{ steps.get-artifact.outputs.workflow-run-id }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install bun package manager
+      uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
+      with:
+        bun-version-file: ${{ github.action_path }}/.bun-version
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        bun install --frozen-lockfile --production
+
+    - name: Get latest workflow artifact
+      id: get-artifact
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
+        INPUT_ARTIFACT-NAME: ${{ inputs.artifact-name }}
+        INPUT_WORKFLOW-ID: ${{ inputs.workflow-id }}
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_PR-NUMBER: ${{ inputs.pr-number }}
+        INPUT_PATH: ${{ inputs.path }}
+        NODE_ENV: "production"
+      run: |
+        bun run src/main.ts

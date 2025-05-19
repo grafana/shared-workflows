@@ -137,6 +137,11 @@
     "actions/dependabot-auto-triage": {
       "package-name": "dependabot-auto-triage",
       "extra-files": ["README.md"]
+    },
+    "actions/get-latest-workflow-artifact": {
+      "package-name": "get-latest-workflow-artifact",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
