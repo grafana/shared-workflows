@@ -1,5 +1,6 @@
 name: Push to artifact registry
 description: Composite action to push to Google Artifact Registry
+
 inputs:
   registry:
     description: |
@@ -77,6 +78,10 @@ inputs:
       Delete the credentials file after the action is finished.
       If you want to keep the credentials file for a later step, set this to false.
     default: "true"
+  secrets:
+    description: |
+      Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
+    required: false
 
 outputs:
   version:
@@ -183,6 +188,7 @@ runs:
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
         build-contexts: ${{ inputs.build-contexts }}
+        secrets: ${{ inputs.secrets }}
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
