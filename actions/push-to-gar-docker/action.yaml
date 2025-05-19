@@ -78,7 +78,7 @@ inputs:
       Delete the credentials file after the action is finished.
       If you want to keep the credentials file for a later step, set this to false.
     default: "true"
-  buildkit_secrets:
+  secrets:
     description: |
       List of secrets to expose to the build.
       Building from the current repository automatically uses the GitHub token, so it does not need to be passed.
@@ -192,7 +192,7 @@ runs:
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
         build-contexts: ${{ inputs.build-contexts }}
-        secrets: ${{ inputs.buildkit_secrets }}
+        secrets: ${{ inputs.secrets }}
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}

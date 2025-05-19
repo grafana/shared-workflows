@@ -71,10 +71,10 @@ input.
 | `labels`                  | List    | List of custom labels to add to the image as metadata (see the [metadata-action](https://github.com/docker/metadata-action?tab=readme-ov-file#inputs)) for details             |
 | `target`                  | String  | Name of the [build stage](https://docs.docker.com/build/building/multi-stage/) to target.                                                                                      |
 | `delete_credentials_file` | Boolean | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. (Default: `true`)                      |
-| `buildkit_secrets`        | List    | Secret(s) to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.                            |
+| `secrets`        | List    | Secret(s) to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.                            |
 
 ```yaml
-buildkit_secrets: |
+secrets: |
   GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
 ```
 
