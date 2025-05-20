@@ -144,6 +144,25 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Retrieve a specific artifact of the latest run of a workflow for a
+    pull request
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/get-latest-workflow-artifact/README.md
+  name: shared-workflows-get-latest-workflow-artifact
+  title: get-latest-workflow-artifact
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Composite action (step) to get secrets from Grafana Labs' Vault instance.
   links:
   - title: README
