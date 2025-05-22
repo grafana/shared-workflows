@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.4.1...push-to-gar-docker-v0.5.0) (2025-05-22)
+
+
+### 🎉 Features
+
+* **push-to-gar-docker,build-push-to-dockerhub:** add support for buildkit secrets ([#990](https://github.com/grafana/shared-workflows/issues/990)) ([bfed586](https://github.com/grafana/shared-workflows/commit/bfed586d71f4799f2506878776b481d00ca84bda))
+
+
+### 📝 Documentation
+
+* **multiple-actions:** move permissions to job level in workflow examples ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple-actions:** move permissions to job level in workflows ([#969](https://github.com/grafana/shared-workflows/issues/969)) ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+
 ## [0.4.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.4.0...push-to-gar-docker-v0.4.1) (2025-05-07)
 
 
