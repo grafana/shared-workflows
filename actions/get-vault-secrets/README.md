@@ -1,7 +1,7 @@
 # get-vault-secrets
 
 > [!NOTE]
-> If you are at Grafana Labs, follow these steps in the [internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/vault/#ci-secrets) for the paths where this workflow can read secrets from.
+> If you are at Grafana Labs, follow these steps in the [internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/#vault-storing-your-secrets) for Vault instructions and best practices.
 
 From a `grafana/` org repository, get a secret from the Grafana vault instance.
 The secret format is defined here: <https://github.com/hashicorp/vault-action>
