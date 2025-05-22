@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/argo-lint-v1.0.1...argo-lint-v1.0.2) (2025-05-22)
+
+
+### 🐛 Bug Fixes
+
+* ensure every action disables git credential persistence ([#821](https://github.com/grafana/shared-workflows/issues/821)) ([31ebf3f](https://github.com/grafana/shared-workflows/commit/31ebf3f8e5d0f8709e6ec4ef73b39dd2bd08f959))
+
+
+### 🔧 Miscellaneous Chores
+
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/argo-lint-v1.0.0...argo-lint-v1.0.1) (2025-01-29)
 
 
