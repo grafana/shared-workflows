@@ -29,6 +29,14 @@ inputs:
     description: |
       The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.
     default: info
+  action_repo:
+    description: |
+      The repository to use for the action. Defaults to `grafana/shared-workflows`.
+    default: ${{ github.action_repository }}
+  action_ref:
+    description: |
+      The ref to use for the action. Defaults to `main`.
+    default: ${{ github.action_ref }}
 
 outputs:
   uri:
@@ -45,8 +53,8 @@ runs:
         # In a composite action, these two need to be indirected via the
         # environment, as per the GitHub actions documentation:
         # https://docs.github.com/en/actions/learn-github-actions/contexts
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
+        action_repo: ${{ inputs.action_repo }}
+        action_ref: ${{ inputs.action_ref }}
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: ${{ env.action_repo }}
