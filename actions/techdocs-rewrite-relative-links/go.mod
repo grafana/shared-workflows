@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/aymanbagabas/go-udiff v0.2.0
-	github.com/lmittmann/tint v1.0.7
+	github.com/lmittmann/tint v1.1.0
 	github.com/neilotoole/slogt v1.1.0
 	github.com/spf13/afero v1.14.0
 	github.com/stretchr/testify v1.10.0
