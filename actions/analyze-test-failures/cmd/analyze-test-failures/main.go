@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -25,6 +26,8 @@ type Config struct {
 	TimeRange        string
 	GitHubToken      string
 	WorkingDirectory string
+	DryRun           bool
+	MaxFailures      int
 }
 
 type LokiResponse struct {
@@ -38,13 +41,20 @@ type LokiResponse struct {
 	} `json:"data"`
 }
 
-type TestFailure struct {
+type CommitInfo struct {
+	Hash      string    `json:"hash"`
+	Author    string    `json:"author"`
+	Timestamp time.Time `json:"timestamp"`
+	Title     string    `json:"title"`
+}
+
+type FlakyTest struct {
 	TestName         string         `json:"test_name"`
 	FilePath         string         `json:"file_path"`
 	TotalFailures    int            `json:"total_failures"`
 	BranchCounts     map[string]int `json:"branch_counts"`
 	ExampleWorkflows []string       `json:"example_workflows"`
-	RecentAuthors    []string       `json:"recent_authors"`
+	RecentCommits    []CommitInfo   `json:"recent_commits"`
 }
 
 type RawLogEntry struct {
@@ -54,10 +64,10 @@ type RawLogEntry struct {
 }
 
 type AnalysisResult struct {
-	FailureCount    int           `json:"failure_count"`
-	AnalysisSummary string        `json:"analysis_summary"`
-	ReportPath      string        `json:"report_path"`
-	TestFailures    []TestFailure `json:"test_failures"`
+	TestCount       int         `json:"test_count"`
+	AnalysisSummary string      `json:"analysis_summary"`
+	ReportPath      string      `json:"report_path"`
+	FlakyTests      []FlakyTest `json:"flaky_tests"`
 }
 
 func main() {
@@ -77,6 +87,8 @@ func getConfigFromEnv() Config {
 		TimeRange:        getEnvWithDefault("TIME_RANGE", "24h"),
 		GitHubToken:      os.Getenv("GITHUB_TOKEN"),
 		WorkingDirectory: getEnvWithDefault("WORKING_DIRECTORY", "."),
+		DryRun:           getBoolEnvWithDefault("DRY_RUN", true),
+		MaxFailures:      getIntEnvWithDefault("MAX_FAILURES", 3),
 	}
 }
 
@@ -87,10 +99,27 @@ func getEnvWithDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
+func getBoolEnvWithDefault(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		return value == "true" || value == "1"
+	}
+	return defaultValue
+}
+
+func getIntEnvWithDefault(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
+	}
+	return defaultValue
+}
+
 func run(config Config) error {
 	log.Printf("🔍 Starting test failure analysis for repository: %s", config.Repository)
 	log.Printf("📅 Time range: %s", config.TimeRange)
 	log.Printf("🔗 Loki URL: %s", config.LokiURL)
+	log.Printf("📊 Max failures to process: %d", config.MaxFailures)
 
 	// Fetch logs from Loki
 	log.Printf("📡 Fetching logs from Loki...")
@@ -101,40 +130,68 @@ func run(config Config) error {
 
 	// Parse and analyze test failures
 	log.Printf("📊 Parsing test failures from log data...")
-	failures, err := parseTestFailures(logs, config.WorkingDirectory)
+	flakyTests, err := parseTestFailures(logs, config.WorkingDirectory)
 	if err != nil {
 		return fmt.Errorf("failed to parse test failures: %w", err)
 	}
-	failures = failures[:4] // Limit to top 4 failures for performance
-
-	log.Printf("🧪 Found %d flaky tests that meet criteria", len(failures))
-	log.Printf("📁 Finding test files in repository...")
-	err = findFilePaths(config.WorkingDirectory, failures)
-	if err != nil {
-		return fmt.Errorf("failed to find file paths for test failures: %w", err)
+	// Limit to configured max tests for performance
+	if len(flakyTests) > config.MaxFailures {
+		flakyTests = flakyTests[:config.MaxFailures]
 	}
 
-	// Find authors of failing tests
-	log.Printf("👥 Finding authors of failing tests...")
-	_, err = findTestAuthors(config.WorkingDirectory, config.GitHubToken, failures)
+	log.Printf("🧪 Found %d flaky tests that meet criteria", len(flakyTests))
+	log.Printf("📁 Finding test files in repository...")
+	err = findFilePaths(config.WorkingDirectory, flakyTests)
+	if err != nil {
+		return fmt.Errorf("failed to find file paths for flaky tests: %w", err)
+	}
+
+	// Find authors of flaky tests
+	log.Printf("👥 Finding authors of flaky tests...")
+	err = findTestAuthors(config.WorkingDirectory, config.GitHubToken, flakyTests)
 	if err != nil {
 		return fmt.Errorf("failed to find test authors: %w", err)
 	}
 
 	// Log authors for each test
-	for _, failure := range failures {
-		if len(failure.RecentAuthors) > 0 {
-			log.Printf("👤 %s: %s", failure.TestName, strings.Join(failure.RecentAuthors, ", "))
+	for _, test := range flakyTests {
+		if len(test.RecentCommits) > 0 {
+			var authors []string
+			for _, commit := range test.RecentCommits {
+				if commit.Author != "" && commit.Author != "unknown" {
+					authors = append(authors, commit.Author)
+				}
+			}
+			if len(authors) > 0 {
+				log.Printf("👤 %s: %s", test.TestName, strings.Join(authors, ", "))
+			} else {
+				log.Printf("👤 %s: no authors found", test.TestName)
+			}
 		} else {
-			log.Printf("👤 %s: no authors found", failure.TestName)
+			log.Printf("👤 %s: no commits found", test.TestName)
+		}
+	}
+
+	// Create GitHub issues for flaky tests
+	if config.DryRun {
+		log.Printf("🔍 Dry run mode: Generating issue previews...")
+		err = previewIssuesForFlakyTests(flakyTests)
+		if err != nil {
+			return fmt.Errorf("failed to preview GitHub issues: %w", err)
+		}
+	} else {
+		log.Printf("📝 Creating GitHub issues for flaky tests...")
+		err = createIssuesForFlakyTests(config.Repository, config.GitHubToken, flakyTests)
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub issues: %w", err)
 		}
 	}
 
 	// Generate analysis result
 	result := AnalysisResult{
-		FailureCount:    len(failures),
-		AnalysisSummary: generateSummary(failures),
-		TestFailures:    failures,
+		TestCount:       len(flakyTests),
+		AnalysisSummary: generateSummary(flakyTests),
+		FlakyTests:      flakyTests,
 	}
 
 	// Generate report
@@ -147,7 +204,7 @@ func run(config Config) error {
 	log.Printf("💾 Report saved to: %s", reportPath)
 
 	// Set GitHub Actions outputs
-	setGitHubOutput("failure-count", fmt.Sprintf("%d", result.FailureCount))
+	setGitHubOutput("test-count", fmt.Sprintf("%d", result.TestCount))
 	setGitHubOutput("analysis-summary", result.AnalysisSummary)
 	setGitHubOutput("report-path", result.ReportPath)
 
@@ -155,13 +212,13 @@ func run(config Config) error {
 	return nil
 }
 
-func findFilePaths(workingDir string, failures []TestFailure) error {
-	for i, failure := range failures {
-		filePath, err := findTestFilePath(workingDir, failure.TestName)
+func findFilePaths(workingDir string, flakyTests []FlakyTest) error {
+	for i, test := range flakyTests {
+		filePath, err := findTestFilePath(workingDir, test.TestName)
 		if err != nil {
-			return fmt.Errorf("failed to find file path for test %s: %w", failure.TestName, err)
+			return fmt.Errorf("failed to find file path for test %s: %w", test.TestName, err)
 		}
-		failures[i].FilePath = filePath
+		flakyTests[i].FilePath = filePath
 	}
 	return nil
 }
@@ -253,7 +310,7 @@ func buildLogQLQuery(repository, timeRange string) string {
 	return fmt.Sprintf(`{service_name="%s", service_namespace="cicd-o11y"} |= "--- FAIL: Test" | json | __error__="" | resources_ci_github_workflow_run_conclusion!="cancelled" | line_format "{{.body}}" | regexp "--- FAIL: (?P<test_name>.*) \\(\\d" | line_format "{{.test_name}}" | regexp `+"`(?P<parent_test_name>Test[a-z0-9A-Z_]+)`", repository)
 }
 
-func parseTestFailures(logsJSON, workingDir string) ([]TestFailure, error) {
+func parseTestFailures(logsJSON, workingDir string) ([]FlakyTest, error) {
 	var lokiResp LokiResponse
 	if err := json.Unmarshal([]byte(logsJSON), &lokiResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Loki response: %w", err)
@@ -283,7 +340,7 @@ func parseTestFailures(logsJSON, workingDir string) ([]TestFailure, error) {
 	return detectFlakyTestsFromRawEntries(rawEntries, workingDir), nil
 }
 
-func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, workingDir string) []TestFailure {
+func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, workingDir string) []FlakyTest {
 	// Group entries by test name
 	testMap := make(map[string]map[string]int)           // testName -> branch -> failureCount
 	exampleWorkflows := make(map[string]map[string]bool) // testName -> Workflow URL -> seen
@@ -308,7 +365,7 @@ func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, workingDir string)
 		}
 	}
 
-	var flakyTests []TestFailure
+	var flakyTests []FlakyTest
 
 	for testName, branches := range testMap {
 		isFlaky := false
@@ -346,7 +403,7 @@ func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, workingDir string)
 			workflowURLs = append(workflowURLs, workflowURL)
 		}
 
-		flakyTests = append(flakyTests, TestFailure{
+		flakyTests = append(flakyTests, FlakyTest{
 			TestName:         testName,
 			TotalFailures:    totalFailures,
 			BranchCounts:     branches,
@@ -365,8 +422,8 @@ func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, workingDir string)
 }
 
 // sortFlakyTests sorts flaky tests by the number of branches they failed on (descending)
-func sortFlakyTests(tests []TestFailure) []TestFailure {
-	slices.SortFunc(tests, func(a, b TestFailure) int {
+func sortFlakyTests(tests []FlakyTest) []FlakyTest {
+	slices.SortFunc(tests, func(a, b FlakyTest) int {
 		return len(b.BranchCounts) - len(a.BranchCounts)
 	})
 	return tests
@@ -425,73 +482,84 @@ func guessTestFilePath(testName string) string {
 	return "unknown_test_file"
 }
 
-func findTestAuthors(workingDir, githubToken string, failures []TestFailure) ([]string, error) {
-	authorsMap := make(map[string]bool)
-
-	for i, failure := range failures {
-		authors, err := getFileAuthors(workingDir, failure.FilePath, failure.TestName, githubToken)
+func findTestAuthors(workingDir, githubToken string, flakyTests []FlakyTest) error {
+	for i, test := range flakyTests {
+		commits, err := getFileAuthors(workingDir, test.FilePath, test.TestName, githubToken)
 		if err != nil {
-			log.Printf("Warning: failed to get authors for test %s in %s: %v", failure.TestName, failure.FilePath, err)
-			continue
+			return fmt.Errorf("failed to get authors for test %s in %s: %w", test.TestName, test.FilePath, err)
 		}
-
-		// Store the recent authors for this test (already limited to 3 by git log -3)
-		failures[i].RecentAuthors = authors
-
-		for _, author := range authors {
-			authorsMap[author] = true
-		}
+		flakyTests[i].RecentCommits = commits
 	}
-
-	var uniqueAuthors []string
-	for author := range authorsMap {
-		uniqueAuthors = append(uniqueAuthors, author)
-	}
-
-	return uniqueAuthors, nil
+	return nil
 }
 
-func getFileAuthors(workingDir, filePath, testName, githubToken string) ([]string, error) {
+func getFileAuthors(workingDir, filePath, testName, githubToken string) ([]CommitInfo, error) {
 	// Use git log -L to find the last 3 commits that modified the specific test function
-	cmd := exec.Command("git", "log", "-3", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H", "-s")
+	cmd := exec.Command("git", "log", "-3", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H|%ct|%s", "-s")
 	cmd.Dir = workingDir
 
 	result, err := cmd.Output()
 	if err != nil {
 		log.Printf("Warning: failed to get git log for test %s in %s: %v", testName, filePath, err)
-		return []string{}, nil
+		return []CommitInfo{}, nil
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(result)), "\n")
 	if len(lines) == 0 || lines[0] == "" {
 		log.Printf("Warning: no git log results for test %s in %s", testName, filePath)
-		return []string{}, nil
+		return []CommitInfo{}, nil
 	}
 
 	// Get GitHub usernames for the commits (in order)
-	var authors []string
-	seenAuthors := make(map[string]bool)
+	var commits []CommitInfo
+	sixMonthsAgo := time.Now().AddDate(0, -6, 0)
 
 	for _, line := range lines {
-		hash := strings.TrimSpace(line)
+		parts := strings.SplitN(strings.TrimSpace(line), "|", 3)
+		if len(parts) != 3 {
+			return nil, fmt.Errorf("invalid git log format for test %s in %s: %s", testName, filePath, line)
+		}
+
+		hash := parts[0]
+		timestampStr := parts[1]
+		title := parts[2]
+
 		if hash == "" {
+			continue
+		}
+
+		// Parse timestamp
+		var timestamp time.Time
+		if timestampUnix, err := strconv.ParseInt(timestampStr, 10, 64); err == nil {
+			timestamp = time.Unix(timestampUnix, 0)
+		}
+
+		// Skip commits older than 6 months
+		if timestamp.Before(sixMonthsAgo) {
 			continue
 		}
 
 		username, err := getGitHubUsernameForCommit(hash, githubToken)
 		if err != nil {
 			log.Printf("Warning: failed to get GitHub username for commit %s: %v", hash, err)
-			continue
+			username = "unknown"
 		}
 
-		// Only add unique authors to preserve order
-		if username != "" && !strings.HasSuffix(username, "[bot]") && !seenAuthors[username] {
-			authors = append(authors, username)
-			seenAuthors[username] = true
+		if username == "tomwilkie" {
+			continue // Tom is unlikely to fix our flaky tests.
 		}
+
+		// Create commit info
+		commitInfo := CommitInfo{
+			Hash:      hash,
+			Author:    username,
+			Timestamp: timestamp,
+			Title:     title,
+		}
+		commits = append(commits, commitInfo)
 	}
 
-	return authors, nil
+	return commits, nil
 }
 
 type GitHubCommitSearchResponse []GitHubCommitSearchItem
@@ -533,28 +601,289 @@ func getGitHubUsernameForCommit(commitHash, githubToken string) (string, error) 
 	return "", fmt.Errorf("no GitHub username found for commit %s", commitHash)
 }
 
-func generateSummary(failures []TestFailure) string {
-	if len(failures) == 0 {
-		return "No test failures found in the specified time range."
+func createIssuesForFlakyTests(repository, githubToken string, flakyTests []FlakyTest) error {
+	for _, test := range flakyTests {
+		err := createOrUpdateIssueForTest(repository, githubToken, test)
+		if err != nil {
+			log.Printf("Warning: failed to create issue for test %s: %v", test.TestName, err)
+		}
 	}
-
-	return fmt.Sprintf("Found %d test failures. Most common failures: %s",
-		len(failures), getMostCommonFailures(failures))
+	return nil
 }
 
-func getMostCommonFailures(failures []TestFailure) string {
-	if len(failures) == 0 {
+func previewIssuesForFlakyTests(flakyTests []FlakyTest) error {
+	for _, test := range flakyTests {
+		err := previewIssueForTest(test)
+		if err != nil {
+			log.Printf("Warning: failed to preview issue for test %s: %v", test.TestName, err)
+		}
+	}
+	return nil
+}
+
+func previewIssueForTest(test FlakyTest) error {
+	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
+
+	log.Printf("📄 Issue preview for %s:", test.TestName)
+	log.Printf("Title: %s", issueTitle)
+	log.Printf("Labels: flaky-test")
+
+	issueBody, err := generateInitialIssueBody(test)
+	if err != nil {
+		return fmt.Errorf("failed to generate issue body: %w", err)
+	}
+
+	log.Printf("Initial Body:\n%s", issueBody)
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+
+	commentBody, err := generateCommentBody(test)
+	if err != nil {
+		return fmt.Errorf("failed to generate comment body: %w", err)
+	}
+
+	log.Printf("Comment Body:\n%s", commentBody)
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+
+	return nil
+}
+
+func createOrUpdateIssueForTest(repository, githubToken string, test FlakyTest) error {
+	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
+
+	// Search for existing issue
+	existingIssueURL, err := searchForExistingIssue(repository, githubToken, issueTitle)
+	if err != nil {
+		log.Printf("Warning: failed to search for existing issue: %v", err)
+	}
+
+	if existingIssueURL != "" {
+		log.Printf("📝 Found existing issue for %s, adding comment: %s", test.TestName, existingIssueURL)
+		return addCommentToIssue(repository, githubToken, existingIssueURL, test)
+	}
+
+	// Create new issue
+	log.Printf("📝 Creating new issue for flaky test: %s", test.TestName)
+	issueBody, err := generateInitialIssueBody(test)
+	if err != nil {
+		return fmt.Errorf("failed to generate issue body: %w", err)
+	}
+
+	cmd := exec.Command("gh", "issue", "create",
+		"--repo", repository,
+		"--title", issueTitle,
+		"--body", issueBody,
+		"--label", "flaky-test")
+
+	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
+
+	result, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to create issue: %w (output: %s)", err, string(result))
+	}
+
+	issueURL := strings.TrimSpace(string(result))
+	log.Printf("✅ Created issue for %s: %s", test.TestName, issueURL)
+
+	// Add initial comment with current analysis
+	return addCommentToIssue(repository, githubToken, issueURL, test)
+}
+
+func searchForExistingIssue(repository, githubToken string, issueTitle string) (string, error) {
+	cmd := exec.Command("gh", "issue", "list",
+		"--repo", repository,
+		"--search", fmt.Sprintf("\"%s\"", issueTitle),
+		"--state", "all",
+		"--json", "url,title,state")
+
+	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
+
+	result, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to search issues: %w", err)
+	}
+
+	var issues []struct {
+		URL   string `json:"url"`
+		Title string `json:"title"`
+		State string `json:"state"`
+	}
+
+	if err := json.Unmarshal(result, &issues); err != nil {
+		return "", fmt.Errorf("failed to parse issue search response: %w", err)
+	}
+
+	for _, issue := range issues {
+		if issue.Title == issueTitle {
+			// If the issue is closed, reopen it
+			if issue.State == "CLOSED" {
+				log.Printf("🔄 Reopening closed issue for %s: %s", issueTitle, issue.URL)
+				err := reopenIssue(repository, githubToken, issue.URL)
+				if err != nil {
+					log.Printf("Warning: failed to reopen issue %s: %v", issue.URL, err)
+				}
+			}
+			return issue.URL, nil
+		}
+	}
+
+	return "", nil
+}
+
+func reopenIssue(repository, githubToken, issueURL string) error {
+	cmd := exec.Command("gh", "issue", "reopen", issueURL, "--repo", repository)
+	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
+
+	result, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to reopen issue: %w (output: %s)", err, string(result))
+	}
+
+	log.Printf("✅ Reopened issue: %s", issueURL)
+	return nil
+}
+
+func addCommentToIssue(repository, githubToken, issueURL string, test FlakyTest) error {
+	commentBody, err := generateCommentBody(test)
+	if err != nil {
+		return fmt.Errorf("failed to generate comment body: %w", err)
+	}
+
+	cmd := exec.Command("gh", "issue", "comment", issueURL,
+		"--repo", repository,
+		"--body", commentBody)
+
+	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
+
+	result, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to add comment to issue: %w (output: %s)", err, string(result))
+	}
+
+	log.Printf("✅ Added comment to issue for %s", test.TestName)
+	return nil
+}
+
+const initialIssueBodyTemplate = `
+## ` + "`{{.TestName}}`\n\n`{{.FilePath}}`" + `
+
+### About This Issue
+This issue tracks a flaky test that has been detected failing inconsistently. Each week our analysis tool runs and detects this test as flaky, it will add a comment below with recent failure data and who might be able to help.
+
+### 🔍 How to investigate
+1. **Run it locally** to see if you can reproduce: ` + "`go test -count=10000 -run {{.TestName}} .`" + `
+2. **Check the failure logs** in the comments below - they might show a pattern
+3. **Look for timing issues** - race conditions, timeouts, or external dependencies
+4. **Review recent changes** - check commits that modified this test or the code under test recently
+
+### 🎯 Next steps
+- **Can you fix it?** Great! That would help the whole team
+- **Need help?** Ask someone who has worked on this area recently
+- **Can't fix it right now?** Consider adding logs and metrics so that next time it's easier to debug.
+- **Obsolete test?** Maybe it's time to remove it or with it with ` + "`t.Skip()`" + `
+
+_This test has been identified as flaky by [analyze-test-failures](https://github.com/grafana/shared-workflows/tree/main/actions/analyze-test-failures)._
+`
+
+const commentTemplate = `## 🚨 Hey there! This test is still being flaky - {{.Timestamp}}
+
+This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} different branches** in the last 7 days.
+
+{{- if .RecentCommits}}
+
+### 🕵️ Who might know about this?
+{{- range .RecentCommits}}
+- @{{.Author}} - made a relevant commit on {{.Timestamp | formatDate}}: {{.Hash}} "{{.Title}}"
+{{- end}}
+
+👆 If any of you have a few minutes, could you take a look? You might have context on what could be causing the flakiness.
+{{- end}}
+
+{{- if .ExampleWorkflows}}
+
+### 💥 Recent failures
+{{- range .ExampleWorkflows}}
+- [Failed run]({{.}}) - check the logs for clues
+{{- end}}
+{{- end}}
+
+**💡 Check the issue description above for investigation tips and next steps!**
+
+Thanks for helping keep our tests reliable! 🙏`
+
+func generateInitialIssueBody(test FlakyTest) (string, error) {
+	tmpl, err := template.New("initialIssueBody").Parse(initialIssueBodyTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse initial issue template: %w", err)
+	}
+
+	var body strings.Builder
+	if err := tmpl.Execute(&body, test); err != nil {
+		return "", fmt.Errorf("failed to execute initial issue template: %w", err)
+	}
+
+	return body.String(), nil
+}
+
+type CommentData struct {
+	FlakyTest
+	Timestamp string
+}
+
+func generateCommentBody(test FlakyTest) (string, error) {
+	tmpl, err := template.New("comment").Funcs(template.FuncMap{
+		"formatDate": func(t time.Time) string {
+			return t.Format("2006-01-02")
+		},
+	}).Parse(commentTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse comment template: %w", err)
+	}
+
+	data := CommentData{
+		FlakyTest: test,
+		Timestamp: time.Now().Format("2006-01-02 15:04:05 UTC"),
+	}
+
+	var body strings.Builder
+	if err := tmpl.Execute(&body, data); err != nil {
+		return "", fmt.Errorf("failed to execute comment template: %w", err)
+	}
+
+	return body.String(), nil
+}
+
+func generateSummary(flakyTests []FlakyTest) string {
+	if len(flakyTests) == 0 {
+		return "No flaky tests found in the specified time range."
+	}
+
+	return fmt.Sprintf("Found %d flaky tests. Most common tests: %s",
+		len(flakyTests), getMostCommonFailures(flakyTests))
+}
+
+func getMostCommonFailures(flakyTests []FlakyTest) string {
+	if len(flakyTests) == 0 {
 		return "none"
 	}
 
 	// Take top 5 and format as "TestName (X failures)"
-	limit := min(5, len(failures))
-	topFailures := make([]string, limit)
+	limit := min(5, len(flakyTests))
+	topTests := make([]string, limit)
 	for i := 0; i < limit; i++ {
-		topFailures[i] = fmt.Sprintf("%s (%d total failures; recently changed by %s)", failures[i].TestName, failures[i].TotalFailures, strings.Join(failures[i].RecentAuthors, ", "))
+		var authors []string
+		for _, commit := range flakyTests[i].RecentCommits {
+			if commit.Author != "" && commit.Author != "unknown" {
+				authors = append(authors, commit.Author)
+			}
+		}
+		authorsStr := "unknown"
+		if len(authors) > 0 {
+			authorsStr = strings.Join(authors, ", ")
+		}
+		topTests[i] = fmt.Sprintf("%s (%d total failures; recently changed by %s)", flakyTests[i].TestName, flakyTests[i].TotalFailures, authorsStr)
 	}
 
-	return strings.Join(topFailures, ", ")
+	return strings.Join(topTests, ", ")
 }
 
 func generateReport(result AnalysisResult) (string, error) {
