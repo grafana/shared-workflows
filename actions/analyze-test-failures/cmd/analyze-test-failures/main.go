@@ -20,28 +20,27 @@ import (
 
 // LokiClient interface for fetching logs from Loki
 type LokiClient interface {
-	FetchLogs(config Config) (string, error)
+	FetchLogs() (*LokiResponse, error)
 }
 
 // GitClient interface for Git operations
 type GitClient interface {
-	FindTestFile(workingDir, testName string) (string, error)
-	GetFileAuthors(workingDir, filePath, testName, githubToken string) ([]CommitInfo, error)
+	FindTestFile(testName string) (string, error)
+	GetFileAuthors(filePath, testName string) ([]CommitInfo, error)
 }
 
 // GitHubClient interface for GitHub operations
 type GitHubClient interface {
-	GetUsernameForCommit(commitHash, token string) (string, error)
-	CreateOrUpdateIssue(repo, token string, test FlakyTest) error
-	SearchForExistingIssue(repository, githubToken, issueTitle string) (string, error)
-	AddCommentToIssue(repository, githubToken, issueURL string, test FlakyTest) error
-	ReopenIssue(repository, githubToken, issueURL string) error
+	GetUsernameForCommit(commitHash string) (string, error)
+	CreateOrUpdateIssue(test FlakyTest) error
+	SearchForExistingIssue(issueTitle string) (string, error)
+	AddCommentToIssue(issueURL string, test FlakyTest) error
+	ReopenIssue(issueURL string) error
 }
 
 // FileSystem interface for file operations
 type FileSystem interface {
 	WriteFile(filename string, data []byte, perm os.FileMode) error
-	Abs(path string) (string, error)
 }
 
 // TestFailureAnalyzer is the main struct that orchestrates the analysis
@@ -62,6 +61,16 @@ func NewTestFailureAnalyzer(loki LokiClient, git GitClient, github GitHubClient,
 	}
 }
 
+// NewDefaultTestFailureAnalyzer creates a new analyzer with default implementations
+func NewDefaultTestFailureAnalyzer(config Config) *TestFailureAnalyzer {
+	lokiClient := NewDefaultLokiClient(config)
+	gitClient := NewDefaultGitClient(config)
+	githubClient := NewDefaultGitHubClient(config)
+	fileSystem := &DefaultFileSystem{}
+
+	return NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
+}
+
 type Config struct {
 	LokiURL          string
 	LokiUsername     string
@@ -75,14 +84,18 @@ type Config struct {
 }
 
 type LokiResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
-			Stream map[string]string `json:"stream"`
-			Values [][]string        `json:"values"`
-		} `json:"result"`
-	} `json:"data"`
+	Status string   `json:"status"`
+	Data   LokiData `json:"data"`
+}
+
+type LokiData struct {
+	ResultType string       `json:"resultType"`
+	Result     []LokiResult `json:"result"`
+}
+
+type LokiResult struct {
+	Stream map[string]string `json:"stream"`
+	Values [][]string        `json:"values"`
 }
 
 type CommitInfo struct {
@@ -117,44 +130,164 @@ type AnalysisResult struct {
 // Default implementations of the interfaces
 
 // DefaultLokiClient implements LokiClient using HTTP requests
-type DefaultLokiClient struct{}
+type DefaultLokiClient struct {
+	config Config
+}
 
-func (l *DefaultLokiClient) FetchLogs(config Config) (string, error) {
-	return fetchLogsFromLoki(config)
+func NewDefaultLokiClient(config Config) *DefaultLokiClient {
+	return &DefaultLokiClient{config: config}
+}
+
+func (l *DefaultLokiClient) FetchLogs() (*LokiResponse, error) {
+	logsJSON, err := fetchLogsFromLoki(l.config)
+	if err != nil {
+		return nil, err
+	}
+
+	var lokiResp LokiResponse
+	if err := json.Unmarshal([]byte(logsJSON), &lokiResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Loki response: %w", err)
+	}
+
+	return &lokiResp, nil
 }
 
 // DefaultGitClient implements GitClient using git commands
-type DefaultGitClient struct{}
-
-func (g *DefaultGitClient) FindTestFile(workingDir, testName string) (string, error) {
-	return findTestFilePath(workingDir, testName)
+type DefaultGitClient struct {
+	config Config
 }
 
-func (g *DefaultGitClient) GetFileAuthors(workingDir, filePath, testName, githubToken string) ([]CommitInfo, error) {
-	return getFileAuthors(workingDir, filePath, testName, githubToken)
+func NewDefaultGitClient(config Config) *DefaultGitClient {
+	return &DefaultGitClient{config: config}
+}
+
+func (g *DefaultGitClient) FindTestFile(testName string) (string, error) {
+	return findTestFilePath(g.config.WorkingDirectory, testName)
+}
+
+func (g *DefaultGitClient) GetFileAuthors(filePath, testName string) ([]CommitInfo, error) {
+	return getFileAuthors(g.config.WorkingDirectory, filePath, testName, g.config.GitHubToken)
 }
 
 // DefaultGitHubClient implements GitHubClient using gh CLI
-type DefaultGitHubClient struct{}
-
-func (gh *DefaultGitHubClient) GetUsernameForCommit(commitHash, token string) (string, error) {
-	return getGitHubUsernameForCommit(commitHash, token)
+type DefaultGitHubClient struct {
+	config Config
 }
 
-func (gh *DefaultGitHubClient) CreateOrUpdateIssue(repo, token string, test FlakyTest) error {
-	return createOrUpdateIssueForTest(repo, token, test)
+func NewDefaultGitHubClient(config Config) *DefaultGitHubClient {
+	return &DefaultGitHubClient{config: config}
 }
 
-func (gh *DefaultGitHubClient) SearchForExistingIssue(repository, githubToken, issueTitle string) (string, error) {
-	return searchForExistingIssue(repository, githubToken, issueTitle)
+func (gh *DefaultGitHubClient) GetUsernameForCommit(commitHash string) (string, error) {
+	return getGitHubUsernameForCommit(commitHash, gh.config.GitHubToken)
 }
 
-func (gh *DefaultGitHubClient) AddCommentToIssue(repository, githubToken, issueURL string, test FlakyTest) error {
-	return addCommentToIssue(repository, githubToken, issueURL, test)
+func (gh *DefaultGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
+	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
+
+	// Search for existing issue
+	existingIssueURL, err := gh.SearchForExistingIssue(issueTitle)
+	if err != nil {
+		log.Printf("Warning: failed to search for existing issue: %v", err)
+	}
+
+	if existingIssueURL != "" {
+		log.Printf("📝 Found existing issue for %s, adding comment: %s", test.TestName, existingIssueURL)
+		return gh.AddCommentToIssue(existingIssueURL, test)
+	}
+
+	// Create new issue
+	log.Printf("📝 Creating new issue for flaky test: %s", test.TestName)
+	issueBody, err := generateInitialIssueBody(test)
+	if err != nil {
+		return fmt.Errorf("failed to generate issue body: %w", err)
+	}
+
+	cmd := exec.Command("gh", "issue", "create",
+		"--repo", gh.config.Repository,
+		"--title", issueTitle,
+		"--body", issueBody,
+		"--label", "flaky-test")
+
+	cmd.Env = append(cmd.Env, fmt.Sprintf("GH_TOKEN=%s", gh.config.GitHubToken))
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to create GitHub issue: %w, output: %s", err, string(output))
+	}
+
+	log.Printf("📝 Created GitHub issue: %s", strings.TrimSpace(string(output)))
+
+	// Add initial comment
+	issueURL := strings.TrimSpace(string(output))
+	return gh.AddCommentToIssue(issueURL, test)
 }
 
-func (gh *DefaultGitHubClient) ReopenIssue(repository, githubToken, issueURL string) error {
-	return reopenIssue(repository, githubToken, issueURL)
+func (gh *DefaultGitHubClient) SearchForExistingIssue(issueTitle string) (string, error) {
+	return searchForExistingIssue(gh.config.Repository, gh.config.GitHubToken, issueTitle)
+}
+
+func (gh *DefaultGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest) error {
+	commentBody, err := generateCommentBody(test)
+	if err != nil {
+		return fmt.Errorf("failed to generate comment body: %w", err)
+	}
+
+	cmd := exec.Command("gh", "issue", "comment", issueURL, "--body", commentBody)
+	cmd.Env = append(cmd.Env, fmt.Sprintf("GH_TOKEN=%s", gh.config.GitHubToken))
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to add comment to GitHub issue: %w, output: %s", err, string(output))
+	}
+
+	log.Printf("📝 Added comment to GitHub issue: %s", issueURL)
+
+	// Check if the issue is closed and reopen it
+	issue, err := getIssueState(gh.config.Repository, gh.config.GitHubToken, issueURL)
+	if err != nil {
+		log.Printf("Warning: failed to check issue state: %v", err)
+		return nil // Don't fail the whole operation
+	}
+
+	if issue.State == "closed" {
+		log.Printf("📝 Issue is closed, reopening: %s", issueURL)
+		err := gh.ReopenIssue(issueURL)
+		if err != nil {
+			log.Printf("Warning: failed to reopen issue: %v", err)
+		}
+	}
+
+	return nil
+}
+
+type GitHubIssue struct {
+	State string `json:"state"`
+	URL   string `json:"url"`
+	Title string `json:"title"`
+}
+
+func getIssueState(repository, githubToken, issueURL string) (*GitHubIssue, error) {
+	cmd := exec.Command("gh", "issue", "view", issueURL,
+		"--repo", repository,
+		"--json", "state,url,title")
+	cmd.Env = append(cmd.Env, fmt.Sprintf("GH_TOKEN=%s", githubToken))
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get issue state: %w, output: %s", err, string(output))
+	}
+
+	var issue GitHubIssue
+	if err := json.Unmarshal(output, &issue); err != nil {
+		return nil, fmt.Errorf("failed to parse issue state response: %w", err)
+	}
+
+	return &issue, nil
+}
+
+func (gh *DefaultGitHubClient) ReopenIssue(issueURL string) error {
+	return reopenIssue(gh.config.Repository, gh.config.GitHubToken, issueURL)
 }
 
 // DefaultFileSystem implements FileSystem using os functions
@@ -164,20 +297,10 @@ func (fs *DefaultFileSystem) WriteFile(filename string, data []byte, perm os.Fil
 	return os.WriteFile(filename, data, perm)
 }
 
-func (fs *DefaultFileSystem) Abs(path string) (string, error) {
-	return filepath.Abs(path)
-}
-
 func main() {
 	config := getConfigFromEnv()
 
-	// Create default implementations
-	lokiClient := &DefaultLokiClient{}
-	gitClient := &DefaultGitClient{}
-	githubClient := &DefaultGitHubClient{}
-	fileSystem := &DefaultFileSystem{}
-
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
+	analyzer := NewDefaultTestFailureAnalyzer(config)
 
 	if err := analyzer.Run(config); err != nil {
 		log.Fatalf("Error: %v", err)
@@ -230,14 +353,14 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 
 	// Fetch logs from Loki
 	log.Printf("📡 Fetching logs from Loki...")
-	logs, err := t.lokiClient.FetchLogs(config)
+	lokiResp, err := t.lokiClient.FetchLogs()
 	if err != nil {
 		return fmt.Errorf("failed to fetch logs from Loki: %w", err)
 	}
 
 	// Parse and analyze test failures
 	log.Printf("📊 Parsing test failures from log data...")
-	flakyTests, err := parseTestFailures(logs, config.WorkingDirectory)
+	flakyTests, err := parseTestFailuresFromResponse(lokiResp, config.WorkingDirectory)
 	if err != nil {
 		return fmt.Errorf("failed to parse test failures: %w", err)
 	}
@@ -326,7 +449,7 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 
 func (t *TestFailureAnalyzer) findFilePaths(workingDir string, flakyTests []FlakyTest) error {
 	for i, test := range flakyTests {
-		filePath, err := t.gitClient.FindTestFile(workingDir, test.TestName)
+		filePath, err := t.gitClient.FindTestFile(test.TestName)
 		if err != nil {
 			return fmt.Errorf("failed to find file path for test %s: %w", test.TestName, err)
 		}
@@ -428,6 +551,10 @@ func parseTestFailures(logsJSON, workingDir string) ([]FlakyTest, error) {
 		return nil, fmt.Errorf("failed to unmarshal Loki response: %w", err)
 	}
 
+	return parseTestFailuresFromResponse(&lokiResp, workingDir)
+}
+
+func parseTestFailuresFromResponse(lokiResp *LokiResponse, workingDir string) ([]FlakyTest, error) {
 	// Parse individual log entries
 	var rawEntries []RawLogEntry
 	for _, result := range lokiResp.Data.Result {
@@ -596,18 +723,31 @@ func guessTestFilePath(testName string) string {
 
 func (t *TestFailureAnalyzer) findTestAuthors(workingDir, githubToken string, flakyTests []FlakyTest) error {
 	for i, test := range flakyTests {
-		commits, err := t.gitClient.GetFileAuthors(workingDir, test.FilePath, test.TestName, githubToken)
+		commits, err := t.gitClient.GetFileAuthors(test.FilePath, test.TestName)
 		if err != nil {
 			return fmt.Errorf("failed to get authors for test %s in %s: %w", test.TestName, test.FilePath, err)
 		}
 		flakyTests[i].RecentCommits = commits
+
+		if len(commits) > 0 {
+			var authors []string
+			for _, commit := range commits {
+				authors = append(authors, commit.Author)
+			}
+			log.Printf("👤 %s: %s", test.TestName, strings.Join(authors, ", "))
+		} else {
+			log.Printf("👤 %s: no commits found", test.TestName)
+		}
 	}
 	return nil
 }
 
 func getFileAuthors(workingDir, filePath, testName, githubToken string) ([]CommitInfo, error) {
-	// Create a GitHub client for username lookups
-	githubClient := &DefaultGitHubClient{}
+	// Create a temporary config just for this call
+	tempConfig := Config{
+		GitHubToken: githubToken,
+	}
+	githubClient := NewDefaultGitHubClient(tempConfig)
 	return getFileAuthorsWithClient(workingDir, filePath, testName, githubToken, githubClient)
 }
 
@@ -657,7 +797,7 @@ func getFileAuthorsWithClient(workingDir, filePath, testName, githubToken string
 			continue
 		}
 
-		username, err := githubClient.GetUsernameForCommit(hash, githubToken)
+		username, err := githubClient.GetUsernameForCommit(hash)
 		if err != nil {
 			log.Printf("Warning: failed to get GitHub username for commit %s: %v", hash, err)
 			username = "unknown"
@@ -721,7 +861,7 @@ func getGitHubUsernameForCommit(commitHash, githubToken string) (string, error) 
 
 func (t *TestFailureAnalyzer) createIssuesForFlakyTests(repository, githubToken string, flakyTests []FlakyTest) error {
 	for _, test := range flakyTests {
-		err := t.githubClient.CreateOrUpdateIssue(repository, githubToken, test)
+		err := t.githubClient.CreateOrUpdateIssue(test)
 		if err != nil {
 			log.Printf("Warning: failed to create issue for test %s: %v", test.TestName, err)
 		}
@@ -902,7 +1042,7 @@ This issue tracks a flaky test that has been detected failing inconsistently. Ea
 _This test has been identified as flaky by [analyze-test-failures](https://github.com/grafana/shared-workflows/tree/main/actions/analyze-test-failures)._
 `
 
-const commentTemplate = `## 🚨 Hey there! This test is still being flaky - {{.Timestamp}}
+const commentTemplate = `## 🚨 Hey there! This test is still being flaky
 
 This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} different branches** in the last 7 days.
 
@@ -1016,7 +1156,7 @@ func (t *TestFailureAnalyzer) generateReport(result AnalysisResult) (string, err
 		return "", fmt.Errorf("failed to write report file: %w", err)
 	}
 
-	return t.fileSystem.Abs(reportPath)
+	return filepath.Abs(reportPath)
 }
 
 func setGitHubOutput(name, value string) {

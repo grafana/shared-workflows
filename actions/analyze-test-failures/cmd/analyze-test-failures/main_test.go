@@ -8,19 +8,22 @@ import (
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Mock implementations for testing
 
 // MockLokiClient implements LokiClient for testing
 type MockLokiClient struct {
-	response string
+	response *LokiResponse
 	err      error
 }
 
-func (m *MockLokiClient) FetchLogs(config Config) (string, error) {
+func (m *MockLokiClient) FetchLogs() (*LokiResponse, error) {
 	if m.err != nil {
-		return "", m.err
+		return nil, m.err
 	}
 	return m.response, nil
 }
@@ -33,7 +36,7 @@ type MockGitClient struct {
 	authorErr error
 }
 
-func (m *MockGitClient) FindTestFile(workingDir, testName string) (string, error) {
+func (m *MockGitClient) FindTestFile(testName string) (string, error) {
 	if m.fileErr != nil {
 		return "", m.fileErr
 	}
@@ -43,7 +46,7 @@ func (m *MockGitClient) FindTestFile(workingDir, testName string) (string, error
 	return "", fmt.Errorf("test file not found for %s", testName)
 }
 
-func (m *MockGitClient) GetFileAuthors(workingDir, filePath, testName, githubToken string) ([]CommitInfo, error) {
+func (m *MockGitClient) GetFileAuthors(filePath, testName string) ([]CommitInfo, error) {
 	if m.authorErr != nil {
 		return nil, m.authorErr
 	}
@@ -67,7 +70,7 @@ type MockGitHubClient struct {
 	reopenErr      error
 }
 
-func (m *MockGitHubClient) GetUsernameForCommit(commitHash, token string) (string, error) {
+func (m *MockGitHubClient) GetUsernameForCommit(commitHash string) (string, error) {
 	if m.usernameErr != nil {
 		return "", m.usernameErr
 	}
@@ -77,7 +80,7 @@ func (m *MockGitHubClient) GetUsernameForCommit(commitHash, token string) (strin
 	return "unknown", nil
 }
 
-func (m *MockGitHubClient) CreateOrUpdateIssue(repo, token string, test FlakyTest) error {
+func (m *MockGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
 	if m.createIssueErr != nil {
 		return m.createIssueErr
 	}
@@ -90,13 +93,13 @@ func (m *MockGitHubClient) CreateOrUpdateIssue(repo, token string, test FlakyTes
 	}
 
 	// Create new issue
-	issueURL := fmt.Sprintf("https://github.com/%s/issues/%d", repo, len(m.createdIssues)+1)
+	issueURL := fmt.Sprintf("https://github.com/test/repo/issues/%d", len(m.createdIssues)+1)
 	m.createdIssues = append(m.createdIssues, issueURL)
 	m.addedComments = append(m.addedComments, fmt.Sprintf("comment on %s", issueURL))
 	return nil
 }
 
-func (m *MockGitHubClient) SearchForExistingIssue(repository, githubToken, issueTitle string) (string, error) {
+func (m *MockGitHubClient) SearchForExistingIssue(issueTitle string) (string, error) {
 	if m.searchIssueErr != nil {
 		return "", m.searchIssueErr
 	}
@@ -106,7 +109,7 @@ func (m *MockGitHubClient) SearchForExistingIssue(repository, githubToken, issue
 	return "", nil
 }
 
-func (m *MockGitHubClient) AddCommentToIssue(repository, githubToken, issueURL string, test FlakyTest) error {
+func (m *MockGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest) error {
 	if m.commentErr != nil {
 		return m.commentErr
 	}
@@ -114,7 +117,7 @@ func (m *MockGitHubClient) AddCommentToIssue(repository, githubToken, issueURL s
 	return nil
 }
 
-func (m *MockGitHubClient) ReopenIssue(repository, githubToken, issueURL string) error {
+func (m *MockGitHubClient) ReopenIssue(issueURL string) error {
 	if m.reopenErr != nil {
 		return m.reopenErr
 	}
@@ -139,31 +142,19 @@ func (m *MockFileSystem) WriteFile(filename string, data []byte, perm os.FileMod
 	return nil
 }
 
-func (m *MockFileSystem) Abs(path string) (string, error) {
-	return filepath.Abs(path)
-}
-
 // Test helper functions
 
-func createTestLokiResponse(entries []RawLogEntry) string {
-	response := LokiResponse{
+func createTestLokiResponse(entries []RawLogEntry) *LokiResponse {
+	response := &LokiResponse{
 		Status: "success",
-		Data: struct {
-			ResultType string `json:"resultType"`
-			Result     []struct {
-				Stream map[string]string `json:"stream"`
-				Values [][]string        `json:"values"`
-			} `json:"result"`
-		}{
+		Data: LokiData{
 			ResultType: "streams",
+			Result:     []LokiResult{},
 		},
 	}
 
 	for _, entry := range entries {
-		result := struct {
-			Stream map[string]string `json:"stream"`
-			Values [][]string        `json:"values"`
-		}{
+		result := LokiResult{
 			Stream: map[string]string{
 				"parent_test_name": entry.TestName,
 				"resources_ci_github_workflow_run_head_branch": entry.Branch,
@@ -176,8 +167,7 @@ func createTestLokiResponse(entries []RawLogEntry) string {
 		response.Data.Result = append(response.Data.Result, result)
 	}
 
-	data, _ := json.Marshal(response)
-	return string(data)
+	return response
 }
 
 func createTestConfig() Config {
@@ -237,45 +227,30 @@ func TestAnalyzer_Run_Success(t *testing.T) {
 	err := analyzer.Run(config)
 
 	// Verify results
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
+	require.NoError(t, err, "Analysis should complete without error")
 
 	// Check that report was written
-	if len(fileSystem.writtenFiles) != 1 {
-		t.Fatalf("Expected 1 file written, got: %d", len(fileSystem.writtenFiles))
-	}
+	assert.Len(t, fileSystem.writtenFiles, 1, "Expected exactly 1 file to be written")
 
 	reportData, exists := fileSystem.writtenFiles["test-failure-analysis.json"]
-	if !exists {
-		t.Fatal("Expected report file to be written")
-	}
+	require.True(t, exists, "Expected report file to be written")
 
 	var result AnalysisResult
-	if err := json.Unmarshal(reportData, &result); err != nil {
-		t.Fatalf("Failed to unmarshal report: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(reportData, &result), "Report should unmarshal successfully")
 
 	// Verify flaky tests were detected
-	if result.TestCount != 2 {
-		t.Fatalf("Expected 2 flaky tests, got: %d", result.TestCount)
-	}
+	assert.Equal(t, 2, result.TestCount, "Expected 2 flaky tests to be detected")
 
 	// Verify test details
 	testNames := make(map[string]bool)
 	for _, test := range result.FlakyTests {
 		testNames[test.TestName] = true
-		if test.TotalFailures == 0 {
-			t.Errorf("Expected test %s to have failures", test.TestName)
-		}
-		if test.FilePath == "" {
-			t.Errorf("Expected test %s to have file path", test.TestName)
-		}
+		assert.Greater(t, test.TotalFailures, 0, "Test %s should have failures", test.TestName)
+		assert.NotEmpty(t, test.FilePath, "Test %s should have file path", test.TestName)
 	}
 
-	if !testNames["TestUserLogin"] || !testNames["TestPayment"] {
-		t.Error("Expected TestUserLogin and TestPayment to be detected as flaky")
-	}
+	assert.True(t, testNames["TestUserLogin"], "TestUserLogin should be detected as flaky")
+	assert.True(t, testNames["TestPayment"], "TestPayment should be detected as flaky")
 }
 
 func TestAnalyzer_Run_LokiError(t *testing.T) {
@@ -289,12 +264,8 @@ func TestAnalyzer_Run_LokiError(t *testing.T) {
 
 	err := analyzer.Run(config)
 
-	if err == nil {
-		t.Fatal("Expected error from Loki failure")
-	}
-	if !contains(err.Error(), "failed to fetch logs from Loki") {
-		t.Errorf("Expected Loki error message, got: %v", err)
-	}
+	require.Error(t, err, "Expected error from Loki failure")
+	assert.Contains(t, err.Error(), "failed to fetch logs from Loki", "Error should mention Loki failure")
 }
 
 func TestAnalyzer_Run_GitError(t *testing.T) {
@@ -312,16 +283,18 @@ func TestAnalyzer_Run_GitError(t *testing.T) {
 
 	err := analyzer.Run(config)
 
-	if err == nil {
-		t.Fatal("Expected error from Git failure")
-	}
-	if !contains(err.Error(), "failed to find file paths") {
-		t.Errorf("Expected Git error message, got: %v", err)
-	}
+	require.Error(t, err, "Expected error from Git failure")
+	assert.Contains(t, err.Error(), "failed to find file paths", "Error should mention Git file path failure")
 }
 
 func TestAnalyzer_Run_EmptyLokiResponse(t *testing.T) {
-	emptyResponse := `{"status":"success","data":{"resultType":"streams","result":[]}}`
+	emptyResponse := &LokiResponse{
+		Status: "success",
+		Data: LokiData{
+			ResultType: "streams",
+			Result:     []LokiResult{},
+		},
+	}
 
 	lokiClient := &MockLokiClient{response: emptyResponse}
 	gitClient := &MockGitClient{}
@@ -333,24 +306,16 @@ func TestAnalyzer_Run_EmptyLokiResponse(t *testing.T) {
 
 	err := analyzer.Run(config)
 
-	if err != nil {
-		t.Fatalf("Expected no error with empty response, got: %v", err)
-	}
+	require.NoError(t, err, "Analysis should complete without error even with empty response")
 
 	// Check that report was still written with zero tests
 	reportData, exists := fileSystem.writtenFiles["test-failure-analysis.json"]
-	if !exists {
-		t.Fatal("Expected report file to be written")
-	}
+	require.True(t, exists, "Expected report file to be written")
 
 	var result AnalysisResult
-	if err := json.Unmarshal(reportData, &result); err != nil {
-		t.Fatalf("Failed to unmarshal report: %v", err)
-	}
+	require.NoError(t, json.Unmarshal(reportData, &result), "Report should unmarshal successfully")
 
-	if result.TestCount != 0 {
-		t.Fatalf("Expected 0 tests with empty response, got: %d", result.TestCount)
-	}
+	assert.Equal(t, 0, result.TestCount, "Expected 0 tests with empty response")
 }
 
 func TestAnalyzer_Run_NonFlakyTests(t *testing.T) {
@@ -374,18 +339,16 @@ func TestAnalyzer_Run_NonFlakyTests(t *testing.T) {
 
 	err := analyzer.Run(config)
 
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
+	require.NoError(t, err, "Analysis should complete without error")
 
-	reportData, _ := fileSystem.writtenFiles["test-failure-analysis.json"]
+	reportData, exists := fileSystem.writtenFiles["test-failure-analysis.json"]
+	require.True(t, exists, "Report should be written")
+
 	var result AnalysisResult
-	json.Unmarshal(reportData, &result)
+	require.NoError(t, json.Unmarshal(reportData, &result), "Report should unmarshal successfully")
 
 	// Should not detect any flaky tests (only failed on feature branch)
-	if result.TestCount != 0 {
-		t.Fatalf("Expected 0 flaky tests, got: %d", result.TestCount)
-	}
+	assert.Equal(t, 0, result.TestCount, "Expected 0 flaky tests (only failed on feature branch)")
 }
 
 // Business logic tests
@@ -399,36 +362,21 @@ func TestParseTestFailures_ValidResponse(t *testing.T) {
 
 	lokiResponse := createTestLokiResponse(logEntries)
 
-	flakyTests, err := parseTestFailures(lokiResponse, "/tmp/test")
+	flakyTests, err := parseTestFailuresFromResponse(lokiResponse, "/tmp/test")
 
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
-
-	if len(flakyTests) != 2 {
-		t.Fatalf("Expected 2 flaky tests, got: %d", len(flakyTests))
-	}
+	require.NoError(t, err, "Parsing should succeed with valid response")
+	assert.Len(t, flakyTests, 2, "Expected 2 flaky tests to be detected")
 
 	// Verify TestUserLogin is detected as flaky (fails on main + feature)
 	userLoginTest := findTestByName(flakyTests, "TestUserLogin")
-	if userLoginTest == nil {
-		t.Fatal("Expected TestUserLogin to be detected as flaky")
-	}
-	if userLoginTest.TotalFailures != 2 {
-		t.Errorf("Expected TestUserLogin to have 2 failures, got: %d", userLoginTest.TotalFailures)
-	}
-	if len(userLoginTest.BranchCounts) != 2 {
-		t.Errorf("Expected TestUserLogin to fail on 2 branches, got: %d", len(userLoginTest.BranchCounts))
-	}
+	require.NotNil(t, userLoginTest, "TestUserLogin should be detected as flaky")
+	assert.Equal(t, 2, userLoginTest.TotalFailures, "TestUserLogin should have 2 failures")
+	assert.Len(t, userLoginTest.BranchCounts, 2, "TestUserLogin should fail on 2 branches")
 
 	// Verify TestPayment is detected as flaky (fails on main)
 	paymentTest := findTestByName(flakyTests, "TestPayment")
-	if paymentTest == nil {
-		t.Fatal("Expected TestPayment to be detected as flaky")
-	}
-	if paymentTest.TotalFailures != 1 {
-		t.Errorf("Expected TestPayment to have 1 failure, got: %d", paymentTest.TotalFailures)
-	}
+	require.NotNil(t, paymentTest, "TestPayment should be detected as flaky")
+	assert.Equal(t, 1, paymentTest.TotalFailures, "TestPayment should have 1 failure")
 }
 
 func TestParseTestFailures_InvalidJSON(t *testing.T) {
@@ -436,12 +384,8 @@ func TestParseTestFailures_InvalidJSON(t *testing.T) {
 
 	_, err := parseTestFailures(invalidJSON, "/tmp/test")
 
-	if err == nil {
-		t.Fatal("Expected error with invalid JSON")
-	}
-	if !contains(err.Error(), "failed to unmarshal Loki response") {
-		t.Errorf("Expected JSON unmarshal error, got: %v", err)
-	}
+	require.Error(t, err, "Expected error with invalid JSON")
+	assert.Contains(t, err.Error(), "failed to unmarshal Loki response", "Error should mention JSON unmarshal failure")
 }
 
 func TestDetectFlakyTestsFromRawEntries(t *testing.T) {
@@ -486,9 +430,7 @@ func TestDetectFlakyTestsFromRawEntries(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := detectFlakyTestsFromRawEntries(tt.entries, "/tmp/test")
-			if len(result) != tt.expected {
-				t.Errorf("Expected %d flaky tests, got %d", tt.expected, len(result))
-			}
+			assert.Len(t, result, tt.expected, "Expected %d flaky tests for test: %s", tt.expected, tt.name)
 		})
 	}
 }
@@ -521,17 +463,15 @@ func TestAnalyzer_Run_MaxFailuresLimit(t *testing.T) {
 
 	err := analyzer.Run(config)
 
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
+	require.NoError(t, err, "Analysis should complete without error")
 
-	reportData, _ := fileSystem.writtenFiles["test-failure-analysis.json"]
+	reportData, exists := fileSystem.writtenFiles["test-failure-analysis.json"]
+	require.True(t, exists, "Report should be written")
+
 	var result AnalysisResult
-	json.Unmarshal(reportData, &result)
+	require.NoError(t, json.Unmarshal(reportData, &result), "Report should unmarshal successfully")
 
-	if result.TestCount != 3 {
-		t.Fatalf("Expected test count to be limited to 3, got: %d", result.TestCount)
-	}
+	assert.Equal(t, 3, result.TestCount, "Test count should be limited to max failures setting")
 }
 
 func TestAnalyzer_Run_NoProductionMode(t *testing.T) {
@@ -552,17 +492,11 @@ func TestAnalyzer_Run_NoProductionMode(t *testing.T) {
 
 	err := analyzer.Run(config)
 
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
+	require.NoError(t, err, "Analysis should complete without error")
 
 	// Verify GitHub issue was created
-	if len(githubClient.createdIssues) != 1 {
-		t.Fatalf("Expected 1 GitHub issue to be created, got: %d", len(githubClient.createdIssues))
-	}
-	if len(githubClient.addedComments) != 1 {
-		t.Fatalf("Expected 1 comment to be added, got: %d", len(githubClient.addedComments))
-	}
+	assert.Len(t, githubClient.createdIssues, 1, "Expected 1 GitHub issue to be created")
+	assert.Len(t, githubClient.addedComments, 1, "Expected 1 comment to be added")
 }
 
 // Helper functions
@@ -676,13 +610,12 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Load Loki response
-			var lokiResponse string
+			var lokiResponse *LokiResponse
 			if tt.lokiFile != "" {
 				data, err := os.ReadFile(filepath.Join("testdata", tt.lokiFile))
-				if err != nil {
-					t.Fatalf("Failed to read Loki file %s: %v", tt.lokiFile, err)
-				}
-				lokiResponse = string(data)
+				require.NoError(t, err, "Failed to read Loki file %s", tt.lokiFile)
+				lokiResponse = &LokiResponse{}
+				require.NoError(t, json.Unmarshal(data, lokiResponse), "Failed to unmarshal Loki response")
 			} else {
 				// Create appropriate empty/single test response
 				if tt.name == "single_test_scenario" {
@@ -692,7 +625,13 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 					}
 					lokiResponse = createTestLokiResponse(entries)
 				} else {
-					lokiResponse = `{"status":"success","data":{"resultType":"streams","result":[]}}`
+					lokiResponse = &LokiResponse{
+						Status: "success",
+						Data: LokiData{
+							ResultType: "streams",
+							Result:     []LokiResult{},
+						},
+					}
 				}
 			}
 
@@ -706,31 +645,21 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 			config := tt.config()
 
 			err := analyzer.Run(config)
-			if err != nil {
-				t.Fatalf("Analysis failed: %v", err)
-			}
+			require.NoError(t, err, "Analysis should complete without error")
 
 			// Load expected result
 			expectedData, err := os.ReadFile(filepath.Join("testdata", tt.expectedFile))
-			if err != nil {
-				t.Fatalf("Failed to read expected file %s: %v", tt.expectedFile, err)
-			}
+			require.NoError(t, err, "Should be able to read expected file %s", tt.expectedFile)
 
 			var expected AnalysisResult
-			if err := json.Unmarshal(expectedData, &expected); err != nil {
-				t.Fatalf("Failed to unmarshal expected result: %v", err)
-			}
+			require.NoError(t, json.Unmarshal(expectedData, &expected), "Expected result should unmarshal successfully")
 
 			// Get actual result
 			actualData, exists := fileSystem.writtenFiles["test-failure-analysis.json"]
-			if !exists {
-				t.Fatal("Expected report file to be written")
-			}
+			require.True(t, exists, "Expected report file to be written")
 
 			var actual AnalysisResult
-			if err := json.Unmarshal(actualData, &actual); err != nil {
-				t.Fatalf("Failed to unmarshal actual result: %v", err)
-			}
+			require.NoError(t, json.Unmarshal(actualData, &actual), "Actual result should unmarshal successfully")
 
 			// Compare results (ignoring report_path which will be different)
 			actual.ReportPath = expected.ReportPath
@@ -747,9 +676,7 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 			actualJSON, _ := json.MarshalIndent(actual, "", "  ")
 			expectedJSON, _ := json.MarshalIndent(expected, "", "  ")
 
-			if string(actualJSON) != string(expectedJSON) {
-				t.Errorf("Results don't match.\nExpected:\n%s\n\nActual:\n%s", expectedJSON, actualJSON)
-
+			if !assert.Equal(t, string(expectedJSON), string(actualJSON), "Results should match for test: %s", tt.name) {
 				// Write actual result to file for debugging
 				debugFile := filepath.Join("testdata", fmt.Sprintf("%s_actual.json", tt.name))
 				os.WriteFile(debugFile, actualJSON, 0644)
@@ -762,53 +689,31 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 func TestParseTestFailures_GoldenFile(t *testing.T) {
 	// Test parsing with the complex Loki response
 	data, err := os.ReadFile("testdata/complex_loki_response.json")
-	if err != nil {
-		t.Fatalf("Failed to read test data: %v", err)
-	}
+	require.NoError(t, err, "Should be able to read test data")
 
 	flakyTests, err := parseTestFailures(string(data), "/tmp/test")
-	if err != nil {
-		t.Fatalf("Failed to parse test failures: %v", err)
-	}
+	require.NoError(t, err, "Should parse test failures successfully")
 
 	// Verify expected results
-	if len(flakyTests) != 3 {
-		t.Fatalf("Expected 3 flaky tests, got %d", len(flakyTests))
-	}
+	assert.Len(t, flakyTests, 3, "Expected 3 flaky tests to be detected")
 
 	// Verify specific test details
 	dbTest := findTestByName(flakyTests, "TestDatabaseConnection")
-	if dbTest == nil {
-		t.Fatal("Expected TestDatabaseConnection to be found")
-	}
-	if dbTest.TotalFailures != 3 {
-		t.Errorf("Expected TestDatabaseConnection to have 3 failures, got %d", dbTest.TotalFailures)
-	}
-	if len(dbTest.BranchCounts) != 2 {
-		t.Errorf("Expected TestDatabaseConnection to fail on 2 branches, got %d", len(dbTest.BranchCounts))
-	}
+	require.NotNil(t, dbTest, "TestDatabaseConnection should be found")
+	assert.Equal(t, 3, dbTest.TotalFailures, "TestDatabaseConnection should have 3 failures")
+	assert.Len(t, dbTest.BranchCounts, 2, "TestDatabaseConnection should fail on 2 branches")
 
 	authTest := findTestByName(flakyTests, "TestUserAuthentication")
-	if authTest == nil {
-		t.Fatal("Expected TestUserAuthentication to be found")
-	}
-	if authTest.TotalFailures != 2 {
-		t.Errorf("Expected TestUserAuthentication to have 2 failures, got %d", authTest.TotalFailures)
-	}
+	require.NotNil(t, authTest, "TestUserAuthentication should be found")
+	assert.Equal(t, 2, authTest.TotalFailures, "TestUserAuthentication should have 2 failures")
 
 	paymentTest := findTestByName(flakyTests, "TestPaymentProcessing")
-	if paymentTest == nil {
-		t.Fatal("Expected TestPaymentProcessing to be found")
-	}
-	if paymentTest.TotalFailures != 2 {
-		t.Errorf("Expected TestPaymentProcessing to have 2 failures, got %d", paymentTest.TotalFailures)
-	}
+	require.NotNil(t, paymentTest, "TestPaymentProcessing should be found")
+	assert.Equal(t, 2, paymentTest.TotalFailures, "TestPaymentProcessing should have 2 failures")
 
 	// TestNonFlaky should not be included (only failed on feature branch)
 	nonFlakyTest := findTestByName(flakyTests, "TestNonFlaky")
-	if nonFlakyTest != nil {
-		t.Error("Expected TestNonFlaky to not be detected as flaky")
-	}
+	assert.Nil(t, nonFlakyTest, "TestNonFlaky should not be detected as flaky")
 }
 
 // Helper functions for golden file tests
