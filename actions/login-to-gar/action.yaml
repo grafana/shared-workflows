@@ -59,11 +59,53 @@ runs:
       with:
         project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-    - name: Setup docker-credential-gcr
-      if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
-      uses: StevenACoffman/setup-docker-credential-gcr@a8f1898ecad516cb17f55ebd1dd2583abc584352 # v0.0.3
-      with:
-        version: v2.1.28
+
+    - name: Install docker-credential-gcr
+      shell: bash
+      env:
+        DOCKER_CREDENTIAL_GCR_VERSION: "v2.1.28"
+      run: |
+        set -ex
+
+        # Install docker-credential-gcr:
+        # - if version is "tip", install from tip of main.
+        # - if version is "latest-release", look up latest release.
+        # - otherwise, install the specified version.
+        case "${DOCKER_CREDENTIAL_GCR_VERSION}" in
+        tip)
+          echo "Installing docker-credential-gcr using go install"
+          go install github.com/GoogleCloudPlatform/docker-credential-gcr@main
+          ;;
+        latest-release)
+          tag=$(curl -L -s -u "username:${{ github.token }}" https://api.github.com/repos/GoogleCloudPlatform/docker-credential-gcr/releases/latest | jq -r '.tag_name')
+          ;;
+        *)
+          tag="${DOCKER_CREDENTIAL_GCR_VERSION}"
+        esac
+
+        # Normalize OS name
+        os="${{ runner.os }}"
+        case "$os" in
+          macOS) os="darwin" ;;
+          Linux) os="linux" ;;
+          Windows) os="windows" ;;
+          *) echo "Unknown OS: $os"; exit 1 ;;
+        esac
+
+        # Map runner.arch to release asset arch
+        arch="${{ runner.arch }}"
+        case "$arch" in
+          X64)   arch="amd64" ;;
+          ARM64) arch="arm64" ;;
+          *)     echo "Unsupported arch: $arch"; exit 1 ;;
+        esac
+
+        if [[ ! -z ${tag} ]]; then
+          echo "Installing docker-credential-gcr @ ${tag} for ${os}/${arch}"
+          mkdir -p /opt/docker-credential-gcr
+          curl -fsL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/${tag}/docker-credential-gcr_${os}_${arch}-${tag:1}.tar.gz" | tar xzf - -C /opt/docker-credential-gcr docker-credential-gcr
+          echo "/opt/docker-credential-gcr" >> $GITHUB_PATH
+        fi
     - name: "Configure GCP Artifact Registry"
       if: ${{ steps.auth_with_service_account.outputs.access_token == '' }}
       id: configure-docker
