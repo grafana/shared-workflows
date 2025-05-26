@@ -69,7 +69,7 @@ The action generates a JSON report with the following structure:
 {
   "failure_count": 3,
   "affected_authors": ["user1@example.com", "user2@example.com"],
-  "analysis_summary": "Found 3 flaky test failures affecting 2 authors...",
+  "analysis_summary": "Found 3 flaky test failures affecting 2 authors. Most common failures: TestUserLogin (8 failures), TestDatabaseConnection (12 failures)",
   "report_path": "/path/to/test-failure-analysis.json",
   "test_failures": [
     {
@@ -81,7 +81,12 @@ The action generates a JSON report with the following structure:
         "main": 3,
         "feature-branch": 5
       },
-      "is_flaky": true
+      "is_flaky": true,
+      "example_prs": [
+        "https://github.com/owner/repo/pull/123",
+        "https://github.com/owner/repo/pull/124",
+        "https://github.com/owner/repo/pull/125"
+      ]
     },
     {
       "test_name": "TestDatabaseConnection",
@@ -93,7 +98,11 @@ The action generates a JSON report with the following structure:
         "dev": 4,
         "staging": 6
       },
-      "is_flaky": true
+      "is_flaky": true,
+      "example_prs": [
+        "https://github.com/owner/repo/pull/456",
+        "https://github.com/owner/repo/pull/457"
+      ]
     }
   ]
 }
@@ -104,17 +113,15 @@ The action generates a JSON report with the following structure:
 The action uses a predefined LogQL query that analyzes test failures from CI/CD logs:
 
 ```logql
-sum by (parent_test_name, resources_ci_github_workflow_run_head_branch) (
-    count_over_time({service_name="$repo", service_namespace="cicd-o11y"} 
-    |= "--- FAIL: Test" 
-    | json 
-    | __error__="" 
-    | resources_ci_github_workflow_run_conclusion!="cancelled" 
-    | line_format "{{.body}}" 
-    | regexp "--- FAIL: (?P<test_name>.*) \\(\\d" 
-    | line_format "{{.test_name}}" 
-    | regexp `(?P<parent_test_name>Test[a-z0-9A-Z_]+)`[7d])
-)
+{service_name="$repo", service_namespace="cicd-o11y"} 
+|= "--- FAIL: Test" 
+| json 
+| __error__="" 
+| resources_ci_github_workflow_run_conclusion!="cancelled" 
+| line_format "{{.body}}" 
+| regexp "--- FAIL: (?P<test_name>.*) \\(\\d" 
+| line_format "{{.test_name}}" 
+| regexp `(?P<parent_test_name>Test[a-z0-9A-Z_]+)`
 ```
 
 This query:
@@ -123,8 +130,8 @@ This query:
 - Parses JSON logs and filters out error logs
 - Excludes cancelled workflow runs using `resources_ci_github_workflow_run_conclusion`
 - Extracts test content from the `body` field
-- Groups results by both test name AND branch
-- Counts failures over the last 7 days
+- Extracts test names using regex patterns
+- Returns raw log entries for analysis in the application
 
 ## Flaky Test Detection
 
@@ -133,6 +140,10 @@ The action identifies tests as "flaky" based on the following criteria:
 - **Failed on multiple branches**: Any test that has failed on more than one branch is considered flaky
 
 Only tests meeting these criteria are included in the analysis results.
+
+## Example PR Links
+
+For each flaky test, the action captures up to 3 example Pull Request URLs where the test failed. This provides concrete examples of when and where the test exhibited flaky behavior, making it easier to investigate the root cause.
 
 ## Workflow Integration
 
@@ -160,3 +171,80 @@ jobs:
           repository: ${{ github.event.repository.name }}
           time-range: "6h"
 ```
+
+## Local Development
+
+You can run this action locally for testing and development:
+
+### Prerequisites
+
+1. **Go 1.22+** installed
+2. **GitHub CLI (gh)** installed and authenticated
+3. Access to a Loki instance
+4. GitHub token with appropriate permissions
+
+### Setup
+
+1. **Clone the repository and navigate to the action directory:**
+   ```bash
+   git clone https://github.com/grafana/shared-workflows.git
+   cd shared-workflows/actions/analyze-test-failures
+   ```
+
+2. **Create environment configuration:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Configure your .env file:**
+   ```bash
+   # Required
+   LOKI_URL=https://your-loki-instance.com
+   LOKI_USERNAME=your_username
+   LOKI_PASSWORD=your_password
+   REPOSITORY=your-repo-name
+   GITHUB_TOKEN=ghp_your_github_token_here
+
+   # Optional
+   TIME_RANGE=24h
+   WORKING_DIRECTORY=.
+   ```
+
+### Running
+
+Execute the local run script:
+```bash
+./run-local.sh
+```
+
+This will:
+- Validate your configuration
+- Run the Go application with `go run`
+- Execute analysis against your Loki instance
+- Generate a local `test-failure-analysis.json` report
+- Display results to stdout
+
+### Example Output
+
+```
+Running test failure analysis...
+Repository: my-repo
+Time range: 24h
+Loki URL: https://logs.grafana.com
+
+::set-output name=failure-count::3
+::set-output name=affected-authors::["user1","user2","user3"]
+::set-output name=analysis-summary::Found 3 flaky test failures affecting 3 authors. Most common failures: TestUserLogin (8 failures), TestAuth (5 failures)
+::set-output name=report-path::/path/to/test-failure-analysis.json
+
+Analysis complete! Check the generated report and outputs above.
+```
+
+### Troubleshooting
+
+- **"gh CLI not found"**: Install from https://cli.github.com/
+- **"gh not authenticated"**: Run `gh auth login`
+- **"Loki authentication failed"**: Check your LOKI_USERNAME/LOKI_PASSWORD
+- **"No test failures found"**: Verify your repository name and time range
+- **"Test function not found"**: Make sure you're running from a repository root with Go test files

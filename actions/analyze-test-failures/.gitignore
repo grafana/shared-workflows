@@ -1,0 +1,16 @@
+# Local development files
+.env
+test-failure-analysis.json
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test files
+*.test
+
+# Go coverage files
+*.out

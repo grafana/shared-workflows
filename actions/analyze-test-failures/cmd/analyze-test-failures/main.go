@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -31,32 +32,29 @@ type LokiResponse struct {
 	Data   struct {
 		ResultType string `json:"resultType"`
 		Result     []struct {
-			Metric map[string]string `json:"metric"`
-			Values [][]interface{}   `json:"values"`
-			Value  []interface{}     `json:"value,omitempty"`
+			Stream map[string]string `json:"stream"`
+			Values [][]string        `json:"values"`
 		} `json:"result"`
 	} `json:"data"`
 }
 
 type TestFailure struct {
-	TestName     string         `json:"test_name"`
-	FilePath     string         `json:"file_path"`
-	Timestamp    string         `json:"timestamp"`
-	Message      string         `json:"message"`
-	BranchCounts map[string]int `json:"branch_counts"`
-	IsFlaky      bool           `json:"is_flaky"`
+	TestName         string         `json:"test_name"`
+	FilePath         string         `json:"file_path"`
+	TotalFailures    int            `json:"total_failures"`
+	BranchCounts     map[string]int `json:"branch_counts"`
+	ExampleWorkflows []string       `json:"example_workflows"`
+	RecentAuthors    []string       `json:"recent_authors"`
 }
 
-type TestFailureByBranch struct {
-	TestName     string `json:"test_name"`
-	Branch       string `json:"branch"`
-	FailureCount int    `json:"failure_count"`
-	Timestamp    string `json:"timestamp"`
+type RawLogEntry struct {
+	TestName       string `json:"test_name"`
+	Branch         string `json:"branch"`
+	WorkflowRunURL string `json:"workflow_run_url"`
 }
 
 type AnalysisResult struct {
 	FailureCount    int           `json:"failure_count"`
-	AffectedAuthors []string      `json:"affected_authors"`
 	AnalysisSummary string        `json:"analysis_summary"`
 	ReportPath      string        `json:"report_path"`
 	TestFailures    []TestFailure `json:"test_failures"`
@@ -76,7 +74,7 @@ func getConfigFromEnv() Config {
 		LokiUsername:     os.Getenv("LOKI_USERNAME"),
 		LokiPassword:     os.Getenv("LOKI_PASSWORD"),
 		Repository:       os.Getenv("REPOSITORY"),
-		TimeRange:        getEnvWithDefault("TIME_RANGE", "1h"),
+		TimeRange:        getEnvWithDefault("TIME_RANGE", "24h"),
 		GitHubToken:      os.Getenv("GITHUB_TOKEN"),
 		WorkingDirectory: getEnvWithDefault("WORKING_DIRECTORY", "."),
 	}
@@ -90,45 +88,81 @@ func getEnvWithDefault(key, defaultValue string) string {
 }
 
 func run(config Config) error {
+	log.Printf("🔍 Starting test failure analysis for repository: %s", config.Repository)
+	log.Printf("📅 Time range: %s", config.TimeRange)
+	log.Printf("🔗 Loki URL: %s", config.LokiURL)
+
 	// Fetch logs from Loki
+	log.Printf("📡 Fetching logs from Loki...")
 	logs, err := fetchLogsFromLoki(config)
 	if err != nil {
 		return fmt.Errorf("failed to fetch logs from Loki: %w", err)
 	}
 
 	// Parse and analyze test failures
+	log.Printf("📊 Parsing test failures from log data...")
 	failures, err := parseTestFailures(logs, config.WorkingDirectory)
 	if err != nil {
 		return fmt.Errorf("failed to parse test failures: %w", err)
 	}
+	failures = failures[:4] // Limit to top 4 failures for performance
+
+	log.Printf("🧪 Found %d flaky tests that meet criteria", len(failures))
+	log.Printf("📁 Finding test files in repository...")
+	err = findFilePaths(config.WorkingDirectory, failures)
+	if err != nil {
+		return fmt.Errorf("failed to find file paths for test failures: %w", err)
+	}
 
 	// Find authors of failing tests
-	authors, err := findTestAuthors(config.WorkingDirectory, config.GitHubToken, failures)
+	log.Printf("👥 Finding authors of failing tests...")
+	_, err = findTestAuthors(config.WorkingDirectory, config.GitHubToken, failures)
 	if err != nil {
 		return fmt.Errorf("failed to find test authors: %w", err)
+	}
+
+	// Log authors for each test
+	for _, failure := range failures {
+		if len(failure.RecentAuthors) > 0 {
+			log.Printf("👤 %s: %s", failure.TestName, strings.Join(failure.RecentAuthors, ", "))
+		} else {
+			log.Printf("👤 %s: no authors found", failure.TestName)
+		}
 	}
 
 	// Generate analysis result
 	result := AnalysisResult{
 		FailureCount:    len(failures),
-		AffectedAuthors: authors,
-		AnalysisSummary: generateSummary(failures, authors),
+		AnalysisSummary: generateSummary(failures),
 		TestFailures:    failures,
 	}
 
 	// Generate report
+	log.Printf("📄 Generating analysis report...")
 	reportPath, err := generateReport(result)
 	if err != nil {
 		return fmt.Errorf("failed to generate report: %w", err)
 	}
 	result.ReportPath = reportPath
+	log.Printf("💾 Report saved to: %s", reportPath)
 
 	// Set GitHub Actions outputs
 	setGitHubOutput("failure-count", fmt.Sprintf("%d", result.FailureCount))
-	setGitHubOutput("affected-authors", mustMarshalJSON(result.AffectedAuthors))
 	setGitHubOutput("analysis-summary", result.AnalysisSummary)
 	setGitHubOutput("report-path", result.ReportPath)
 
+	log.Printf("✅ Analysis complete! Summary: %s", result.AnalysisSummary)
+	return nil
+}
+
+func findFilePaths(workingDir string, failures []TestFailure) error {
+	for i, failure := range failures {
+		filePath, err := findTestFilePath(workingDir, failure.TestName)
+		if err != nil {
+			return fmt.Errorf("failed to find file path for test %s: %w", failure.TestName, err)
+		}
+		failures[i].FilePath = filePath
+	}
 	return nil
 }
 
@@ -181,6 +215,16 @@ func fetchLogsFromLoki(config Config) (string, error) {
 		return "", fmt.Errorf("reading response body: %w", err)
 	}
 
+	// Parse response to count log entries
+	var tempResp LokiResponse
+	if err := json.Unmarshal(body, &tempResp); err == nil {
+		totalEntries := 0
+		for _, result := range tempResp.Data.Result {
+			totalEntries += len(result.Values)
+		}
+		log.Printf("📥 Retrieved %d log entries from %d streams", totalEntries, len(tempResp.Data.Result))
+	}
+
 	return string(body), nil
 }
 
@@ -206,9 +250,7 @@ func parseTimeRange(timeRange string, endTime time.Time) (time.Time, error) {
 }
 
 func buildLogQLQuery(repository, timeRange string) string {
-	return fmt.Sprintf(`sum by (parent_test_name, resources_ci_github_workflow_run_head_branch) (
-        count_over_time({service_name="%s", service_namespace="cicd-o11y"} |= "--- FAIL: Test" | json | __error__="" | resources_ci_github_workflow_run_conclusion!="cancelled" | line_format "{{.body}}" | regexp "--- FAIL: (?P<test_name>.*) \\(\\d" | line_format "{{.test_name}}" | regexp `+"`(?P<parent_test_name>Test[a-z0-9A-Z_]+)`"+`[7d])
-)`, repository)
+	return fmt.Sprintf(`{service_name="%s", service_namespace="cicd-o11y"} |= "--- FAIL: Test" | json | __error__="" | resources_ci_github_workflow_run_conclusion!="cancelled" | line_format "{{.body}}" | regexp "--- FAIL: (?P<test_name>.*) \\(\\d" | line_format "{{.test_name}}" | regexp `+"`(?P<parent_test_name>Test[a-z0-9A-Z_]+)`", repository)
 }
 
 func parseTestFailures(logsJSON, workingDir string) ([]TestFailure, error) {
@@ -217,65 +259,52 @@ func parseTestFailures(logsJSON, workingDir string) ([]TestFailure, error) {
 		return nil, fmt.Errorf("failed to unmarshal Loki response: %w", err)
 	}
 
-	// Parse raw results grouped by test name and branch
-	var branchFailures []TestFailureByBranch
+	// Parse individual log entries
+	var rawEntries []RawLogEntry
 	for _, result := range lokiResp.Data.Result {
-		parentTestName := result.Metric["parent_test_name"]
-		branch := result.Metric["resources_ci_github_workflow_run_head_branch"]
+		testName := result.Stream["parent_test_name"]
+		branch := result.Stream["resources_ci_github_workflow_run_head_branch"]
+		workflowRunURL := result.Stream["resources_ci_github_workflow_run_html_url"]
 
-		if parentTestName == "" || branch == "" {
+		if testName == "" || branch == "" {
+			continue
+		}
+		entry := RawLogEntry{
+			TestName:       testName,
+			Branch:         branch,
+			WorkflowRunURL: workflowRunURL,
+		}
+		rawEntries = append(rawEntries, entry)
+	}
+
+	log.Printf("🔄 Processed %d log lines, extracted %d valid test failure entries", len(lokiResp.Data.Result), len(rawEntries))
+
+	// Aggregate raw entries and apply flaky test detection
+	return detectFlakyTestsFromRawEntries(rawEntries, workingDir), nil
+}
+
+func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, workingDir string) []TestFailure {
+	// Group entries by test name
+	testMap := make(map[string]map[string]int)           // testName -> branch -> failureCount
+	exampleWorkflows := make(map[string]map[string]bool) // testName -> Workflow URL -> seen
+
+	for _, entry := range rawEntries {
+		if entry.TestName == "" || entry.Branch == "" {
 			continue
 		}
 
-		// Get the failure count - use the latest value or single value
-		var failureCount int
-		var timestamp string
-
-		if len(result.Values) > 0 {
-			// Multiple values over time - use the latest
-			lastValue := result.Values[len(result.Values)-1]
-			if len(lastValue) >= 2 {
-				timestamp = fmt.Sprintf("%v", lastValue[0])
-				if count, err := strconv.Atoi(fmt.Sprintf("%.0f", lastValue[1])); err == nil {
-					failureCount = count
-				}
-			}
-		} else if len(result.Value) >= 2 {
-			// Single value
-			timestamp = fmt.Sprintf("%v", result.Value[0])
-			if count, err := strconv.Atoi(fmt.Sprintf("%.0f", result.Value[1])); err == nil {
-				failureCount = count
-			}
+		// Initialize maps if needed
+		if testMap[entry.TestName] == nil {
+			testMap[entry.TestName] = make(map[string]int)
+			exampleWorkflows[entry.TestName] = make(map[string]bool)
 		}
 
-		if failureCount > 0 {
-			branchFailures = append(branchFailures, TestFailureByBranch{
-				TestName:     parentTestName,
-				Branch:       branch,
-				FailureCount: failureCount,
-				Timestamp:    timestamp,
-			})
-		}
-	}
+		// Count failures per branch
+		testMap[entry.TestName][entry.Branch]++
 
-	// Aggregate by test name and apply flaky test detection
-	return detectFlakyTests(branchFailures, workingDir), nil
-}
-
-func detectFlakyTests(branchFailures []TestFailureByBranch, workingDir string) []TestFailure {
-	// Group failures by test name
-	testMap := make(map[string]map[string]int) // testName -> branch -> failureCount
-	timestamps := make(map[string]string)      // testName -> latest timestamp
-
-	for _, failure := range branchFailures {
-		if testMap[failure.TestName] == nil {
-			testMap[failure.TestName] = make(map[string]int)
-		}
-		testMap[failure.TestName][failure.Branch] = failure.FailureCount
-
-		// Keep the latest timestamp for each test
-		if timestamps[failure.TestName] == "" || failure.Timestamp > timestamps[failure.TestName] {
-			timestamps[failure.TestName] = failure.Timestamp
+		// Collect example Workflow URLs (up to 3 per test)
+		if entry.WorkflowRunURL != "" && len(exampleWorkflows[entry.TestName]) < 3 {
+			exampleWorkflows[entry.TestName][entry.WorkflowRunURL] = true
 		}
 	}
 
@@ -301,31 +330,46 @@ func detectFlakyTests(branchFailures []TestFailureByBranch, workingDir string) [
 		}
 
 		// Only include flaky tests
-		if isFlaky {
-			filePath, err := findTestFilePath(workingDir, testName)
-			if err != nil {
-				log.Printf("Warning: skipping test %s - %v", testName, err)
-				continue
-			}
-
-			// Create branch summary
-			var branchSummary []string
-			for branch, count := range branches {
-				branchSummary = append(branchSummary, fmt.Sprintf("%s:%d", branch, count))
-			}
-
-			flakyTests = append(flakyTests, TestFailure{
-				TestName:     testName,
-				FilePath:     filePath,
-				Timestamp:    timestamps[testName],
-				Message:      fmt.Sprintf("Flaky test %s failed %d times across branches: %s", testName, totalFailures, strings.Join(branchSummary, ", ")),
-				BranchCounts: branches,
-				IsFlaky:      true,
-			})
+		if !isFlaky {
+			continue
 		}
+
+		// Create branch summary
+		var branchSummary []string
+		for branch, count := range branches {
+			branchSummary = append(branchSummary, fmt.Sprintf("%s:%d", branch, count))
+		}
+
+		// Convert Workflow map to slice
+		var workflowURLs []string
+		for workflowURL := range exampleWorkflows[testName] {
+			workflowURLs = append(workflowURLs, workflowURL)
+		}
+
+		flakyTests = append(flakyTests, TestFailure{
+			TestName:         testName,
+			TotalFailures:    totalFailures,
+			BranchCounts:     branches,
+			ExampleWorkflows: workflowURLs,
+		})
+
+		log.Printf("🔍 Detected flaky test: %s (%d total failures) - branches: %s",
+			testName, totalFailures, strings.Join(branchSummary, ", "))
 	}
 
-	return flakyTests
+	log.Printf("📈 Test analysis stats:")
+	log.Printf("   - Total unique tests with failures: %d", len(testMap))
+	log.Printf("   - Tests classified as flaky: %d", len(flakyTests))
+
+	return sortFlakyTests(flakyTests)
+}
+
+// sortFlakyTests sorts flaky tests by the number of branches they failed on (descending)
+func sortFlakyTests(tests []TestFailure) []TestFailure {
+	slices.SortFunc(tests, func(a, b TestFailure) int {
+		return len(b.BranchCounts) - len(a.BranchCounts)
+	})
+	return tests
 }
 
 func findTestFilePath(workingDir, testName string) (string, error) {
@@ -334,13 +378,13 @@ func findTestFilePath(workingDir, testName string) (string, error) {
 		return "", fmt.Errorf("invalid test name format: %s", testName)
 	}
 
-	// Use find command to search for files containing the test function
-	// Look for "func TestName(" pattern in *_test.go files
-	findCmd := exec.Command("find", ".", "-name", "*_test.go", "-type", "f", "-exec", "grep", "-l", fmt.Sprintf("func %s(", testName), "{}", ";")
-	findCmd.Dir = workingDir
+	// Use grep to recursively search for the test function in *_test.go files
+	// -r: recursive, -l: list filenames only, --include: only search *_test.go files
+	grepCmd := exec.Command("grep", "-rl", "--include=*_test.go", fmt.Sprintf("func %s(", testName), ".")
+	grepCmd.Dir = workingDir
 
 	// Execute the search
-	result, err := findCmd.Output()
+	result, err := grepCmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to search for test function %s: %w", testName, err)
 	}
@@ -384,12 +428,15 @@ func guessTestFilePath(testName string) string {
 func findTestAuthors(workingDir, githubToken string, failures []TestFailure) ([]string, error) {
 	authorsMap := make(map[string]bool)
 
-	for _, failure := range failures {
+	for i, failure := range failures {
 		authors, err := getFileAuthors(workingDir, failure.FilePath, failure.TestName, githubToken)
 		if err != nil {
 			log.Printf("Warning: failed to get authors for test %s in %s: %v", failure.TestName, failure.FilePath, err)
 			continue
 		}
+
+		// Store the recent authors for this test (already limited to 3 by git log -3)
+		failures[i].RecentAuthors = authors
 
 		for _, author := range authors {
 			authorsMap[author] = true
@@ -405,8 +452,8 @@ func findTestAuthors(workingDir, githubToken string, failures []TestFailure) ([]
 }
 
 func getFileAuthors(workingDir, filePath, testName, githubToken string) ([]string, error) {
-	// Use git log -L to find commits that modified the specific test function
-	cmd := exec.Command("git", "log", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H", "-s")
+	// Use git log -L to find the last 3 commits that modified the specific test function
+	cmd := exec.Command("git", "log", "-3", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H", "-s")
 	cmd.Dir = workingDir
 
 	result, err := cmd.Output()
@@ -421,43 +468,30 @@ func getFileAuthors(workingDir, filePath, testName, githubToken string) ([]strin
 		return []string{}, nil
 	}
 
-	// Extract unique commit hashes
-	commitHashes := make(map[string]bool)
+	// Get GitHub usernames for the commits (in order)
+	var authors []string
+	seenAuthors := make(map[string]bool)
+
 	for _, line := range lines {
 		hash := strings.TrimSpace(line)
-		if hash != "" {
-			commitHashes[hash] = true
+		if hash == "" {
+			continue
 		}
-	}
 
-	if len(commitHashes) == 0 {
-		return []string{}, nil
-	}
-
-	// Get GitHub usernames for the commits
-	var authors []string
-	for hash := range commitHashes {
 		username, err := getGitHubUsernameForCommit(hash, githubToken)
 		if err != nil {
 			log.Printf("Warning: failed to get GitHub username for commit %s: %v", hash, err)
 			continue
 		}
-		if username != "" {
+
+		// Only add unique authors to preserve order
+		if username != "" && !strings.HasSuffix(username, "[bot]") && !seenAuthors[username] {
 			authors = append(authors, username)
+			seenAuthors[username] = true
 		}
 	}
 
-	// Remove duplicates
-	uniqueAuthors := make(map[string]bool)
-	var result_authors []string
-	for _, author := range authors {
-		if !uniqueAuthors[author] {
-			uniqueAuthors[author] = true
-			result_authors = append(result_authors, author)
-		}
-	}
-
-	return result_authors, nil
+	return authors, nil
 }
 
 type GitHubCommitSearchResponse []GitHubCommitSearchItem
@@ -483,7 +517,7 @@ func getGitHubUsernameForCommit(commitHash, githubToken string) (string, error) 
 
 	result, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("failed to search commit: %w", err)
+		return "", fmt.Errorf("failed to search commit: %w (output: %s)", err, string(result))
 	}
 
 	var response GitHubCommitSearchResponse
@@ -499,13 +533,13 @@ func getGitHubUsernameForCommit(commitHash, githubToken string) (string, error) 
 	return "", fmt.Errorf("no GitHub username found for commit %s", commitHash)
 }
 
-func generateSummary(failures []TestFailure, authors []string) string {
+func generateSummary(failures []TestFailure) string {
 	if len(failures) == 0 {
 		return "No test failures found in the specified time range."
 	}
 
-	return fmt.Sprintf("Found %d test failures affecting %d authors. Most common failures: %s",
-		len(failures), len(authors), getMostCommonFailures(failures))
+	return fmt.Sprintf("Found %d test failures. Most common failures: %s",
+		len(failures), getMostCommonFailures(failures))
 }
 
 func getMostCommonFailures(failures []TestFailure) string {
@@ -513,41 +547,11 @@ func getMostCommonFailures(failures []TestFailure) string {
 		return "none"
 	}
 
-	// Calculate total failure count for each test across all branches
-	testFailureCounts := make(map[string]int)
-	for _, failure := range failures {
-		totalCount := 0
-		for _, count := range failure.BranchCounts {
-			totalCount += count
-		}
-		testFailureCounts[failure.TestName] = totalCount
-	}
-
-	// Sort tests by failure count (descending)
-	type testCount struct {
-		name  string
-		count int
-	}
-
-	var sortedTests []testCount
-	for testName, count := range testFailureCounts {
-		sortedTests = append(sortedTests, testCount{name: testName, count: count})
-	}
-
-	// Sort by count (highest first)
-	for i := 0; i < len(sortedTests); i++ {
-		for j := i + 1; j < len(sortedTests); j++ {
-			if sortedTests[j].count > sortedTests[i].count {
-				sortedTests[i], sortedTests[j] = sortedTests[j], sortedTests[i]
-			}
-		}
-	}
-
 	// Take top 5 and format as "TestName (X failures)"
-	limit := min(5, len(sortedTests))
+	limit := min(5, len(failures))
 	topFailures := make([]string, limit)
 	for i := 0; i < limit; i++ {
-		topFailures[i] = fmt.Sprintf("%s (%d failures)", sortedTests[i].name, sortedTests[i].count)
+		topFailures[i] = fmt.Sprintf("%s (%d total failures; recently changed by %s)", failures[i].TestName, failures[i].TotalFailures, strings.Join(failures[i].RecentAuthors, ", "))
 	}
 
 	return strings.Join(topFailures, ", ")
@@ -591,4 +595,11 @@ func mustMarshalJSON(v interface{}) string {
 		return "[]"
 	}
 	return string(data)
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
