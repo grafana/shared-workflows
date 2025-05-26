@@ -64,7 +64,7 @@ runs:
       shell: bash
       env:
         DOCKER_CREDENTIAL_GCR_VERSION: "v2.1.28"
-      run: | 
+      run: |
         set -ex
 
         # Install docker-credential-gcr:
