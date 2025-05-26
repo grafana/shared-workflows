@@ -1,0 +1,88 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "parent_test_name": "TestDatabaseConnection",
+          "resources_ci_github_workflow_run_head_branch": "main",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/101"
+        },
+        "values": [
+          ["1640995200000000000", "--- FAIL: TestDatabaseConnection (0.05s)"]
+        ]
+      },
+      {
+        "stream": {
+          "parent_test_name": "TestDatabaseConnection",
+          "resources_ci_github_workflow_run_head_branch": "main",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/102"
+        },
+        "values": [
+          ["1640995260000000000", "--- FAIL: TestDatabaseConnection (0.12s)"]
+        ]
+      },
+      {
+        "stream": {
+          "parent_test_name": "TestDatabaseConnection",
+          "resources_ci_github_workflow_run_head_branch": "feature/db-optimization",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/103"
+        },
+        "values": [
+          ["1640995320000000000", "--- FAIL: TestDatabaseConnection (0.08s)"]
+        ]
+      },
+      {
+        "stream": {
+          "parent_test_name": "TestUserAuthentication",
+          "resources_ci_github_workflow_run_head_branch": "main",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/201"
+        },
+        "values": [
+          ["1640995380000000000", "--- FAIL: TestUserAuthentication (0.03s)"]
+        ]
+      },
+      {
+        "stream": {
+          "parent_test_name": "TestUserAuthentication",
+          "resources_ci_github_workflow_run_head_branch": "feature/oauth",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/202"
+        },
+        "values": [
+          ["1640995440000000000", "--- FAIL: TestUserAuthentication (0.07s)"]
+        ]
+      },
+      {
+        "stream": {
+          "parent_test_name": "TestPaymentProcessing",
+          "resources_ci_github_workflow_run_head_branch": "main",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/301"
+        },
+        "values": [
+          ["1640995500000000000", "--- FAIL: TestPaymentProcessing (0.15s)"]
+        ]
+      },
+      {
+        "stream": {
+          "parent_test_name": "TestPaymentProcessing",
+          "resources_ci_github_workflow_run_head_branch": "feature/stripe-integration",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/302"
+        },
+        "values": [
+          ["1640995520000000000", "--- FAIL: TestPaymentProcessing (0.11s)"]
+        ]
+      },
+      {
+        "stream": {
+          "parent_test_name": "TestNonFlaky",
+          "resources_ci_github_workflow_run_head_branch": "feature/new-feature",
+          "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/401"
+        },
+        "values": [
+          ["1640995560000000000", "--- FAIL: TestNonFlaky (0.02s)"]
+        ]
+      }
+    ]
+  }
+}
