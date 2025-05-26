@@ -114,13 +114,28 @@ type FlakyTest struct {
 	RecentCommits    []CommitInfo   `json:"recent_commits"`
 }
 
+// String returns a formatted string representation of the flaky test for summary reports
+func (f *FlakyTest) String() string {
+	var authors []string
+	for _, commit := range f.RecentCommits {
+		if commit.Author != "" && commit.Author != "unknown" {
+			authors = append(authors, commit.Author)
+		}
+	}
+	authorsStr := "unknown"
+	if len(authors) > 0 {
+		authorsStr = strings.Join(authors, ", ")
+	}
+	return fmt.Sprintf("%s (%d total failures; recently changed by %s)", f.TestName, f.TotalFailures, authorsStr)
+}
+
 type RawLogEntry struct {
 	TestName       string `json:"test_name"`
 	Branch         string `json:"branch"`
 	WorkflowRunURL string `json:"workflow_run_url"`
 }
 
-type AnalysisResult struct {
+type FailuresReport struct {
 	TestCount       int         `json:"test_count"`
 	AnalysisSummary string      `json:"analysis_summary"`
 	ReportPath      string      `json:"report_path"`
@@ -344,8 +359,8 @@ func getIntEnvWithDefault(key string, defaultValue int) int {
 	return defaultValue
 }
 
-// Run performs the complete test failure analysis workflow
-func (t *TestFailureAnalyzer) Run(config Config) error {
+// AnalyzeFailures performs the analysis phase - fetches logs, parses failures, and generates a report
+func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, error) {
 	log.Printf("🔍 Starting test failure analysis for repository: %s", config.Repository)
 	log.Printf("📅 Time range: %s", config.TimeRange)
 	log.Printf("🔗 Loki URL: %s", config.LokiURL)
@@ -355,14 +370,14 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 	log.Printf("📡 Fetching logs from Loki...")
 	lokiResp, err := t.lokiClient.FetchLogs()
 	if err != nil {
-		return fmt.Errorf("failed to fetch logs from Loki: %w", err)
+		return nil, fmt.Errorf("failed to fetch logs from Loki: %w", err)
 	}
 
 	// Parse and analyze test failures
 	log.Printf("📊 Parsing test failures from log data...")
 	flakyTests, err := parseTestFailuresFromResponse(lokiResp, config.WorkingDirectory)
 	if err != nil {
-		return fmt.Errorf("failed to parse test failures: %w", err)
+		return nil, fmt.Errorf("failed to parse test failures: %w", err)
 	}
 	// Limit to configured max tests for performance
 	if len(flakyTests) > config.MaxFailures {
@@ -373,14 +388,14 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 	log.Printf("📁 Finding test files in repository...")
 	err = t.findFilePaths(config.WorkingDirectory, flakyTests)
 	if err != nil {
-		return fmt.Errorf("failed to find file paths for flaky tests: %w", err)
+		return nil, fmt.Errorf("failed to find file paths for flaky tests: %w", err)
 	}
 
 	// Find authors of flaky tests
 	log.Printf("👥 Finding authors of flaky tests...")
 	err = t.findTestAuthors(config.WorkingDirectory, config.GitHubToken, flakyTests)
 	if err != nil {
-		return fmt.Errorf("failed to find test authors: %w", err)
+		return nil, fmt.Errorf("failed to find test authors: %w", err)
 	}
 
 	// Log authors for each test
@@ -402,28 +417,13 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 		}
 	}
 
-	// Create GitHub issues for flaky tests
-	if config.DryRun {
-		log.Printf("🔍 Dry run mode: Generating issue previews...")
-		err = t.previewIssuesForFlakyTests(flakyTests)
-		if err != nil {
-			return fmt.Errorf("failed to preview GitHub issues: %w", err)
-		}
-	} else {
-		log.Printf("📝 Creating GitHub issues for flaky tests...")
-		err = t.createIssuesForFlakyTests(config.Repository, config.GitHubToken, flakyTests)
-		if err != nil {
-			return fmt.Errorf("failed to create GitHub issues: %w", err)
-		}
-	}
-
 	// Ensure flakyTests is never nil for JSON marshaling
 	if flakyTests == nil {
 		flakyTests = []FlakyTest{}
 	}
 
 	// Generate analysis result
-	result := AnalysisResult{
+	result := FailuresReport{
 		TestCount:       len(flakyTests),
 		AnalysisSummary: generateSummary(flakyTests),
 		FlakyTests:      flakyTests,
@@ -433,17 +433,60 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 	log.Printf("📄 Generating analysis report...")
 	reportPath, err := t.generateReport(result)
 	if err != nil {
-		return fmt.Errorf("failed to generate report: %w", err)
+		return nil, fmt.Errorf("failed to generate report: %w", err)
 	}
 	result.ReportPath = reportPath
 	log.Printf("💾 Report saved to: %s", reportPath)
 
-	// Set GitHub Actions outputs
-	setGitHubOutput("test-count", fmt.Sprintf("%d", result.TestCount))
-	setGitHubOutput("analysis-summary", result.AnalysisSummary)
-	setGitHubOutput("report-path", result.ReportPath)
-
 	log.Printf("✅ Analysis complete! Summary: %s", result.AnalysisSummary)
+	return &result, nil
+}
+
+// ActionReport performs the enactment phase - creates or updates GitHub issues based on the analysis report
+func (t *TestFailureAnalyzer) ActionReport(report *FailuresReport, config Config) error {
+	if report == nil || len(report.FlakyTests) == 0 {
+		log.Printf("📝 No flaky tests to enact - skipping GitHub issue creation")
+		return nil
+	}
+
+	// Create GitHub issues for flaky tests
+	if config.DryRun {
+		log.Printf("🔍 Dry run mode: Generating issue previews...")
+		err := t.previewIssuesForFlakyTests(report.FlakyTests)
+		if err != nil {
+			return fmt.Errorf("failed to preview GitHub issues: %w", err)
+		}
+	} else {
+		log.Printf("📝 Creating GitHub issues for flaky tests...")
+		err := t.createIssuesForFlakyTests(config.Repository, config.GitHubToken, report.FlakyTests)
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub issues: %w", err)
+		}
+	}
+
+	log.Printf("✅ Report enactment complete!")
+	return nil
+}
+
+// Run performs the complete test failure analysis workflow by calling both AnalyzeFailures and ActionReport
+func (t *TestFailureAnalyzer) Run(config Config) error {
+	// Phase 1: Analyze failures and generate report
+	report, err := t.AnalyzeFailures(config)
+	if err != nil {
+		return fmt.Errorf("analysis phase failed: %w", err)
+	}
+
+	// Phase 2: Enact the report (create/update GitHub issues)
+	err = t.ActionReport(report, config)
+	if err != nil {
+		return fmt.Errorf("enactment phase failed: %w", err)
+	}
+
+	// Set GitHub Actions outputs
+	setGitHubOutput("test-count", fmt.Sprintf("%d", report.TestCount))
+	setGitHubOutput("analysis-summary", report.AnalysisSummary)
+	setGitHubOutput("report-path", report.ReportPath)
+
 	return nil
 }
 
@@ -1116,35 +1159,24 @@ func generateSummary(flakyTests []FlakyTest) string {
 	}
 
 	return fmt.Sprintf("Found %d flaky tests. Most common tests: %s",
-		len(flakyTests), getMostCommonFailures(flakyTests))
+		len(flakyTests), formatFlakyTests(flakyTests))
 }
 
-func getMostCommonFailures(flakyTests []FlakyTest) string {
+func formatFlakyTests(flakyTests []FlakyTest) string {
 	if len(flakyTests) == 0 {
 		return "none"
 	}
 
-	// Take top 5 and format as "TestName (X failures)"
-	limit := min(5, len(flakyTests))
-	topTests := make([]string, limit)
-	for i := 0; i < limit; i++ {
-		var authors []string
-		for _, commit := range flakyTests[i].RecentCommits {
-			if commit.Author != "" && commit.Author != "unknown" {
-				authors = append(authors, commit.Author)
-			}
-		}
-		authorsStr := "unknown"
-		if len(authors) > 0 {
-			authorsStr = strings.Join(authors, ", ")
-		}
-		topTests[i] = fmt.Sprintf("%s (%d total failures; recently changed by %s)", flakyTests[i].TestName, flakyTests[i].TotalFailures, authorsStr)
+	// Take top 5 and format using the String method
+	topTests := make([]string, len(flakyTests))
+	for i := 0; i < len(flakyTests); i++ {
+		topTests[i] = flakyTests[i].String()
 	}
 
 	return strings.Join(topTests, ", ")
 }
 
-func (t *TestFailureAnalyzer) generateReport(result AnalysisResult) (string, error) {
+func (t *TestFailureAnalyzer) generateReport(result FailuresReport) (string, error) {
 	reportPath := "test-failure-analysis.json"
 
 	reportData, err := json.MarshalIndent(result, "", "  ")

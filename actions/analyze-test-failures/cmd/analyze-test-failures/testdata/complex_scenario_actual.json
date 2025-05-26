@@ -1,36 +1,8 @@
 {
   "test_count": 3,
-  "analysis_summary": "Found 3 flaky tests. Most common tests: TestDatabaseConnection (3 total failures; recently changed by alice, bob), TestUserAuthentication (2 total failures; recently changed by charlie), TestPaymentProcessing (2 total failures; recently changed by dave, eve)",
+  "analysis_summary": "Found 3 flaky tests. Most common tests: TestUserAuthentication (2 total failures; recently changed by charlie), TestPaymentProcessing (2 total failures; recently changed by dave, eve), TestDatabaseConnection (3 total failures; recently changed by alice, bob)",
   "report_path": "test-failure-analysis.json",
   "flaky_tests": [
-    {
-      "test_name": "TestDatabaseConnection",
-      "file_path": "internal/database/connection_test.go",
-      "total_failures": 3,
-      "branch_counts": {
-        "feature/db-optimization": 1,
-        "main": 2
-      },
-      "example_workflows": [
-        "https://github.com/test/repo/actions/runs/101",
-        "https://github.com/test/repo/actions/runs/102",
-        "https://github.com/test/repo/actions/runs/103"
-      ],
-      "recent_commits": [
-        {
-          "hash": "abc123def456",
-          "author": "alice",
-          "timestamp": "2024-01-15T10:30:00Z",
-          "title": "Optimize database connection pooling"
-        },
-        {
-          "hash": "789ghi012jkl",
-          "author": "bob",
-          "timestamp": "2024-01-10T14:22:00Z",
-          "title": "Add connection timeout handling"
-        }
-      ]
-    },
     {
       "test_name": "TestUserAuthentication",
       "file_path": "auth/user_test.go",
@@ -76,6 +48,34 @@
           "author": "eve",
           "timestamp": "2024-01-05T11:30:00Z",
           "title": "Refactor payment processing logic"
+        }
+      ]
+    },
+    {
+      "test_name": "TestDatabaseConnection",
+      "file_path": "internal/database/connection_test.go",
+      "total_failures": 3,
+      "branch_counts": {
+        "feature/db-optimization": 1,
+        "main": 2
+      },
+      "example_workflows": [
+        "https://github.com/test/repo/actions/runs/101",
+        "https://github.com/test/repo/actions/runs/102",
+        "https://github.com/test/repo/actions/runs/103"
+      ],
+      "recent_commits": [
+        {
+          "hash": "abc123def456",
+          "author": "alice",
+          "timestamp": "2024-01-15T10:30:00Z",
+          "title": "Optimize database connection pooling"
+        },
+        {
+          "hash": "789ghi012jkl",
+          "author": "bob",
+          "timestamp": "2024-01-10T14:22:00Z",
+          "title": "Add connection timeout handling"
         }
       ]
     }
