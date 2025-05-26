@@ -1,0 +1,69 @@
+name: "Analyze Test Failures"
+description: "Fetch logs from Loki, analyze flaky tests, and identify test authors"
+author: "Grafana Labs"
+
+inputs:
+  loki-url:
+    description: "Loki endpoint URL"
+    required: true
+  loki-username:
+    description: "Username for Loki authentication"
+    required: false
+  loki-password:
+    description: "Password for Loki authentication"
+    required: false
+  repository:
+    description: "Repository name to analyze test failures for"
+    required: true
+  time-range:
+    description: "Time range for the query (e.g., '1h', '24h', '7d')"
+    required: false
+    default: "1h"
+  github-token:
+    description: "GitHub token for repository access"
+    required: false
+    default: ${{ github.token }}
+  working-directory:
+    description: "Working directory to analyze"
+    required: false
+    default: ${{ github.workspace }}
+
+outputs:
+  failure-count:
+    description: "Number of test failures found"
+  affected-authors:
+    description: "JSON array of authors who wrote the failing tests"
+  analysis-summary:
+    description: "Summary of the analysis results"
+  report-path:
+    description: "Path to the generated analysis report"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.22"
+        
+    - name: Setup GitHub CLI
+      run: |
+        # GitHub CLI is pre-installed on GitHub Actions runners
+        # Just verify it's available and authenticated
+        gh --version
+      shell: bash
+
+    - name: Build and run analyzer
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        go build -o analyzer ./cmd/analyze-test-failures
+        ./analyzer
+      env:
+        LOKI_URL: ${{ inputs.loki-url }}
+        LOKI_USERNAME: ${{ inputs.loki-username }}
+        LOKI_PASSWORD: ${{ inputs.loki-password }}
+        REPOSITORY: ${{ inputs.repository }}
+        TIME_RANGE: ${{ inputs.time-range }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
