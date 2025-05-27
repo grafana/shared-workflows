@@ -27,7 +27,7 @@ func (g *DefaultGitClient) FindTestFile(testName string) (string, error) {
 }
 
 func (g *DefaultGitClient) GetFileAuthors(filePath, testName string) ([]CommitInfo, error) {
-	return getFileAuthors(g.config.RepositoryDirectory, filePath, testName, g.config.GitHubToken)
+	return getFileAuthors(g.config, filePath, testName)
 }
 
 func findTestFilePath(repoDir, testName string) (string, error) {
@@ -74,15 +74,12 @@ func guessTestFilePath(testName string) string {
 	return "unknown_test_file"
 }
 
-func getFileAuthors(repoDir, filePath, testName, githubToken string) ([]CommitInfo, error) {
-	tempConfig := Config{
-		GitHubToken: githubToken,
-	}
-	githubClient := NewDefaultGitHubClient(tempConfig)
-	return getFileAuthorsWithClient(repoDir, filePath, testName, githubToken, githubClient)
+func getFileAuthors(config Config, filePath, testName string) ([]CommitInfo, error) {
+	githubClient := NewDefaultGitHubClient(config)
+	return getFileAuthorsWithClient(config.RepositoryDirectory, filePath, testName, githubClient)
 }
 
-func getFileAuthorsWithClient(repoDir, filePath, testName, githubToken string, githubClient GitHubClient) ([]CommitInfo, error) {
+func getFileAuthorsWithClient(repoDir, filePath, testName string, githubClient GitHubClient) ([]CommitInfo, error) {
 	cmd := exec.Command("git", "log", "-3", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H|%ct|%s", "-s")
 	cmd.Dir = repoDir
 

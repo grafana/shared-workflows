@@ -604,7 +604,7 @@ func TestParseTestFailures_ValidResponse(t *testing.T) {
 
 	lokiResponse := createTestLokiResponse(logEntries)
 
-	flakyTests, err := parseTestFailuresFromResponse(lokiResponse, "/tmp/test")
+	flakyTests, err := parseTestFailuresFromResponse(lokiResponse)
 
 	require.NoError(t, err, "Parsing should succeed with valid response")
 	assert.Len(t, flakyTests, 2, "Expected 2 flaky tests to be detected")
@@ -662,7 +662,7 @@ func TestDetectFlakyTestsFromRawEntries(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := detectFlakyTestsFromRawEntries(tt.entries, "/tmp/test")
+			result := detectFlakyTestsFromRawEntries(tt.entries)
 			assert.Len(t, result, tt.expected, "Expected %d flaky tests for test: %s", tt.expected, tt.name)
 		})
 	}

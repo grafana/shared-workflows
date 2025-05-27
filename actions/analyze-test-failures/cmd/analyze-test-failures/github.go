@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 	"text/template"
@@ -28,7 +27,7 @@ func NewDefaultGitHubClient(config Config) *DefaultGitHubClient {
 }
 
 func (gh *DefaultGitHubClient) GetUsernameForCommit(commitHash string) (string, error) {
-	return getGitHubUsernameForCommit(commitHash, gh.config.GitHubToken)
+	return getGitHubUsernameForCommit(commitHash)
 }
 
 func (gh *DefaultGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
@@ -56,8 +55,6 @@ func (gh *DefaultGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
 		"--body", issueBody,
 		"--label", "flaky-test")
 
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GH_TOKEN=%s", gh.config.GitHubToken))
-
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to create GitHub issue: %w, output: %s", err, string(output))
@@ -70,7 +67,7 @@ func (gh *DefaultGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
 }
 
 func (gh *DefaultGitHubClient) SearchForExistingIssue(issueTitle string) (string, error) {
-	return searchForExistingIssue(gh.config.Repository, gh.config.GitHubToken, issueTitle)
+	return searchForExistingIssue(gh.config.Repository, issueTitle)
 }
 
 func (gh *DefaultGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest) error {
@@ -80,7 +77,6 @@ func (gh *DefaultGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest
 	}
 
 	cmd := exec.Command("gh", "issue", "comment", issueURL, "--body", commentBody)
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GH_TOKEN=%s", gh.config.GitHubToken))
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -89,7 +85,7 @@ func (gh *DefaultGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest
 
 	log.Printf("📝 Added comment to GitHub issue: %s", issueURL)
 
-	issue, err := getIssueState(gh.config.Repository, gh.config.GitHubToken, issueURL)
+	issue, err := getIssueState(gh.config.Repository, issueURL)
 	if err != nil {
 		log.Printf("Warning: failed to check issue state: %v", err)
 		return nil
@@ -107,7 +103,7 @@ func (gh *DefaultGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest
 }
 
 func (gh *DefaultGitHubClient) ReopenIssue(issueURL string) error {
-	return reopenIssue(gh.config.Repository, gh.config.GitHubToken, issueURL)
+	return reopenIssue(gh.config.Repository, issueURL)
 }
 
 type GitHubIssue struct {
@@ -126,11 +122,10 @@ type GitHubAuthor struct {
 	Login string `json:"login"`
 }
 
-func getIssueState(repository, githubToken, issueURL string) (*GitHubIssue, error) {
+func getIssueState(repository, issueURL string) (*GitHubIssue, error) {
 	cmd := exec.Command("gh", "issue", "view", issueURL,
 		"--repo", repository,
 		"--json", "state,url,title")
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GH_TOKEN=%s", githubToken))
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -145,14 +140,8 @@ func getIssueState(repository, githubToken, issueURL string) (*GitHubIssue, erro
 	return &issue, nil
 }
 
-func getGitHubUsernameForCommit(commitHash, githubToken string) (string, error) {
-	if githubToken == "" {
-		return "", fmt.Errorf("no GitHub token provided")
-	}
-
+func getGitHubUsernameForCommit(commitHash string) (string, error) {
 	cmd := exec.Command("gh", "search", "commits", "--hash", commitHash, "--json", "author")
-
-	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
 
 	result, err := cmd.Output()
 	if err != nil {
@@ -172,14 +161,12 @@ func getGitHubUsernameForCommit(commitHash, githubToken string) (string, error) 
 	return "", fmt.Errorf("no GitHub username found for commit %s", commitHash)
 }
 
-func searchForExistingIssue(repository, githubToken string, issueTitle string) (string, error) {
+func searchForExistingIssue(repository, issueTitle string) (string, error) {
 	cmd := exec.Command("gh", "issue", "list",
 		"--repo", repository,
 		"--search", fmt.Sprintf("\"%s\"", issueTitle),
 		"--state", "all",
 		"--json", "url,title,state")
-
-	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
 
 	result, err := cmd.Output()
 	if err != nil {
@@ -200,7 +187,7 @@ func searchForExistingIssue(repository, githubToken string, issueTitle string) (
 		if issue.Title == issueTitle {
 			if issue.State == "CLOSED" {
 				log.Printf("🔄 Reopening closed issue for %s: %s", issueTitle, issue.URL)
-				err := reopenIssue(repository, githubToken, issue.URL)
+				err := reopenIssue(repository, issue.URL)
 				if err != nil {
 					log.Printf("Warning: failed to reopen issue %s: %v", issue.URL, err)
 				}
@@ -212,9 +199,8 @@ func searchForExistingIssue(repository, githubToken string, issueTitle string) (
 	return "", nil
 }
 
-func reopenIssue(repository, githubToken, issueURL string) error {
+func reopenIssue(repository, issueURL string) error {
 	cmd := exec.Command("gh", "issue", "reopen", issueURL, "--repo", repository)
-	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
 
 	result, err := cmd.Output()
 	if err != nil {
@@ -225,7 +211,7 @@ func reopenIssue(repository, githubToken, issueURL string) error {
 	return nil
 }
 
-func addCommentToIssue(repository, githubToken, issueURL string, test FlakyTest) error {
+func addCommentToIssue(repository, issueURL string, test FlakyTest) error {
 	commentBody, err := generateCommentBody(test)
 	if err != nil {
 		return fmt.Errorf("failed to generate comment body: %w", err)
@@ -234,8 +220,6 @@ func addCommentToIssue(repository, githubToken, issueURL string, test FlakyTest)
 	cmd := exec.Command("gh", "issue", "comment", issueURL,
 		"--repo", repository,
 		"--body", commentBody)
-
-	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
 
 	result, err := cmd.Output()
 	if err != nil {
@@ -335,17 +319,17 @@ func generateCommentBody(test FlakyTest) (string, error) {
 	return body.String(), nil
 }
 
-func createOrUpdateIssueForTest(repository, githubToken string, test FlakyTest) error {
+func createOrUpdateIssueForTest(repository string, test FlakyTest) error {
 	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
 
-	existingIssueURL, err := searchForExistingIssue(repository, githubToken, issueTitle)
+	existingIssueURL, err := searchForExistingIssue(repository, issueTitle)
 	if err != nil {
 		log.Printf("Warning: failed to search for existing issue: %v", err)
 	}
 
 	if existingIssueURL != "" {
 		log.Printf("📝 Found existing issue for %s, adding comment: %s", test.TestName, existingIssueURL)
-		return addCommentToIssue(repository, githubToken, existingIssueURL, test)
+		return addCommentToIssue(repository, existingIssueURL, test)
 	}
 
 	log.Printf("📝 Creating new issue for flaky test: %s", test.TestName)
@@ -360,8 +344,6 @@ func createOrUpdateIssueForTest(repository, githubToken string, test FlakyTest) 
 		"--body", issueBody,
 		"--label", "flaky-test")
 
-	cmd.Env = append(os.Environ(), fmt.Sprintf("GITHUB_TOKEN=%s", githubToken))
-
 	result, err := cmd.Output()
 	if err != nil {
 		return fmt.Errorf("failed to create issue: %w (output: %s)", err, string(result))
@@ -370,5 +352,5 @@ func createOrUpdateIssueForTest(repository, githubToken string, test FlakyTest) 
 	issueURL := strings.TrimSpace(string(result))
 	log.Printf("✅ Created issue for %s: %s", test.TestName, issueURL)
 
-	return addCommentToIssue(repository, githubToken, issueURL, test)
+	return addCommentToIssue(repository, issueURL, test)
 }

@@ -102,7 +102,7 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 	}
 
 	log.Printf("📊 Parsing test failures from log data...")
-	flakyTests, err := parseTestFailuresFromResponse(lokiResp, config.RepositoryDirectory)
+	flakyTests, err := parseTestFailuresFromResponse(lokiResp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse test failures: %w", err)
 	}
@@ -112,13 +112,13 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 
 	log.Printf("🧪 Found %d flaky tests that meet criteria", len(flakyTests))
 	log.Printf("📁 Finding test files in repository...")
-	err = t.findFilePaths(config.RepositoryDirectory, flakyTests)
+	err = t.findFilePaths(flakyTests)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find file paths for flaky tests: %w", err)
 	}
 
 	log.Printf("👥 Finding authors of flaky tests...")
-	err = t.findTestAuthors(config.RepositoryDirectory, config.GitHubToken, flakyTests)
+	err = t.findTestAuthors(flakyTests)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find test authors: %w", err)
 	}
@@ -177,7 +177,7 @@ func (t *TestFailureAnalyzer) ActionReport(report *FailuresReport, config Config
 		}
 	} else {
 		log.Printf("📝 Creating GitHub issues for flaky tests...")
-		err := t.createIssuesForFlakyTests(config.Repository, config.GitHubToken, report.FlakyTests)
+		err := t.createIssuesForFlakyTests(report.FlakyTests)
 		if err != nil {
 			return fmt.Errorf("failed to create GitHub issues: %w", err)
 		}
@@ -205,7 +205,7 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 	return nil
 }
 
-func (t *TestFailureAnalyzer) findFilePaths(repoDir string, flakyTests []FlakyTest) error {
+func (t *TestFailureAnalyzer) findFilePaths(flakyTests []FlakyTest) error {
 	for i, test := range flakyTests {
 		filePath, err := t.gitClient.FindTestFile(test.TestName)
 		if err != nil {
@@ -216,7 +216,7 @@ func (t *TestFailureAnalyzer) findFilePaths(repoDir string, flakyTests []FlakyTe
 	return nil
 }
 
-func (t *TestFailureAnalyzer) findTestAuthors(repoDir, githubToken string, flakyTests []FlakyTest) error {
+func (t *TestFailureAnalyzer) findTestAuthors(flakyTests []FlakyTest) error {
 	for i, test := range flakyTests {
 		commits, err := t.gitClient.GetFileAuthors(test.FilePath, test.TestName)
 		if err != nil {
@@ -237,7 +237,7 @@ func (t *TestFailureAnalyzer) findTestAuthors(repoDir, githubToken string, flaky
 	return nil
 }
 
-func (t *TestFailureAnalyzer) createIssuesForFlakyTests(repository, githubToken string, flakyTests []FlakyTest) error {
+func (t *TestFailureAnalyzer) createIssuesForFlakyTests(flakyTests []FlakyTest) error {
 	for _, test := range flakyTests {
 		err := t.githubClient.CreateOrUpdateIssue(test)
 		if err != nil {
@@ -272,16 +272,7 @@ func (t *TestFailureAnalyzer) generateReport(result FailuresReport) (string, err
 	return filepath.Abs(reportPath)
 }
 
-func parseTestFailures(logsJSON, repoDir string) ([]FlakyTest, error) {
-	var lokiResp LokiResponse
-	if err := json.Unmarshal([]byte(logsJSON), &lokiResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal Loki response: %w", err)
-	}
-
-	return parseTestFailuresFromResponse(&lokiResp, repoDir)
-}
-
-func parseTestFailuresFromResponse(lokiResp *LokiResponse, repoDir string) ([]FlakyTest, error) {
+func parseTestFailuresFromResponse(lokiResp *LokiResponse) ([]FlakyTest, error) {
 	var rawEntries []RawLogEntry
 	for _, result := range lokiResp.Data.Result {
 		testName := result.Stream["parent_test_name"]
@@ -301,10 +292,10 @@ func parseTestFailuresFromResponse(lokiResp *LokiResponse, repoDir string) ([]Fl
 
 	log.Printf("🔄 Processed %d log lines, extracted %d valid test failure entries", len(lokiResp.Data.Result), len(rawEntries))
 
-	return detectFlakyTestsFromRawEntries(rawEntries, repoDir), nil
+	return detectFlakyTestsFromRawEntries(rawEntries), nil
 }
 
-func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, repoDir string) []FlakyTest {
+func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry) []FlakyTest {
 	testMap := make(map[string]map[string]int)
 	exampleWorkflows := make(map[string]map[string]bool)
 
