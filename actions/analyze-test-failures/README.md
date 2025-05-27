@@ -141,7 +141,7 @@ The action automatically creates and maintains GitHub issues for detected flaky 
 - **Creates new issues**: For newly detected flaky tests with detailed investigation guides
 - **Updates existing issues**: Adds new failure data and mentions recent contributors
 - **Reopens closed issues**: When previously resolved flaky tests fail again
-- **Author mentions**: Uses git blame to identify recent contributors to the tests and mentions them in issues
+- **Author mentions**: Uses git blame to identify recent contributors to the tests (last 6 months) and mentions them in issues
 - **Dry-run mode**: Set `skip-posting-issues: false` to enable issue creation (disabled by default)
 
 ### Issue Content
