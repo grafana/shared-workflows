@@ -13,7 +13,7 @@ inputs:
     description: "Password for Loki authentication"
     required: false
   repository:
-    description: "Repository name to analyze test failures for"
+    description: "Repository name in 'owner/repo' format (e.g., 'grafana/grafana')"
     required: true
   time-range:
     description: "Time range for the query (e.g., '1h', '24h', '7d')"

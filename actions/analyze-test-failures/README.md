@@ -9,7 +9,7 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
 | `loki-url`             | Loki endpoint URL                                  | Yes      |                           |
 | `loki-username`        | Username for Loki authentication                   | No       |                           |
 | `loki-password`        | Password for Loki authentication                   | No       |                           |
-| `repository`           | Repository name to analyze test failures for       | Yes      |                           |
+| `repository`           | Repository name in 'owner/repo' format (e.g., 'grafana/grafana') | Yes      |                           |
 | `time-range`           | Time range for the query (e.g., '1h', '24h', '7d') | No       | `1h`                      |
 | `github-token`         | GitHub token for repository access                 | No       | `${{ github.token }}`     |
 | `repository-directory` | Repository directory to analyze                    | No       | `${{ github.workspace }}` |
@@ -32,7 +32,7 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
     loki-url: https://logs.grafana.com
     loki-username: ${{ secrets.LOKI_USERNAME }}
     loki-password: ${{ secrets.LOKI_PASSWORD }}
-    repository: "my-repo"
+    repository: "grafana/grafana"
     time-range: "24h"
   id: analyze
 
@@ -126,13 +126,13 @@ The action uses a predefined LogQL query that analyzes test failures from CI/CD 
 
 This query:
 
-- Filters logs from the specified repository in the `cicd-o11y` namespace
+- Filters logs from the specified repository (in owner-repo format, **not** owner/repo format) in the `cicd-o11y` namespace
 - Looks for Go test failures (`--- FAIL: Test`)
 - Parses JSON logs and filters out error logs
-- Excludes cancelled workflow runs using `resources_ci_github_workflow_run_conclusion`
+- Excludes cancelled workflow runs using `resources_ci_github_workflow_run_conclusion`. A failure during a cancelled workflow may not necessarily indicate a flaky test.
 - Extracts test content from the `body` field
 - Extracts test names using regex patterns
-- Returns raw log entries for analysis in the application
+- Returns raw log entries for analysis in the GitHub action
 
 ## Flaky Test Detection
 
@@ -170,7 +170,7 @@ jobs:
           loki-url: ${{ vars.LOKI_URL }}
           loki-username: ${{ secrets.LOKI_USERNAME }}
           loki-password: ${{ secrets.LOKI_PASSWORD }}
-          repository: ${{ github.event.repository.name }}
+          repository: ${{ github.repository }}
           time-range: "6h"
 ```
 
@@ -208,7 +208,7 @@ You can run this action locally for testing and development:
    LOKI_URL=https://your-loki-instance.com
    LOKI_USERNAME=your_username
    LOKI_PASSWORD=your_password
-   REPOSITORY=your-repo-name
+   REPOSITORY=owner/repo-name
    GITHUB_TOKEN=ghp_your_github_token_here
 
    # Optional
