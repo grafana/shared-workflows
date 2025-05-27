@@ -275,7 +275,7 @@ This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} dif
 
 ### 🕵️ Who might know about this?
 {{- range .RecentCommits}}
-- @{{.Author}} - made a relevant commit on {{.Timestamp | formatDate}}: {{.Hash}} "{{.Title}}"
+- {{.Author}} - made a relevant commit on {{.Timestamp | formatDate}}: {{.Hash}} "{{.Title}}"
 {{- end}}
 
 👆 If any of you have a few minutes, could you take a look? You might have context on what could be causing the flakiness.
