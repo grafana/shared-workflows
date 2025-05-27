@@ -12,7 +12,7 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
 | `repository`           | Repository name in 'owner/repo' format (e.g., 'grafana/grafana')          | Yes      |                           |
 | `time-range`           | Time range for the query (e.g., '1h', '24h', '7d')                        | No       | `1h`                      |
 | `github-token`         | GitHub token for repository access                                        | No       | `${{ github.token }}`     |
-| `repository-directory` | Repository directory to analyze                                           | No       | `${{ github.workspace }}` |
+| `repository-directory` | Relative path to the directory with a git repository                      | No       | `${{ github.workspace }}` |
 | `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode)                       | No       | `true`                    |
 | `top-k`                | Include only the top K flaky tests by distinct branches count in analysis | No       | `3`                       |
 
