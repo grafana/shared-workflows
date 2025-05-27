@@ -15,7 +15,7 @@ fi
 
 # Load environment variables from .env file
 set -a
-# shellcheck source=.env
+# shellcheck disable=SC1091 # We check if the file exists above and fail the script if it doesn't
 source .env
 set +a
 
