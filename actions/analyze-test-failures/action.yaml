@@ -28,15 +28,6 @@ inputs:
     required: false
     default: ${{ github.workspace }}
 
-outputs:
-  failure-count:
-    description: "Number of test failures found"
-  affected-authors:
-    description: "JSON array of authors who wrote the failing tests"
-  analysis-summary:
-    description: "Summary of the analysis results"
-  report-path:
-    description: "Path to the generated analysis report"
 
 runs:
   using: "composite"
