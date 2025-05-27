@@ -37,7 +37,16 @@ type LokiResult struct {
 }
 
 func NewDefaultLokiClient(config Config) *DefaultLokiClient {
-	return &DefaultLokiClient{config: config}
+	config.Repository = transformGitHubRepoToLokiFormat(config.Repository)
+	return &DefaultLokiClient{
+		config: config,
+	}
+}
+
+// transformGitHubRepoToLokiFormat converts GitHub repository format (grafana/mimir)
+// to Loki service name format (grafana-mimir)
+func transformGitHubRepoToLokiFormat(githubRepo string) string {
+	return strings.ReplaceAll(githubRepo, "/", "-")
 }
 
 func (l *DefaultLokiClient) FetchLogs() (*LokiResponse, error) {
