@@ -603,7 +603,7 @@ func TestParseTestFailures_ValidResponse(t *testing.T) {
 
 	lokiResponse := createTestLokiResponse(logEntries)
 
-	flakyTests, err := AggregateTestFailuresFromResponse(lokiResponse)
+	flakyTests, err := AggregateFlakyTestsFromResponse(lokiResponse)
 
 	require.NoError(t, err, "Parsing should succeed with valid response")
 	assert.Len(t, flakyTests, 2, "Expected 2 flaky tests to be detected")

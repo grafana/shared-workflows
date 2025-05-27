@@ -13,7 +13,7 @@ type RawLogEntry struct {
 	WorkflowRunURL string `json:"workflow_run_url"`
 }
 
-func AggregateTestFailuresFromResponse(lokiResp *LokiResponse) ([]FlakyTest, error) {
+func AggregateFlakyTestsFromResponse(lokiResp *LokiResponse) ([]FlakyTest, error) {
 	var rawEntries []RawLogEntry
 	for _, result := range lokiResp.Data.Result {
 		testName := result.Stream["parent_test_name"]

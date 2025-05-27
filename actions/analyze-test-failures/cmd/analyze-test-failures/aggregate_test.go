@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestDetectFlakyTestsFromRawEntries(t *testing.T) {
+func TestAggregateFlakyTestsFromResponse(t *testing.T) {
 	tests := []struct {
 		name        string
 		rawEntries  []RawLogEntry
@@ -265,7 +265,7 @@ func TestParseTestFailuresFromResponse(t *testing.T) {
 		},
 	}
 
-	result, err := AggregateTestFailuresFromResponse(lokiResp)
+	result, err := AggregateFlakyTestsFromResponse(lokiResp)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 		return

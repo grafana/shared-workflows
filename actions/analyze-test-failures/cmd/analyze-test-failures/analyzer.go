@@ -95,7 +95,7 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 	}
 
 	log.Printf("📊 Parsing test failures from log data...")
-	flakyTests, err := AggregateTestFailuresFromResponse(lokiResp)
+	flakyTests, err := AggregateFlakyTestsFromResponse(lokiResp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse test failures: %w", err)
 	}
