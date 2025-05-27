@@ -13,7 +13,7 @@ type Config struct {
 	TimeRange           string
 	GitHubToken         string
 	RepositoryDirectory string
-	DryRun              bool
+	SkipPostingIssues   bool
 	MaxFailures         int
 }
 
@@ -26,7 +26,7 @@ func getConfigFromEnv() Config {
 		TimeRange:           getEnvWithDefault("TIME_RANGE", "24h"),
 		GitHubToken:         os.Getenv("GITHUB_TOKEN"),
 		RepositoryDirectory: getEnvWithDefault("REPOSITORY_DIRECTORY", "."),
-		DryRun:              getBoolEnvWithDefault("DRY_RUN", true),
+		SkipPostingIssues:   getBoolEnvWithDefault("SKIP_POSTING_ISSUES", true),
 		MaxFailures:         getIntEnvWithDefault("MAX_FAILURES", 3),
 	}
 }

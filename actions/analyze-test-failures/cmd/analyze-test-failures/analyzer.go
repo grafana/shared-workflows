@@ -169,7 +169,7 @@ func (t *TestFailureAnalyzer) ActionReport(report *FailuresReport, config Config
 		return nil
 	}
 
-	if config.DryRun {
+	if config.SkipPostingIssues {
 		log.Printf("🔍 Dry run mode: Generating issue previews...")
 		err := t.previewIssuesForFlakyTests(report.FlakyTests)
 		if err != nil {

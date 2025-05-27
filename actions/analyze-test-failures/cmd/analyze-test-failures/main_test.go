@@ -179,7 +179,7 @@ func createTestConfig() Config {
 		TimeRange:           "24h",
 		GitHubToken:         "token",
 		RepositoryDirectory: "/tmp/test",
-		DryRun:              true,
+		SkipPostingIssues:   true,
 		MaxFailures:         3,
 	}
 }
@@ -295,7 +295,7 @@ func TestAnalyzer_AnalyzeFailures_EmptyResponse(t *testing.T) {
 
 // Test the enactment phase (ActionReport method)
 
-func TestAnalyzer_ActionReport_DryRun(t *testing.T) {
+func TestAnalyzer_ActionReport_WithoutPostingIssues(t *testing.T) {
 	// Create a sample report
 	report := &FailuresReport{
 		TestCount:       2,
@@ -326,7 +326,7 @@ func TestAnalyzer_ActionReport_DryRun(t *testing.T) {
 
 	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
-	config.DryRun = true
+	config.SkipPostingIssues = true
 
 	// Run the enactment phase only
 	err := analyzer.ActionReport(report, config)
@@ -363,7 +363,7 @@ func TestAnalyzer_ActionReport_ProductionMode(t *testing.T) {
 
 	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
-	config.DryRun = false // Production mode
+	config.SkipPostingIssues = false // Production mode
 
 	// Run the enactment phase only
 	err := analyzer.ActionReport(report, config)
@@ -392,7 +392,7 @@ func TestAnalyzer_ActionReport_EmptyReport(t *testing.T) {
 
 	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
-	config.DryRun = false
+	config.SkipPostingIssues = false
 
 	// Run the enactment phase only
 	err := analyzer.ActionReport(report, config)
@@ -721,7 +721,7 @@ func TestAnalyzer_Run_NoProductionMode(t *testing.T) {
 
 	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
-	config.DryRun = false // Production mode
+	config.SkipPostingIssues = false // Production mode
 
 	err := analyzer.Run(config)
 
