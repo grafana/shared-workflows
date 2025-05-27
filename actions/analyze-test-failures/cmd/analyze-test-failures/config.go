@@ -11,7 +11,6 @@ type Config struct {
 	LokiPassword        string
 	Repository          string
 	TimeRange           string
-	GitHubToken         string
 	RepositoryDirectory string
 	SkipPostingIssues   bool
 	TopK                int
@@ -24,7 +23,6 @@ func getConfigFromEnv() Config {
 		LokiPassword:        os.Getenv("LOKI_PASSWORD"),
 		Repository:          os.Getenv("REPOSITORY"),
 		TimeRange:           getEnvWithDefault("TIME_RANGE", "24h"),
-		GitHubToken:         os.Getenv("GITHUB_TOKEN"),
 		RepositoryDirectory: getEnvWithDefault("REPOSITORY_DIRECTORY", "."),
 		SkipPostingIssues:   getBoolEnvWithDefault("SKIP_POSTING_ISSUES", true),
 		TopK:                getIntEnvWithDefault("TOP_K", 3),
