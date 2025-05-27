@@ -130,7 +130,7 @@ func getFileAuthorsWithClient(workingDir, filePath, testName, githubToken string
 			username = "unknown"
 		}
 
-		if username == "tomwilkie" {
+		if username == "tomwilkie" || strings.HasSuffix(username, "[bot]") {
 			continue
 		}
 
