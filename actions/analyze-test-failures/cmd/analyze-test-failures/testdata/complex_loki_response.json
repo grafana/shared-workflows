@@ -79,9 +79,7 @@
           "resources_ci_github_workflow_run_head_branch": "feature/new-feature",
           "resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/401"
         },
-        "values": [
-          ["1640995560000000000", "--- FAIL: TestNonFlaky (0.02s)"]
-        ]
+        "values": [["1640995560000000000", "--- FAIL: TestNonFlaky (0.02s)"]]
       }
     ]
   }

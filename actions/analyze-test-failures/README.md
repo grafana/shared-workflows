@@ -4,24 +4,24 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
 
 ## Inputs
 
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `loki-url` | Loki endpoint URL | Yes | |
-| `loki-username` | Username for Loki authentication | No | |
-| `loki-password` | Password for Loki authentication | No | |
-| `repository` | Repository name to analyze test failures for | Yes | |
-| `time-range` | Time range for the query (e.g., '1h', '24h', '7d') | No | `1h` |
-| `github-token` | GitHub token for repository access | No | `${{ github.token }}` |
-| `working-directory` | Working directory to analyze | No | `${{ github.workspace }}` |
+| Input               | Description                                        | Required | Default                   |
+| ------------------- | -------------------------------------------------- | -------- | ------------------------- |
+| `loki-url`          | Loki endpoint URL                                  | Yes      |                           |
+| `loki-username`     | Username for Loki authentication                   | No       |                           |
+| `loki-password`     | Password for Loki authentication                   | No       |                           |
+| `repository`        | Repository name to analyze test failures for       | Yes      |                           |
+| `time-range`        | Time range for the query (e.g., '1h', '24h', '7d') | No       | `1h`                      |
+| `github-token`      | GitHub token for repository access                 | No       | `${{ github.token }}`     |
+| `working-directory` | Working directory to analyze                       | No       | `${{ github.workspace }}` |
 
 ## Outputs
 
-| Output | Description |
-|--------|-------------|
-| `failure-count` | Number of test failures found |
+| Output             | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `failure-count`    | Number of test failures found                     |
 | `affected-authors` | JSON array of authors who wrote the failing tests |
-| `analysis-summary` | Summary of the analysis results |
-| `report-path` | Path to the generated analysis report |
+| `analysis-summary` | Summary of the analysis results                   |
+| `report-path`      | Path to the generated analysis report             |
 
 ## Example Usage
 
@@ -44,7 +44,7 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
       const failureCount = '${{ steps.analyze.outputs.failure-count }}';
       const authors = JSON.parse('${{ steps.analyze.outputs.affected-authors }}');
       const summary = '${{ steps.analyze.outputs.analysis-summary }}';
-      
+
       github.rest.issues.createComment({
         issue_number: context.issue.number,
         owner: context.repo.owner,
@@ -113,18 +113,19 @@ The action generates a JSON report with the following structure:
 The action uses a predefined LogQL query that analyzes test failures from CI/CD logs:
 
 ```logql
-{service_name="$repo", service_namespace="cicd-o11y"} 
-|= "--- FAIL: Test" 
-| json 
-| __error__="" 
-| resources_ci_github_workflow_run_conclusion!="cancelled" 
-| line_format "{{.body}}" 
-| regexp "--- FAIL: (?P<test_name>.*) \\(\\d" 
-| line_format "{{.test_name}}" 
+{service_name="$repo", service_namespace="cicd-o11y"}
+|= "--- FAIL: Test"
+| json
+| __error__=""
+| resources_ci_github_workflow_run_conclusion!="cancelled"
+| line_format "{{.body}}"
+| regexp "--- FAIL: (?P<test_name>.*) \\(\\d"
+| line_format "{{.test_name}}"
 | regexp `(?P<parent_test_name>Test[a-z0-9A-Z_]+)`
 ```
 
 This query:
+
 - Filters logs from the specified repository in the `cicd-o11y` namespace
 - Looks for Go test failures (`--- FAIL: Test`)
 - Parses JSON logs and filters out error logs
@@ -136,6 +137,7 @@ This query:
 ## Flaky Test Detection
 
 The action identifies tests as "flaky" based on the following criteria:
+
 - **Failed on main branch**: Any test that has failed on the `main` branch is considered flaky
 - **Failed on multiple branches**: Any test that has failed on more than one branch is considered flaky
 
@@ -153,7 +155,7 @@ This action is designed to be run periodically via a workflow. Example workflow:
 name: Test Failure Analysis
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
+    - cron: "0 */6 * * *" # Every 6 hours
   workflow_dispatch:
 
 jobs:
@@ -161,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Analyze recent test failures
         uses: grafana/shared-workflows/actions/analyze-test-failures@main
         with:
@@ -186,18 +188,21 @@ You can run this action locally for testing and development:
 ### Setup
 
 1. **Clone the repository and navigate to the action directory:**
+
    ```bash
    git clone https://github.com/grafana/shared-workflows.git
    cd shared-workflows/actions/analyze-test-failures
    ```
 
 2. **Create environment configuration:**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
 3. **Configure your .env file:**
+
    ```bash
    # Required
    LOKI_URL=https://your-loki-instance.com
@@ -214,11 +219,13 @@ You can run this action locally for testing and development:
 ### Running
 
 Execute the local run script:
+
 ```bash
 ./run-local.sh
 ```
 
 This will:
+
 - Validate your configuration
 - Run the Go application with `go run`
 - Execute analysis against your Loki instance
