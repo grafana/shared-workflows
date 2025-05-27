@@ -86,6 +86,7 @@ func fetchLogsFromLoki(config Config) (string, error) {
 	q.Add("end", fmt.Sprintf("%d", endTime.UnixNano()))
 	q.Add("limit", "5000")
 	req.URL.RawQuery = q.Encode()
+	req.Header.Add("User-Agent", "grafana/shared-workflows#analyze-test-failures")
 
 	if config.LokiUsername != "" && config.LokiPassword != "" {
 		auth := base64.StdEncoding.EncodeToString([]byte(config.LokiUsername + ":" + config.LokiPassword))
