@@ -253,7 +253,7 @@ const initialIssueBodyTemplate = `
 This issue tracks a flaky test that has been detected failing inconsistently. Each week our analysis tool runs and detects this test as flaky, it will add a comment below with recent failure data and who might be able to help.
 
 ### 🔍 How to investigate
-1. **Run it locally** to see if you can reproduce: ` + "`go test -count=10000 -run {{.TestName}} .`" + `
+1. **Run it locally** to see if you can reproduce: ` + "`go test -count=10000 -run {{.TestName}} ./...`" + `
 2. **Check the failure logs** in the comments below - they might show a pattern
 3. **Look for timing issues** - race conditions, timeouts, or external dependencies
 4. **Review recent changes** - check commits that modified this test or the code under test recently
