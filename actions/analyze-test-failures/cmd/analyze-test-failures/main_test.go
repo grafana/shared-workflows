@@ -177,7 +177,6 @@ func createTestConfig() Config {
 		LokiPassword:        "pass",
 		Repository:          "test/repo",
 		TimeRange:           "24h",
-		GitHubToken:         "token",
 		RepositoryDirectory: "/tmp/test",
 		SkipPostingIssues:   true,
 		TopK:                3,
@@ -604,7 +603,7 @@ func TestParseTestFailures_ValidResponse(t *testing.T) {
 
 	lokiResponse := createTestLokiResponse(logEntries)
 
-	flakyTests, err := parseTestFailuresFromResponse(lokiResponse)
+	flakyTests, err := AggregateTestFailuresFromResponse(lokiResponse)
 
 	require.NoError(t, err, "Parsing should succeed with valid response")
 	assert.Len(t, flakyTests, 2, "Expected 2 flaky tests to be detected")
@@ -619,53 +618,6 @@ func TestParseTestFailures_ValidResponse(t *testing.T) {
 	paymentTest := findTestByName(flakyTests, "TestPayment")
 	require.NotNil(t, paymentTest, "TestPayment should be detected as flaky")
 	assert.Equal(t, 1, paymentTest.TotalFailures, "TestPayment should have 1 failure")
-}
-
-func TestDetectFlakyTestsFromRawEntries(t *testing.T) {
-	tests := []struct {
-		name     string
-		entries  []RawLogEntry
-		expected int
-	}{
-		{
-			name: "flaky test on main branch",
-			entries: []RawLogEntry{
-				{TestName: "TestExample", Branch: "main", WorkflowRunURL: "https://example.com/1"},
-			},
-			expected: 1,
-		},
-		{
-			name: "flaky test on multiple branches",
-			entries: []RawLogEntry{
-				{TestName: "TestExample", Branch: "main", WorkflowRunURL: "https://example.com/1"},
-				{TestName: "TestExample", Branch: "feature", WorkflowRunURL: "https://example.com/2"},
-			},
-			expected: 1,
-		},
-		{
-			name: "non-flaky test (only feature branch)",
-			entries: []RawLogEntry{
-				{TestName: "TestFeature", Branch: "feature", WorkflowRunURL: "https://example.com/1"},
-			},
-			expected: 0,
-		},
-		{
-			name: "multiple flaky tests",
-			entries: []RawLogEntry{
-				{TestName: "TestA", Branch: "main", WorkflowRunURL: "https://example.com/1"},
-				{TestName: "TestB", Branch: "feature", WorkflowRunURL: "https://example.com/2"},
-				{TestName: "TestB", Branch: "develop", WorkflowRunURL: "https://example.com/3"},
-			},
-			expected: 2, // TestA (main) and TestB (multiple branches)
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := detectFlakyTestsFromRawEntries(tt.entries)
-			assert.Len(t, result, tt.expected, "Expected %d flaky tests for test: %s", tt.expected, tt.name)
-		})
-	}
 }
 
 // Test edge cases
