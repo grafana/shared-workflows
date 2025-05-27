@@ -15,6 +15,7 @@ fi
 
 # Load environment variables from .env file
 set -a
+# shellcheck source=.env
 source .env
 set +a
 
