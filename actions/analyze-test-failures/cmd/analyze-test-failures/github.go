@@ -270,18 +270,8 @@ func generateCommentBody(test FlakyTest) (string, error) {
 		return "", fmt.Errorf("failed to parse comment template: %w", err)
 	}
 
-	type CommentData struct {
-		FlakyTest
-		Timestamp string
-	}
-
-	data := CommentData{
-		FlakyTest: test,
-		Timestamp: time.Now().Format("2006-01-02 15:04:05 UTC"),
-	}
-
 	var body strings.Builder
-	if err := tmpl.Execute(&body, data); err != nil {
+	if err := tmpl.Execute(&body, test); err != nil {
 		return "", fmt.Errorf("failed to execute comment template: %w", err)
 	}
 
