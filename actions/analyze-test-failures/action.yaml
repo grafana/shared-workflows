@@ -23,10 +23,18 @@ inputs:
     description: "GitHub token for repository access"
     required: false
     default: ${{ github.token }}
-  Repository-directory:
+  repository-directory:
     description: "Repository directory to analyze"
     required: false
     default: ${{ github.workspace }}
+  skip-posting-issues:
+    description: "Skip creating/updating GitHub issues (dry-run mode)"
+    required: false
+    default: "true"
+  max-failures:
+    description: "Maximum failure count to include in analysis"
+    required: false
+    default: "3"
 
 runs:
   using: "composite"
@@ -57,3 +65,5 @@ runs:
         TIME_RANGE: ${{ inputs.time-range }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
         REPOSITORY_DIRECTORY: ${{ inputs.repository-directory }}
+        SKIP_POSTING_ISSUES: ${{ inputs.skip-posting-issues }}
+        MAX_FAILURES: ${{ inputs.max-failures }}

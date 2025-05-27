@@ -13,6 +13,8 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
 | `time-range`           | Time range for the query (e.g., '1h', '24h', '7d') | No       | `1h`                      |
 | `github-token`         | GitHub token for repository access                 | No       | `${{ github.token }}`     |
 | `repository-directory` | Repository directory to analyze                    | No       | `${{ github.workspace }}` |
+| `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode) | No       | `true`                    |
+| `max-failures`         | Maximum failure count to include in analysis      | No       | `3`                       |
 
 ## Outputs
 
@@ -34,6 +36,8 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
     loki-password: ${{ secrets.LOKI_PASSWORD }}
     repository: "grafana/grafana"
     time-range: "24h"
+    skip-posting-issues: "false"  # Enable GitHub issue creation
+    max-failures: "5"
   id: analyze
 
 - name: Comment on PR with results
@@ -142,6 +146,25 @@ The action identifies tests as "flaky" based on the following criteria:
 - **Failed on multiple branches**: Any test that has failed on more than one branch is considered flaky
 
 Only tests meeting these criteria are included in the analysis results.
+
+## GitHub Issue Management
+
+The action automatically creates and maintains GitHub issues for detected flaky tests:
+
+- **Creates new issues**: For newly detected flaky tests with detailed investigation guides
+- **Updates existing issues**: Adds new failure data and mentions recent contributors
+- **Reopens closed issues**: When previously resolved flaky tests fail again
+- **Author mentions**: Uses git blame to identify recent contributors to the tests and mentions them in issues
+- **Dry-run mode**: Set `skip-posting-issues: false` to enable issue creation (disabled by default)
+
+### Issue Content
+
+Each issue includes:
+- Test name and failure summary
+- Links to example PRs where the test failed
+- Recent commit authors who modified the test
+- Investigation steps and debugging guidance
+- Failure count and branch breakdown
 
 ## Example PR Links
 
