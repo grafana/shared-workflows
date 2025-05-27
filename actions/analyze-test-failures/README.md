@@ -25,44 +25,31 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
 | `analysis-summary` | Summary of the analysis results                   |
 | `report-path`      | Path to the generated analysis report             |
 
-## Example Usage
+## Example Workflow
+
+This action is designed to be run periodically via a workflow. Example workflow:
 
 ```yaml
-- name: Analyze test failures
-  uses: grafana/shared-workflows/actions/analyze-test-failures@main
-  with:
-    loki-url: https://logs.grafana.com
-    loki-username: ${{ secrets.LOKI_USERNAME }}
-    loki-password: ${{ secrets.LOKI_PASSWORD }}
-    repository: "grafana/grafana"
-    time-range: "24h"
-    skip-posting-issues: "false" # Enable GitHub issue creation
-    top-k: "5"
-  id: analyze
+name: Test Failure Analysis
+on:
+  schedule:
+    - cron: "0 */6 * * *" # Every 6 hours
+  workflow_dispatch:
 
-- name: Comment on PR with results
-  if: steps.analyze.outputs.failure-count > 0
-  uses: actions/github-script@v7
-  with:
-    script: |
-      const failureCount = '${{ steps.analyze.outputs.failure-count }}';
-      const authors = JSON.parse('${{ steps.analyze.outputs.affected-authors }}');
-      const summary = '${{ steps.analyze.outputs.analysis-summary }}';
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      github.rest.issues.createComment({
-        issue_number: context.issue.number,
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        body: `## Test Failure Analysis
-
-        Found ${failureCount} test failures.
-
-        **Affected authors:** ${authors.join(', ')}
-
-        **Summary:** ${summary}
-
-        Full report: ${{ steps.analyze.outputs.report-path }}`
-      });
+      - name: Analyze recent test failures
+        uses: grafana/shared-workflows/actions/analyze-test-failures@main
+        with:
+          loki-url: ${{ vars.LOKI_URL }}
+          loki-username: ${{ secrets.LOKI_USERNAME }}
+          loki-password: ${{ secrets.LOKI_PASSWORD }}
+          repository: ${{ github.repository }}
+          time-range: "6h"
 ```
 
 ## Report Format
@@ -170,33 +157,6 @@ Each issue includes:
 ## Example PR Links
 
 For each flaky test, the action captures up to 3 example Pull Request URLs where the test failed. This provides concrete examples of when and where the test exhibited flaky behavior, making it easier to investigate the root cause.
-
-## Workflow Integration
-
-This action is designed to be run periodically via a workflow. Example workflow:
-
-```yaml
-name: Test Failure Analysis
-on:
-  schedule:
-    - cron: "0 */6 * * *" # Every 6 hours
-  workflow_dispatch:
-
-jobs:
-  analyze:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Analyze recent test failures
-        uses: grafana/shared-workflows/actions/analyze-test-failures@main
-        with:
-          loki-url: ${{ vars.LOKI_URL }}
-          loki-username: ${{ secrets.LOKI_USERNAME }}
-          loki-password: ${{ secrets.LOKI_PASSWORD }}
-          repository: ${{ github.repository }}
-          time-range: "6h"
-```
 
 ## Local Development
 
