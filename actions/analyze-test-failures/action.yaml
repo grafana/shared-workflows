@@ -23,8 +23,8 @@ inputs:
     description: "GitHub token for repository access"
     required: false
     default: ${{ github.token }}
-  working-directory:
-    description: "Working directory to analyze"
+  Repository-directory:
+    description: "Repository directory to analyze"
     required: false
     default: ${{ github.workspace }}
 
@@ -56,4 +56,4 @@ runs:
         REPOSITORY: ${{ inputs.repository }}
         TIME_RANGE: ${{ inputs.time-range }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        REPOSITORY_DIRECTORY: ${{ inputs.repository-directory }}

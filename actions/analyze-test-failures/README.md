@@ -4,15 +4,15 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
 
 ## Inputs
 
-| Input               | Description                                        | Required | Default                   |
-| ------------------- | -------------------------------------------------- | -------- | ------------------------- |
-| `loki-url`          | Loki endpoint URL                                  | Yes      |                           |
-| `loki-username`     | Username for Loki authentication                   | No       |                           |
-| `loki-password`     | Password for Loki authentication                   | No       |                           |
-| `repository`        | Repository name to analyze test failures for       | Yes      |                           |
-| `time-range`        | Time range for the query (e.g., '1h', '24h', '7d') | No       | `1h`                      |
-| `github-token`      | GitHub token for repository access                 | No       | `${{ github.token }}`     |
-| `working-directory` | Working directory to analyze                       | No       | `${{ github.workspace }}` |
+| Input                  | Description                                        | Required | Default                   |
+| ---------------------- | -------------------------------------------------- | -------- | ------------------------- |
+| `loki-url`             | Loki endpoint URL                                  | Yes      |                           |
+| `loki-username`        | Username for Loki authentication                   | No       |                           |
+| `loki-password`        | Password for Loki authentication                   | No       |                           |
+| `repository`           | Repository name to analyze test failures for       | Yes      |                           |
+| `time-range`           | Time range for the query (e.g., '1h', '24h', '7d') | No       | `1h`                      |
+| `github-token`         | GitHub token for repository access                 | No       | `${{ github.token }}`     |
+| `repository-directory` | Repository directory to analyze                    | No       | `${{ github.workspace }}` |
 
 ## Outputs
 
@@ -50,13 +50,13 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
         owner: context.repo.owner,
         repo: context.repo.repo,
         body: `## Test Failure Analysis
-        
+
         Found ${failureCount} test failures.
-        
+
         **Affected authors:** ${authors.join(', ')}
-        
+
         **Summary:** ${summary}
-        
+
         Full report: ${{ steps.analyze.outputs.report-path }}`
       });
 ```
@@ -213,7 +213,7 @@ You can run this action locally for testing and development:
 
    # Optional
    TIME_RANGE=24h
-   WORKING_DIRECTORY=.
+   REPOSITORY_DIRECTORY=.
    ```
 
 ### Running

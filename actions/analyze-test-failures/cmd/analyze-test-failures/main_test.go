@@ -172,15 +172,15 @@ func createTestLokiResponse(entries []RawLogEntry) *LokiResponse {
 
 func createTestConfig() Config {
 	return Config{
-		LokiURL:          "http://localhost:3100",
-		LokiUsername:     "user",
-		LokiPassword:     "pass",
-		Repository:       "test/repo",
-		TimeRange:        "24h",
-		GitHubToken:      "token",
-		WorkingDirectory: "/tmp/test",
-		DryRun:           true,
-		MaxFailures:      3,
+		LokiURL:             "http://localhost:3100",
+		LokiUsername:        "user",
+		LokiPassword:        "pass",
+		Repository:          "test/repo",
+		TimeRange:           "24h",
+		GitHubToken:         "token",
+		RepositoryDirectory: "/tmp/test",
+		DryRun:              true,
+		MaxFailures:         3,
 	}
 }
 

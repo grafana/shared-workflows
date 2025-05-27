@@ -6,28 +6,28 @@ import (
 )
 
 type Config struct {
-	LokiURL          string
-	LokiUsername     string
-	LokiPassword     string
-	Repository       string
-	TimeRange        string
-	GitHubToken      string
-	WorkingDirectory string
-	DryRun           bool
-	MaxFailures      int
+	LokiURL             string
+	LokiUsername        string
+	LokiPassword        string
+	Repository          string
+	TimeRange           string
+	GitHubToken         string
+	RepositoryDirectory string
+	DryRun              bool
+	MaxFailures         int
 }
 
 func getConfigFromEnv() Config {
 	return Config{
-		LokiURL:          os.Getenv("LOKI_URL"),
-		LokiUsername:     os.Getenv("LOKI_USERNAME"),
-		LokiPassword:     os.Getenv("LOKI_PASSWORD"),
-		Repository:       os.Getenv("REPOSITORY"),
-		TimeRange:        getEnvWithDefault("TIME_RANGE", "24h"),
-		GitHubToken:      os.Getenv("GITHUB_TOKEN"),
-		WorkingDirectory: getEnvWithDefault("WORKING_DIRECTORY", "."),
-		DryRun:           getBoolEnvWithDefault("DRY_RUN", true),
-		MaxFailures:      getIntEnvWithDefault("MAX_FAILURES", 3),
+		LokiURL:             os.Getenv("LOKI_URL"),
+		LokiUsername:        os.Getenv("LOKI_USERNAME"),
+		LokiPassword:        os.Getenv("LOKI_PASSWORD"),
+		Repository:          os.Getenv("REPOSITORY"),
+		TimeRange:           getEnvWithDefault("TIME_RANGE", "24h"),
+		GitHubToken:         os.Getenv("GITHUB_TOKEN"),
+		RepositoryDirectory: getEnvWithDefault("REPOSITORY_DIRECTORY", "."),
+		DryRun:              getBoolEnvWithDefault("DRY_RUN", true),
+		MaxFailures:         getIntEnvWithDefault("MAX_FAILURES", 3),
 	}
 }
 

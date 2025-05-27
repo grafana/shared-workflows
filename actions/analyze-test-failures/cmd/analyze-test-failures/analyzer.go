@@ -102,7 +102,7 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 	}
 
 	log.Printf("📊 Parsing test failures from log data...")
-	flakyTests, err := parseTestFailuresFromResponse(lokiResp, config.WorkingDirectory)
+	flakyTests, err := parseTestFailuresFromResponse(lokiResp, config.RepositoryDirectory)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse test failures: %w", err)
 	}
@@ -112,13 +112,13 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 
 	log.Printf("🧪 Found %d flaky tests that meet criteria", len(flakyTests))
 	log.Printf("📁 Finding test files in repository...")
-	err = t.findFilePaths(config.WorkingDirectory, flakyTests)
+	err = t.findFilePaths(config.RepositoryDirectory, flakyTests)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find file paths for flaky tests: %w", err)
 	}
 
 	log.Printf("👥 Finding authors of flaky tests...")
-	err = t.findTestAuthors(config.WorkingDirectory, config.GitHubToken, flakyTests)
+	err = t.findTestAuthors(config.RepositoryDirectory, config.GitHubToken, flakyTests)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find test authors: %w", err)
 	}
@@ -205,7 +205,7 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 	return nil
 }
 
-func (t *TestFailureAnalyzer) findFilePaths(workingDir string, flakyTests []FlakyTest) error {
+func (t *TestFailureAnalyzer) findFilePaths(repoDir string, flakyTests []FlakyTest) error {
 	for i, test := range flakyTests {
 		filePath, err := t.gitClient.FindTestFile(test.TestName)
 		if err != nil {
@@ -216,7 +216,7 @@ func (t *TestFailureAnalyzer) findFilePaths(workingDir string, flakyTests []Flak
 	return nil
 }
 
-func (t *TestFailureAnalyzer) findTestAuthors(workingDir, githubToken string, flakyTests []FlakyTest) error {
+func (t *TestFailureAnalyzer) findTestAuthors(repoDir, githubToken string, flakyTests []FlakyTest) error {
 	for i, test := range flakyTests {
 		commits, err := t.gitClient.GetFileAuthors(test.FilePath, test.TestName)
 		if err != nil {
@@ -272,16 +272,16 @@ func (t *TestFailureAnalyzer) generateReport(result FailuresReport) (string, err
 	return filepath.Abs(reportPath)
 }
 
-func parseTestFailures(logsJSON, workingDir string) ([]FlakyTest, error) {
+func parseTestFailures(logsJSON, repoDir string) ([]FlakyTest, error) {
 	var lokiResp LokiResponse
 	if err := json.Unmarshal([]byte(logsJSON), &lokiResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Loki response: %w", err)
 	}
 
-	return parseTestFailuresFromResponse(&lokiResp, workingDir)
+	return parseTestFailuresFromResponse(&lokiResp, repoDir)
 }
 
-func parseTestFailuresFromResponse(lokiResp *LokiResponse, workingDir string) ([]FlakyTest, error) {
+func parseTestFailuresFromResponse(lokiResp *LokiResponse, repoDir string) ([]FlakyTest, error) {
 	var rawEntries []RawLogEntry
 	for _, result := range lokiResp.Data.Result {
 		testName := result.Stream["parent_test_name"]
@@ -301,10 +301,10 @@ func parseTestFailuresFromResponse(lokiResp *LokiResponse, workingDir string) ([
 
 	log.Printf("🔄 Processed %d log lines, extracted %d valid test failure entries", len(lokiResp.Data.Result), len(rawEntries))
 
-	return detectFlakyTestsFromRawEntries(rawEntries, workingDir), nil
+	return detectFlakyTestsFromRawEntries(rawEntries, repoDir), nil
 }
 
-func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, workingDir string) []FlakyTest {
+func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry, repoDir string) []FlakyTest {
 	testMap := make(map[string]map[string]int)
 	exampleWorkflows := make(map[string]map[string]bool)
 

@@ -23,20 +23,20 @@ func NewDefaultGitClient(config Config) *DefaultGitClient {
 }
 
 func (g *DefaultGitClient) FindTestFile(testName string) (string, error) {
-	return findTestFilePath(g.config.WorkingDirectory, testName)
+	return findTestFilePath(g.config.RepositoryDirectory, testName)
 }
 
 func (g *DefaultGitClient) GetFileAuthors(filePath, testName string) ([]CommitInfo, error) {
-	return getFileAuthors(g.config.WorkingDirectory, filePath, testName, g.config.GitHubToken)
+	return getFileAuthors(g.config.RepositoryDirectory, filePath, testName, g.config.GitHubToken)
 }
 
-func findTestFilePath(workingDir, testName string) (string, error) {
+func findTestFilePath(repoDir, testName string) (string, error) {
 	if !strings.HasPrefix(testName, "Test") {
 		return "", fmt.Errorf("invalid test name format: %s", testName)
 	}
 
 	grepCmd := exec.Command("grep", "-rl", "--include=*_test.go", fmt.Sprintf("func %s(", testName), ".")
-	grepCmd.Dir = workingDir
+	grepCmd.Dir = repoDir
 
 	result, err := grepCmd.Output()
 	if err != nil {
@@ -74,17 +74,17 @@ func guessTestFilePath(testName string) string {
 	return "unknown_test_file"
 }
 
-func getFileAuthors(workingDir, filePath, testName, githubToken string) ([]CommitInfo, error) {
+func getFileAuthors(repoDir, filePath, testName, githubToken string) ([]CommitInfo, error) {
 	tempConfig := Config{
 		GitHubToken: githubToken,
 	}
 	githubClient := NewDefaultGitHubClient(tempConfig)
-	return getFileAuthorsWithClient(workingDir, filePath, testName, githubToken, githubClient)
+	return getFileAuthorsWithClient(repoDir, filePath, testName, githubToken, githubClient)
 }
 
-func getFileAuthorsWithClient(workingDir, filePath, testName, githubToken string, githubClient GitHubClient) ([]CommitInfo, error) {
+func getFileAuthorsWithClient(repoDir, filePath, testName, githubToken string, githubClient GitHubClient) ([]CommitInfo, error) {
 	cmd := exec.Command("git", "log", "-3", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H|%ct|%s", "-s")
-	cmd.Dir = workingDir
+	cmd.Dir = repoDir
 
 	result, err := cmd.Output()
 	if err != nil {
