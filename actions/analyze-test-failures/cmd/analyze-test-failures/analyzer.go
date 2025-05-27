@@ -93,7 +93,7 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 	log.Printf("🔍 Starting test failure analysis for repository: %s", config.Repository)
 	log.Printf("📅 Time range: %s", config.TimeRange)
 	log.Printf("🔗 Loki URL: %s", config.LokiURL)
-	log.Printf("📊 Max failures to process: %d", config.MaxFailures)
+	log.Printf("📊 Top K tests to process: %d", config.TopK)
 
 	log.Printf("📡 Fetching logs from Loki...")
 	lokiResp, err := t.lokiClient.FetchLogs()
@@ -106,8 +106,8 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse test failures: %w", err)
 	}
-	if len(flakyTests) > config.MaxFailures {
-		flakyTests = flakyTests[:config.MaxFailures]
+	if len(flakyTests) > config.TopK {
+		flakyTests = flakyTests[:config.TopK]
 	}
 
 	log.Printf("🧪 Found %d flaky tests that meet criteria", len(flakyTests))

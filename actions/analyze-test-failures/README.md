@@ -4,17 +4,17 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
 
 ## Inputs
 
-| Input                  | Description                                        | Required | Default                   |
-| ---------------------- | -------------------------------------------------- | -------- | ------------------------- |
-| `loki-url`             | Loki endpoint URL                                  | Yes      |                           |
-| `loki-username`        | Username for Loki authentication                   | No       |                           |
-| `loki-password`        | Password for Loki authentication                   | No       |                           |
-| `repository`           | Repository name in 'owner/repo' format (e.g., 'grafana/grafana') | Yes      |                           |
-| `time-range`           | Time range for the query (e.g., '1h', '24h', '7d') | No       | `1h`                      |
-| `github-token`         | GitHub token for repository access                 | No       | `${{ github.token }}`     |
-| `repository-directory` | Repository directory to analyze                    | No       | `${{ github.workspace }}` |
-| `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode) | No       | `true`                    |
-| `max-failures`         | Maximum failure count to include in analysis      | No       | `3`                       |
+| Input                  | Description                                                               | Required | Default                   |
+| ---------------------- | ------------------------------------------------------------------------- | -------- | ------------------------- |
+| `loki-url`             | Loki endpoint URL                                                         | Yes      |                           |
+| `loki-username`        | Username for Loki authentication                                          | No       |                           |
+| `loki-password`        | Password for Loki authentication                                          | No       |                           |
+| `repository`           | Repository name in 'owner/repo' format (e.g., 'grafana/grafana')          | Yes      |                           |
+| `time-range`           | Time range for the query (e.g., '1h', '24h', '7d')                        | No       | `1h`                      |
+| `github-token`         | GitHub token for repository access                                        | No       | `${{ github.token }}`     |
+| `repository-directory` | Repository directory to analyze                                           | No       | `${{ github.workspace }}` |
+| `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode)                       | No       | `true`                    |
+| `top-k`                | Include only the top K flaky tests by distinct branches count in analysis | No       | `3`                       |
 
 ## Outputs
 
@@ -36,8 +36,8 @@ This action fetches logs from Loki using LogQL queries, analyzes test failures, 
     loki-password: ${{ secrets.LOKI_PASSWORD }}
     repository: "grafana/grafana"
     time-range: "24h"
-    skip-posting-issues: "false"  # Enable GitHub issue creation
-    max-failures: "5"
+    skip-posting-issues: "false" # Enable GitHub issue creation
+    top-k: "5"
   id: analyze
 
 - name: Comment on PR with results
@@ -160,6 +160,7 @@ The action automatically creates and maintains GitHub issues for detected flaky 
 ### Issue Content
 
 Each issue includes:
+
 - Test name and failure summary
 - Links to example PRs where the test failed
 - Recent commit authors who modified the test

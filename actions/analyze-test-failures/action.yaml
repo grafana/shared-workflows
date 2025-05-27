@@ -31,8 +31,8 @@ inputs:
     description: "Skip creating/updating GitHub issues (dry-run mode)"
     required: false
     default: "true"
-  max-failures:
-    description: "Maximum failure count to include in analysis"
+  top-k:
+    description: "Include only the top K flaky tests by distinct branches count in analysis"
     required: false
     default: "3"
 
@@ -66,4 +66,4 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         REPOSITORY_DIRECTORY: ${{ inputs.repository-directory }}
         SKIP_POSTING_ISSUES: ${{ inputs.skip-posting-issues }}
-        MAX_FAILURES: ${{ inputs.max-failures }}
+        TOP_K: ${{ inputs.top-k }}

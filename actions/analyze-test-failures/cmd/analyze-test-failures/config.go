@@ -14,7 +14,7 @@ type Config struct {
 	GitHubToken         string
 	RepositoryDirectory string
 	SkipPostingIssues   bool
-	MaxFailures         int
+	TopK                int
 }
 
 func getConfigFromEnv() Config {
@@ -27,7 +27,7 @@ func getConfigFromEnv() Config {
 		GitHubToken:         os.Getenv("GITHUB_TOKEN"),
 		RepositoryDirectory: getEnvWithDefault("REPOSITORY_DIRECTORY", "."),
 		SkipPostingIssues:   getBoolEnvWithDefault("SKIP_POSTING_ISSUES", true),
-		MaxFailures:         getIntEnvWithDefault("MAX_FAILURES", 3),
+		TopK:                getIntEnvWithDefault("TOP_K", 3),
 	}
 }
 

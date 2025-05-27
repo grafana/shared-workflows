@@ -180,7 +180,7 @@ func createTestConfig() Config {
 		GitHubToken:         "token",
 		RepositoryDirectory: "/tmp/test",
 		SkipPostingIssues:   true,
-		MaxFailures:         3,
+		TopK:                3,
 	}
 }
 
@@ -670,7 +670,7 @@ func TestDetectFlakyTestsFromRawEntries(t *testing.T) {
 
 // Test edge cases
 
-func TestAnalyzer_Run_MaxFailuresLimit(t *testing.T) {
+func TestAnalyzer_Run_TopKLimit(t *testing.T) {
 	// Create 5 flaky tests but limit to 3
 	logEntries := []RawLogEntry{
 		{TestName: "TestA", Branch: "main", WorkflowRunURL: "https://example.com/1"},
@@ -692,7 +692,7 @@ func TestAnalyzer_Run_MaxFailuresLimit(t *testing.T) {
 
 	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
-	config.MaxFailures = 3
+	config.TopK = 3
 
 	err := analyzer.Run(config)
 
@@ -704,7 +704,7 @@ func TestAnalyzer_Run_MaxFailuresLimit(t *testing.T) {
 	var result FailuresReport
 	require.NoError(t, json.Unmarshal(reportData, &result), "Report should unmarshal successfully")
 
-	assert.Equal(t, 3, result.TestCount, "Test count should be limited to max failures setting")
+	assert.Equal(t, 3, result.TestCount, "Test count should be limited to top K setting")
 }
 
 func TestAnalyzer_Run_NoProductionMode(t *testing.T) {
@@ -870,7 +870,7 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 			},
 			config: func() Config {
 				config := createTestConfig()
-				config.MaxFailures = 10 // Don't limit for this test
+				config.TopK = 10 // Don't limit for this test
 				return config
 			},
 		},
