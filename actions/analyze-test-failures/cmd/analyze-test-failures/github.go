@@ -262,7 +262,7 @@ This issue tracks a flaky test that has been detected failing inconsistently. Ea
 - **Can you fix it?** Great! That would help the whole team
 - **Need help?** Ask someone who has worked on this area recently
 - **Can't fix it right now?** Consider adding logs and metrics so that next time it's easier to debug.
-- **Obsolete test?** Maybe it's time to remove it or with it with ` + "`t.Skip()`" + `
+- **Obsolete test?** Maybe it's time to remove it or skip it with ` + "`t.Skip()`" + `
 
 _This test has been identified as flaky by [analyze-test-failures](https://github.com/grafana/shared-workflows/tree/main/actions/analyze-test-failures)._
 `
@@ -285,7 +285,7 @@ This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} dif
 
 ### 💥 Recent failures
 {{- range .ExampleWorkflows}}
-- [Failed run]({{.}}) - check the logs for clues
+- [Failed run]({{.}}) - check previous attempts' logs for clues
 {{- end}}
 {{- end}}
 
