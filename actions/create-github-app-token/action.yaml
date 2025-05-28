@@ -48,7 +48,7 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken(`https://vault-github-actions-grafana-${process.env.VAULT_INSTANCE}.net`);
+          const jwt = await core.getIDToken(`https://vault-github-actions.grafana-${process.env.VAULT_INSTANCE}.net`);
           core.setSecret(jwt);
           core.setOutput("github-jwt",jwt);
 
