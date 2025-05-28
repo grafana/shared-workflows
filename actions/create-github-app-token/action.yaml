@@ -43,11 +43,9 @@ runs:
           core.setOutput("github-jwt",jwt);
 
     - name: Authenticate with Vault
-      shell: sh
+      shell: bash
       id: auth-vault
       run: |
-          sudo apt-get update
-          sudo apt-get install -y curl
           VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
           ROLE="vault-github-actions"
           PATH="github-actions-oidc"
@@ -65,7 +63,7 @@ runs:
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
 
     - name: Get Vault Secret
-      shell: sh
+      shell: bash
       run: |
           VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
           TOKEN="${{ steps.auth-vault.outputs.vault_token }}"
