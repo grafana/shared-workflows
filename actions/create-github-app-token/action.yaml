@@ -46,13 +46,10 @@ runs:
       shell: bash
       id: auth-vault
       run: |
-          which curl
-          curl grafana.com
           VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
           ROLE="vault-github-actions"
-          PATH="github-actions-oidc"
 
-          RESPONSE=$(curl -s --fail -X POST "$VAULT_URL/v1/auth/$PATH/login" \
+          RESPONSE=$(curl -s --fail -X POST "$VAULT_URL/v1/auth/github-actions-oidc/login" \
             -H "Content-Type: application/json" \
             -H "Proxy-Authorization-Token: Bearer $${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
             -d '{"role": "$ROLE","jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"}' \
