@@ -53,12 +53,7 @@ runs:
           RESPONSE=$(curl -s --fail -X POST "$VAULT_URL/v1/auth/$PATH/login" \
             -H "Content-Type: application/json" \
             -H "Proxy-Authorization-Token: Bearer $${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-            -d @- <<EOF
-            {
-              "role": "$ROLE",
-              "jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"
-            }
-          EOF \
+            -d '{"role": "$ROLE","jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"}' \
           )
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
 
