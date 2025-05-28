@@ -38,6 +38,16 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
+          const jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+          core.setSecret(jwt);
+          core.setOutput("github-jwt",jwt);
+
+    - id: get-github-jwt-token2
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
+      with:
+        script: |
           const jwt = await core.getIDToken(`https://vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
           core.setSecret(jwt);
           core.setOutput("github-jwt",jwt);
@@ -50,7 +60,7 @@ runs:
           RESPONSE=$(curl -v -X POST "$VAULT_URL/v1/auth/github-actions-oidc/login" \
             -H "Content-Type: application/json" \
             -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-            -d '{"role": "vault-github-actions","jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"}' \
+            -d '{"role": "vault-github-actions","jwt": "${{ steps.get-github-jwt-token2.outputs.github-jwt }}"}' \
           )
           echo "$RESPONSE"
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
