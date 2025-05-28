@@ -104,7 +104,7 @@ runs:
           echo "Installing docker-credential-gcr @ ${tag} for ${os}/${arch}"
           mkdir -p "${RUNNER_TEMP}/docker-credential-gcr"
           curl -fsL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/${tag}/docker-credential-gcr_${os}_${arch}-${tag:1}.tar.gz" | tar xzf - -C "${RUNNER_TEMP}/docker-credential-gcr" docker-credential-gcr
-          # zizmor: ignore[github-env] - docker-credential-gcr binary must be on the PATH for credHelpers in /.docker/config.json to work.
+          # Ignoring the github-env warning - docker-credential-gcr binary must be on the PATH for credHelpers in /.docker/config.json to work.
           # We are only adding a path to a binary that was just downloaded in RUNNER_TEMP (controlled by GitHub Actions).
           echo "${RUNNER_TEMP}/docker-credential-gcr" >> $GITHUB_PATH
         fi
