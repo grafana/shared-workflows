@@ -50,8 +50,9 @@ runs:
           RESPONSE=$(curl -v -X POST "$VAULT_URL/v1/auth/github-actions-oidc/login" \
             -H "Content-Type: application/json" \
             -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-            -d '{"role": "vault-github-actions","jwt": ""${{ steps.get-github-jwt-token.outputs.github-jwt }}""}' \
+            -d '{"role": "vault-github-actions","jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"}' \
           )
+          echo "${{ steps.get-github-jwt-token.outputs.github-jwt }}"
           echo "$RESPONSE"
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
 
