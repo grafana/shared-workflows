@@ -8,12 +8,9 @@ inputs:
     description: |
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
     default: ops
-
 outputs:
   token:
     description: "GitHub installation access token"
-    value: ${{ steps.generate-token.outputs.github-token }}
-
 runs:
   using: composite
   steps:
