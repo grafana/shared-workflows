@@ -47,12 +47,10 @@ runs:
       id: auth-vault
       run: |
           VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
-          ROLE="vault-github-actions"
-
           RESPONSE=$(curl -v -X POST "$VAULT_URL/v1/auth/github-actions-oidc/login" \
             -H "Content-Type: application/json" \
             -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-            -d '{"role": "$ROLE","jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"}' \
+            -d '{"role": "vault-github-actions","jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"}' \
           )
           echo "$RESPONSE"
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
