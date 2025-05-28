@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.4.1...login-to-gar-v0.4.2) (2025-05-28)
+
+
+### 🐛 Bug Fixes
+
+* **login-to-gar:** replace hardcoded opt dir with runner temp env var ([#1001](https://github.com/grafana/shared-workflows/issues/1001)) ([d03fbe2](https://github.com/grafana/shared-workflows/commit/d03fbe21194b8bae035dabfba8fdabe19c122660))
+
 ## [0.4.1](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.4.0...login-to-gar-v0.4.1) (2025-05-26)
 
 
