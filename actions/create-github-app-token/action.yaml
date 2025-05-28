@@ -38,7 +38,7 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+          const jwt = await core.getIDToken(`https://vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
           core.setSecret(jwt);
           core.setOutput("github-jwt",jwt);
 
@@ -52,7 +52,6 @@ runs:
             -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
             -d '{"role": "vault-github-actions","jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"}' \
           )
-          echo "${{ steps.get-github-jwt-token.outputs.github-jwt }}"
           echo "$RESPONSE"
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
 
