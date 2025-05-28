@@ -70,4 +70,5 @@ runs:
       run: |
           VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
           curl -v -H "X-Vault-Token: ${{ steps.auth-vault.outputs.vault_token }}" \
+          -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
           "$VAULT_URL/v1/github-app-test-1/token?org_name=eloymg" | jq
