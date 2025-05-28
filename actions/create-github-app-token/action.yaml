@@ -58,7 +58,7 @@ runs:
               "role": "$ROLE",
               "jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"
             }
-            EOF
+          EOF
           )
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
 
