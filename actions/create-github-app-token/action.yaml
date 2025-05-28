@@ -57,7 +57,7 @@ runs:
       id: auth-vault
       run: |
           VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
-          RESPONSE=$(curl -v -X POST "$VAULT_URL/v1/auth/github-actions-oidc/login" \
+          RESPONSE=$(curl -X POST "$VAULT_URL/v1/auth/github-actions-oidc/login" \
             -H "Content-Type: application/json" \
             -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
             -d '{"role": "vault-github-actions","jwt": "${{ steps.get-github-jwt-token2.outputs.github-jwt }}"}' \
@@ -69,6 +69,5 @@ runs:
       shell: bash
       run: |
           VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
-          TOKEN="${{ steps.auth-vault.outputs.vault_token }}"
-          curl -s --fail -H "X-Vault-Token: $TOKEN" \
-            "$VAULT_URL/v1/github-app-test-1/token?org_name=eloymg" | jq
+          curl -v -H "X-Vault-Token: ${{ steps.auth-vault.outputs.vault_token }}" \
+          "$VAULT_URL/v1/github-app-test-1/token?org_name=eloymg" | jq
