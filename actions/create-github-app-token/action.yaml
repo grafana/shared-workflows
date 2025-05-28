@@ -62,8 +62,8 @@ runs:
             -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
             -d '{"role": "vault-github-actions","jwt": "${{ steps.get-github-jwt-token2.outputs.github-jwt }}"}' \
           )
-          echo "$RESPONSE"
-          echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
+          echo "$RESPONSE" | jq -r '.auth.client_token' > vault_token.txt
+          echo "vault_token=$(cat vault_token.txt)" >> $GITHUB_OUTPUT
 
     - name: Get Vault Secret
       shell: bash
