@@ -8,7 +8,7 @@ inputs:
   vault_instance:
     description: |
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
-    default: ops
+    default: dev
 
   export_env:
     description: |
@@ -46,7 +46,7 @@ runs:
       shell: bash
       id: auth-vault
       run: |
-          VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+          VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
           ROLE="vault-github-actions"
           PATH="github-actions-oidc"
 
@@ -58,14 +58,14 @@ runs:
               "role": "$ROLE",
               "jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"
             }
-          EOF
+          EOF \
           )
           echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
 
     - name: Get Vault Secret
       shell: bash
       run: |
-          VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+          VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
           TOKEN="${{ steps.auth-vault.outputs.vault_token }}"
           curl -s --fail -H "X-Vault-Token: $TOKEN" \
             "$VAULT_URL/v1/github-app-test-1/token?org_name=eloymg" | jq
