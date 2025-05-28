@@ -104,9 +104,8 @@ runs:
           echo "Installing docker-credential-gcr @ ${tag} for ${os}/${arch}"
           mkdir -p "${RUNNER_TEMP}/docker-credential-gcr"
           curl -fsL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/${tag}/docker-credential-gcr_${os}_${arch}-${tag:1}.tar.gz" | tar xzf - -C "${RUNNER_TEMP}/docker-credential-gcr" docker-credential-gcr
-          # zizmor: ignore[github-env] - docker-credential-gcr binary should be in the PATH. 
-          # We are only adding a path to a binary that was just downloaded, so the risk should be minimal. credHelpers helper in the /.docker/config.json must be on the PATH.
-          # Also, RUNNER_TEMP is controlled by GitHub Actions and not accessible to attackers.
+          # zizmor: ignore[github-env] - docker-credential-gcr binary must be on the PATH for credHelpers in /.docker/config.json to work.
+          # We are only adding a path to a binary that was just downloaded in RUNNER_TEMP (controlled by GitHub Actions).
           echo "${RUNNER_TEMP}/docker-credential-gcr" >> $GITHUB_PATH
         fi
     - name: "Configure GCP Artifact Registry"
