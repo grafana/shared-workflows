@@ -1,0 +1,71 @@
+name: Get Vault Secrets
+description: Composite action (step) to get secrets from Grafana Labs' Vault instance.
+inputs:
+  github_app:
+    description: |
+      What github app
+
+  vault_instance:
+    description: |
+      The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
+    default: ops
+
+  export_env:
+    description: |
+      Whether to export secrets as environment variables, making them available to all subsequent steps. Defaults to `true`.
+    default: "true"
+
+outputs:
+  token:
+    description: "GitHub installation access token"
+    value: steps.generate-token.outputs
+
+runs:
+  using: composite
+  steps:
+    - id: check-vault-instance
+      if: inputs.vault_instance != 'dev' && inputs.vault_instance != 'ops'
+      shell: sh
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
+      run: |
+        echo "Invalid value for vault_instance input: ${VAULT_INSTANCE}. Must be 'dev' or 'ops'."
+        exit 1
+
+    - id: get-github-jwt-token
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      env:
+        VAULT_INSTANCE: test
+      with:
+        script: |
+          const jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+          core.setSecret(jwt);
+          core.setOutput("github-jwt",jwt);
+
+    - name: Authenticate with Vault
+      shell: sh
+      id: auth-vault
+      run: |
+          VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+          ROLE="vault-github-actions"
+          PATH="github-actions-oidc"
+
+          RESPONSE=$(curl -s --fail -X POST "$VAULT_URL/v1/auth/$PATH/login" \
+            -H "Content-Type: application/json" \
+            -H "Proxy-Authorization-Token: Bearer $${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
+            -d @- <<EOF
+            {
+              "role": "$ROLE",
+              "jwt": "${{ steps.get-github-jwt-token.outputs.github-jwt }}"
+            }
+            EOF
+          )
+          echo "$RESPONSE" | jq -r '.auth.client_token' >> $GITHUB_OUTPUT
+
+    - name: Get Vault Secret
+      shell: sh
+      run: |
+          VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+          TOKEN="${{ steps.auth-vault.outputs.vault_token }}"
+          curl -s --fail -H "X-Vault-Token: $TOKEN" \
+            "$VAULT_URL/v1/github-app-test-1/token?org_name=eloymg" | jq
