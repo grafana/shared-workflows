@@ -46,6 +46,8 @@ runs:
       shell: sh
       id: auth-vault
       run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
           VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
           ROLE="vault-github-actions"
           PATH="github-actions-oidc"
