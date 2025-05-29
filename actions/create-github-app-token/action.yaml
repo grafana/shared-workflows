@@ -63,5 +63,5 @@ runs:
           VAULT_URL="https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net"
           curl --fail -H "X-Vault-Token: ${{ steps.auth-vault.outputs.vault_token }}" \
           -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-          "$VAULT_URL/v1/github-app-${{ inputs.github-app }}/token?org_name=grafana | jq -r '.data.token' > github_token.txt
+          "$VAULT_URL/v1/github-app-${{ inputs.github-app }}/token?org_name=grafana" | jq -r '.data.token' > github_token.txt
           echo "github_token=$(cat github_token.txt)" >> $GITHUB_OUTPUT
