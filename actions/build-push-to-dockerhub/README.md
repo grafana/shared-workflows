@@ -2,8 +2,8 @@
 
 > [!NOTE]
 > If you are at Grafana Labs:
+>
 > - A docker mirror is available on our self-hosted runners, see [the internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/#docker-caching-in-github-actions) for more info.
-
 
 This is a composite GitHub Action, used to build Docker images and push them to DockerHub.
 It uses `get-vault-secrets` action to get the DockerHub username and password from Vault.

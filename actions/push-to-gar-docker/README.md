@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > If you are at Grafana Labs:
+>
 > - Follow these steps in the [internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/google-artifact-registry/) to set up a repository before using this action.
 > - A docker mirror is available on our self-hosted runners, see [the internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/#docker-caching-in-github-actions) for more info.
 
