@@ -14,7 +14,7 @@
     "actions/generate-openapi-clients": "1.0.1",
     "actions/push-to-gcs": "0.2.0",
     "actions/techdocs-rewrite-relative-links": "1.0.1",
-    "actions/validate-policy-bot-config": "1.1.0",
+    "actions/validate-policy-bot-config": "1.1.1",
     "actions/trigger-argo-workflow": "1.1.0",
     "actions/setup-jrsonnet": "1.0.0",
     "actions/find-pr-for-commit": "1.0.0",
