@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.5.0...push-to-gar-docker/v0.5.1) (2025-06-02)
+
+
+### 📝 Documentation
+
+* **multiple:** add docker cache notes to build-push-to-dockerhub and push-to-gar-docker ([#1003](https://github.com/grafana/shared-workflows/issues/1003)) ([e5377f9](https://github.com/grafana/shared-workflows/commit/e5377f9c2aee143ccf63001896fa59eef7bea1d5))
+
 ## [0.5.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.4.1...push-to-gar-docker-v0.5.0) (2025-05-28)
 
 
