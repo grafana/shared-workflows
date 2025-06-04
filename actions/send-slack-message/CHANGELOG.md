@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.3](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.2...send-slack-message/v2.0.3) (2025-06-04)
+
+
+### 📝 Documentation
+
+* **send-slack-notification:** remove outdated docs, url update ([#982](https://github.com/grafana/shared-workflows/issues/982)) ([d408247](https://github.com/grafana/shared-workflows/commit/d4082475390936b2952dcea4921ae423e2ce6395))
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
 ## [2.0.2](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.1...send-slack-message-v2.0.2) (2025-05-08)
 
 
