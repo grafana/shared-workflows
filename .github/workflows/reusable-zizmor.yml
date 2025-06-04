@@ -109,7 +109,7 @@ jobs:
               const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL']
               if (!runtimeUrl) {
                 throw new Error(
-                  "We're unable to look up the version of the Zizmor workflow being called, so we can't fetch the `grafana` default configuration. Zizmor's own default will be used. Is the `is-token: write` permission set? If so, is this a run from a fork? Unfortunately we're unable to do this lookup for pull requests from forks currently."
+                  "We're unable to look up the version of the Zizmor workflow being called, so we can't fetch the `grafana` default configuration. Zizmor's own default will be used. Is the `id-token: write` permission set? If so, is this a run from a fork? Unfortunately we're unable to do this lookup for pull requests from forks currently."
                 )
               }
 
