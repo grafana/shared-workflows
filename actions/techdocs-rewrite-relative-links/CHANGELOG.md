@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.1...techdocs-rewrite-relative-links/v1.0.2) (2025-06-04)
+
+
+### 🐛 Bug Fixes
+
+* ensure every action disables git credential persistence ([#821](https://github.com/grafana/shared-workflows/issues/821)) ([31ebf3f](https://github.com/grafana/shared-workflows/commit/31ebf3f8e5d0f8709e6ec4ef73b39dd2bd08f959))
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+* fix linting issues ([#876](https://github.com/grafana/shared-workflows/issues/876)) ([1e7c66c](https://github.com/grafana/shared-workflows/commit/1e7c66cde9d0949c49fb319bc3cea5c2aa7cfb45))
+
+
+### 🏗️ Build System
+
+* **deps:** bump github.com/lmittmann/tint ([52b0e8a](https://github.com/grafana/shared-workflows/commit/52b0e8aa0e2017875582bf17db424e2d53dfa69d))
+* **deps:** bump github.com/lmittmann/tint ([d99f255](https://github.com/grafana/shared-workflows/commit/d99f255cbe8c0b21503716fbcf2f6b79824fa62f))
+* **deps:** bump github.com/lmittmann/tint ([c0b8808](https://github.com/grafana/shared-workflows/commit/c0b8808645927e0cac30b99b8d158883c0bac9e1))
+* **deps:** bump github.com/lmittmann/tint to 1.0.7 in techdocs-rewrite-relative-links ([#745](https://github.com/grafana/shared-workflows/issues/745)) ([c0b8808](https://github.com/grafana/shared-workflows/commit/c0b8808645927e0cac30b99b8d158883c0bac9e1))
+* **deps:** bump github.com/lmittmann/tint to 1.1.0 in techdocs-rewrite-relative-links ([#994](https://github.com/grafana/shared-workflows/issues/994)) ([d99f255](https://github.com/grafana/shared-workflows/commit/d99f255cbe8c0b21503716fbcf2f6b79824fa62f))
+* **deps:** bump github.com/lmittmann/tint to 1.1.1 in techdocs-rewrite-relative-links ([#1006](https://github.com/grafana/shared-workflows/issues/1006)) ([52b0e8a](https://github.com/grafana/shared-workflows/commit/52b0e8aa0e2017875582bf17db424e2d53dfa69d))
+* **deps:** bump github.com/spf13/afero ([556a668](https://github.com/grafana/shared-workflows/commit/556a6680c0417f5cdf8c29037d09c2984d2fc4ca))
+* **deps:** bump github.com/spf13/afero from 1.12.0 to 1.14.0 ([#851](https://github.com/grafana/shared-workflows/issues/851)) ([556a668](https://github.com/grafana/shared-workflows/commit/556a6680c0417f5cdf8c29037d09c2984d2fc4ca))
+* **deps:** bump github.com/yuin/goldmark ([06dde69](https://github.com/grafana/shared-workflows/commit/06dde6927c0c1a5c8136f46f982628d4414e7f00))
+* **deps:** bump github.com/yuin/goldmark ([0ccdfc1](https://github.com/grafana/shared-workflows/commit/0ccdfc1fffd6dfbb9bd7ea10d0b96793cef3d36a))
+* **deps:** bump github.com/yuin/goldmark from 1.7.10 in techdocs-rewrite-relative-links ([#910](https://github.com/grafana/shared-workflows/issues/910)) ([0ccdfc1](https://github.com/grafana/shared-workflows/commit/0ccdfc1fffd6dfbb9bd7ea10d0b96793cef3d36a))
+* **deps:** bump golang.org/x/term ([2a99c0b](https://github.com/grafana/shared-workflows/commit/2a99c0b48edbe79f98fc9e90a5719cbc5ec36989))
+* **deps:** bump golang.org/x/term ([352ac63](https://github.com/grafana/shared-workflows/commit/352ac63337021910bff758a3aba210db5d3e31aa))
+* **deps:** bump golang.org/x/term ([fa04ad7](https://github.com/grafana/shared-workflows/commit/fa04ad7b8f4a44f7b541aaaf40d38f197bea6a64))
+* **deps:** bump golang.org/x/term from 0.28.0 to 0.29.0 in techdocs-rewrite-relative-links ([#767](https://github.com/grafana/shared-workflows/issues/767)) ([fa04ad7](https://github.com/grafana/shared-workflows/commit/fa04ad7b8f4a44f7b541aaaf40d38f197bea6a64))
+* **deps:** bump golang.org/x/term from 0.30.0 to 0.31.0 in techdocs-rewrite-relative-links ([#889](https://github.com/grafana/shared-workflows/issues/889)) ([352ac63](https://github.com/grafana/shared-workflows/commit/352ac63337021910bff758a3aba210db5d3e31aa))
+* **deps:** bump golang.org/x/term to 0.32.0 in techdocs-rewrite-relative-links ([#976](https://github.com/grafana/shared-workflows/issues/976)) ([2a99c0b](https://github.com/grafana/shared-workflows/commit/2a99c0b48edbe79f98fc9e90a5719cbc5ec36989))
+* **deps:** bump the go group ([0812cd0](https://github.com/grafana/shared-workflows/commit/0812cd018b3ecc7b4d912bc68106a0febe0b8eeb))
+* **deps:** bump the go group ([6837a3b](https://github.com/grafana/shared-workflows/commit/6837a3bd4a49e1fa5e4da9b061fd5e94087bcdac))
+* **deps:** bump the go group in /actions/techdocs-rewrite-relative-links with 2 updates ([#842](https://github.com/grafana/shared-workflows/issues/842)) ([6837a3b](https://github.com/grafana/shared-workflows/commit/6837a3bd4a49e1fa5e4da9b061fd5e94087bcdac))
+* **deps:** bump the go group in /actions/techdocs-rewrite-relative-links with 2 updates ([#928](https://github.com/grafana/shared-workflows/issues/928)) ([0812cd0](https://github.com/grafana/shared-workflows/commit/0812cd018b3ecc7b4d912bc68106a0febe0b8eeb))
+* **deps:** bump yuin/goldmark from 1.7.11 to 1.7.12 in techdocs-rewrite-relative-links ([#987](https://github.com/grafana/shared-workflows/issues/987)) ([06dde69](https://github.com/grafana/shared-workflows/commit/06dde6927c0c1a5c8136f46f982628d4414e7f00))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v5.4.0 ([#856](https://github.com/grafana/shared-workflows/issues/856)) ([2a39322](https://github.com/grafana/shared-workflows/commit/2a39322a1f089f759684c4a4fa1a8219a77d6494))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.0...techdocs-rewrite-relative-links-v1.0.1) (2025-01-29)
 
 
