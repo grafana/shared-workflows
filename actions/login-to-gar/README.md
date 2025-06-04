@@ -23,7 +23,6 @@ jobs:
         id: login-to-gar
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev
-          environment: "prod" # can be either dev/prod
 ```
 
 <!-- x-release-please-end-version -->
@@ -33,7 +32,6 @@ jobs:
 | Name                      | Description                                                                                                                             | Default             |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | `registry`                | Google Artifact Registry to authenticate against.                                                                                       | `us-docker.pkg.dev` |
-| `environment`             | Environment for pushing artifacts (can be either dev or prod).                                                                          | `dev`               |
 | `delete_credentials_file` | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. | `false`             |
 
 > [!WARNING]
