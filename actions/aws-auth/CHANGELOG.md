@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/aws-auth-v1.0.1...aws-auth/v1.0.2) (2025-06-04)
+
+
+### 📝 Documentation
+
+* fix wrong aws-auth reference in readme ([#731](https://github.com/grafana/shared-workflows/issues/731)) ([c0ae660](https://github.com/grafana/shared-workflows/commit/c0ae660365599f4f1a8550c941e08d4a6de268e5))
+* **multiple-actions:** move permissions to job level in workflow examples ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple-actions:** move permissions to job level in workflows ([#969](https://github.com/grafana/shared-workflows/issues/969)) ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
+
+### 🔧 Miscellaneous Chores
+
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/aws-auth-v1.0.0...aws-auth-v1.0.1) (2025-01-29)
 
 
