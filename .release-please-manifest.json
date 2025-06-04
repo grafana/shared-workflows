@@ -19,5 +19,6 @@
     "actions/setup-jrsonnet": "1.0.1",
     "actions/find-pr-for-commit": "1.0.0",
     "actions/remove-checkout-credentials": "0.1.0",
+    "actions/dependabot-auto-triage": "1.0.0",
     "actions/get-latest-workflow-artifact": "0.1.0"
 }
