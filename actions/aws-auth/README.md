@@ -18,7 +18,7 @@ jobs:
       id-token: write
     steps:
       - id: aws-auth
-        uses: grafana/shared-workflows/actions/aws-auth@aws-auth-v1.0.1
+        uses: grafana/shared-workflows/actions/aws-auth@aws-auth/v1.0.2
         with:
           aws-region: "us-west-1"
           role-arn: "arn:aws:iam::366620023056:role/github-actions/s3-test-access"

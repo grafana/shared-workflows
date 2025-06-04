@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.2.0...get-vault-secrets/v1.2.1) (2025-06-04)
+
+
+### 📝 Documentation
+
+* **get-vault-secrets:** move permissions to job-level in example wor… ([#968](https://github.com/grafana/shared-workflows/issues/968)) ([b42327d](https://github.com/grafana/shared-workflows/commit/b42327db568c2c02b18bc53768aeb603de8c4a81))
+* **get-vault-secrets:** move permissions to job-level in example workflow in readme ([b42327d](https://github.com/grafana/shared-workflows/commit/b42327db568c2c02b18bc53768aeb603de8c4a81))
+* **get-vault-secrets:** update enghub link to point to new vault docs ([#992](https://github.com/grafana/shared-workflows/issues/992)) ([5e3deaf](https://github.com/grafana/shared-workflows/commit/5e3deaf6734ec48f298adadad5fb2d12a2139907))
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
 ## [1.2.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.1.0...get-vault-secrets-v1.2.0) (2025-04-29)
 
 

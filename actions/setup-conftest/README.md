@@ -7,7 +7,7 @@ Setup conftest and add it to the PATH, this action will pull the binary from Git
 <!-- x-release-please-start-version -->
 
 ```yaml
-uses: grafana/shared-workflows/actions/setup-conftest@setup-conftest-v1.0.1
+uses: grafana/shared-workflows/actions/setup-conftest@setup-conftest/v1.0.1
 with:
   version: 1.0.1 # Version of conftest to install.
 ```

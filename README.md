@@ -162,7 +162,7 @@ jobs:
 
     steps:
       - id: do-stuff
-        uses: grafana/shared-workflows/actions/my-new-action@my-new-action-v1.0.0
+        uses: grafana/shared-workflows/actions/my-new-action@my-new-action/v1.0.0
 ```
 
 <!-- x-release-please-end-version -->
