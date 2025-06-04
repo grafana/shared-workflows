@@ -7,9 +7,9 @@ Setup Argo cli and add it to the PATH, this action will pull the binary from Git
 <!-- x-release-please-start-version -->
 
 ```yaml
-uses: grafana/shared-workflows/actions/setup-argo@setup-argo/v1.0.1
+uses: grafana/shared-workflows/actions/setup-argo@setup-argo/v1.0.2
 with:
-  version: 1.0.1 # Version of the Argo CLI to install.
+  version: 1.0.2 # Version of the Argo CLI to install.
 ```
 
 <!-- x-release-please-end-version -->
