@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.4.2...login-to-gar/v0.4.3) (2025-06-04)
+
+
+### 📝 Documentation
+
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
 ## [0.4.2](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.4.1...login-to-gar-v0.4.2) (2025-05-28)
 
 
