@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.2.0](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub-v0.1.1...build-push-to-dockerhub/v0.2.0) (2025-06-04)
+
+
+### 🎉 Features
+
+* **build-push-to-dockerhub:** enable docker mirror for buildx on self-hosted runners ([#999](https://github.com/grafana/shared-workflows/issues/999)) ([f797fbd](https://github.com/grafana/shared-workflows/commit/f797fbd07354fd4727f952291bfa6b85eab568ef))
+* **push-to-gar-docker,build-push-to-dockerhub:** add support for buildkit secrets ([#990](https://github.com/grafana/shared-workflows/issues/990)) ([bfed586](https://github.com/grafana/shared-workflows/commit/bfed586d71f4799f2506878776b481d00ca84bda))
+
+
+### 🐛 Bug Fixes
+
+* ensure every action disables git credential persistence ([#821](https://github.com/grafana/shared-workflows/issues/821)) ([31ebf3f](https://github.com/grafana/shared-workflows/commit/31ebf3f8e5d0f8709e6ec4ef73b39dd2bd08f959))
+
+
+### 📝 Documentation
+
+* **multiple-actions:** move permissions to job level in workflow examples ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple-actions:** move permissions to job level in workflows ([#969](https://github.com/grafana/shared-workflows/issues/969)) ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple:** add docker cache notes to build-push-to-dockerhub and push-to-gar-docker ([#1003](https://github.com/grafana/shared-workflows/issues/1003)) ([e5377f9](https://github.com/grafana/shared-workflows/commit/e5377f9c2aee143ccf63001896fa59eef7bea1d5))
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v6.14.0 ([#793](https://github.com/grafana/shared-workflows/issues/793)) ([d750654](https://github.com/grafana/shared-workflows/commit/d750654d770aefa0516e11735cdfdb89b7a380a1))
+* **deps:** update docker/build-push-action action to v6.15.0 ([#816](https://github.com/grafana/shared-workflows/issues/816)) ([0ae253d](https://github.com/grafana/shared-workflows/commit/0ae253d4a198408407a161de482680eddf2dfa42))
+* **deps:** update docker/build-push-action action to v6.16.0 ([#923](https://github.com/grafana/shared-workflows/issues/923)) ([a301072](https://github.com/grafana/shared-workflows/commit/a30107276148b4f29eaeaef05a3f9173d1aa0ad9))
+* **deps:** update docker/metadata-action action to v5.7.0 ([#818](https://github.com/grafana/shared-workflows/issues/818)) ([9f9b2eb](https://github.com/grafana/shared-workflows/commit/9f9b2eb3897a39fd65e5b92f17a60704925f94c4))
+* **deps:** update docker/setup-buildx-action action to v3.10.0 ([#819](https://github.com/grafana/shared-workflows/issues/819)) ([09fb633](https://github.com/grafana/shared-workflows/commit/09fb633eb9f6c77153fa941e662be7cd418ca1fb))
+* **deps:** update docker/setup-buildx-action action to v3.9.0 ([#755](https://github.com/grafana/shared-workflows/issues/755)) ([8dd62e3](https://github.com/grafana/shared-workflows/commit/8dd62e320f60df7426d30b67c9b26f17af352ed7))
+* **deps:** update docker/setup-qemu-action action to v3.4.0 ([#756](https://github.com/grafana/shared-workflows/issues/756)) ([753c87a](https://github.com/grafana/shared-workflows/commit/753c87a0ea97496f0088e51c025e1f4c69be6626))
+* **deps:** update docker/setup-qemu-action action to v3.5.0 ([#820](https://github.com/grafana/shared-workflows/issues/820)) ([183a929](https://github.com/grafana/shared-workflows/commit/183a929dfee60c6294552ac80371153c29860c16))
+* **deps:** update docker/setup-qemu-action action to v3.6.0 ([#825](https://github.com/grafana/shared-workflows/issues/825)) ([bfbcd01](https://github.com/grafana/shared-workflows/commit/bfbcd01788fe3d09fb1de307529afe2c111cbc64))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub-v0.1.0...build-push-to-dockerhub-v0.1.1) (2025-01-29)
 
 
