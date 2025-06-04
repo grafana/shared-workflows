@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/push-to-gcs-v0.2.0...push-to-gcs/v0.2.1) (2025-06-04)
+
+
+### 🐛 Bug Fixes
+
+* ensure every action disables git credential persistence ([#821](https://github.com/grafana/shared-workflows/issues/821)) ([31ebf3f](https://github.com/grafana/shared-workflows/commit/31ebf3f8e5d0f8709e6ec4ef73b39dd2bd08f959))
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+
+
+### 📝 Documentation
+
+* **multiple-actions:** move permissions to job level in workflow examples ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple-actions:** move permissions to job level in workflows ([#969](https://github.com/grafana/shared-workflows/issues/969)) ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
+
+### 🤖 Continuous Integration
+
+* don't persist shared workflows folder after action is done ([#905](https://github.com/grafana/shared-workflows/issues/905)) ([9a34c93](https://github.com/grafana/shared-workflows/commit/9a34c9302d2064c48e03cf7c4c7cd45998c4615e))
+* remove gcp credentials after composite action finishes ([#925](https://github.com/grafana/shared-workflows/issues/925)) ([62f8dda](https://github.com/grafana/shared-workflows/commit/62f8ddaa78b23147b22ba6a38df2b97963dab4b3))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/upload-cloud-storage action to v2.2.2 ([#741](https://github.com/grafana/shared-workflows/issues/741)) ([5f7a536](https://github.com/grafana/shared-workflows/commit/5f7a5361daa274f9a1994893a4c21a8967cf2a24))
+* **deps:** update google-github-actions/upload-cloud-storage action to v2.2.2 ([#749](https://github.com/grafana/shared-workflows/issues/749)) ([948bff0](https://github.com/grafana/shared-workflows/commit/948bff0b53f9d51876b8bca2cb1408384b4ce3b5))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/push-to-gcs-v0.1.0...push-to-gcs-v0.2.0) (2025-01-28)
 
 
