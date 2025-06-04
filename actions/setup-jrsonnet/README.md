@@ -7,7 +7,7 @@ Setup jrsonnet CLI and add it to the PATH, this action will pull the binary from
 <!-- x-release-please-start-version -->
 
 ```yaml
-uses: grafana/shared-workflows/actions/setup-jrsonnet@setup-jrsonnet-v1.0.0
+uses: grafana/shared-workflows/actions/setup-jrsonnet@setup-jrsonnet/v1.0.0
 with:
   version: 1.0.0-test # Version of the jrsonnet CLI to install.
 ```

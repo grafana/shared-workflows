@@ -42,7 +42,7 @@ jobs:
         with:
           go-version: 1.18
       - name: Generate clients
-        uses: grafana/shared-workflows/actions/generate-openapi-clients@generate-openapi-clients-v1.0.1
+        uses: grafana/shared-workflows/actions/generate-openapi-clients@generate-openapi-clients/v1.0.1
         with:
           package-name: slo
           spec-path: openapi.yaml
