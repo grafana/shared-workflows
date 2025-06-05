@@ -29,7 +29,8 @@ func (m *MockLokiClient) FetchLogs() (*LokiResponse, error) {
 
 // MockGitClient implements GitClient for testing
 type MockGitClient struct {
-	testFiles map[string]string // testName -> filePath
+	testFiles map[string]string       // testName -> filePath
+	authors   map[string][]CommitInfo // testName -> commits
 	fileErr   error
 	authorErr error
 }
@@ -42,6 +43,16 @@ func (m *MockGitClient) FindTestFile(testName string) (string, error) {
 		return path, nil
 	}
 	return "", fmt.Errorf("test file not found for %s", testName)
+}
+
+func (m *MockGitClient) GetFileAuthors(filePath, testName string) ([]CommitInfo, error) {
+	if m.authorErr != nil {
+		return nil, m.authorErr
+	}
+	if commits, exists := m.authors[testName]; exists {
+		return commits, nil
+	}
+	return []CommitInfo{}, nil
 }
 
 // MockFileSystem implements FileSystem for testing
@@ -91,12 +102,13 @@ func createTestLokiResponse(entries []RawLogEntry) *LokiResponse {
 
 func createTestConfig() Config {
 	return Config{
-		LokiURL:      "http://localhost:3100",
-		LokiUsername: "user",
-		LokiPassword: "pass",
-		Repository:   "test/repo",
-		TimeRange:    "24h",
-		TopK:         3,
+		LokiURL:             "http://localhost:3100",
+		LokiUsername:        "user",
+		LokiPassword:        "pass",
+		Repository:          "test/repo",
+		TimeRange:           "24h",
+		RepositoryDirectory: "/tmp/test",
+		TopK:                3,
 	}
 }
 
@@ -114,9 +126,23 @@ func TestAnalyzer_AnalyzeFailures_Success(t *testing.T) {
 
 	// Setup mocks
 	lokiClient := &MockLokiClient{response: lokiResponse}
+	gitClient := &MockGitClient{
+		testFiles: map[string]string{
+			"TestUserLogin": "user_test.go",
+			"TestPayment":   "payment_test.go",
+		},
+		authors: map[string][]CommitInfo{
+			"TestUserLogin": {
+				{Hash: "abc123", Author: "alice", Timestamp: time.Now().AddDate(0, -1, 0), Title: "Fix user login"},
+			},
+			"TestPayment": {
+				{Hash: "def456", Author: "bob", Timestamp: time.Now().AddDate(0, -2, 0), Title: "Update payment logic"},
+			},
+		},
+	}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the analysis phase only
@@ -135,10 +161,12 @@ func TestAnalyzer_AnalyzeFailures_Success(t *testing.T) {
 	userTest := findTestByName(report.FlakyTests, "TestUserLogin")
 	require.NotNil(t, userTest, "TestUserLogin should be found")
 	assert.Equal(t, 2, userTest.TotalFailures, "TestUserLogin should have 2 failures")
+	assert.Equal(t, "user_test.go", userTest.FilePath, "TestUserLogin should have correct file path")
 
 	paymentTest := findTestByName(report.FlakyTests, "TestPayment")
 	require.NotNil(t, paymentTest, "TestPayment should be found")
 	assert.Equal(t, 1, paymentTest.TotalFailures, "TestPayment should have 1 failure")
+	assert.Equal(t, "payment_test.go", paymentTest.FilePath, "TestPayment should have correct file path")
 
 	// Check that report file was written
 	assert.NotEmpty(t, report.ReportPath, "Report path should be set")
@@ -147,9 +175,10 @@ func TestAnalyzer_AnalyzeFailures_Success(t *testing.T) {
 
 func TestAnalyzer_AnalyzeFailures_LokiError(t *testing.T) {
 	lokiClient := &MockLokiClient{err: fmt.Errorf("loki connection failed")}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	report, err := analyzer.AnalyzeFailures(config)
@@ -169,9 +198,10 @@ func TestAnalyzer_AnalyzeFailures_EmptyResponse(t *testing.T) {
 	}
 
 	lokiClient := &MockLokiClient{response: lokiResponse}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	report, err := analyzer.AnalyzeFailures(config)
@@ -193,12 +223,14 @@ func TestAnalyzer_ActionReport_WithoutPostingIssues(t *testing.T) {
 		FlakyTests: []FlakyTest{
 			{
 				TestName:         "TestUserLogin",
+				FilePath:         "user_test.go",
 				TotalFailures:    2,
 				BranchCounts:     map[string]int{"main": 1, "feature": 1},
 				ExampleWorkflows: []GithubActionsWorkflow{{RunURL: "https://github.com/test/repo/actions/runs/1"}, {RunURL: "https://github.com/test/repo/actions/runs/2"}},
 			},
 			{
 				TestName:         "TestPayment",
+				FilePath:         "payment_test.go",
 				TotalFailures:    1,
 				BranchCounts:     map[string]int{"main": 1},
 				ExampleWorkflows: []GithubActionsWorkflow{{RunURL: "https://github.com/test/repo/actions/runs/3"}},
@@ -208,9 +240,10 @@ func TestAnalyzer_ActionReport_WithoutPostingIssues(t *testing.T) {
 
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the enactment phase only
@@ -228,6 +261,7 @@ func TestAnalyzer_ActionReport_ProductionMode(t *testing.T) {
 		FlakyTests: []FlakyTest{
 			{
 				TestName:         "TestUserLogin",
+				FilePath:         "user_test.go",
 				TotalFailures:    2,
 				BranchCounts:     map[string]int{"main": 2},
 				ExampleWorkflows: []GithubActionsWorkflow{{RunURL: "https://github.com/test/repo/actions/runs/1"}},
@@ -237,9 +271,10 @@ func TestAnalyzer_ActionReport_ProductionMode(t *testing.T) {
 
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the enactment phase only
@@ -259,9 +294,10 @@ func TestAnalyzer_ActionReport_EmptyReport(t *testing.T) {
 
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the enactment phase only
@@ -274,9 +310,10 @@ func TestAnalyzer_ActionReport_EmptyReport(t *testing.T) {
 func TestAnalyzer_ActionReport_NilReport(t *testing.T) {
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the enactment phase with nil report
@@ -300,9 +337,23 @@ func TestAnalyzer_Run_Success(t *testing.T) {
 
 	// Setup mocks
 	lokiClient := &MockLokiClient{response: lokiResponse}
+	gitClient := &MockGitClient{
+		testFiles: map[string]string{
+			"TestUserLogin": "user_test.go",
+			"TestPayment":   "payment_test.go",
+		},
+		authors: map[string][]CommitInfo{
+			"TestUserLogin": {
+				{Hash: "abc123", Author: "alice", Timestamp: time.Now().AddDate(0, -1, 0), Title: "Fix user login"},
+			},
+			"TestPayment": {
+				{Hash: "def456", Author: "bob", Timestamp: time.Now().AddDate(0, -2, 0), Title: "Update payment logic"},
+			},
+		},
+	}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the analysis
@@ -328,6 +379,7 @@ func TestAnalyzer_Run_Success(t *testing.T) {
 	for _, test := range result.FlakyTests {
 		testNames[test.TestName] = true
 		assert.Greater(t, test.TotalFailures, 0, "Test %s should have failures", test.TestName)
+		assert.NotEmpty(t, test.FilePath, "Test %s should have file path", test.TestName)
 	}
 
 	assert.True(t, testNames["TestUserLogin"], "TestUserLogin should be detected as flaky")
@@ -336,15 +388,34 @@ func TestAnalyzer_Run_Success(t *testing.T) {
 
 func TestAnalyzer_Run_LokiError(t *testing.T) {
 	lokiClient := &MockLokiClient{err: fmt.Errorf("loki connection failed")}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
 
 	require.Error(t, err, "Expected error from Loki failure")
 	assert.Contains(t, err.Error(), "failed to fetch logs from Loki", "Error should mention Loki failure")
+}
+
+func TestAnalyzer_Run_GitError(t *testing.T) {
+	logEntries := []RawLogEntry{
+		{TestName: "TestExample", Branch: "main", WorkflowRunURL: "https://github.com/test/repo/actions/runs/1"},
+	}
+
+	lokiClient := &MockLokiClient{response: createTestLokiResponse(logEntries)}
+	gitClient := &MockGitClient{fileErr: fmt.Errorf("git command failed")}
+	fileSystem := &MockFileSystem{}
+
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	config := createTestConfig()
+
+	err := analyzer.Run(config)
+
+	require.Error(t, err, "Expected error from Git failure")
+	assert.Contains(t, err.Error(), "failed to find file paths", "Error should mention Git file path failure")
 }
 
 func TestAnalyzer_Run_EmptyLokiResponse(t *testing.T) {
@@ -357,9 +428,10 @@ func TestAnalyzer_Run_EmptyLokiResponse(t *testing.T) {
 	}
 
 	lokiClient := &MockLokiClient{response: emptyResponse}
+	gitClient := &MockGitClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
@@ -384,9 +456,14 @@ func TestAnalyzer_Run_NonFlakyTests(t *testing.T) {
 	}
 
 	lokiClient := &MockLokiClient{response: createTestLokiResponse(logEntries)}
+	gitClient := &MockGitClient{
+		testFiles: map[string]string{
+			"TestFeatureOnly": "feature_test.go",
+		},
+	}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
@@ -444,9 +521,15 @@ func TestAnalyzer_Run_TopKLimit(t *testing.T) {
 	}
 
 	lokiClient := &MockLokiClient{response: createTestLokiResponse(logEntries)}
+	gitClient := &MockGitClient{
+		testFiles: map[string]string{
+			"TestA": "a_test.go", "TestB": "b_test.go", "TestC": "c_test.go",
+			"TestD": "d_test.go", "TestE": "e_test.go",
+		},
+	}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 	config.TopK = 3
 
@@ -469,9 +552,12 @@ func TestAnalyzer_Run_NoProductionMode(t *testing.T) {
 	}
 
 	lokiClient := &MockLokiClient{response: createTestLokiResponse(logEntries)}
+	gitClient := &MockGitClient{
+		testFiles: map[string]string{"TestUserLogin": "user_test.go"},
+	}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
@@ -492,32 +578,44 @@ func TestFlakyTest_String(t *testing.T) {
 			test: FlakyTest{
 				TestName:      "TestUserLogin",
 				TotalFailures: 3,
+				RecentCommits: []CommitInfo{
+					{Author: "alice", Hash: "abc123", Title: "Fix login"},
+				},
 			},
-			expected: "TestUserLogin (3 total failures)",
+			expected: "TestUserLogin (3 total failures; recently changed by alice)",
 		},
 		{
 			name: "test with multiple authors",
 			test: FlakyTest{
 				TestName:      "TestPayment",
 				TotalFailures: 5,
+				RecentCommits: []CommitInfo{
+					{Author: "alice", Hash: "abc123", Title: "Fix payment"},
+					{Author: "bob", Hash: "def456", Title: "Update payment logic"},
+				},
 			},
-			expected: "TestPayment (5 total failures)",
+			expected: "TestPayment (5 total failures; recently changed by alice, bob)",
 		},
 		{
 			name: "test with no commits",
 			test: FlakyTest{
 				TestName:      "TestDatabase",
 				TotalFailures: 2,
+				RecentCommits: []CommitInfo{},
 			},
-			expected: "TestDatabase (2 total failures)",
+			expected: "TestDatabase (2 total failures; recently changed by unknown)",
 		},
 		{
 			name: "test with unknown authors",
 			test: FlakyTest{
 				TestName:      "TestAPI",
 				TotalFailures: 1,
+				RecentCommits: []CommitInfo{
+					{Author: "unknown", Hash: "abc123", Title: "Some change"},
+					{Author: "", Hash: "def456", Title: "Another change"},
+				},
 			},
-			expected: "TestAPI (1 total failures)",
+			expected: "TestAPI (1 total failures; recently changed by unknown)",
 		},
 	}
 
@@ -564,12 +662,36 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 		name         string
 		lokiFile     string
 		expectedFile string
+		setupMocks   func() *MockGitClient
 		config       func() Config
 	}{
 		{
 			name:         "complex_scenario",
 			lokiFile:     "complex_loki_response.json",
 			expectedFile: "complex_scenario.json",
+			setupMocks: func() *MockGitClient {
+				gitClient := &MockGitClient{
+					testFiles: map[string]string{
+						"TestDatabaseConnection": "internal/database/connection_test.go",
+						"TestUserAuthentication": "auth/user_test.go",
+						"TestPaymentProcessing":  "payment/processor_test.go",
+					},
+					authors: map[string][]CommitInfo{
+						"TestDatabaseConnection": {
+							{Hash: "abc123def456", Author: "alice", Timestamp: mustParseTime("2024-01-15T10:30:00Z"), Title: "Optimize database connection pooling"},
+							{Hash: "789ghi012jkl", Author: "bob", Timestamp: mustParseTime("2024-01-10T14:22:00Z"), Title: "Add connection timeout handling"},
+						},
+						"TestUserAuthentication": {
+							{Hash: "345mno678pqr", Author: "charlie", Timestamp: mustParseTime("2024-01-12T09:15:00Z"), Title: "Implement OAuth2 authentication flow"},
+						},
+						"TestPaymentProcessing": {
+							{Hash: "901stu234vwx", Author: "dave", Timestamp: mustParseTime("2024-01-08T16:45:00Z"), Title: "Add Stripe payment integration"},
+							{Hash: "567yza890bcd", Author: "eve", Timestamp: mustParseTime("2024-01-05T11:30:00Z"), Title: "Refactor payment processing logic"},
+						},
+					},
+				}
+				return gitClient
+			},
 			config: func() Config {
 				config := createTestConfig()
 				config.TopK = 10 // Don't limit for this test
@@ -580,13 +702,27 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 			name:         "empty_scenario",
 			lokiFile:     "",
 			expectedFile: "empty_scenario.json",
-			config:       createTestConfig,
+			setupMocks: func() *MockGitClient {
+				return &MockGitClient{}
+			},
+			config: createTestConfig,
 		},
 		{
 			name:         "single_test_scenario",
 			lokiFile:     "",
 			expectedFile: "single_test_scenario.json",
-			config:       createTestConfig,
+			setupMocks: func() *MockGitClient {
+				gitClient := &MockGitClient{
+					testFiles: map[string]string{
+						"TestLoginFlow": "handlers/login_test.go",
+					},
+					authors: map[string][]CommitInfo{
+						"TestLoginFlow": {}, // No recent commits
+					},
+				}
+				return gitClient
+			},
+			config: createTestConfig,
 		},
 	}
 
@@ -620,10 +756,11 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 
 			// Setup mocks
 			lokiClient := &MockLokiClient{response: lokiResponse}
+			gitClient := tt.setupMocks()
 			fileSystem := &MockFileSystem{}
 
 			// Run analysis
-			analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
+			analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 			config := tt.config()
 
 			err := analyzer.Run(config)
@@ -645,6 +782,11 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 
 			// Compare results (ignoring report_path which will be different)
 			actual.ReportPath = expected.ReportPath
+
+			// For time-sensitive tests, normalize timestamps
+			if tt.name == "complex_scenario" {
+				normalizeTimestamps(&actual, &expected)
+			}
 
 			// Normalize workflow order for comparison
 			normalizeWorkflowOrder(&actual, &expected)
@@ -671,6 +813,24 @@ func mustParseTime(timeStr string) time.Time {
 		panic(fmt.Sprintf("Failed to parse time %s: %v", timeStr, err))
 	}
 	return t
+}
+
+func normalizeTimestamps(actual, expected *FailuresReport) {
+	// For golden file tests, we normalize timestamps to expected values
+	// since actual git log times will differ from test data
+	for i, actualTest := range actual.FlakyTests {
+		for j := range expected.FlakyTests {
+			if expected.FlakyTests[j].TestName == actualTest.TestName {
+				// Copy expected timestamps to actual for comparison
+				if len(expected.FlakyTests[j].RecentCommits) == len(actualTest.RecentCommits) {
+					for k := range actualTest.RecentCommits {
+						actual.FlakyTests[i].RecentCommits[k].Timestamp = expected.FlakyTests[j].RecentCommits[k].Timestamp
+					}
+				}
+				break
+			}
+		}
+	}
 }
 
 func normalizeWorkflowOrder(actual, expected *FailuresReport) {
