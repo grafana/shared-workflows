@@ -1,6 +1,6 @@
-# Analyze Test Failures
+# Go Flaky Tests
 
-A GitHub Action that analyzes test failures by fetching logs from Loki and identifying flaky tests.
+A GitHub Action that detects and analyzes flaky Go tests by fetching logs from Loki.
 
 ## Features
 
@@ -10,7 +10,7 @@ A GitHub Action that analyzes test failures by fetching logs from Loki and ident
 ## Usage
 
 ```yaml
-name: Analyze Test Failures
+name: Go Flaky Tests
 on:
   schedule:
     - cron: '0 9 * * 1'  # Run every Monday at 9 AM
@@ -22,8 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Analyze Test Failures
-        uses: grafana/shared-workflows/actions/analyze-test-failures@main
+      - name: Go Flaky Tests
+        uses: grafana/shared-workflows/actions/go-flaky-tests@main
         with:
           loki-url: ${{ secrets.LOKI_URL }}
           loki-username: ${{ secrets.LOKI_USERNAME }}
@@ -76,7 +76,7 @@ export LOKI_URL="your-loki-url"
 export REPOSITORY="owner/repo"
 export TIME_RANGE="24h"
 # Run the analysis
-go run ./cmd/analyze-test-failures
+go run ./cmd/go-flaky-tests
 ```
 
 ## Requirements

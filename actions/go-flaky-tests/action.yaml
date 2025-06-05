@@ -1,5 +1,5 @@
-name: "Analyze Test Failures"
-description: "Fetch logs from Loki and analyze flaky tests"
+name: "Go Flaky Tests"
+description: "Detect and analyze flaky Go tests using Loki logs"
 author: "Grafana Labs"
 
 inputs:
@@ -36,7 +36,7 @@ runs:
       shell: bash
       run: |
         cd ${{ github.action_path }}
-        go build -o analyzer ./cmd/analyze-test-failures
+        go build -o analyzer ./cmd/go-flaky-tests
         ./analyzer
       env:
         LOKI_URL: ${{ inputs.loki-url }}

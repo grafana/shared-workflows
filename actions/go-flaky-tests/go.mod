@@ -1,4 +1,4 @@
-module github.com/grafana/shared-workflows/actions/analyze-test-failures
+module github.com/grafana/shared-workflows/actions/go-flaky-tests
 
 go 1.22
 

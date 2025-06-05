@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Local development script for analyze-test-failures action
+# Local development script for go-flaky-tests action
 # This script allows you to run the action locally for testing and development
 
 set -e
@@ -112,7 +112,7 @@ export GITHUB_TOKEN
 export SKIP_POSTING_ISSUES
 export TOP_K
 
-echo "🔧 Running analyze-test-failures locally..."
+echo "🔧 Running go-flaky-tests locally..."
 echo "📊 Repository: $REPOSITORY"
 echo "⏰ Time range: $TIME_RANGE"
 echo "📁 Repository directory: $REPOSITORY_DIRECTORY"
@@ -122,7 +122,7 @@ echo ""
 
 # Build the application
 echo "🔨 Building application..."
-go build -o analyzer ./cmd/analyze-test-failures
+go build -o analyzer ./cmd/go-flaky-tests
 
 # Run the application
 echo "🚀 Running analysis..."
