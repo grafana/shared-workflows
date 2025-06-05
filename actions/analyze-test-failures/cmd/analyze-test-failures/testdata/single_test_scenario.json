@@ -1,5 +1,6 @@
 {
   "test_count": 1,
+  "affected_authors": [],
   "analysis_summary": "Found 1 flaky tests. Most common tests: TestLoginFlow (2 total failures; recently changed by unknown)",
   "report_path": "test-failure-analysis.json",
   "flaky_tests": [

@@ -1,6 +1,7 @@
 {
   "test_count": 0,
+  "affected_authors": null,
   "analysis_summary": "No flaky tests found in the specified time range.",
   "report_path": "test-failure-analysis.json",
-  "flaky_tests": null
+  "flaky_tests": []
 }

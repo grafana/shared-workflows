@@ -53,6 +53,7 @@ func (f *FlakyTest) String() string {
 
 type FailuresReport struct {
 	TestCount       int         `json:"test_count"`
+	AffectedAuthors []string    `json:"affected_authors"`
 	AnalysisSummary string      `json:"analysis_summary"`
 	ReportPath      string      `json:"report_path"`
 	FlakyTests      []FlakyTest `json:"flaky_tests"`
@@ -140,6 +141,7 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 
 	result := FailuresReport{
 		TestCount:       len(flakyTests),
+		AffectedAuthors: extractAffectedAuthors(flakyTests),
 		AnalysisSummary: generateSummary(flakyTests),
 		FlakyTests:      flakyTests,
 	}
@@ -191,7 +193,8 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 		return fmt.Errorf("enactment phase failed: %w", err)
 	}
 
-	setGitHubOutput("test-count", fmt.Sprintf("%d", report.TestCount))
+	setGitHubOutput("failure-count", fmt.Sprintf("%d", report.TestCount))
+	setGitHubOutput("affected-authors", strings.Join(report.AffectedAuthors, ","))
 	setGitHubOutput("analysis-summary", report.AnalysisSummary)
 	setGitHubOutput("report-path", report.ReportPath)
 
@@ -311,6 +314,24 @@ func formatFlakyTests(flakyTests []FlakyTest) string {
 	}
 
 	return strings.Join(topTests, ", ")
+}
+
+func extractAffectedAuthors(flakyTests []FlakyTest) []string {
+	authorSet := make(map[string]bool)
+	authors := make([]string, 0) // Initialize as empty slice, not nil
+	
+	for _, test := range flakyTests {
+		for _, commit := range test.RecentCommits {
+			if commit.Author != "" && commit.Author != "unknown" {
+				if !authorSet[commit.Author] {
+					authorSet[commit.Author] = true
+					authors = append(authors, commit.Author)
+				}
+			}
+		}
+	}
+	
+	return authors
 }
 
 func setGitHubOutput(name, value string) {

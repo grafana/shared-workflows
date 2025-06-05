@@ -1,5 +1,12 @@
 {
   "test_count": 3,
+  "affected_authors": [
+    "alice",
+    "bob",
+    "dave",
+    "eve",
+    "charlie"
+  ],
   "analysis_summary": "Found 3 flaky tests. Most common tests: TestDatabaseConnection (3 total failures; recently changed by alice, bob), TestPaymentProcessing (2 total failures; recently changed by dave, eve), TestUserAuthentication (2 total failures; recently changed by charlie)",
   "report_path": "test-failure-analysis.json",
   "flaky_tests": [
