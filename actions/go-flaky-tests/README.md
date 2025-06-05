@@ -119,4 +119,3 @@ The action generates a JSON report with the following structure:
   ]
 }
 ```
-
