@@ -209,7 +209,7 @@ This issue tracks a flaky test that has been detected failing inconsistently. Ea
 - **Can't fix it right now?** Consider adding logs and metrics so that next time it's easier to debug.
 - **Obsolete test?** Maybe it's time to remove it or skip it with ` + "`t.Skip()`" + `
 
-_This test has been identified as flaky by [analyze-test-failures](https://github.com/grafana/shared-workflows/tree/main/actions/analyze-test-failures)._
+_This test has been identified as flaky by [go-flaky-tests](https://github.com/grafana/shared-workflows/tree/main/actions/go-flaky-tests)._
 `
 
 const commentTemplate = `## 🚨 Hey there! This test is still being flaky
