@@ -43,75 +43,6 @@ func (m *MockGitClient) FindTestFile(testName string) (string, error) {
 	return "", fmt.Errorf("test file not found for %s", testName)
 }
 
-// MockGitHubClient implements GitHubClient for testing
-type MockGitHubClient struct {
-	usernames      map[string]string // commitHash -> username
-	existingIssues map[string]string // issueTitle -> issueURL
-	createdIssues  []string          // track created issues
-	addedComments  []string          // track added comments
-	reopenedIssues []string          // track reopened issues
-	usernameErr    error
-	createIssueErr error
-	searchIssueErr error
-	commentErr     error
-	reopenErr      error
-}
-
-func (m *MockGitHubClient) GetUsernameForCommit(commitHash string) (string, error) {
-	if m.usernameErr != nil {
-		return "", m.usernameErr
-	}
-	if username, exists := m.usernames[commitHash]; exists {
-		return username, nil
-	}
-	return "unknown", nil
-}
-
-func (m *MockGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
-	if m.createIssueErr != nil {
-		return m.createIssueErr
-	}
-	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
-
-	// Check if issue exists
-	if existingURL, exists := m.existingIssues[issueTitle]; exists {
-		m.addedComments = append(m.addedComments, fmt.Sprintf("comment on %s", existingURL))
-		return nil
-	}
-
-	// Create new issue
-	issueURL := fmt.Sprintf("https://github.com/test/repo/issues/%d", len(m.createdIssues)+1)
-	m.createdIssues = append(m.createdIssues, issueURL)
-	m.addedComments = append(m.addedComments, fmt.Sprintf("comment on %s", issueURL))
-	return nil
-}
-
-func (m *MockGitHubClient) SearchForExistingIssue(issueTitle string) (string, error) {
-	if m.searchIssueErr != nil {
-		return "", m.searchIssueErr
-	}
-	if url, exists := m.existingIssues[issueTitle]; exists {
-		return url, nil
-	}
-	return "", nil
-}
-
-func (m *MockGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest) error {
-	if m.commentErr != nil {
-		return m.commentErr
-	}
-	m.addedComments = append(m.addedComments, fmt.Sprintf("comment on %s", issueURL))
-	return nil
-}
-
-func (m *MockGitHubClient) ReopenIssue(issueURL string) error {
-	if m.reopenErr != nil {
-		return m.reopenErr
-	}
-	m.reopenedIssues = append(m.reopenedIssues, issueURL)
-	return nil
-}
-
 // MockFileSystem implements FileSystem for testing
 type MockFileSystem struct {
 	writtenFiles map[string][]byte
@@ -342,7 +273,6 @@ func TestAnalyzer_ActionReport_EmptyReport(t *testing.T) {
 func TestAnalyzer_ActionReport_NilReport(t *testing.T) {
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
-	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
 	analyzer := NewTestFailureAnalyzer(lokiClient, fileSystem)
@@ -353,10 +283,6 @@ func TestAnalyzer_ActionReport_NilReport(t *testing.T) {
 
 	// Verify results
 	require.NoError(t, err, "Enactment should complete without error for nil report")
-
-	// No issues should be created for nil report
-	assert.Len(t, githubClient.createdIssues, 0, "No GitHub issues should be created for nil report")
-	assert.Len(t, githubClient.addedComments, 0, "No comments should be added for nil report")
 }
 
 // Integration tests (Workflow tests)
