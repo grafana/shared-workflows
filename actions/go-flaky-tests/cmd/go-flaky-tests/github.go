@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-
 type DefaultGitHubClient struct {
 	config Config
 }
