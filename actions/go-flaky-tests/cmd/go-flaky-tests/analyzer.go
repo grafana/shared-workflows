@@ -7,22 +7,38 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type FileSystem interface {
 	WriteFile(filename string, data []byte, perm os.FileMode) error
 }
 
+type GitClient interface {
+	FindTestFile(testName string) (string, error)
+	GetFileAuthors(filePath, testName string) ([]CommitInfo, error)
+}
+
 type TestFailureAnalyzer struct {
 	lokiClient LokiClient
+	gitClient  GitClient
 	fileSystem FileSystem
+}
+
+type CommitInfo struct {
+	Hash      string    `json:"hash"`
+	Author    string    `json:"author"`
+	Timestamp time.Time `json:"timestamp"`
+	Title     string    `json:"title"`
 }
 
 type FlakyTest struct {
 	TestName         string                  `json:"test_name"`
+	FilePath         string                  `json:"file_path"`
 	TotalFailures    int                     `json:"total_failures"`
 	BranchCounts     map[string]int          `json:"branch_counts"`
 	ExampleWorkflows []GithubActionsWorkflow `json:"example_workflows"`
+	RecentCommits    []CommitInfo            `json:"recent_commits"`
 }
 
 type GithubActionsWorkflow struct {
@@ -32,7 +48,17 @@ type GithubActionsWorkflow struct {
 }
 
 func (f *FlakyTest) String() string {
-	return fmt.Sprintf("%s (%d total failures)", f.TestName, f.TotalFailures)
+	var authors []string
+	for _, commit := range f.RecentCommits {
+		if commit.Author != "" && commit.Author != "unknown" {
+			authors = append(authors, commit.Author)
+		}
+	}
+	authorsStr := "unknown"
+	if len(authors) > 0 {
+		authorsStr = strings.Join(authors, ", ")
+	}
+	return fmt.Sprintf("%s (%d total failures; recently changed by %s)", f.TestName, f.TotalFailures, authorsStr)
 }
 
 type FailuresReport struct {
@@ -48,18 +74,20 @@ func (fs *DefaultFileSystem) WriteFile(filename string, data []byte, perm os.Fil
 	return os.WriteFile(filename, data, perm)
 }
 
-func NewTestFailureAnalyzer(loki LokiClient, fs FileSystem) *TestFailureAnalyzer {
+func NewTestFailureAnalyzer(loki LokiClient, git GitClient, fs FileSystem) *TestFailureAnalyzer {
 	return &TestFailureAnalyzer{
 		lokiClient: loki,
+		gitClient:  git,
 		fileSystem: fs,
 	}
 }
 
 func NewDefaultTestFailureAnalyzer(config Config) *TestFailureAnalyzer {
 	lokiClient := NewDefaultLokiClient(config)
+	gitClient := NewDefaultGitClient(config)
 	fileSystem := &DefaultFileSystem{}
 
-	return NewTestFailureAnalyzer(lokiClient, fileSystem)
+	return NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
 }
 
 func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, error) {
@@ -84,6 +112,35 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 	}
 
 	log.Printf("🧪 Found %d flaky tests that meet criteria", len(flakyTests))
+	log.Printf("📁 Finding test files in repository...")
+	err = t.findFilePaths(flakyTests)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find file paths for flaky tests: %w", err)
+	}
+
+	log.Printf("👥 Finding authors of flaky tests...")
+	err = t.findTestAuthors(flakyTests)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find test authors: %w", err)
+	}
+
+	for _, test := range flakyTests {
+		if len(test.RecentCommits) > 0 {
+			var authors []string
+			for _, commit := range test.RecentCommits {
+				if commit.Author != "" && commit.Author != "unknown" {
+					authors = append(authors, commit.Author)
+				}
+			}
+			if len(authors) > 0 {
+				log.Printf("👤 %s: %s", test.TestName, strings.Join(authors, ", "))
+			} else {
+				log.Printf("👤 %s: no authors found", test.TestName)
+			}
+		} else {
+			log.Printf("👤 %s: no commits found", test.TestName)
+		}
+	}
 
 	if flakyTests == nil {
 		flakyTests = []FlakyTest{}
@@ -144,6 +201,38 @@ func (t *TestFailureAnalyzer) generateReport(result FailuresReport) (string, err
 	}
 
 	return filepath.Abs(reportPath)
+}
+
+func (t *TestFailureAnalyzer) findFilePaths(flakyTests []FlakyTest) error {
+	for i, test := range flakyTests {
+		filePath, err := t.gitClient.FindTestFile(test.TestName)
+		if err != nil {
+			return fmt.Errorf("failed to find file path for test %s: %w", test.TestName, err)
+		}
+		flakyTests[i].FilePath = filePath
+	}
+	return nil
+}
+
+func (t *TestFailureAnalyzer) findTestAuthors(flakyTests []FlakyTest) error {
+	for i, test := range flakyTests {
+		commits, err := t.gitClient.GetFileAuthors(test.FilePath, test.TestName)
+		if err != nil {
+			return fmt.Errorf("failed to get authors for test %s in %s: %w", test.TestName, test.FilePath, err)
+		}
+		flakyTests[i].RecentCommits = commits
+
+		if len(commits) > 0 {
+			var authors []string
+			for _, commit := range commits {
+				authors = append(authors, commit.Author)
+			}
+			log.Printf("👤 %s: %s", test.TestName, strings.Join(authors, ", "))
+		} else {
+			log.Printf("👤 %s: no commits found", test.TestName)
+		}
+	}
+	return nil
 }
 
 func generateSummary(flakyTests []FlakyTest) string {
