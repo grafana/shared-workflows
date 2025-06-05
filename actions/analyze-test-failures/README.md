@@ -56,12 +56,12 @@ jobs:
 
 1. **Fetch Logs**: Queries Loki for test failure logs within the specified time range
 2. **Parse Failures**: Extracts test names, branches, and workflow URLs from logs
-3. **Detect Flaky Tests**: Identifies tests that fail on multiple branches or multiple times on main
+3. **Detect Flaky Tests**: Identifies tests that fail on multiple branches or multiple times on main/master
 
 ## Flaky Test Detection Logic
 
 A test is considered "flaky" if:
-- It fails on the main branch, OR
+- It fails on the main or master branch, OR
 - It fails on multiple different branches
 
 Tests that only fail on feature branches are not considered flaky, as they likely indicate legitimate test failures for that specific feature.

@@ -66,7 +66,7 @@ func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry) []FlakyTest {
 		for branch, count := range branches {
 			totalFailures += count
 
-			if branch == "main" {
+			if branch == "main" || branch == "master" {
 				isFlaky = true
 			}
 		}

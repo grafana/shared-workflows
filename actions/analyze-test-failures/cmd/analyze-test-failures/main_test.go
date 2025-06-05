@@ -207,6 +207,74 @@ func TestFlakyTest_String(t *testing.T) {
 	}
 }
 
+func TestDetectFlakyTestsFromRawEntries_MasterBranch(t *testing.T) {
+	// Test that tests failing on master branch are considered flaky
+	rawEntries := []RawLogEntry{
+		{
+			TestName:       "TestOnMaster",
+			Branch:         "master",
+			WorkflowRunURL: "https://github.com/test/repo/actions/runs/100",
+		},
+		{
+			TestName:       "TestOnFeature",
+			Branch:         "feature-branch",
+			WorkflowRunURL: "https://github.com/test/repo/actions/runs/101",
+		},
+	}
+
+	flakyTests := detectFlakyTestsFromRawEntries(rawEntries)
+
+	// Only TestOnMaster should be considered flaky (master branch)
+	if len(flakyTests) != 1 {
+		t.Errorf("Expected 1 flaky test, got %d", len(flakyTests))
+	}
+
+	if len(flakyTests) > 0 && flakyTests[0].TestName != "TestOnMaster" {
+		t.Errorf("Expected TestOnMaster to be flaky, got %s", flakyTests[0].TestName)
+	}
+}
+
+func TestDetectFlakyTestsFromRawEntries_MainAndMasterBranches(t *testing.T) {
+	// Test that both main and master branches are considered for flaky detection
+	rawEntries := []RawLogEntry{
+		{
+			TestName:       "TestOnMain",
+			Branch:         "main",
+			WorkflowRunURL: "https://github.com/test/repo/actions/runs/200",
+		},
+		{
+			TestName:       "TestOnMaster",
+			Branch:         "master",
+			WorkflowRunURL: "https://github.com/test/repo/actions/runs/201",
+		},
+		{
+			TestName:       "TestOnFeature",
+			Branch:         "feature-branch",
+			WorkflowRunURL: "https://github.com/test/repo/actions/runs/202",
+		},
+	}
+
+	flakyTests := detectFlakyTestsFromRawEntries(rawEntries)
+
+	// Both TestOnMain and TestOnMaster should be considered flaky
+	if len(flakyTests) != 2 {
+		t.Errorf("Expected 2 flaky tests, got %d", len(flakyTests))
+	}
+
+	testNames := make(map[string]bool)
+	for _, test := range flakyTests {
+		testNames[test.TestName] = true
+	}
+
+	if !testNames["TestOnMain"] {
+		t.Error("Expected TestOnMain to be classified as flaky")
+	}
+
+	if !testNames["TestOnMaster"] {
+		t.Error("Expected TestOnMaster to be classified as flaky")
+	}
+}
+
 // Helper types and functions
 type MockError struct {
 	message string
