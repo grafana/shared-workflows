@@ -45,7 +45,7 @@ func (m *MockGitClient) FindTestFile(testName string) (string, error) {
 	return "", fmt.Errorf("test file not found for %s", testName)
 }
 
-func (m *MockGitClient) GetFileAuthors(filePath, testName string) ([]CommitInfo, error) {
+func (m *MockGitClient) TestCommits(filePath, testName string) ([]CommitInfo, error) {
 	if m.authorErr != nil {
 		return nil, m.authorErr
 	}

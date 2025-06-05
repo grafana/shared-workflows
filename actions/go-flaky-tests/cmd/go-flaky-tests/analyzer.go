@@ -16,7 +16,7 @@ type FileSystem interface {
 
 type GitClient interface {
 	FindTestFile(testName string) (string, error)
-	GetFileAuthors(filePath, testName string) ([]CommitInfo, error)
+	TestCommits(filePath, testName string) ([]CommitInfo, error)
 }
 
 type TestFailureAnalyzer struct {
@@ -216,7 +216,7 @@ func (t *TestFailureAnalyzer) findFilePaths(flakyTests []FlakyTest) error {
 
 func (t *TestFailureAnalyzer) findTestAuthors(flakyTests []FlakyTest) error {
 	for i, test := range flakyTests {
-		commits, err := t.gitClient.GetFileAuthors(test.FilePath, test.TestName)
+		commits, err := t.gitClient.TestCommits(test.FilePath, test.TestName)
 		if err != nil {
 			return fmt.Errorf("failed to get authors for test %s in %s: %w", test.TestName, test.FilePath, err)
 		}

@@ -21,7 +21,7 @@ func (g *DefaultGitClient) FindTestFile(testName string) (string, error) {
 	return findTestFilePath(g.config.RepositoryDirectory, testName)
 }
 
-func (g *DefaultGitClient) GetFileAuthors(filePath, testName string) ([]CommitInfo, error) {
+func (g *DefaultGitClient) TestCommits(filePath, testName string) ([]CommitInfo, error) {
 	return getFileAuthors(g.config, filePath, testName)
 }
 
@@ -56,7 +56,8 @@ func getFileAuthors(config Config, filePath, testName string) ([]CommitInfo, err
 }
 
 func getFileAuthorsWithClient(repoDir, filePath, testName string) ([]CommitInfo, error) {
-	cmd := exec.Command("git", "log", "-3", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H|%ct|%s", "-s")
+	// Get 10 commits, because some of them might just be only bots.
+	cmd := exec.Command("git", "log", "-10", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H|%ct|%s|%an", "-s")
 	cmd.Dir = repoDir
 
 	result, err := cmd.Output()
@@ -75,18 +76,15 @@ func getFileAuthorsWithClient(repoDir, filePath, testName string) ([]CommitInfo,
 	sixMonthsAgo := time.Now().AddDate(0, -6, 0)
 
 	for _, line := range lines {
-		parts := strings.SplitN(strings.TrimSpace(line), "|", 3)
-		if len(parts) != 3 {
+		parts := strings.SplitN(strings.TrimSpace(line), "|", 4)
+		if len(parts) != 4 {
 			return nil, fmt.Errorf("invalid git log format for test %s in %s: %s", testName, filePath, line)
 		}
 
 		hash := parts[0]
 		timestampStr := parts[1]
 		title := parts[2]
-
-		if hash == "" {
-			continue
-		}
+		author := parts[3]
 
 		var timestamp time.Time
 		if timestampUnix, err := strconv.ParseInt(timestampStr, 10, 64); err == nil {
@@ -97,19 +95,19 @@ func getFileAuthorsWithClient(repoDir, filePath, testName string) ([]CommitInfo,
 			continue
 		}
 
-		username := "unknown" // Will be resolved via GitHub in PR3
-
-		if strings.HasSuffix(username, "[bot]") {
+		if strings.HasSuffix(author, "[bot]") {
 			continue
 		}
 
 		commitInfo := CommitInfo{
 			Hash:      hash,
-			Author:    username,
 			Timestamp: timestamp,
 			Title:     title,
 		}
 		commits = append(commits, commitInfo)
+		if len(commits) >= 3 {
+			break
+		}
 	}
 
 	return commits, nil
