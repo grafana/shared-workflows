@@ -1,12 +1,14 @@
 # Go Flaky Tests
 
-A GitHub Action that detects and analyzes flaky Go tests by fetching logs from Loki and finding their authors.
+A GitHub Action that detects and analyzes flaky Go tests by fetching logs from Loki, finding their authors, and creating GitHub issues to track them.
 
 ## Features
 
 - **Loki Integration**: Fetches test failure logs from Loki using LogQL queries
 - **Flaky Test Detection**: Identifies tests that fail inconsistently across different branches
 - **Git History Analysis**: Finds test files and extracts recent commit authors
+- **GitHub Issue Management**: Creates and updates GitHub issues for flaky tests
+- **Dry Run Mode**: Preview functionality without creating actual issues
 
 ## Usage
 
@@ -31,6 +33,7 @@ jobs:
           loki-password: ${{ secrets.LOKI_PASSWORD }}
           repository: ${{ github.repository }}
           time-range: "7d"
+          skip-posting-issues: "false"
           top-k: "5"
 ```
 
@@ -44,6 +47,8 @@ jobs:
 | `repository`           | Repository name in 'owner/repo' format                                                                                       | ✅       | -                         |
 | `time-range`           | Time range for the query (e.g., '1h', '24h', '7d')                                                                           | ❌       | `1h`                      |
 | `repository-directory` | Relative path to the directory with a git repository                                                                         | ❌       | `${{ github.workspace }}` |
+| `github-token`         | GitHub token for repository access                            | ❌       | `${{ github.token }}`     |
+| `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode)           | ❌       | `true`                    |
 | `top-k`                | Include only the top K flaky tests by distinct branches count                                                                | ❌       | `3`                       |
 
 ## Outputs
@@ -61,6 +66,8 @@ jobs:
 3. **Detect Flaky Tests**: Identifies tests that fail on multiple branches or multiple times on main/master
 4. **Find Test Files**: Locates test files in the repository using grep
 5. **Extract Authors**: Uses `git log -L` to find recent commits that modified each test
+6. **Resolve Usernames**: Looks up GitHub usernames for commit hashes
+7. **Create Issues**: Creates or updates GitHub issues with flaky test information
 
 ## Flaky Test Detection Logic
 
@@ -81,15 +88,32 @@ export LOKI_URL="your-loki-url"
 export REPOSITORY="owner/repo"
 export TIME_RANGE="24h"
 export REPOSITORY_DIRECTORY="."
+export SKIP_POSTING_ISSUES="true"
 
 # Run the analysis
 ./run-local.sh
 ```
 
+## GitHub Issue Format
+
+The action creates GitHub issues with:
+
+- **Title**: `Flaky test: TestName`
+- **Labels**: `flaky-test`
+- **Body**: Detailed information about the test including:
+  - File path and test name
+  - Investigation tips and next steps
+  - Recent failure count and affected branches
+  - Recent authors who modified the test
+  - Links to failed workflow runs
+
+For existing issues, the action adds comments with updated failure information.
+
 ## Requirements
 
 - Go 1.22 or later
 - Git repository with test files
+- GitHub CLI (automatically available in GitHub Actions)
 - Access to Loki instance with test failure logs
 
 ## Output Format
