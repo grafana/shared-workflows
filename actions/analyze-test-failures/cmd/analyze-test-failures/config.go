@@ -32,7 +32,6 @@ func getEnvWithDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
-
 func getIntEnvWithDefault(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
 		if intValue, err := strconv.Atoi(value); err == nil {

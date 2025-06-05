@@ -125,7 +125,6 @@ func (t *TestFailureAnalyzer) Run(config Config) error {
 	return nil
 }
 
-
 func (t *TestFailureAnalyzer) generateReport(result FailuresReport) (string, error) {
 	reportPath := "test-failure-analysis.json"
 
@@ -140,7 +139,6 @@ func (t *TestFailureAnalyzer) generateReport(result FailuresReport) (string, err
 
 	return filepath.Abs(reportPath)
 }
-
 
 func generateSummary(flakyTests []FlakyTest) string {
 	if len(flakyTests) == 0 {

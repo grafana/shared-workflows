@@ -38,7 +38,7 @@ func createTestLokiResponse() *LokiResponse {
 					Stream: map[string]string{
 						"parent_test_name": "TestFlakyExample",
 						"resources_ci_github_workflow_run_head_branch": "main",
-						"resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/123",
+						"resources_ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/123",
 					},
 					Values: [][]string{
 						{"1640995200000000000", "TestFlakyExample"},
@@ -46,9 +46,9 @@ func createTestLokiResponse() *LokiResponse {
 				},
 				{
 					Stream: map[string]string{
-						"parent_test_name": "TestFlakyExample", 
+						"parent_test_name": "TestFlakyExample",
 						"resources_ci_github_workflow_run_head_branch": "feature-1",
-						"resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/124",
+						"resources_ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/124",
 					},
 					Values: [][]string{
 						{"1640995300000000000", "TestFlakyExample"},
@@ -57,8 +57,8 @@ func createTestLokiResponse() *LokiResponse {
 				{
 					Stream: map[string]string{
 						"parent_test_name": "TestAnotherFlaky",
-						"resources_ci_github_workflow_run_head_branch": "main", 
-						"resources_ci_github_workflow_run_html_url": "https://github.com/test/repo/actions/runs/125",
+						"resources_ci_github_workflow_run_head_branch": "main",
+						"resources_ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/125",
 					},
 					Values: [][]string{
 						{"1640995400000000000", "TestAnotherFlaky"},
@@ -76,28 +76,28 @@ func TestTestFailureAnalyzer_AnalyzeFailures(t *testing.T) {
 		err:      nil,
 	}
 	mockFS := &MockFileSystem{}
-	
+
 	analyzer := NewTestFailureAnalyzer(mockLoki, mockFS)
-	
+
 	config := Config{
 		Repository: "test/repo",
 		TimeRange:  "1h",
 		TopK:       3,
 	}
-	
+
 	report, err := analyzer.AnalyzeFailures(config)
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
-	
+
 	if report == nil {
 		t.Fatal("Expected report to be non-nil")
 	}
-	
+
 	if report.TestCount == 0 {
 		t.Error("Expected test count to be greater than 0")
 	}
-	
+
 	if len(report.FlakyTests) == 0 {
 		t.Error("Expected flaky tests to be found")
 	}
@@ -110,20 +110,20 @@ func TestTestFailureAnalyzer_AnalyzeFailures_LokiError(t *testing.T) {
 		err:      &MockError{message: "loki connection failed"},
 	}
 	mockFS := &MockFileSystem{}
-	
+
 	analyzer := NewTestFailureAnalyzer(mockLoki, mockFS)
-	
+
 	config := Config{
 		Repository: "test/repo",
 		TimeRange:  "1h",
 		TopK:       3,
 	}
-	
+
 	_, err := analyzer.AnalyzeFailures(config)
 	if err == nil {
 		t.Fatal("Expected error when Loki fails")
 	}
-	
+
 	if !contains(err.Error(), "failed to fetch logs from Loki") {
 		t.Errorf("Expected Loki error message, got: %v", err)
 	}
@@ -132,21 +132,21 @@ func TestTestFailureAnalyzer_AnalyzeFailures_LokiError(t *testing.T) {
 func TestTestFailureAnalyzer_ActionReport(t *testing.T) {
 	mockLoki := &MockLokiClient{}
 	mockFS := &MockFileSystem{}
-	
+
 	analyzer := NewTestFailureAnalyzer(mockLoki, mockFS)
-	
+
 	// Test with empty report
 	emptyReport := &FailuresReport{
 		TestCount:  0,
 		FlakyTests: []FlakyTest{},
 	}
-	
+
 	config := Config{}
 	err := analyzer.ActionReport(emptyReport, config)
 	if err != nil {
 		t.Fatalf("Expected no error for empty report, got: %v", err)
 	}
-	
+
 	// Test with flaky tests
 	reportWithTests := &FailuresReport{
 		TestCount: 1,
@@ -158,7 +158,7 @@ func TestTestFailureAnalyzer_ActionReport(t *testing.T) {
 			},
 		},
 	}
-	
+
 	err = analyzer.ActionReport(reportWithTests, config)
 	if err != nil {
 		t.Fatalf("Expected no error for report with tests, got: %v", err)
@@ -172,7 +172,7 @@ func TestGenerateSummary(t *testing.T) {
 	if summary != expected {
 		t.Errorf("Expected: %s, got: %s", expected, summary)
 	}
-	
+
 	// Test with flaky tests
 	flakyTests := []FlakyTest{
 		{
@@ -184,7 +184,7 @@ func TestGenerateSummary(t *testing.T) {
 			TotalFailures: 3,
 		},
 	}
-	
+
 	summary = generateSummary(flakyTests)
 	if !contains(summary, "Found 2 flaky tests") {
 		t.Errorf("Expected summary to contain count, got: %s", summary)
@@ -199,7 +199,7 @@ func TestFlakyTest_String(t *testing.T) {
 		TestName:      "TestExample",
 		TotalFailures: 5,
 	}
-	
+
 	result := test.String()
 	expected := "TestExample (5 total failures)"
 	if result != expected {
@@ -217,11 +217,11 @@ func (e *MockError) Error() string {
 }
 
 func contains(str, substr string) bool {
-	return len(str) >= len(substr) && 
-		   (str == substr || 
-		    str[:len(substr)] == substr || 
-		    str[len(str)-len(substr):] == substr ||
-		    findSubstring(str, substr))
+	return len(str) >= len(substr) &&
+		(str == substr ||
+			str[:len(substr)] == substr ||
+			str[len(str)-len(substr):] == substr ||
+			findSubstring(str, substr))
 }
 
 func findSubstring(str, substr string) bool {
