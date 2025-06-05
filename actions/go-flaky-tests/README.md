@@ -13,7 +13,7 @@ A GitHub Action that detects and analyzes flaky Go tests by fetching logs from L
 name: Go Flaky Tests
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Run every Monday at 9 AM
+    - cron: "0 9 * * 1" # Run every Monday at 9 AM
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Go Flaky Tests
         uses: grafana/shared-workflows/actions/go-flaky-tests@main
         with:
@@ -35,22 +35,22 @@ jobs:
 
 ## Inputs
 
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `loki-url` | Loki endpoint URL | ✅ | - |
-| `loki-username` | Username for Loki authentication | ❌ | - |
-| `loki-password` | Password for Loki authentication | ❌ | - |
-| `repository` | Repository name in 'owner/repo' format | ✅ | - |
-| `time-range` | Time range for the query (e.g., '1h', '24h', '7d') | ❌ | `1h` |
-| `top-k` | Include only the top K flaky tests by distinct branches count | ❌ | `3` |
+| Input           | Description                                                   | Required | Default |
+| --------------- | ------------------------------------------------------------- | -------- | ------- |
+| `loki-url`      | Loki endpoint URL                                             | ✅       | -       |
+| `loki-username` | Username for Loki authentication                              | ❌       | -       |
+| `loki-password` | Password for Loki authentication                              | ❌       | -       |
+| `repository`    | Repository name in 'owner/repo' format                        | ✅       | -       |
+| `time-range`    | Time range for the query (e.g., '1h', '24h', '7d')            | ❌       | `1h`    |
+| `top-k`         | Include only the top K flaky tests by distinct branches count | ❌       | `3`     |
 
 ## Outputs
 
-| Output | Description |
-|--------|-------------|
-| `test-count` | Number of flaky tests found |
-| `analysis-summary` | Summary of the analysis results |
-| `report-path` | Path to the generated analysis report JSON file |
+| Output             | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `test-count`       | Number of flaky tests found                     |
+| `analysis-summary` | Summary of the analysis results                 |
+| `report-path`      | Path to the generated analysis report JSON file |
 
 ## How It Works
 
@@ -61,6 +61,7 @@ jobs:
 ## Flaky Test Detection Logic
 
 A test is considered "flaky" if:
+
 - It fails on the main or master branch, OR
 - It fails on multiple different branches
 
@@ -118,3 +119,4 @@ The action generates a JSON report with the following structure:
   ]
 }
 ```
+
