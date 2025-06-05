@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 type DefaultGitClient struct {
 	config Config
 }
