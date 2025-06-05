@@ -52,10 +52,11 @@ func findTestFilePath(repoDir, testName string) (string, error) {
 }
 
 func getFileAuthors(config Config, filePath, testName string) ([]CommitInfo, error) {
-	return getFileAuthorsWithClient(config.RepositoryDirectory, filePath, testName)
+	githubClient := NewDefaultGitHubClient(config)
+	return getFileAuthorsWithClient(config.RepositoryDirectory, filePath, testName, githubClient)
 }
 
-func getFileAuthorsWithClient(repoDir, filePath, testName string) ([]CommitInfo, error) {
+func getFileAuthorsWithClient(repoDir, filePath, testName string, githubClient GitHubClient) ([]CommitInfo, error) {
 	// Get 10 commits, because some of them might just be only bots.
 	cmd := exec.Command("git", "log", "-10", "-L", fmt.Sprintf(":%s:%s", testName, filePath), "--pretty=format:%H|%ct|%s|%an", "-s")
 	cmd.Dir = repoDir
