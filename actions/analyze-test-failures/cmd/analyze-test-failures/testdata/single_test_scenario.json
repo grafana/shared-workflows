@@ -1,11 +1,10 @@
 {
   "test_count": 1,
-  "analysis_summary": "Found 1 flaky tests. Most common tests: TestLoginFlow (2 total failures; recently changed by unknown)",
+  "analysis_summary": "Found 1 flaky tests. Most common tests: TestLoginFlow (2 total failures)",
   "report_path": "test-failure-analysis.json",
   "flaky_tests": [
     {
       "test_name": "TestLoginFlow",
-      "file_path": "handlers/login_test.go",
       "total_failures": 2,
       "branch_counts": {
         "main": 2
@@ -13,8 +12,7 @@
       "example_workflows": [
         "https://github.com/test/repo/actions/runs/401",
         "https://github.com/test/repo/actions/runs/402"
-      ],
-      "recent_commits": []
+      ]
     }
   ]
 }
