@@ -142,5 +142,5 @@ func parseTimeRange(timeRange string, endTime time.Time) (time.Time, error) {
 }
 
 func buildLogQLQuery(repository, timeRange string) string {
-	return fmt.Sprintf(`{service_name="%s", service_namespace="cicd-o11y"} |= "--- FAIL: Test" | json | __error__="" | resources_ci_github_workflow_run_conclusion!="cancelled" | line_format "{{.body}}" | regexp "--- FAIL: (?P<test_name>.*) \\(\\d" | line_format "{{.test_name}}" | regexp `+"`(?P<parent_test_name>Test[a-z0-9A-Z_]+)`", repository)
+	return fmt.Sprintf(`{service_name="%s", service_namespace="cicd-o11y"} | ci_github_workflow_run_head_branch!="" |= "--- FAIL: Test" | ci_github_workflow_run_conclusion!="cancelled" | regexp "--- FAIL: (?P<test_name>.*) \\(\\d" | line_format "{{.test_name}}" | regexp `+"`(?P<parent_test_name>Test[a-z0-9A-Z_]+)`", repository)
 }

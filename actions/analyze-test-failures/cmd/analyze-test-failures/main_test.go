@@ -36,9 +36,9 @@ func createTestLokiResponse() *LokiResponse {
 			Result: []LokiResult{
 				{
 					Stream: map[string]string{
-						"parent_test_name": "TestFlakyExample",
-						"resources_ci_github_workflow_run_head_branch": "main",
-						"resources_ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/123",
+						"parent_test_name":                   "TestFlakyExample",
+						"ci_github_workflow_run_head_branch": "main",
+						"ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/123",
 					},
 					Values: [][]string{
 						{"1640995200000000000", "TestFlakyExample"},
@@ -46,9 +46,9 @@ func createTestLokiResponse() *LokiResponse {
 				},
 				{
 					Stream: map[string]string{
-						"parent_test_name": "TestFlakyExample",
-						"resources_ci_github_workflow_run_head_branch": "feature-1",
-						"resources_ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/124",
+						"parent_test_name":                   "TestFlakyExample",
+						"ci_github_workflow_run_head_branch": "feature-1",
+						"ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/124",
 					},
 					Values: [][]string{
 						{"1640995300000000000", "TestFlakyExample"},
@@ -56,9 +56,9 @@ func createTestLokiResponse() *LokiResponse {
 				},
 				{
 					Stream: map[string]string{
-						"parent_test_name": "TestAnotherFlaky",
-						"resources_ci_github_workflow_run_head_branch": "main",
-						"resources_ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/125",
+						"parent_test_name":                   "TestAnotherFlaky",
+						"ci_github_workflow_run_head_branch": "main",
+						"ci_github_workflow_run_html_url":    "https://github.com/test/repo/actions/runs/125",
 					},
 					Values: [][]string{
 						{"1640995400000000000", "TestAnotherFlaky"},

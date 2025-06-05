@@ -240,24 +240,24 @@ func TestParseTestFailuresFromResponse(t *testing.T) {
 			Result: []LokiResult{
 				{
 					Stream: map[string]string{
-						"parent_test_name": "TestExample",
-						"resources_ci_github_workflow_run_head_branch": "main",
-						"resources_ci_github_workflow_run_html_url":    "https://github.com/owner/repo/actions/runs/123",
+						"parent_test_name":                   "TestExample",
+						"ci_github_workflow_run_head_branch": "main",
+						"ci_github_workflow_run_html_url":    "https://github.com/owner/repo/actions/runs/123",
 					},
 					Values: [][]string{{"1640995200000000000", "log line"}},
 				},
 				{
 					Stream: map[string]string{
-						"parent_test_name": "TestAnother",
-						"resources_ci_github_workflow_run_head_branch": "feature",
-						"resources_ci_github_workflow_run_html_url":    "https://github.com/owner/repo/actions/runs/124",
+						"parent_test_name":                   "TestAnother",
+						"ci_github_workflow_run_head_branch": "feature",
+						"ci_github_workflow_run_html_url":    "https://github.com/owner/repo/actions/runs/124",
 					},
 					Values: [][]string{{"1640995300000000000", "another log line"}},
 				},
 				{
 					Stream: map[string]string{
-						"parent_test_name": "", // Missing test name
-						"resources_ci_github_workflow_run_head_branch": "main",
+						"parent_test_name":                   "", // Missing test name
+						"ci_github_workflow_run_head_branch": "main",
 					},
 					Values: [][]string{{"1640995400000000000", "invalid log line"}},
 				},

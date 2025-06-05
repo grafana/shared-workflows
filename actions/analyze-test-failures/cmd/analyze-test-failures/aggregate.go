@@ -17,8 +17,8 @@ func AggregateFlakyTestsFromResponse(lokiResp *LokiResponse) ([]FlakyTest, error
 	var rawEntries []RawLogEntry
 	for _, result := range lokiResp.Data.Result {
 		testName := result.Stream["parent_test_name"]
-		branch := result.Stream["resources_ci_github_workflow_run_head_branch"]
-		workflowRunURL := result.Stream["resources_ci_github_workflow_run_html_url"]
+		branch := result.Stream["ci_github_workflow_run_head_branch"]
+		workflowRunURL := result.Stream["ci_github_workflow_run_html_url"]
 
 		if testName == "" || branch == "" {
 			continue
