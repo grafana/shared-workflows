@@ -251,10 +251,12 @@ func (t *TestFailureAnalyzer) findTestAuthors(flakyTests []FlakyTest) error {
 		}
 		flakyTests[i].RecentCommits = commits
 
-		if len(commits) > 0 {
-			var authors []string
-			for _, commit := range commits {
-				authors = append(authors, commit.Author)
+		var authors []string
+		for commitIdx, commit := range commits {
+			authors = append(authors, commit.Author)
+			commits[commitIdx].Author, err = t.githubClient.GetUsernameForCommit(commit.Hash)
+			if err != nil {
+				return fmt.Errorf("failed to get author for test %s in %s: %w", test.TestName, test.FilePath, err)
 			}
 		}
 	}
@@ -284,18 +286,35 @@ func (t *TestFailureAnalyzer) previewIssuesForFlakyTests(flakyTests []FlakyTest)
 func previewIssueForTest(test FlakyTest) error {
 	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
 
-	log.Printf("📄 Issue preview for %s:", test.TestName)
+	log.Printf("📄 Would create issue for %s:", test.TestName)
 	log.Printf("Title: %s", issueTitle)
 	log.Printf("Labels: flaky-test")
+	log.Printf("")
 
-	log.Printf("Initial Body: This test appears to be flaky based on log analysis with %d failures", test.TotalFailures)
-	log.Printf("────────────────────────────────────────────────────────────────────────")
-
-	log.Printf("Comment Body: Found %d total failures across branches", test.TotalFailures)
-	if len(test.RecentCommits) > 0 {
-		log.Printf("Recent authors: %v", test.RecentCommits)
+	// Generate the actual markdown content that would be used
+	issueBody, err := generateInitialIssueBody(test)
+	if err != nil {
+		log.Printf("Warning: failed to generate issue body preview: %v", err)
+		return nil
 	}
+
+	commentBody, err := generateCommentBody(test)
+	if err != nil {
+		log.Printf("Warning: failed to generate comment body preview: %v", err)
+		return nil
+	}
+
+	log.Printf("Initial Issue Body Markdown:")
 	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("%s", issueBody)
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("")
+
+	log.Printf("Comment Body Markdown:")
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("%s", commentBody)
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("")
 
 	return nil
 }

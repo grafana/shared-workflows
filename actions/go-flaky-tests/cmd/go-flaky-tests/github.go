@@ -216,14 +216,15 @@ const commentTemplate = `## 🚨 Hey there! This test is still being flaky
 
 This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} different branches** in the last 7 days.
 
-{{- if .RecentCommits}}
-
 ### 🕵️ Who might know about this?
+{{- if .RecentCommits}}
 {{- range .RecentCommits}}
 - {{.Author}} - made a relevant commit on {{.Timestamp | formatDate}}: {{.Hash}} "{{.Title}}"
 {{- end}}
 
 👆 If any of you have a few minutes, could you take a look? You might have context on what could be causing the flakiness.
+{{- else}}
+_No recent changes to the test definition._
 {{- end}}
 
 {{- if .ExampleWorkflows}}

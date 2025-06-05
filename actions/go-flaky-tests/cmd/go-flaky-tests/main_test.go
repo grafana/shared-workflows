@@ -203,10 +203,10 @@ func TestAnalyzer_AnalyzeFailures_Success(t *testing.T) {
 		},
 		authors: map[string][]CommitInfo{
 			"TestUserLogin": {
-				{Hash: "abc123", Author: "alice", Timestamp: time.Now().AddDate(0, -1, 0), Title: "Fix user login"},
+				{Hash: "abc123", Timestamp: time.Now().AddDate(0, -1, 0), Title: "Fix user login"},
 			},
 			"TestPayment": {
-				{Hash: "def456", Author: "bob", Timestamp: time.Now().AddDate(0, -2, 0), Title: "Update payment logic"},
+				{Hash: "def456", Timestamp: time.Now().AddDate(0, -2, 0), Title: "Update payment logic"},
 			},
 		},
 	}
@@ -445,10 +445,10 @@ func TestAnalyzer_Run_Success(t *testing.T) {
 		},
 		authors: map[string][]CommitInfo{
 			"TestUserLogin": {
-				{Hash: "abc123", Author: "alice", Timestamp: time.Now().AddDate(0, -1, 0), Title: "Fix user login"},
+				{Hash: "abc123", Timestamp: time.Now().AddDate(0, -1, 0), Title: "Fix user login"},
 			},
 			"TestPayment": {
-				{Hash: "def456", Author: "bob", Timestamp: time.Now().AddDate(0, -2, 0), Title: "Update payment logic"},
+				{Hash: "def456", Timestamp: time.Now().AddDate(0, -2, 0), Title: "Update payment logic"},
 			},
 		},
 	}
@@ -796,15 +796,15 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 					},
 					authors: map[string][]CommitInfo{
 						"TestDatabaseConnection": {
-							{Hash: "abc123def456", Author: "alice", Timestamp: mustParseTime("2024-01-15T10:30:00Z"), Title: "Optimize database connection pooling"},
-							{Hash: "789ghi012jkl", Author: "bob", Timestamp: mustParseTime("2024-01-10T14:22:00Z"), Title: "Add connection timeout handling"},
+							{Hash: "abc123def456", Timestamp: mustParseTime("2024-01-15T10:30:00Z"), Title: "Optimize database connection pooling"},
+							{Hash: "789ghi012jkl", Timestamp: mustParseTime("2024-01-10T14:22:00Z"), Title: "Add connection timeout handling"},
 						},
 						"TestUserAuthentication": {
-							{Hash: "345mno678pqr", Author: "charlie", Timestamp: mustParseTime("2024-01-12T09:15:00Z"), Title: "Implement OAuth2 authentication flow"},
+							{Hash: "345mno678pqr", Timestamp: mustParseTime("2024-01-12T09:15:00Z"), Title: "Implement OAuth2 authentication flow"},
 						},
 						"TestPaymentProcessing": {
-							{Hash: "901stu234vwx", Author: "dave", Timestamp: mustParseTime("2024-01-08T16:45:00Z"), Title: "Add Stripe payment integration"},
-							{Hash: "567yza890bcd", Author: "eve", Timestamp: mustParseTime("2024-01-05T11:30:00Z"), Title: "Refactor payment processing logic"},
+							{Hash: "901stu234vwx", Timestamp: mustParseTime("2024-01-08T16:45:00Z"), Title: "Add Stripe payment integration"},
+							{Hash: "567yza890bcd", Timestamp: mustParseTime("2024-01-05T11:30:00Z"), Title: "Refactor payment processing logic"},
 						},
 					},
 				}
