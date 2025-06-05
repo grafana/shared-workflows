@@ -11,6 +11,7 @@ test-failure-analysis.json
 
 # Go test files
 *.test
+*_actual.json
 
 # Go coverage files
 *.out
