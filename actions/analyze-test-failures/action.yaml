@@ -19,14 +19,6 @@ inputs:
     description: "Time range for the query (e.g., '1h', '24h', '7d')"
     required: false
     default: "1h"
-  repository-directory:
-    description: "Relative path to the directory with a git repository"
-    required: false
-    default: ${{ github.workspace }}
-  skip-posting-issues:
-    description: "Skip creating/updating GitHub issues (dry-run mode)"
-    required: false
-    default: "true"
   top-k:
     description: "Include only the top K flaky tests by distinct branches count in analysis"
     required: false
@@ -52,6 +44,4 @@ runs:
         LOKI_PASSWORD: ${{ inputs.loki-password }}
         REPOSITORY: ${{ inputs.repository }}
         TIME_RANGE: ${{ inputs.time-range }}
-        REPOSITORY_DIRECTORY: ${{ inputs.repository-directory }}
-        SKIP_POSTING_ISSUES: ${{ inputs.skip-posting-issues }}
         TOP_K: ${{ inputs.top-k }}
