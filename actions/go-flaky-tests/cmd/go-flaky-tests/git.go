@@ -51,24 +51,6 @@ func findTestFilePath(repoDir, testName string) (string, error) {
 	return "", fmt.Errorf("test function %s not found in repository", testName)
 }
 
-func guessTestFilePath(testName string) string {
-	if strings.HasPrefix(testName, "Test") {
-		name := strings.TrimPrefix(testName, "Test")
-		if name != "" {
-			var result strings.Builder
-			for i, r := range name {
-				if i > 0 && r >= 'A' && r <= 'Z' {
-					result.WriteRune('_')
-				}
-				result.WriteRune(r)
-			}
-			return strings.ToLower(result.String()) + "_test.go"
-		}
-	}
-
-	return "unknown_test_file"
-}
-
 func getFileAuthors(config Config, filePath, testName string) ([]CommitInfo, error) {
 	return getFileAuthorsWithClient(config.RepositoryDirectory, filePath, testName)
 }
