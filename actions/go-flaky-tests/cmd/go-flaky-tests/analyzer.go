@@ -183,7 +183,7 @@ func (t *TestFailureAnalyzer) ActionReport(report *FailuresReport, config Config
 
 	if config.SkipPostingIssues {
 		log.Printf("🔍 Dry run mode: Generating issue previews...")
-		err := t.previewIssuesForFlakyTests(report.FlakyTests)
+		err := t.previewIssuesForFlakyTests(report.FlakyTests, config)
 		if err != nil {
 			return fmt.Errorf("failed to preview GitHub issues: %w", err)
 		}
@@ -273,9 +273,9 @@ func (t *TestFailureAnalyzer) createIssuesForFlakyTests(flakyTests []FlakyTest) 
 	return nil
 }
 
-func (t *TestFailureAnalyzer) previewIssuesForFlakyTests(flakyTests []FlakyTest) error {
+func (t *TestFailureAnalyzer) previewIssuesForFlakyTests(flakyTests []FlakyTest, config Config) error {
 	for _, test := range flakyTests {
-		err := previewIssueForTest(test)
+		err := previewIssueForTest(test, config)
 		if err != nil {
 			log.Printf("Warning: failed to preview issue for test %s: %v", test.TestName, err)
 		}
@@ -283,7 +283,7 @@ func (t *TestFailureAnalyzer) previewIssuesForFlakyTests(flakyTests []FlakyTest)
 	return nil
 }
 
-func previewIssueForTest(test FlakyTest) error {
+func previewIssueForTest(test FlakyTest, config Config) error {
 	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
 
 	log.Printf("📄 Would create issue for %s:", test.TestName)
@@ -298,7 +298,7 @@ func previewIssueForTest(test FlakyTest) error {
 		return nil
 	}
 
-	commentBody, err := generateCommentBody(test)
+	commentBody, err := generateCommentBody(test, config)
 	if err != nil {
 		log.Printf("Warning: failed to generate comment body preview: %v", err)
 		return nil

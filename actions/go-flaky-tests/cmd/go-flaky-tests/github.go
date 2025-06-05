@@ -114,7 +114,7 @@ func (gh *DefaultGitHubClient) SearchForExistingIssue(issueTitle string) (string
 }
 
 func (gh *DefaultGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest) error {
-	commentBody, err := generateCommentBody(test)
+	commentBody, err := generateCommentBody(test, gh.config)
 	if err != nil {
 		return fmt.Errorf("failed to generate comment body: %w", err)
 	}
@@ -214,7 +214,7 @@ _This test has been identified as flaky by [analyze-test-failures](https://githu
 
 const commentTemplate = `## 🚨 Hey there! This test is still being flaky
 
-This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} different branches** in the last 7 days.
+This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} different branches** in the last {{.TimeRange}}.
 
 ### 🕵️ Who might know about this?
 {{- if .RecentCommits}}
@@ -253,7 +253,7 @@ func generateInitialIssueBody(test FlakyTest) (string, error) {
 	return body.String(), nil
 }
 
-func generateCommentBody(test FlakyTest) (string, error) {
+func generateCommentBody(test FlakyTest, config Config) (string, error) {
 	tmpl, err := template.New("comment").Funcs(template.FuncMap{
 		"formatDate": func(t time.Time) string {
 			return t.Format("2006-01-02")
@@ -263,8 +263,18 @@ func generateCommentBody(test FlakyTest) (string, error) {
 		return "", fmt.Errorf("failed to parse comment template: %w", err)
 	}
 
+	type TemplateData struct {
+		FlakyTest
+		TimeRange string
+	}
+
+	templateData := TemplateData{
+		FlakyTest: test,
+		TimeRange: config.TimeRange,
+	}
+
 	var body strings.Builder
-	if err := tmpl.Execute(&body, test); err != nil {
+	if err := tmpl.Execute(&body, templateData); err != nil {
 		return "", fmt.Errorf("failed to execute comment template: %w", err)
 	}
 
