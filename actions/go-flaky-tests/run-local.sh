@@ -21,13 +21,14 @@ usage() {
     echo "  --loki-password PASS          Password for Loki authentication"
     echo "  --repository REPO             Repository name in 'owner/repo' format (required)"
     echo "  --time-range RANGE            Time range for query (default: ${DEFAULT_TIME_RANGE})"
+    echo "  --github-token TOKEN          GitHub token for API access"
     echo "  --repository-directory DIR    Repository directory (default: current directory)"
     echo "  --skip-posting-issues BOOL    Skip creating GitHub issues (default: ${DEFAULT_SKIP_POSTING_ISSUES})"
     echo "  --top-k NUM                   Number of top flaky tests to analyze (default: ${DEFAULT_TOP_K})"
     echo ""
     echo "Environment variables:"
     echo "  LOKI_URL, LOKI_USERNAME, LOKI_PASSWORD, REPOSITORY, TIME_RANGE,"
-    echo "  REPOSITORY_DIRECTORY, SKIP_POSTING_ISSUES, TOP_K"
+    echo "  REPOSITORY_DIRECTORY, GITHUB_TOKEN, SKIP_POSTING_ISSUES, TOP_K"
     echo ""
     echo "Example:"
     echo "  $0 --loki-url http://localhost:3100 --repository myorg/myrepo --time-range 7d"
@@ -58,6 +59,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --time-range)
             TIME_RANGE="$2"
+            shift 2
+            ;;
+        --github-token)
+            GITHUB_TOKEN="$2"
             shift 2
             ;;
         --repository-directory)
@@ -102,6 +107,7 @@ export LOKI_USERNAME
 export LOKI_PASSWORD
 export REPOSITORY
 export TIME_RANGE
+export GITHUB_TOKEN
 export REPOSITORY_DIRECTORY
 export SKIP_POSTING_ISSUES
 export TOP_K
