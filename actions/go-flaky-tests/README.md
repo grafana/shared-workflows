@@ -1,11 +1,12 @@
 # Go Flaky Tests
 
-A GitHub Action that detects and analyzes flaky Go tests by fetching logs from Loki.
+A GitHub Action that detects and analyzes flaky Go tests by fetching logs from Loki and finding their authors.
 
 ## Features
 
 - **Loki Integration**: Fetches test failure logs from Loki using LogQL queries
 - **Flaky Test Detection**: Identifies tests that fail inconsistently across different branches
+- **Git History Analysis**: Finds test files and extracts recent commit authors
 
 ## Usage
 
@@ -35,14 +36,15 @@ jobs:
 
 ## Inputs
 
-| Input           | Description                                                                                                                  | Required | Default |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| `loki-url`      | Loki endpoint URL                                                                                                            | ✅       | -       |
-| `loki-username` | Username for Loki authentication                                                                                             | ❌       | -       |
-| `loki-password` | Password for Loki authentication. If using Grafana Cloud, then the access policy for this token needs the `logs:read` scope. | ❌       | -       |
-| `repository`    | Repository name in 'owner/repo' format                                                                                       | ✅       | -       |
-| `time-range`    | Time range for the query (e.g., '1h', '24h', '7d')                                                                           | ❌       | `1h`    |
-| `top-k`         | Include only the top K flaky tests by distinct branches count                                                                | ❌       | `3`     |
+| Input                  | Description                                                                                                                  | Required | Default                   |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------- |
+| `loki-url`             | Loki endpoint URL                                                                                                            | ✅       | -                         |
+| `loki-username`        | Username for Loki authentication                                                                                             | ❌       | -                         |
+| `loki-password`        | Password for Loki authentication. If using Grafana Cloud, then the access policy for this token needs the `logs:read` scope. | ❌       | -                         |
+| `repository`           | Repository name in 'owner/repo' format                                                                                       | ✅       | -                         |
+| `time-range`           | Time range for the query (e.g., '1h', '24h', '7d')                                                                           | ❌       | `1h`                      |
+| `repository-directory` | Relative path to the directory with a git repository          | ❌       | `${{ github.workspace }}` |
+| `top-k`                | Include only the top K flaky tests by distinct branches count                                                                | ❌       | `3`                       |
 
 ## Outputs
 
@@ -57,6 +59,8 @@ jobs:
 1. **Fetch Logs**: Queries Loki for test failure logs within the specified time range
 2. **Parse Failures**: Extracts test names, branches, and workflow URLs from logs
 3. **Detect Flaky Tests**: Identifies tests that fail on multiple branches or multiple times on main/master
+4. **Find Test Files**: Locates test files in the repository using grep
+5. **Extract Authors**: Uses `git log -L` to find recent commits that modified each test
 
 ## Flaky Test Detection Logic
 
@@ -76,13 +80,16 @@ Run the analysis locally using the provided script:
 export LOKI_URL="your-loki-url"
 export REPOSITORY="owner/repo"
 export TIME_RANGE="24h"
+export REPOSITORY_DIRECTORY="."
+
 # Run the analysis
-go run ./cmd/go-flaky-tests
+./run-local.sh
 ```
 
 ## Requirements
 
 - Go 1.22 or later
+- Git repository with test files
 - Access to Loki instance with test failure logs
 
 ## Output Format
