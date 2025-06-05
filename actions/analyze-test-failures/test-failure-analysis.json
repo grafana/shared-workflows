@@ -1,0 +1,32 @@
+{
+  "test_count": 1,
+  "analysis_summary": "Found 1 flaky tests. Most common tests: TestHTTPProxy_ClusterValidation (16 total failures; recently changed by duricanikolic)",
+  "report_path": "",
+  "flaky_tests": [
+    {
+      "test_name": "TestHTTPProxy_ClusterValidation",
+      "file_path": "pkg/util/proxy/proxy_test.go",
+      "total_failures": 16,
+      "branch_counts": {
+        "deps-update/master-github.com-grafana-dskit-digest": 4,
+        "otel": 6,
+        "update-vendored-mimir-002cb6ab3": 2,
+        "update-vendored-mimir-412263bd4": 2,
+        "update-vendored-mimir-ccef5ef5d": 2
+      },
+      "example_workflows": [
+        "https://github.com/grafana/backend-enterprise/actions/runs/15275083150",
+        "https://github.com/grafana/backend-enterprise/actions/runs/15270597783",
+        "https://github.com/grafana/backend-enterprise/actions/runs/15275986519"
+      ],
+      "recent_commits": [
+        {
+          "hash": "aa77fa7386f999458d791176f053741c005c7633",
+          "author": "duricanikolic",
+          "timestamp": "2025-04-03T12:22:08+02:00",
+          "title": "Add support for HTTP cluster validation in HTTP proxies (#8674)"
+        }
+      ]
+    }
+  ]
+}
