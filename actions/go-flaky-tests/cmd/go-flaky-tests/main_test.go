@@ -55,6 +55,75 @@ func (m *MockGitClient) TestCommits(filePath, testName string) ([]CommitInfo, er
 	return []CommitInfo{}, nil
 }
 
+// MockGitHubClient implements GitHubClient for testing
+type MockGitHubClient struct {
+	usernames      map[string]string // commitHash -> username
+	existingIssues map[string]string // issueTitle -> issueURL
+	createdIssues  []string          // track created issues
+	addedComments  []string          // track added comments
+	reopenedIssues []string          // track reopened issues
+	usernameErr    error
+	createIssueErr error
+	searchIssueErr error
+	commentErr     error
+	reopenErr      error
+}
+
+func (m *MockGitHubClient) GetUsernameForCommit(commitHash string) (string, error) {
+	if m.usernameErr != nil {
+		return "", m.usernameErr
+	}
+	if username, exists := m.usernames[commitHash]; exists {
+		return username, nil
+	}
+	return "unknown", nil
+}
+
+func (m *MockGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
+	if m.createIssueErr != nil {
+		return m.createIssueErr
+	}
+	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
+
+	// Check if issue exists
+	if existingURL, exists := m.existingIssues[issueTitle]; exists {
+		m.addedComments = append(m.addedComments, fmt.Sprintf("comment on %s", existingURL))
+		return nil
+	}
+
+	// Create new issue
+	issueURL := fmt.Sprintf("https://github.com/test/repo/issues/%d", len(m.createdIssues)+1)
+	m.createdIssues = append(m.createdIssues, issueURL)
+	m.addedComments = append(m.addedComments, fmt.Sprintf("comment on %s", issueURL))
+	return nil
+}
+
+func (m *MockGitHubClient) SearchForExistingIssue(issueTitle string) (string, error) {
+	if m.searchIssueErr != nil {
+		return "", m.searchIssueErr
+	}
+	if url, exists := m.existingIssues[issueTitle]; exists {
+		return url, nil
+	}
+	return "", nil
+}
+
+func (m *MockGitHubClient) AddCommentToIssue(issueURL string, test FlakyTest) error {
+	if m.commentErr != nil {
+		return m.commentErr
+	}
+	m.addedComments = append(m.addedComments, fmt.Sprintf("comment on %s", issueURL))
+	return nil
+}
+
+func (m *MockGitHubClient) ReopenIssue(issueURL string) error {
+	if m.reopenErr != nil {
+		return m.reopenErr
+	}
+	m.reopenedIssues = append(m.reopenedIssues, issueURL)
+	return nil
+}
+
 // MockFileSystem implements FileSystem for testing
 type MockFileSystem struct {
 	writtenFiles map[string][]byte
@@ -108,6 +177,7 @@ func createTestConfig() Config {
 		Repository:          "test/repo",
 		TimeRange:           "24h",
 		RepositoryDirectory: "/tmp/test",
+		SkipPostingIssues:   true,
 		TopK:                3,
 	}
 }
@@ -140,9 +210,15 @@ func TestAnalyzer_AnalyzeFailures_Success(t *testing.T) {
 			},
 		},
 	}
+	githubClient := &MockGitHubClient{
+		usernames: map[string]string{
+			"abc123": "alice",
+			"def456": "bob",
+		},
+	}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the analysis phase only
@@ -176,9 +252,10 @@ func TestAnalyzer_AnalyzeFailures_Success(t *testing.T) {
 func TestAnalyzer_AnalyzeFailures_LokiError(t *testing.T) {
 	lokiClient := &MockLokiClient{err: fmt.Errorf("loki connection failed")}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	report, err := analyzer.AnalyzeFailures(config)
@@ -199,9 +276,10 @@ func TestAnalyzer_AnalyzeFailures_EmptyResponse(t *testing.T) {
 
 	lokiClient := &MockLokiClient{response: lokiResponse}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	report, err := analyzer.AnalyzeFailures(config)
@@ -241,16 +319,22 @@ func TestAnalyzer_ActionReport_WithoutPostingIssues(t *testing.T) {
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
+	config.SkipPostingIssues = true
 
 	// Run the enactment phase only
 	err := analyzer.ActionReport(report, config)
 
 	// Verify results
 	require.NoError(t, err, "Enactment should complete without error")
+
+	// In dry run mode, no GitHub issues should be created
+	assert.Len(t, githubClient.createdIssues, 0, "No GitHub issues should be created in dry run")
+	assert.Len(t, githubClient.addedComments, 0, "No comments should be added in dry run")
 }
 
 func TestAnalyzer_ActionReport_ProductionMode(t *testing.T) {
@@ -272,16 +356,22 @@ func TestAnalyzer_ActionReport_ProductionMode(t *testing.T) {
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
+	config.SkipPostingIssues = false // Production mode
 
 	// Run the enactment phase only
 	err := analyzer.ActionReport(report, config)
 
 	// Verify results
 	require.NoError(t, err, "Enactment should complete without error")
+
+	// In production mode, GitHub issues should be created
+	assert.Len(t, githubClient.createdIssues, 1, "Expected 1 GitHub issue to be created")
+	assert.Len(t, githubClient.addedComments, 1, "Expected 1 comment to be added")
 }
 
 func TestAnalyzer_ActionReport_EmptyReport(t *testing.T) {
@@ -295,25 +385,32 @@ func TestAnalyzer_ActionReport_EmptyReport(t *testing.T) {
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
+	config.SkipPostingIssues = false
 
 	// Run the enactment phase only
 	err := analyzer.ActionReport(report, config)
 
 	// Verify results
 	require.NoError(t, err, "Enactment should complete without error")
+
+	// No issues should be created for empty report
+	assert.Len(t, githubClient.createdIssues, 0, "No GitHub issues should be created for empty report")
+	assert.Len(t, githubClient.addedComments, 0, "No comments should be added for empty report")
 }
 
 func TestAnalyzer_ActionReport_NilReport(t *testing.T) {
 	// Setup mocks
 	lokiClient := &MockLokiClient{}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the enactment phase with nil report
@@ -321,6 +418,10 @@ func TestAnalyzer_ActionReport_NilReport(t *testing.T) {
 
 	// Verify results
 	require.NoError(t, err, "Enactment should complete without error for nil report")
+
+	// No issues should be created for nil report
+	assert.Len(t, githubClient.createdIssues, 0, "No GitHub issues should be created for nil report")
+	assert.Len(t, githubClient.addedComments, 0, "No comments should be added for nil report")
 }
 
 // Integration tests (Workflow tests)
@@ -351,9 +452,15 @@ func TestAnalyzer_Run_Success(t *testing.T) {
 			},
 		},
 	}
+	githubClient := &MockGitHubClient{
+		usernames: map[string]string{
+			"abc123": "alice",
+			"def456": "bob",
+		},
+	}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	// Run the analysis
@@ -389,9 +496,10 @@ func TestAnalyzer_Run_Success(t *testing.T) {
 func TestAnalyzer_Run_LokiError(t *testing.T) {
 	lokiClient := &MockLokiClient{err: fmt.Errorf("loki connection failed")}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
@@ -407,9 +515,10 @@ func TestAnalyzer_Run_GitError(t *testing.T) {
 
 	lokiClient := &MockLokiClient{response: createTestLokiResponse(logEntries)}
 	gitClient := &MockGitClient{fileErr: fmt.Errorf("git command failed")}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
@@ -429,9 +538,10 @@ func TestAnalyzer_Run_EmptyLokiResponse(t *testing.T) {
 
 	lokiClient := &MockLokiClient{response: emptyResponse}
 	gitClient := &MockGitClient{}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
@@ -461,9 +571,10 @@ func TestAnalyzer_Run_NonFlakyTests(t *testing.T) {
 			"TestFeatureOnly": "feature_test.go",
 		},
 	}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 
 	err := analyzer.Run(config)
@@ -527,9 +638,10 @@ func TestAnalyzer_Run_TopKLimit(t *testing.T) {
 			"TestD": "d_test.go", "TestE": "e_test.go",
 		},
 	}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
 	config.TopK = 3
 
@@ -555,14 +667,20 @@ func TestAnalyzer_Run_NoProductionMode(t *testing.T) {
 	gitClient := &MockGitClient{
 		testFiles: map[string]string{"TestUserLogin": "user_test.go"},
 	}
+	githubClient := &MockGitHubClient{}
 	fileSystem := &MockFileSystem{}
 
-	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 	config := createTestConfig()
+	config.SkipPostingIssues = false // Production mode
 
 	err := analyzer.Run(config)
 
 	require.NoError(t, err, "Analysis should complete without error")
+
+	// Verify GitHub issue was created
+	assert.Len(t, githubClient.createdIssues, 1, "Expected 1 GitHub issue to be created")
+	assert.Len(t, githubClient.addedComments, 1, "Expected 1 comment to be added")
 }
 
 // Unit tests for FlakyTest methods
@@ -662,14 +780,14 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 		name         string
 		lokiFile     string
 		expectedFile string
-		setupMocks   func() *MockGitClient
+		setupMocks   func() (*MockGitClient, *MockGitHubClient)
 		config       func() Config
 	}{
 		{
 			name:         "complex_scenario",
 			lokiFile:     "complex_loki_response.json",
 			expectedFile: "complex_scenario.json",
-			setupMocks: func() *MockGitClient {
+			setupMocks: func() (*MockGitClient, *MockGitHubClient) {
 				gitClient := &MockGitClient{
 					testFiles: map[string]string{
 						"TestDatabaseConnection": "internal/database/connection_test.go",
@@ -690,7 +808,16 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 						},
 					},
 				}
-				return gitClient
+				githubClient := &MockGitHubClient{
+					usernames: map[string]string{
+						"abc123def456": "alice",
+						"789ghi012jkl": "bob",
+						"345mno678pqr": "charlie",
+						"901stu234vwx": "dave",
+						"567yza890bcd": "eve",
+					},
+				}
+				return gitClient, githubClient
 			},
 			config: func() Config {
 				config := createTestConfig()
@@ -702,8 +829,8 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 			name:         "empty_scenario",
 			lokiFile:     "",
 			expectedFile: "empty_scenario.json",
-			setupMocks: func() *MockGitClient {
-				return &MockGitClient{}
+			setupMocks: func() (*MockGitClient, *MockGitHubClient) {
+				return &MockGitClient{}, &MockGitHubClient{}
 			},
 			config: createTestConfig,
 		},
@@ -711,7 +838,7 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 			name:         "single_test_scenario",
 			lokiFile:     "",
 			expectedFile: "single_test_scenario.json",
-			setupMocks: func() *MockGitClient {
+			setupMocks: func() (*MockGitClient, *MockGitHubClient) {
 				gitClient := &MockGitClient{
 					testFiles: map[string]string{
 						"TestLoginFlow": "handlers/login_test.go",
@@ -720,7 +847,7 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 						"TestLoginFlow": {}, // No recent commits
 					},
 				}
-				return gitClient
+				return gitClient, &MockGitHubClient{}
 			},
 			config: createTestConfig,
 		},
@@ -756,11 +883,11 @@ func TestAnalyzer_Run_GoldenFiles(t *testing.T) {
 
 			// Setup mocks
 			lokiClient := &MockLokiClient{response: lokiResponse}
-			gitClient := tt.setupMocks()
+			gitClient, githubClient := tt.setupMocks()
 			fileSystem := &MockFileSystem{}
 
 			// Run analysis
-			analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+			analyzer := NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 			config := tt.config()
 
 			err := analyzer.Run(config)
