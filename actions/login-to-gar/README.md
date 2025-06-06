@@ -35,3 +35,6 @@ jobs:
 | `registry`                | Google Artifact Registry to authenticate against.                                                                                       | `us-docker.pkg.dev` |
 | `environment`             | Environment for pushing artifacts (can be either dev or prod).                                                                          | `dev`               |
 | `delete_credentials_file` | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. | `false`             |
+
+> [!WARNING]
+> When using the `login-to-gar` action in GitHub Actions workflows, always place the `checkout` action before it. This is because the `login-to-gar` action stores Docker credentials in the workspace, and these credentials would be lost if the workspace is overwritten by a subsequent `checkout` action. The correct order makes sure that the Docker credentials persist throughout the workflow.
