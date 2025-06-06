@@ -107,7 +107,7 @@ jobs:
             --time-cond github-action.json \
             --etag-save github-action.json-etag \
             --etag-compare github-action.json-etag \
-            https://json.schemastore.org/github-action.json);
+            https://www.schemastore.org/github-action.json);
 
           curl_exit_code="${?}";
 
