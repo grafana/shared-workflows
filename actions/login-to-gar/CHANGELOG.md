@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/grafana/shared-workflows/compare/login-to-gar/v0.4.3...login-to-gar/v0.4.4) (2025-06-06)
+
+
+### 📝 Documentation
+
+* add warning about using `checkout` action before `login-to-gar` ([#1012](https://github.com/grafana/shared-workflows/issues/1012)) ([cb40def](https://github.com/grafana/shared-workflows/commit/cb40def95f3c449ae8c7f23fa302c22bf9355fb5))
+
 ## [0.4.3](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.4.2...login-to-gar/v0.4.3) (2025-06-04)
 
 
