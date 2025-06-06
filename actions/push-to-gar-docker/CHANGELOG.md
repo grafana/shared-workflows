@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.5.1...push-to-gar-docker/v0.5.2) (2025-06-06)
+
+
+### 📝 Documentation
+
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
 ## [0.5.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.5.0...push-to-gar-docker/v0.5.1) (2025-06-02)
 
 
