@@ -26,11 +26,6 @@ permissions:
 
 jobs:
   test:
-    strategy:
-      matrix:
-        enviromnent:
-          - dev
-          - prod
     runs-on: ubuntu-latest
     # Don't run for forks - they don't have access to secrets
     if: github.event.pull_request.head.repo.full_name == github.repository
@@ -49,5 +44,4 @@ jobs:
         id: test-login-to-gar
         uses: ./actions/login-to-gar
         with:
-          environment: ${{ matrix.enviromnent }}
           registry: "us-docker.pkg.dev"
