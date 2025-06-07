@@ -1,0 +1,47 @@
+name: "Go Flaky Tests"
+description: "Detect and analyze flaky Go tests using Loki logs"
+author: "Grafana Labs"
+
+inputs:
+  loki-url:
+    description: "Loki endpoint URL"
+    required: true
+  loki-username:
+    description: "Username for Loki authentication"
+    required: false
+  loki-password:
+    description: "Password for Loki authentication"
+    required: false
+  repository:
+    description: "Repository name in 'owner/repo' format (e.g., 'grafana/grafana')"
+    required: true
+  time-range:
+    description: "Time range for the query (e.g., '1h', '24h', '7d')"
+    required: false
+    default: "1h"
+  top-k:
+    description: "Include only the top K flaky tests by distinct branches count in analysis"
+    required: false
+    default: "3"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.22"
+
+    - name: Build and run analyzer
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        go build -o analyzer ./cmd/go-flaky-tests
+        ./analyzer
+      env:
+        LOKI_URL: ${{ inputs.loki-url }}
+        LOKI_USERNAME: ${{ inputs.loki-username }}
+        LOKI_PASSWORD: ${{ inputs.loki-password }}
+        REPOSITORY: ${{ inputs.repository }}
+        TIME_RANGE: ${{ inputs.time-range }}
+        TOP_K: ${{ inputs.top-k }}
