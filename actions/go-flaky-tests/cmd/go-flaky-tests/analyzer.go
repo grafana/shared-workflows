@@ -19,10 +19,16 @@ type TestFailureAnalyzer struct {
 }
 
 type FlakyTest struct {
-	TestName         string         `json:"test_name"`
-	TotalFailures    int            `json:"total_failures"`
-	BranchCounts     map[string]int `json:"branch_counts"`
-	ExampleWorkflows []string       `json:"example_workflows"`
+	TestName         string                  `json:"test_name"`
+	TotalFailures    int                     `json:"total_failures"`
+	BranchCounts     map[string]int          `json:"branch_counts"`
+	ExampleWorkflows []GithubActionsWorkflow `json:"example_workflows"`
+}
+
+type GithubActionsWorkflow struct {
+	RunURL  string `json:"run_url"`
+	JobName string `json:"job_name"`
+	Attempt int    `json:"attempt"`
 }
 
 func (f *FlakyTest) String() string {

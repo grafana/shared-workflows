@@ -10,8 +10,8 @@
         "main": 2
       },
       "example_workflows": [
-        "https://github.com/test/repo/actions/runs/401",
-        "https://github.com/test/repo/actions/runs/402"
+        {"run_url":"https://github.com/test/repo/actions/runs/401"},
+        {"run_url":"https://github.com/test/repo/actions/runs/402"}
       ]
     }
   ]

@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"strconv"
 	"strings"
 )
 
 type RawLogEntry struct {
-	TestName       string `json:"test_name"`
-	Branch         string `json:"branch"`
-	WorkflowRunURL string `json:"workflow_run_url"`
+	TestName           string `json:"test_name"`
+	Branch             string `json:"branch"`
+	WorkflowRunURL     string `json:"workflow_run_url"`
+	WorkflowJobName    string `json:"workflow_job_name"`
+	WorkflowRunAttempt int    `json:"workflow_run_attempt"`
 }
 
 func AggregateFlakyTestsFromResponse(lokiResp *LokiResponse) ([]FlakyTest, error) {
@@ -19,14 +22,18 @@ func AggregateFlakyTestsFromResponse(lokiResp *LokiResponse) ([]FlakyTest, error
 		testName := result.Stream["parent_test_name"]
 		branch := result.Stream["ci_github_workflow_run_head_branch"]
 		workflowRunURL := result.Stream["ci_github_workflow_run_html_url"]
+		workflowJobName := result.Stream["ci_github_workflow_job_name"]
+		workflowRunAttempt, _ := strconv.Atoi(result.Stream["ci_github_workflow_run_run_attempt"])
 
 		if testName == "" || branch == "" {
 			continue
 		}
 		entry := RawLogEntry{
-			TestName:       testName,
-			Branch:         branch,
-			WorkflowRunURL: workflowRunURL,
+			TestName:           testName,
+			Branch:             branch,
+			WorkflowRunURL:     workflowRunURL,
+			WorkflowJobName:    workflowJobName,
+			WorkflowRunAttempt: workflowRunAttempt,
 		}
 		rawEntries = append(rawEntries, entry)
 	}
@@ -38,7 +45,7 @@ func AggregateFlakyTestsFromResponse(lokiResp *LokiResponse) ([]FlakyTest, error
 
 func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry) []FlakyTest {
 	testMap := make(map[string]map[string]int)
-	exampleWorkflows := make(map[string]map[string]bool)
+	exampleWorkflows := make(map[string]map[GithubActionsWorkflow]bool)
 
 	for _, entry := range rawEntries {
 		if entry.TestName == "" || entry.Branch == "" {
@@ -47,13 +54,19 @@ func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry) []FlakyTest {
 
 		if testMap[entry.TestName] == nil {
 			testMap[entry.TestName] = make(map[string]int)
-			exampleWorkflows[entry.TestName] = make(map[string]bool)
+			exampleWorkflows[entry.TestName] = make(map[GithubActionsWorkflow]bool)
 		}
 
 		testMap[entry.TestName][entry.Branch]++
 
-		if entry.WorkflowRunURL != "" && len(exampleWorkflows[entry.TestName]) < 3 {
-			exampleWorkflows[entry.TestName][entry.WorkflowRunURL] = true
+		workflow := GithubActionsWorkflow{
+			RunURL:  entry.WorkflowRunURL,
+			JobName: entry.WorkflowJobName,
+			Attempt: entry.WorkflowRunAttempt,
+		}
+
+		if workflow != (GithubActionsWorkflow{}) && len(exampleWorkflows[entry.TestName]) < 3 {
+			exampleWorkflows[entry.TestName][workflow] = true
 		}
 	}
 
@@ -84,16 +97,16 @@ func detectFlakyTestsFromRawEntries(rawEntries []RawLogEntry) []FlakyTest {
 			branchSummary = append(branchSummary, fmt.Sprintf("%s:%d", branch, count))
 		}
 
-		var workflowURLs []string
+		var workflows []GithubActionsWorkflow
 		for workflowURL := range exampleWorkflows[testName] {
-			workflowURLs = append(workflowURLs, workflowURL)
+			workflows = append(workflows, workflowURL)
 		}
 
 		flakyTests = append(flakyTests, FlakyTest{
 			TestName:         testName,
 			TotalFailures:    totalFailures,
 			BranchCounts:     branches,
-			ExampleWorkflows: workflowURLs,
+			ExampleWorkflows: workflows,
 		})
 
 		log.Printf("🔍 Detected flaky test: %s (%d total failures) - branches: %s",

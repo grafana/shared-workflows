@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -194,13 +195,13 @@ func TestAnalyzer_ActionReport_WithoutPostingIssues(t *testing.T) {
 				TestName:         "TestUserLogin",
 				TotalFailures:    2,
 				BranchCounts:     map[string]int{"main": 1, "feature": 1},
-				ExampleWorkflows: []string{"https://github.com/test/repo/actions/runs/1", "https://github.com/test/repo/actions/runs/2"},
+				ExampleWorkflows: []GithubActionsWorkflow{{RunURL: "https://github.com/test/repo/actions/runs/1"}, {RunURL: "https://github.com/test/repo/actions/runs/2"}},
 			},
 			{
 				TestName:         "TestPayment",
 				TotalFailures:    1,
 				BranchCounts:     map[string]int{"main": 1},
-				ExampleWorkflows: []string{"https://github.com/test/repo/actions/runs/3"},
+				ExampleWorkflows: []GithubActionsWorkflow{{RunURL: "https://github.com/test/repo/actions/runs/3"}},
 			},
 		},
 	}
@@ -229,7 +230,7 @@ func TestAnalyzer_ActionReport_ProductionMode(t *testing.T) {
 				TestName:         "TestUserLogin",
 				TotalFailures:    2,
 				BranchCounts:     map[string]int{"main": 2},
-				ExampleWorkflows: []string{"https://github.com/test/repo/actions/runs/1"},
+				ExampleWorkflows: []GithubActionsWorkflow{{RunURL: "https://github.com/test/repo/actions/runs/1"}},
 			},
 		},
 	}
@@ -678,8 +679,12 @@ func normalizeWorkflowOrder(actual, expected *FailuresReport) {
 		for j := range expected.FlakyTests {
 			if expected.FlakyTests[j].TestName == actualTest.TestName {
 				// Sort both arrays to ensure consistent order
-				sort.Strings(actual.FlakyTests[i].ExampleWorkflows)
-				sort.Strings(expected.FlakyTests[j].ExampleWorkflows)
+				slices.SortFunc(actual.FlakyTests[i].ExampleWorkflows, func(a, b GithubActionsWorkflow) int {
+					return strings.Compare(a.RunURL, b.RunURL)
+				})
+				slices.SortFunc(expected.FlakyTests[i].ExampleWorkflows, func(a, b GithubActionsWorkflow) int {
+					return strings.Compare(a.RunURL, b.RunURL)
+				})
 				break
 			}
 		}

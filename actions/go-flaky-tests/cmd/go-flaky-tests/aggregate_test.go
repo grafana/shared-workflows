@@ -22,9 +22,9 @@ func TestAggregateFlakyTestsFromResponse(t *testing.T) {
 					TestName:      "TestExample",
 					TotalFailures: 2,
 					BranchCounts:  map[string]int{"main": 2},
-					ExampleWorkflows: []string{
-						"https://github.com/owner/repo/actions/runs/123",
-						"https://github.com/owner/repo/actions/runs/124",
+					ExampleWorkflows: []GithubActionsWorkflow{
+						{RunURL: "https://github.com/owner/repo/actions/runs/123"},
+						{RunURL: "https://github.com/owner/repo/actions/runs/124"},
 					},
 				},
 			},
@@ -42,10 +42,10 @@ func TestAggregateFlakyTestsFromResponse(t *testing.T) {
 					TestName:      "TestMultiBranch",
 					TotalFailures: 3,
 					BranchCounts:  map[string]int{"feature-1": 2, "feature-2": 1},
-					ExampleWorkflows: []string{
-						"https://github.com/owner/repo/actions/runs/200",
-						"https://github.com/owner/repo/actions/runs/201",
-						"https://github.com/owner/repo/actions/runs/202",
+					ExampleWorkflows: []GithubActionsWorkflow{
+						{RunURL: "https://github.com/owner/repo/actions/runs/200"},
+						{RunURL: "https://github.com/owner/repo/actions/runs/201"},
+						{RunURL: "https://github.com/owner/repo/actions/runs/202"},
 					},
 				},
 			},
@@ -76,17 +76,17 @@ func TestAggregateFlakyTestsFromResponse(t *testing.T) {
 					TestName:      "TestFlaky2",
 					TotalFailures: 2,
 					BranchCounts:  map[string]int{"feature-1": 1, "feature-2": 1},
-					ExampleWorkflows: []string{
-						"https://github.com/owner/repo/actions/runs/401",
-						"https://github.com/owner/repo/actions/runs/402",
+					ExampleWorkflows: []GithubActionsWorkflow{
+						{RunURL: "https://github.com/owner/repo/actions/runs/401"},
+						{RunURL: "https://github.com/owner/repo/actions/runs/402"},
 					},
 				},
 				{
 					TestName:      "TestFlaky1",
 					TotalFailures: 1,
 					BranchCounts:  map[string]int{"main": 1},
-					ExampleWorkflows: []string{
-						"https://github.com/owner/repo/actions/runs/400",
+					ExampleWorkflows: []GithubActionsWorkflow{
+						{RunURL: "https://github.com/owner/repo/actions/runs/400"},
 					},
 				},
 			},
@@ -106,10 +106,10 @@ func TestAggregateFlakyTestsFromResponse(t *testing.T) {
 					TestName:      "TestManyWorkflows",
 					TotalFailures: 5,
 					BranchCounts:  map[string]int{"main": 5},
-					ExampleWorkflows: []string{
-						"https://github.com/owner/repo/actions/runs/500",
-						"https://github.com/owner/repo/actions/runs/501",
-						"https://github.com/owner/repo/actions/runs/502",
+					ExampleWorkflows: []GithubActionsWorkflow{
+						{RunURL: "https://github.com/owner/repo/actions/runs/500"},
+						{RunURL: "https://github.com/owner/repo/actions/runs/501"},
+						{RunURL: "https://github.com/owner/repo/actions/runs/502"},
 					},
 				},
 			},
@@ -133,8 +133,8 @@ func TestAggregateFlakyTestsFromResponse(t *testing.T) {
 					TestName:      "TestValidEntry",
 					TotalFailures: 1,
 					BranchCounts:  map[string]int{"main": 1},
-					ExampleWorkflows: []string{
-						"https://github.com/owner/repo/actions/runs/602",
+					ExampleWorkflows: []GithubActionsWorkflow{
+						{RunURL: "https://github.com/owner/repo/actions/runs/602"},
 					},
 				},
 			},
