@@ -83,7 +83,7 @@ func (m *MockGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
 	if m.createIssueErr != nil {
 		return m.createIssueErr
 	}
-	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
+	issueTitle := fmt.Sprintf("Flaky %s", test.TestName)
 
 	// Check if issue exists
 	if existingURL, exists := m.existingIssues[issueTitle]; exists {

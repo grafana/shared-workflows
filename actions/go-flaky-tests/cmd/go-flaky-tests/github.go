@@ -36,11 +36,11 @@ func (gh *DefaultGitHubClient) GetUsernameForCommit(commitHash string) (string, 
 		return response[0].Author.Login, nil
 	}
 
-	return "", fmt.Errorf("no GitHub username found for commit %s", commitHash)
+	return "", fmt.Errorf("no GitHub username found for commit %s; GitHub response %s", commitHash, string(result))
 }
 
 func (gh *DefaultGitHubClient) CreateOrUpdateIssue(test FlakyTest) error {
-	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
+	issueTitle := fmt.Sprintf("Flaky %s", test.TestName)
 
 	existingIssueURL, err := gh.SearchForExistingIssue(issueTitle)
 	if err != nil {
@@ -212,24 +212,24 @@ This issue tracks a flaky test that has been detected failing inconsistently. Ea
 _This test has been identified as flaky by [go-flaky-tests](https://github.com/grafana/shared-workflows/tree/main/actions/go-flaky-tests)._
 `
 
-const commentTemplate = `## 🚨 Hey there! This test is still being flaky
+const commentTemplate = `## Hey there! This test is still being flaky
 
 This test failed **{{.TotalFailures}} times** across **{{len .BranchCounts}} different branches** in the last {{.TimeRange}}.
 
-### 🕵️ Who might know about this?
+### Who might know about this?
 {{- if .RecentCommits}}
 {{- range .RecentCommits}}
 - {{.Author}} - made a relevant commit on {{.Timestamp | formatDate}}: {{.Hash}} "{{.Title}}"
 {{- end}}
 
-👆 If any of you have a few minutes, could you take a look? You might have context on what could be causing the flakiness.
+If any of you have a few minutes, could you take a look? You might have context on what could be causing the flakiness.
 {{- else}}
 _No recent changes to the test definition._
 {{- end}}
 
 {{- if .ExampleWorkflows}}
 
-### 💥 Recent failures
+### Recent failures
 {{- range .ExampleWorkflows}}
 - [Failed run]({{.}}) - check previous attempts' logs for clues
 {{- end}}
@@ -237,7 +237,7 @@ _No recent changes to the test definition._
 
 **💡 Check the issue description above for investigation tips and next steps!**
 
-Thanks for helping keep our tests reliable! 🙏`
+Thanks for helping keep our tests reliable!`
 
 func generateInitialIssueBody(test FlakyTest) (string, error) {
 	tmpl, err := template.New("initialIssueBody").Parse(initialIssueBodyTemplate)

@@ -284,7 +284,7 @@ func (t *TestFailureAnalyzer) previewIssuesForFlakyTests(flakyTests []FlakyTest,
 }
 
 func previewIssueForTest(test FlakyTest, config Config) error {
-	issueTitle := fmt.Sprintf("Flaky test: %s", test.TestName)
+	issueTitle := fmt.Sprintf("Flaky %s", test.TestName)
 
 	log.Printf("📄 Would create issue for %s:", test.TestName)
 	log.Printf("Title: %s", issueTitle)
