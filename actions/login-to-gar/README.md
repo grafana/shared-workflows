@@ -35,4 +35,5 @@ jobs:
 | `delete_credentials_file` | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. | `false`             |
 
 > [!WARNING]
-> When using the `login-to-gar` action in GitHub Actions workflows, always place the `checkout` action before it. This is because the `login-to-gar` action stores Docker credentials in the workspace, and these credentials would be lost if the workspace is overwritten by a subsequent `checkout` action. The correct order makes sure that the Docker credentials persist throughout the workflow.
+> 1. When using the `login-to-gar` action in GitHub Actions workflows, always place the `checkout` action before it. This is because the `login-to-gar` action stores Docker credentials in the workspace, and these credentials would be lost if the workspace is overwritten by a subsequent `checkout` action. The correct order makes sure that the Docker credentials persist throughout the workflow.
+> 2. Add `gha-creds-*.json` to your `.gitignore` and `.dockerignore` files to prevent accidentally committing credentials to your artifacts. ([source](https://github.com/google-github-actions/auth/blob/0920706a19e9d22c3d0da43d1db5939c6ad837a8/README.md#prerequisites))
