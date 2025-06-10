@@ -78,7 +78,7 @@ runs:
     - name: Delete Google Application Credentials file
       shell: sh
       run: |
-        if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
+        if [ "${{ inputs.delete_credentials_file }}" = 'true' ] && [ -n "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
           rm -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
           echo "::notice::Successfully deleted credentials file"
         else
