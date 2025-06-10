@@ -11,9 +11,9 @@
         "main": 2
       },
       "example_workflows": [
-        {"run_url":"https://github.com/test/repo/actions/runs/101"},
-        {"run_url":"https://github.com/test/repo/actions/runs/102"},
-        {"run_url":"https://github.com/test/repo/actions/runs/103"}
+        { "run_url": "https://github.com/test/repo/actions/runs/101" },
+        { "run_url": "https://github.com/test/repo/actions/runs/102" },
+        { "run_url": "https://github.com/test/repo/actions/runs/103" }
       ]
     },
     {
@@ -24,8 +24,8 @@
         "main": 1
       },
       "example_workflows": [
-        {"run_url": "https://github.com/test/repo/actions/runs/301"},
-        {"run_url": "https://github.com/test/repo/actions/runs/302"}
+        { "run_url": "https://github.com/test/repo/actions/runs/301" },
+        { "run_url": "https://github.com/test/repo/actions/runs/302" }
       ]
     },
     {
@@ -36,8 +36,8 @@
         "main": 1
       },
       "example_workflows": [
-        {"run_url": "https://github.com/test/repo/actions/runs/201"},
-        {"run_url": "https://github.com/test/repo/actions/runs/202"}
+        { "run_url": "https://github.com/test/repo/actions/runs/201" },
+        { "run_url": "https://github.com/test/repo/actions/runs/202" }
       ]
     }
   ]
