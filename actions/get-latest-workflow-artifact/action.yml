@@ -7,6 +7,9 @@ inputs:
   workflow-id:
     description: ID of the workflow inside the current repository
     required: true
+  consider-inprogress:
+    description: Allow to also return artifacts from in-progress runs
+    required: false
   repository:
     description: Repository of the target workflow (e.g. `grafana/grafana`)
     required: false
@@ -34,6 +37,9 @@ outputs:
   workflow-run-id:
     description: ID of the considered workflow run
     value: ${{ steps.get-artifact.outputs.workflow-run-id }}
+  workflow-run-status:
+    description: Status of the workflow run containing the artifact
+    value: ${{ steps.get-artifact.outputs.workflow-run-status }}
 
 runs:
   using: "composite"
@@ -57,6 +63,7 @@ runs:
         INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
         INPUT_ARTIFACT-NAME: ${{ inputs.artifact-name }}
         INPUT_WORKFLOW-ID: ${{ inputs.workflow-id }}
+        INPUT_CONSIDER-INPROGRESS: ${{ inputs.consider-inprogress }}
         INPUT_REPOSITORY: ${{ inputs.repository }}
         INPUT_PR-NUMBER: ${{ inputs.pr-number }}
         INPUT_PATH: ${{ inputs.path }}
