@@ -8,17 +8,19 @@ Required permissions:
 - `pull-requests: read`
 - `actions: read`
 
-| Input           | Description                        | Required | Default                                   |
-| --------------- | ---------------------------------- | -------- | ----------------------------------------- |
-| `workflow-id`   | ID or filename of the workflow     | yes      |                                           |
-| `artifact-name` | Name of the artifact to download   | yes      |                                           |
-| `repository`    | Owner/Name                         | no       | `${{ github.repository }}`                |
-| `pr-number`     | Number of the PR to consider       | no       | `${{ github.event.pull_request.number }}` |
-| `path`          | Directory to store the artifact in | no       | `${{ github.workspace }}`                 |
-| `github-token`  | GitHub token                       | no       | `${{ github.token }}`                     |
+| Input                 | Description                                                    | Required | Default                                   |
+| --------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------- |
+| `workflow-id`         | ID or filename of the workflow                                 | yes      |                                           |
+| `artifact-name`       | Name of the artifact to download                               | yes      |                                           |
+| `repository`          | Owner/Name                                                     | no       | `${{ github.repository }}`                |
+| `pr-number`           | Number of the PR to consider                                   | no       | `${{ github.event.pull_request.number }}` |
+| `path`                | Directory to store the artifact in                             | no       | `${{ github.workspace }}`                 |
+| `github-token`        | GitHub token                                                   | no       | `${{ github.token }}`                     |
+| `consider-inprogress` | Not only consider completed but also in-progress workflow runs | no       | `false`                                   |
 
-| Output                   | Description                            |
-| ------------------------ | -------------------------------------- |
-| `artifact-download-path` | Path where the artifact was downloaded |
-| `artifact-id`            | ID of the artifact that was downloaded |
-| `workflow-run-id`        | ID of the Workflow Run                 |
+| Output                   | Description                                            |
+| ------------------------ | ------------------------------------------------------ |
+| `artifact-download-path` | Path where the artifact was downloaded                 |
+| `artifact-id`            | ID of the artifact that was downloaded                 |
+| `workflow-run-id`        | ID of the Workflow Run                                 |
+| `workflow-run-status`    | Status of the found run (`in_progress` or `completed`) |
