@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.2...techdocs-rewrite-relative-links/v1.0.3) (2025-06-13)
+
+
+### 🏗️ Build System
+
+* **deps:** bump the go group ([c7717e9](https://github.com/grafana/shared-workflows/commit/c7717e97859bfea4ba90539d59575dd8452cccf8))
+* **deps:** bump the go group in /actions/techdocs-rewrite-relative-links with 2 updates ([#1016](https://github.com/grafana/shared-workflows/issues/1016)) ([c7717e9](https://github.com/grafana/shared-workflows/commit/c7717e97859bfea4ba90539d59575dd8452cccf8))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.1...techdocs-rewrite-relative-links/v1.0.2) (2025-06-04)
 
 
