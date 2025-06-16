@@ -35,14 +35,14 @@ jobs:
 
 ## Inputs
 
-| Input           | Description                                                   | Required | Default |
-| --------------- | ------------------------------------------------------------- | -------- | ------- |
-| `loki-url`      | Loki endpoint URL                                             | ✅       | -       |
-| `loki-username` | Username for Loki authentication                              | ❌       | -       |
-| `loki-password` | Password for Loki authentication                              | ❌       | -       |
-| `repository`    | Repository name in 'owner/repo' format                        | ✅       | -       |
-| `time-range`    | Time range for the query (e.g., '1h', '24h', '7d')            | ❌       | `1h`    |
-| `top-k`         | Include only the top K flaky tests by distinct branches count | ❌       | `3`     |
+| Input           | Description                                                                                                                  | Required | Default |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
+| `loki-url`      | Loki endpoint URL                                                                                                            | ✅       | -       |
+| `loki-username` | Username for Loki authentication                                                                                             | ❌       | -       |
+| `loki-password` | Password for Loki authentication. If using Grafana Cloud, then the access policy for this token needs the `logs:read` scope. | ❌       | -       |
+| `repository`    | Repository name in 'owner/repo' format                                                                                       | ✅       | -       |
+| `time-range`    | Time range for the query (e.g., '1h', '24h', '7d')                                                                           | ❌       | `1h`    |
+| `top-k`         | Include only the top K flaky tests by distinct branches count                                                                | ❌       | `3`     |
 
 ## Outputs
 
