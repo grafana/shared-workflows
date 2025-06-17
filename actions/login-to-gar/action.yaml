@@ -5,10 +5,14 @@ inputs:
     description: |
       Google Artifact Registry to authenticate against.
     default: "us-docker.pkg.dev"
-  delete_credentials_file:
+
+  workspace_credentials:
     description: |
-      Delete the credentials file after the action is finished. 
-      If you want to keep the credentials file for a later step, set this to false.
+      Keep credentials file in workspace for Docker action compatibility. When
+      false (default), credentials are moved to a temporary location so they
+      aren't in the working directory where they can be accidentally committed
+      or printed. Set to true if you need to use Docker-based GitHub Actions that
+      require workspace access in a later step.
     default: "false"
 
 runs:
@@ -20,70 +24,50 @@ runs:
       with:
         project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+        create_credentials_file: true
 
-    - name: Install docker-credential-gcr
-      shell: bash
+    - name: "Move credentials to temporary location"
+      if: inputs.workspace_credentials == 'false'
+      shell: sh
       env:
-        DOCKER_CREDENTIAL_GCR_VERSION: "v2.1.28"
+        ORIGINAL_CREDS_PATH: ${{ steps.auth_with_direct_wif.outputs.credentials_file_path }}
+      # `github-env` is firing for our additions in here. We create this
+      # direcotry and populate it, so this should be as safe as we can make it.
       run: | # zizmor: ignore[github-env]
-        set -ex
+        TEMP_CREDS_DIR="$(mktemp -d -p "${RUNNER_TEMP}")"
+        TEMP_CREDS_PATH="${TEMP_CREDS_DIR}/gcp-credentials.json"
 
-        # Install docker-credential-gcr:
-        # - if version is "tip", install from tip of main.
-        # - if version is "latest-release", look up latest release.
-        # - otherwise, install the specified version.
-        case "${DOCKER_CREDENTIAL_GCR_VERSION}" in
-        tip)
-          echo "Installing docker-credential-gcr using go install"
-          go install github.com/GoogleCloudPlatform/docker-credential-gcr@main
-          ;;
-        latest-release)
-          tag=$(curl -L -s -u "username:${{ github.token }}" https://api.github.com/repos/GoogleCloudPlatform/docker-credential-gcr/releases/latest | jq -r '.tag_name')
-          ;;
-        *)
-          tag="${DOCKER_CREDENTIAL_GCR_VERSION}"
-        esac
-
-        # Normalize OS name
-        os="${{ runner.os }}"
-        case "$os" in
-          macOS) os="darwin" ;;
-          Linux) os="linux" ;;
-          Windows) os="windows" ;;
-          *) echo "Unknown OS: $os"; exit 1 ;;
-        esac
-
-        # Map runner.arch to release asset arch
-        arch="${{ runner.arch }}"
-        case "$arch" in
-          X64)   arch="amd64" ;;
-          ARM64) arch="arm64" ;;
-          *)     echo "Unsupported arch: $arch"; exit 1 ;;
-        esac
-
-        if [[ ! -z ${tag} ]]; then
-          echo "Installing docker-credential-gcr @ ${tag} for ${os}/${arch}"
-          mkdir -p "${RUNNER_TEMP}/docker-credential-gcr"
-          curl -fsL "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/${tag}/docker-credential-gcr_${os}_${arch}-${tag:1}.tar.gz" | tar xzf - -C "${RUNNER_TEMP}/docker-credential-gcr" docker-credential-gcr
-          # Ignoring the github-env warning - docker-credential-gcr binary must be on the PATH for credHelpers in /.docker/config.json to work.
-          # We are only adding a path to a binary that was just downloaded in RUNNER_TEMP (controlled by GitHub Actions).
-          echo "${RUNNER_TEMP}/docker-credential-gcr" >> $GITHUB_PATH
+        if ! [ -f "${ORIGINAL_CREDS_PATH}" ]; then
+          echo "::error::Expected credentials file not found at ${ORIGINAL_CREDS_PATH}"
+          exit 1
         fi
-    - name: "Configure GCP Artifact Registry"
-      id: configure-docker
+
+        echo "::notice::Moving credentials out of GitHub workspace"
+        mv "${ORIGINAL_CREDS_PATH}" "${TEMP_CREDS_PATH}"
+
+        # Update environment for subsequent steps
+        echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
+        echo "GOOGLE_APPLICATION_CREDENTIALS=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
+        echo "GOOGLE_GHA_CREDS_PATH=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
+
+        echo "::notice::Credentials stored in ${TEMP_CREDS_PATH}"
+
+    - name: Setup `gcloud` CLI
+      if: ${{ !steps.check_if_gcloud_is_installed.outputs.gcloud-installed }}
+      uses: google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a # v2.1.4
+      with:
+        # Accept any version
+        version:
+
+    - name: Configure Docker
       shell: sh
       env:
         REGISTRY: ${{ inputs.registry }}
-      run: docker-credential-gcr configure-docker --registries="${REGISTRY}"
-    - name: Delete Google Application Credentials file
+      run: gcloud auth configure-docker "${REGISTRY}"
+
+    - name: "Workspace credentials mode enabled"
+      if: inputs.workspace_credentials == 'true'
       shell: sh
       run: |
-        if [ "${INPUTS_DELETE_CREDENTIALS_FILE}" = "true" ] && [ -n "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
-          rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
-          echo "::notice::Successfully deleted credentials file"
-        else
-          echo "::warning::Credentials file not found at ${GOOGLE_APPLICATION_CREDENTIALS}"
-        fi
-      env:
-        INPUTS_DELETE_CREDENTIALS_FILE: ${{ inputs.delete_credentials_file }}
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+        echo "::notice::Credentials kept in workspace for Docker action compatibility"
+        echo "::warning::Remember to add 'gha-creds-*.json' to your .gitignore to prevent accidental commits"
