@@ -19,6 +19,10 @@ inputs:
     description: "Time range for the query (e.g., '1h', '24h', '7d')"
     required: false
     default: "1h"
+  repository-directory:
+    description: "Relative path to the directory with a git repository"
+    required: false
+    default: ${{ github.workspace }}
   top-k:
     description: "Include only the top K flaky tests by distinct branches count in analysis"
     required: false
@@ -44,4 +48,5 @@ runs:
         LOKI_PASSWORD: ${{ inputs.loki-password }}
         REPOSITORY: ${{ inputs.repository }}
         TIME_RANGE: ${{ inputs.time-range }}
+        REPOSITORY_DIRECTORY: ${{ inputs.repository-directory }}
         TOP_K: ${{ inputs.top-k }}

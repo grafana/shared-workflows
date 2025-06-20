@@ -1,10 +1,11 @@
 {
   "test_count": 3,
-  "analysis_summary": "Found 3 flaky tests. Most common tests: TestDatabaseConnection (3 total failures), TestPaymentProcessing (2 total failures), TestUserAuthentication (2 total failures)",
+  "analysis_summary": "Found 3 flaky tests. Most common tests: TestDatabaseConnection (3 total failures; recently changed by alice, bob), TestPaymentProcessing (2 total failures; recently changed by dave, eve), TestUserAuthentication (2 total failures; recently changed by charlie)",
   "report_path": "test-failure-analysis.json",
   "flaky_tests": [
     {
       "test_name": "TestDatabaseConnection",
+      "file_path": "internal/database/connection_test.go",
       "total_failures": 3,
       "branch_counts": {
         "feature/db-optimization": 1,
@@ -14,10 +15,25 @@
         { "run_url": "https://github.com/test/repo/actions/runs/101" },
         { "run_url": "https://github.com/test/repo/actions/runs/102" },
         { "run_url": "https://github.com/test/repo/actions/runs/103" }
+      ],
+      "recent_commits": [
+        {
+          "hash": "abc123def456",
+          "author": "alice",
+          "timestamp": "2024-01-15T10:30:00Z",
+          "title": "Optimize database connection pooling"
+        },
+        {
+          "hash": "789ghi012jkl",
+          "author": "bob",
+          "timestamp": "2024-01-10T14:22:00Z",
+          "title": "Add connection timeout handling"
+        }
       ]
     },
     {
       "test_name": "TestPaymentProcessing",
+      "file_path": "payment/processor_test.go",
       "total_failures": 2,
       "branch_counts": {
         "feature/stripe-integration": 1,
@@ -26,10 +42,25 @@
       "example_workflows": [
         { "run_url": "https://github.com/test/repo/actions/runs/301" },
         { "run_url": "https://github.com/test/repo/actions/runs/302" }
+      ],
+      "recent_commits": [
+        {
+          "hash": "901stu234vwx",
+          "author": "dave",
+          "timestamp": "2024-01-08T16:45:00Z",
+          "title": "Add Stripe payment integration"
+        },
+        {
+          "hash": "567yza890bcd",
+          "author": "eve",
+          "timestamp": "2024-01-05T11:30:00Z",
+          "title": "Refactor payment processing logic"
+        }
       ]
     },
     {
       "test_name": "TestUserAuthentication",
+      "file_path": "auth/user_test.go",
       "total_failures": 2,
       "branch_counts": {
         "feature/oauth": 1,
@@ -38,6 +69,14 @@
       "example_workflows": [
         { "run_url": "https://github.com/test/repo/actions/runs/201" },
         { "run_url": "https://github.com/test/repo/actions/runs/202" }
+      ],
+      "recent_commits": [
+        {
+          "hash": "345mno678pqr",
+          "author": "charlie",
+          "timestamp": "2024-01-12T09:15:00Z",
+          "title": "Implement OAuth2 authentication flow"
+        }
       ]
     }
   ]
