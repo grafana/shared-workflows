@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.0.0](https://github.com/grafana/shared-workflows/compare/login-to-gar/v0.4.3...login-to-gar/v1.0.0) (2025-06-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **login-to-gar:** Update configurations which specify `delete-credentials: false` to have `workspace-credentials: true` instead. If you don't have the option, you are not affected.
+* only allow direct workload identity federation in login-to-gar ([#1009](https://github.com/grafana/shared-workflows/issues/1009))
+
+### 🎉 Features
+
+* **login-to-gar:** store credentials in temporary location by default ([#1023](https://github.com/grafana/shared-workflows/issues/1023)) ([fe29dde](https://github.com/grafana/shared-workflows/commit/fe29dde24ab0697084e75883d351eca1c961e352))
+* only allow direct workload identity federation in login-to-gar ([#1009](https://github.com/grafana/shared-workflows/issues/1009)) ([0789629](https://github.com/grafana/shared-workflows/commit/078962963e9e785bbe565287f41f96c23ba03274))
+
+
+### 🐛 Bug Fixes
+
+* **login-to-gar:** check if delete_credentials_file is set ([#1020](https://github.com/grafana/shared-workflows/issues/1020)) ([7803c2c](https://github.com/grafana/shared-workflows/commit/7803c2ce62f8d6d5da83cac0ae9af3d57b70a0ff))
+
+
+### 📝 Documentation
+
+* add warning about using `checkout` action before `login-to-gar` ([#1012](https://github.com/grafana/shared-workflows/issues/1012)) ([cb40def](https://github.com/grafana/shared-workflows/commit/cb40def95f3c449ae8c7f23fa302c22bf9355fb5))
+
+
+### 🤖 Continuous Integration
+
+* add section for gha-creds jsons and .gitignore ([#1021](https://github.com/grafana/shared-workflows/issues/1021)) ([f008500](https://github.com/grafana/shared-workflows/commit/f008500f574f01cf9fcc5054be2464d6f5d6dcec))
+
 ## [0.4.3](https://github.com/grafana/shared-workflows/compare/login-to-gar-v0.4.2...login-to-gar/v0.4.3) (2025-06-04)
 
 
