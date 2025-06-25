@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -14,6 +15,7 @@ type Config struct {
 	RepositoryDirectory string
 	SkipPostingIssues   bool
 	TopK                int
+	IgnoredTests        []string
 }
 
 func getConfigFromEnv() Config {
@@ -26,6 +28,7 @@ func getConfigFromEnv() Config {
 		RepositoryDirectory: getEnvWithDefault("REPOSITORY_DIRECTORY", "."),
 		SkipPostingIssues:   getBoolEnvWithDefault("SKIP_POSTING_ISSUES", true),
 		TopK:                getIntEnvWithDefault("TOP_K", 3),
+		IgnoredTests:        getStringSliceFromEnv("IGNORED_TESTS"),
 	}
 }
 
@@ -50,4 +53,20 @@ func getIntEnvWithDefault(key string, defaultValue int) int {
 		}
 	}
 	return defaultValue
+}
+
+func getStringSliceFromEnv(key string) []string {
+	value := os.Getenv(key)
+	if value == "" {
+		return []string{}
+	}
+	
+	var result []string
+	for _, item := range strings.Split(value, ",") {
+		trimmed := strings.TrimSpace(item)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }

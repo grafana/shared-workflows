@@ -35,6 +35,10 @@ inputs:
     description: "Include only the top K flaky tests by distinct branches count in analysis"
     required: false
     default: "3"
+  ignored-tests:
+    description: "Comma-delimited test names to skip failures for"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -67,3 +71,4 @@ runs:
         REPOSITORY_DIRECTORY: ${{ inputs.repository-directory }}
         SKIP_POSTING_ISSUES: ${{ inputs.skip-posting-issues }}
         TOP_K: ${{ inputs.top-k }}
+        IGNORED_TESTS: ${{ inputs.ignored-tests }}

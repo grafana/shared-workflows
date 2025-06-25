@@ -25,10 +25,11 @@ usage() {
     echo "  --repository-directory DIR    Repository directory (default: current directory)"
     echo "  --skip-posting-issues BOOL    Skip creating GitHub issues (default: ${DEFAULT_SKIP_POSTING_ISSUES})"
     echo "  --top-k NUM                   Number of top flaky tests to analyze (default: ${DEFAULT_TOP_K})"
+    echo "  --ignored-tests TESTS         Comma-delimited test names to skip failures for"
     echo ""
     echo "Environment variables:"
     echo "  LOKI_URL, LOKI_USERNAME, LOKI_PASSWORD, REPOSITORY, TIME_RANGE,"
-    echo "  REPOSITORY_DIRECTORY, GITHUB_TOKEN, SKIP_POSTING_ISSUES, TOP_K"
+    echo "  REPOSITORY_DIRECTORY, GITHUB_TOKEN, SKIP_POSTING_ISSUES, TOP_K, IGNORED_TESTS"
     echo ""
     echo "Example:"
     echo "  $0 --loki-url http://localhost:3100 --repository myorg/myrepo --time-range 7d"
@@ -77,6 +78,10 @@ while [[ $# -gt 0 ]]; do
             TOP_K="$2"
             shift 2
             ;;
+        --ignored-tests)
+            IGNORED_TESTS="$2"
+            shift 2
+            ;;
         *)
             echo "Unknown option: $1"
             usage
@@ -111,6 +116,7 @@ export GITHUB_TOKEN
 export REPOSITORY_DIRECTORY
 export SKIP_POSTING_ISSUES
 export TOP_K
+export IGNORED_TESTS
 
 echo "🔧 Running go-flaky-tests locally..."
 echo "📊 Repository: $REPOSITORY"
