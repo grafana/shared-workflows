@@ -227,9 +227,6 @@ func (t *TestFailureAnalyzer) findTestAuthors(flakyTests []FlakyTest) error {
 			for _, commit := range commits {
 				authors = append(authors, commit.Author)
 			}
-			log.Printf("👤 %s: %s", test.TestName, strings.Join(authors, ", "))
-		} else {
-			log.Printf("👤 %s: no commits found", test.TestName)
 		}
 	}
 	return nil
