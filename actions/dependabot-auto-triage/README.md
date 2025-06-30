@@ -98,7 +98,6 @@ Due to API limitations, accessing and dismissing Dependabot alerts requires a Gi
 To use this action, you need:
 
 1. A GitHub App with the following permissions:
-
    - Repository permissions:
      - **Dependabot alerts**: Read & Write
 

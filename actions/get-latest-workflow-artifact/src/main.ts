@@ -142,4 +142,4 @@ async function getLatestArtifact(
   console.log("No artifact found");
   return null;
 }
-main();
+await main();

@@ -411,4 +411,3 @@ spec:
   owner: group:platform-productivity
   subcomponentOf: component:shared-workflows
   type: github-action
-

@@ -1,22 +1,46 @@
 repos:
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.16.3
+    rev: v8.27.2
     hooks:
       - id: gitleaks
-  - repo: https://github.com/golangci/golangci-lint
-    rev: v1.52.2
-    hooks:
-      - id: golangci-lint
+
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0
     hooks:
       - id: shellcheck
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.38.0
+
+  - repo: local
     hooks:
       - id: eslint
+        name: ESLint
+        args:
+          - run
+          - eslint
+        entry: oven/bun:1.2.17@sha256:2cd6a1d9e3d505725243c9564cca08465fc6ffb12c065a09261992e650995ee6
+        files: \.[jt]s$
+        language: docker_image
+
+      - id: prettier
+        name: prettier
+        args:
+          - run
+          - prettier
+          - --ignore-unknown
+          - --check
+        entry: oven/bun:1.2.17@sha256:2cd6a1d9e3d505725243c9564cca08465fc6ffb12c065a09261992e650995ee6
+        language: docker_image
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
+      - id: check-added-large-files
+      - id: check-yaml
+        args:
+          - --allow-multiple-documents
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint

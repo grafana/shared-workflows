@@ -4,6 +4,7 @@ import {
   describe,
   expect,
   it,
+  Mock,
   mock,
   spyOn,
 } from "bun:test";
@@ -22,14 +23,15 @@ const mockOctokit = {
   request: mock(),
   paginate: mock(),
 };
-mock.module("@octokit/rest", () => ({
+
+await mock.module("@octokit/rest", () => ({
   Octokit: mock(() => mockOctokit),
 }));
 
 describe("Dependabot Auto Triage Action", () => {
-  let consoleLogSpy: any;
-  let consoleErrorSpy: any;
-  let processExitSpy: any;
+  let consoleLogSpy: Mock<typeof console.log>;
+  let consoleErrorSpy: Mock<typeof console.error>;
+  let processExitSpy: Mock<typeof process.exit>;
 
   beforeEach(() => {
     // Reset mocks and environment variables
@@ -62,7 +64,7 @@ describe("Dependabot Auto Triage Action", () => {
   });
 
   describe("matchesAnyPattern", () => {
-    let minimatchSpy: ReturnType<typeof spyOn>;
+    let minimatchSpy: Mock<typeof minimatchModule.minimatch>;
 
     beforeEach(() => {
       minimatchSpy = spyOn(minimatchModule, "minimatch");
@@ -159,7 +161,7 @@ describe("Dependabot Auto Triage Action", () => {
         createMockAlert(2, "high", "pkg-b", "path/to/manifest2"),
         createMockAlert(3, "low", "pkg-c", "path/to/manifest3"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
+      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse);
 
       const octokitInstance = new Octokit(); // Real instance not used due to global mock
       const filteredAlerts = await fetchAllAlerts(
@@ -189,7 +191,7 @@ describe("Dependabot Auto Triage Action", () => {
         createMockAlert(1, "critical", "pkg-a", "path/to/manifest1"),
         createMockAlert(2, "high", "pkg-b", "path/to/manifest2"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
+      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse);
       const octokitInstance = new Octokit();
       const filteredAlerts = await fetchAllAlerts(
         octokitInstance,
@@ -206,7 +208,7 @@ describe("Dependabot Auto Triage Action", () => {
         createMockAlert(1, "critical", "pkg-a", "path/to/manifest1"),
         createMockAlert(2, "low", "pkg-b", "path/to/manifest2"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
+      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse);
       const octokitInstance = new Octokit();
       const filteredAlerts = await fetchAllAlerts(
         octokitInstance,
@@ -223,7 +225,7 @@ describe("Dependabot Auto Triage Action", () => {
       const mockAlertsResponse: DependabotAlert[] = [
         createMockAlert(1, "critical", "pkg-a", "path/to/manifest1"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse as any);
+      mockOctokit.paginate.mockResolvedValue(mockAlertsResponse);
       const octokitInstance = new Octokit();
       const filteredAlerts = await fetchAllAlerts(
         octokitInstance,
@@ -271,11 +273,11 @@ describe("Dependabot Auto Triage Action", () => {
         createMockAlert(2, "critical", "pkg-b", "other/yarn.lock"),
         createMockAlert(3, "low", "pkg-c", "nomatch/package.json"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlerts as any);
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
       mockOctokit.request.mockResolvedValue({ status: 200 }); // For dismissal
 
       // Mock successful repo check
-      mockOctokit.request.mockImplementation(async (route: string) => {
+      mockOctokit.request.mockImplementation((route: string) => {
         if (route === "GET /repos/{owner}/{repo}") {
           return { data: { owner: { login: "test-user" } } };
         }
@@ -364,7 +366,7 @@ describe("Dependabot Auto Triage Action", () => {
     it("should handle no alerts found", async () => {
       mockOctokit.paginate.mockResolvedValue([]);
       // Mock successful repo check
-      mockOctokit.request.mockImplementation(async (route: string) => {
+      mockOctokit.request.mockImplementation((route: string) => {
         if (route === "GET /repos/{owner}/{repo}") {
           return { data: { owner: { login: "test-user" } } };
         }
@@ -381,9 +383,9 @@ describe("Dependabot Auto Triage Action", () => {
       const mockAlerts: DependabotAlert[] = [
         createMockAlert(1, "high", "pkg-a", "nomatch/package.json"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlerts as any);
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
       // Mock successful repo check
-      mockOctokit.request.mockImplementation(async (route: string) => {
+      mockOctokit.request.mockImplementation((route: string) => {
         if (route === "GET /repos/{owner}/{repo}") {
           return { data: { owner: { login: "test-user" } } };
         }
@@ -399,7 +401,7 @@ describe("Dependabot Auto Triage Action", () => {
     });
 
     it("should handle error during token authentication check", async () => {
-      mockOctokit.request.mockImplementation(async (route: string) => {
+      mockOctokit.request.mockImplementation((route: string) => {
         if (route === "GET /repos/{owner}/{repo}") {
           throw new Error("Auth failed");
         }
@@ -415,7 +417,7 @@ describe("Dependabot Auto Triage Action", () => {
     });
 
     it("should handle 404 error when fetching alerts (repo not found or alerts disabled)", async () => {
-      mockOctokit.request.mockImplementation(async (route: string) => {
+      mockOctokit.request.mockImplementation((route: string) => {
         if (route === "GET /repos/{owner}/{repo}") {
           return { data: { owner: { login: "test-user" } } };
         }
@@ -423,7 +425,7 @@ describe("Dependabot Auto Triage Action", () => {
       });
       mockOctokit.paginate.mockRejectedValue(
         new RequestError("Not Found", 404, {
-          request: { headers: {}, url: "http://dummy.url/api" } as any,
+          request: { method: "GET", headers: {}, url: "http://dummy.url/api" },
           response: { headers: {}, status: 404, url: "", data: {} },
         }),
       );
@@ -436,7 +438,7 @@ describe("Dependabot Auto Triage Action", () => {
     });
 
     it("should handle 403 error when fetching alerts (permission issue)", async () => {
-      mockOctokit.request.mockImplementation(async (route: string) => {
+      mockOctokit.request.mockImplementation((route: string) => {
         if (route === "GET /repos/{owner}/{repo}") {
           return { data: { owner: { login: "test-user" } } };
         }
@@ -444,7 +446,7 @@ describe("Dependabot Auto Triage Action", () => {
       });
       mockOctokit.paginate.mockRejectedValue(
         new RequestError("Forbidden", 403, {
-          request: { headers: {}, url: "http://dummy.url/api" } as any,
+          request: { method: "GET", headers: {}, url: "http://dummy.url/api" },
           response: { headers: {}, status: 403, url: "", data: {} },
         }),
       );
@@ -457,15 +459,16 @@ describe("Dependabot Auto Triage Action", () => {
     });
 
     it("should handle general API error when fetching alerts", async () => {
-      mockOctokit.request.mockImplementation(async (route: string) => {
+      mockOctokit.request.mockImplementation((route: string) => {
         if (route === "GET /repos/{owner}/{repo}") {
           return { data: { owner: { login: "test-user" } } };
         }
         return {};
       });
+
       mockOctokit.paginate.mockRejectedValue(
         new RequestError("Server Error", 500, {
-          request: { headers: {}, url: "http://dummy.url/api" } as any,
+          request: { method: "GET", headers: {}, url: "http://dummy.url/api" },
           response: { headers: {}, status: 500, url: "", data: {} },
         }),
       );
@@ -481,24 +484,26 @@ describe("Dependabot Auto Triage Action", () => {
       const mockAlerts: DependabotAlert[] = [
         createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlerts as any);
-      mockOctokit.request.mockImplementation(
-        async (route: string, options: any) => {
-          if (route === "GET /repos/{owner}/{repo}") {
-            return { data: { owner: { login: "test-user" } } };
-          }
-          if (
-            route ===
-            "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
-          ) {
-            throw new RequestError("Forbidden for dismiss", 403, {
-              request: { headers: {}, url: "http://dummy.url/api" } as any,
-              response: { headers: {}, status: 403, url: "", data: {} },
-            });
-          }
-          return {};
-        },
-      );
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        if (
+          route ===
+          "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+        ) {
+          throw new RequestError("Forbidden for dismiss", 403, {
+            request: {
+              method: "PATCH",
+              headers: {},
+              url: "http://dummy.url/api",
+            },
+            response: { headers: {}, status: 403, url: "", data: {} },
+          });
+        }
+        return {};
+      });
 
       process.env.INPUT_PATHS = "src/package-lock.json";
       await run();
@@ -516,21 +521,19 @@ describe("Dependabot Auto Triage Action", () => {
       const mockAlerts: DependabotAlert[] = [
         createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
       ];
-      mockOctokit.paginate.mockResolvedValue(mockAlerts as any);
-      mockOctokit.request.mockImplementation(
-        async (route: string, options: any) => {
-          if (route === "GET /repos/{owner}/{repo}") {
-            return { data: { owner: { login: "test-user" } } };
-          }
-          if (
-            route ===
-            "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
-          ) {
-            throw new Error("Some other dismiss error");
-          }
-          return {};
-        },
-      );
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        if (
+          route ===
+          "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+        ) {
+          throw new Error("Some other dismiss error");
+        }
+        return {};
+      });
 
       process.env.INPUT_PATHS = "src/package-lock.json";
       await run();

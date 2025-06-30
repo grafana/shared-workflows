@@ -1,0 +1,36 @@
+name: pre-commit
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install bun package manager
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+        with:
+          bun-version-file: .bun-version
+
+      - name: Install pre-commit dependencies
+        run: bun install --frozen-lockfile
+
+      - name: pre-commit
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        with:
+          extra_args: --verbose --all-files
