@@ -69,6 +69,6 @@ runs:
         if [[ ! -z "${REPOSITORY_PATH}" ]]; then
           cd ${REPOSITORY_PATH}/actions/aws-auth
         else
-          cd "${{ github.action_path }}"
+          cd "${GITHUB_ACTION_PATH}"
         fi
         ./resolve-aws-region.sh
