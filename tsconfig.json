@@ -1,7 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "types": ["bun-types"],
     "allowJs": true,
     "checkJs": true,
     "esModuleInterop": true,
@@ -16,7 +15,8 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "es2022"
+    "target": "es2022",
+    "types": ["bun-types"]
   },
   "include": ["**/*.ts"]
 }

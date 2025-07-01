@@ -78,7 +78,7 @@ export async function run() {
         },
       );
       console.log(
-        `Successfully authenticated with GitHub as ${tokenData.owner?.login || "unknown user"}`,
+        `Successfully authenticated with GitHub as ${tokenData.owner.login || "unknown user"}`,
       );
     } catch (error) {
       console.error(
@@ -89,7 +89,9 @@ export async function run() {
 
     console.log(`Fetching dependabot alerts for ${owner}/${repo}...`);
     console.log(`Using path patterns:`);
-    pathPatterns.forEach((pattern) => console.log(`- ${pattern}`));
+    pathPatterns.forEach((pattern) => {
+      console.log(`- ${pattern}`);
+    });
 
     try {
       // Get all open alerts using the correct endpoint
@@ -189,7 +191,7 @@ ERROR: Cannot access Dependabot alerts.
 This error may occur for several reasons:
 1. Dependabot alerts might not be enabled for this repository
    - Enable them at: https://github.com/${owner}/${repo}/settings/security_analysis
-   
+
 2. The token being used might not have sufficient permissions
    - For GITHUB_TOKEN: Make sure the workflow has 'security-events: write' permission
    - For fine-grained tokens: Make sure the 'Dependabot alerts: write' permission is enabled
@@ -259,8 +261,7 @@ export function matchesAnyPattern(
     try {
       return minimatch(manifestPath, pattern, {
         matchBase: true,
-        strict: true,
-      } as any);
+      });
     } catch (error) {
       console.error(
         `Error matching pattern ${pattern}:`,
@@ -272,5 +273,5 @@ export function matchesAnyPattern(
 }
 
 if (import.meta.main) {
-  run();
+  await run();
 }
