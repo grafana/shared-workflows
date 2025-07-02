@@ -40,7 +40,7 @@
     "@types/tmp": "0.2.6",
     "eslint": "9.25.1",
     "eslint-config-prettier": "10.1.5",
-    "eslint-plugin-jest": "28.11.0",
+    "eslint-plugin-jest": "28.14.0",
     "eslint-plugin-prettier": "5.2.6",
     "prettier": "3.5.3",
     "typescript": "5.8.3",
