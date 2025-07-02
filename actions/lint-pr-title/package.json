@@ -26,8 +26,8 @@
     "@commitlint/format": "19.8.1",
     "@commitlint/lint": "19.8.1",
     "@commitlint/load": "19.8.1",
-    "@octokit/core": "6.1.5",
-    "@octokit/graphql": "8.2.2",
+    "@octokit/core": "7.0.2",
+    "@octokit/graphql": "9.0.1",
     "tmp": "0.2.3"
   },
   "devDependencies": {
