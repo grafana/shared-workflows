@@ -3,11 +3,16 @@
 > [!NOTE]
 > If you are at Grafana Labs:
 >
-> - Follow these steps in the [internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/google-artifact-registry/) to set up a repository before using this action.
-> - A docker mirror is available on our self-hosted runners, see [the internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/#docker-caching-in-github-actions) for more info.
+> - Follow these steps in the [internal
+>   documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/google-artifact-registry/)
+>   to set up a repository before using this action.
+> - A docker mirror is available on our self-hosted runners, see [the internal
+>   documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/#docker-caching-in-github-actions)
+>   for more info.
 
-This is a composite GitHub Action, used to push docker images to Google Artifact Registry (GAR).
-It uses [OIDC authentication](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+This is a composite GitHub Action, used to push docker images to Google Artifact
+Registry (GAR). It uses [OIDC
+authentication](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect),
 which means that only workflows which get triggered based on certain rules can
 trigger these composite workflows.
 
@@ -79,6 +84,10 @@ input.
 [mda]: https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
 
 ## Outputs
+
+> [!IMPORTANT]
+> Be careful when handling the `metadata` output. This contains user-supplied
+> information, and so it can be a vector for template injection.
 
 The following outputs are exposed from [`docker/metadata-action`](https://github.com/docker/metadata-action?tab=readme-ov-file#outputs) and [`docker/build-push-action`](https://github.com/docker/build-push-action?tab=readme-ov-file#outputs):
 

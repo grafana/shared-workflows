@@ -173,7 +173,15 @@ runs:
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
         buildkitd-config: ${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
 
-    - name: Build the container
+    # The `context` input is flagged by Zizmor as a [sink]. This means that with
+    # the upstream action the user's input to the input ends up in an output,
+    # and so if it's not handled properly, it could lead to a template injection
+    # attack. In this action, we do pass this back out via our `metadata`
+    # output. However, we consider ourselves a proxy, so in that case our job is
+    # to warn users but not to take any action.
+    #
+    # [sink]: https://github.blog/security/application-security/how-to-secure-your-github-actions-workflows-with-codeql/#models
+    - name: Build the container # zizmor: ignore[template-injection]
       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       id: build
       with:
@@ -207,9 +215,11 @@ runs:
       if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
       shell: sh
       run: |
-        if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
-          rm -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+        if [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
+          rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
           echo "::notice::Successfully deleted credentials file"
         else
-          echo "::warning::Credentials file not found at ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+          echo "::warning::Credentials file not found at ${GOOGLE_APPLICATION_CREDENTIALS}"
         fi
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}

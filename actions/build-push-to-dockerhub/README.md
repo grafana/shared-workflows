@@ -3,10 +3,13 @@
 > [!NOTE]
 > If you are at Grafana Labs:
 >
-> - A docker mirror is available on our self-hosted runners, see [the internal documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/#docker-caching-in-github-actions) for more info.
+> - A docker mirror is available on our self-hosted runners, see [the internal
+>   documentation](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/#docker-caching-in-github-actions)
+>   for more info.
 
-This is a composite GitHub Action, used to build Docker images and push them to DockerHub.
-It uses `get-vault-secrets` action to get the DockerHub username and password from Vault.
+This is a composite GitHub Action, used to build Docker images and push them to
+DockerHub. It uses `get-vault-secrets` action to get the DockerHub username and
+password from Vault.
 
 Example of how to use this action in a repository:
 
@@ -64,4 +67,8 @@ jobs:
 
 - If you specify `platforms` then the action will use buildx to build the image.
 - You must create a Dockerhub repo before you are able to push to it.
-- Most projects should be using Google Artifact Registry (instead of Dockerhub) to store their images. You can see more about that in the push-to-gar-docker shared workflow.
+- Most projects at Grafana Labs should be using Google Artifact Registry instead
+  of Dockerhub to store their images. You can see more about that in the
+  [push-to-gar-docker] shared workflow.
+
+[push-to-gar-docker]: ../push-to-gar-docker/README.md
