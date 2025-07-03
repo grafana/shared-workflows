@@ -29,7 +29,7 @@ runs:
     - id: normalize-workflow-name
       shell: bash
       run: |
-        RAW_NAME="${{ github.event.workflow }}"
+        RAW_NAME="${{ github.workflow }}"
         NORMALIZED_NAME=$(echo "$RAW_NAME" | tr '[:lower:]' '[:upper:]' | tr ' ' '-')
         echo "normalized_workflow_name=$NORMALIZED_NAME" >> "$GITHUB_OUTPUT"
     - id: get-github-jwt-token
