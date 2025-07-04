@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.2.1...push-to-gcs/v0.2.2) (2025-07-04)
+
+
+### 🐛 Bug Fixes
+
+* remediate latest zizmor findings, fix supplying zizmor config ([#1101](https://github.com/grafana/shared-workflows/issues/1101)) ([712c599](https://github.com/grafana/shared-workflows/commit/712c59975bc0de22124b866153826f04023f18fd))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/push-to-gcs-v0.2.0...push-to-gcs/v0.2.1) (2025-06-04)
 
 
