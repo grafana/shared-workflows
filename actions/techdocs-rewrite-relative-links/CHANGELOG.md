@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.2...techdocs-rewrite-relative-links/v1.0.3) (2025-07-04)
+
+
+### 🏗️ Build System
+
+* **deps:** bump github.com/urfave/cli/v2 ([f8b49cb](https://github.com/grafana/shared-workflows/commit/f8b49cb362d4dbedf4537ee64f758e15b0edbc36))
+* **deps:** bump github.com/urfave/cli/v2 to 2.27.7 in /techdocs-rewrite-relative-links ([#1028](https://github.com/grafana/shared-workflows/issues/1028)) ([f8b49cb](https://github.com/grafana/shared-workflows/commit/f8b49cb362d4dbedf4537ee64f758e15b0edbc36))
+* **deps:** bump the go group ([c7717e9](https://github.com/grafana/shared-workflows/commit/c7717e97859bfea4ba90539d59575dd8452cccf8))
+* **deps:** bump the go group in /actions/techdocs-rewrite-relative-links with 2 updates ([#1016](https://github.com/grafana/shared-workflows/issues/1016)) ([c7717e9](https://github.com/grafana/shared-workflows/commit/c7717e97859bfea4ba90539d59575dd8452cccf8))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v5.5.0 ([#1055](https://github.com/grafana/shared-workflows/issues/1055)) ([bedd909](https://github.com/grafana/shared-workflows/commit/bedd909cfbd5a0d1df440552f0eb6891e7371509))
+* **techdocs-rewrite-relative-links:** switch to go.yaml.in ([#1034](https://github.com/grafana/shared-workflows/issues/1034)) ([8ec6e54](https://github.com/grafana/shared-workflows/commit/8ec6e54906ba35ade843244964ce7de9226c70a5))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links-v1.0.1...techdocs-rewrite-relative-links/v1.0.2) (2025-06-04)
 
 
