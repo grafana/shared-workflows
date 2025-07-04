@@ -10,6 +10,9 @@ inputs:
   consider-inprogress:
     description: Allow to also return artifacts from in-progress runs
     required: false
+  consider-comments:
+    description: Also look for workflow runs triggered by comments
+    required: false
   repository:
     description: Repository of the target workflow (e.g. `grafana/grafana`)
     required: false
@@ -64,6 +67,7 @@ runs:
         INPUT_ARTIFACT-NAME: ${{ inputs.artifact-name }}
         INPUT_WORKFLOW-ID: ${{ inputs.workflow-id }}
         INPUT_CONSIDER-INPROGRESS: ${{ inputs.consider-inprogress }}
+        INPUT_CONSIDER-COMMENTS: ${{ inputs.consider-comments }}
         INPUT_REPOSITORY: ${{ inputs.repository }}
         INPUT_PR-NUMBER: ${{ inputs.pr-number }}
         INPUT_PATH: ${{ inputs.path }}

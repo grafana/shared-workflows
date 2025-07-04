@@ -17,6 +17,7 @@ Required permissions:
 | `path`                | Directory to store the artifact in                             | no       | `${{ github.workspace }}`                 |
 | `github-token`        | GitHub token                                                   | no       | `${{ github.token }}`                     |
 | `consider-inprogress` | Not only consider completed but also in-progress workflow runs | no       | `false`                                   |
+| `consider-comments`   | Also look for workflow runs triggered by comments              | no       | `false`                                   |
 
 | Output                   | Description                                            |
 | ------------------------ | ------------------------------------------------------ |
