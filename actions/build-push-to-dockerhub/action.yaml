@@ -103,7 +103,16 @@ runs:
         images: ${{ inputs.repository }}
         tags: ${{ inputs.tags }}
 
-    - name: Build and push Docker image
+    # The `context` input is flagged by Zizmor as a [sink]. This means that with
+    # the upstream action the user's input to the input ends up in an output,
+    # and so if it's not handled properly, it could lead to a template injection
+    # attack. In this action, we pass through the inputs, but we don't then pass
+    # back the outputs, so we should be fine. Even if we did pass back the
+    # outputs, we consider ourselves a proxy, so in that case our job would be
+    # to warn users but not to take any action.
+    #
+    # [sink]: https://github.blog/security/application-security/how-to-secure-your-github-actions-workflows-with-codeql/#models
+    - name: Build and push Docker image # zizmor: ignore[template-injection]
       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       with:
         context: ${{ inputs.context }}

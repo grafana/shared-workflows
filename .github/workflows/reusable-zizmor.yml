@@ -355,9 +355,9 @@ jobs:
             echo "always-use-default-config is set. Using default config."
           fi
 
-          ZIZMOR_CONFIG="${{ runner.temp }}/zizmor.yml"
+          ZIZMOR_CONFIG_PATH="${{ runner.temp }}/zizmor.yml"
           if [ -n "${DEFAULT_ZIZMOR_CONFIG_DOWNLOADED}" ]; then
-            echo "zizmor-config=${ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
+            echo "zizmor-config=${ZIZMOR_CONFIG_PATH}" | tee -a "${GITHUB_OUTPUT}"
           fi
 
       - name: Setup UV
@@ -376,7 +376,7 @@ jobs:
 
       - name: Run zizmor
         env:
-          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
+          ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         shell: sh
         run: >-
@@ -385,7 +385,7 @@ jobs:
           --min-severity "${MIN_SEVERITY}"
           --min-confidence "${MIN_CONFIDENCE}"
           --cache-dir "${ZIZMOR_CACHE_DIR}"
-          ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"}
+          ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"}
           ${RUNNER_DEBUG:+"--verbose"}
           ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}}
           .
@@ -410,7 +410,7 @@ jobs:
         id: zizmor-plain
         shell: bash
         env:
-          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
+          ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         run: |
           set -o pipefail
@@ -425,7 +425,7 @@ jobs:
             --min-confidence "${MIN_CONFIDENCE}" \
             --cache-dir "${ZIZMOR_CACHE_DIR}" \
             ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_CONFIG:+--config "${ZIZMOR_CONFIG}"} \
+            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
             ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
             . \
             | tee -a "${GITHUB_OUTPUT}"
@@ -443,9 +443,9 @@ jobs:
 
       - name: Remove zizmor config
         env:
-          ZIZMOR_CONFIG: ${{ steps.setup-config.outputs.zizmor-config }}
+          ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
         if: steps.setup-config.outputs.zizmor-config
-        run: rm "${ZIZMOR_CONFIG}"
+        run: rm "${ZIZMOR_CONFIG_PATH}"
 
       - name: Hide any previous comments
         if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}

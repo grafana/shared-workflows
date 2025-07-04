@@ -78,9 +78,11 @@ runs:
       if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
       shell: sh
       run: |
-        if [ -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}" ]; then
-          rm -f "${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+        if [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
+          rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
           echo "::notice::Successfully deleted credentials file"
         else
-          echo "::warning::Credentials file not found at ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}"
+          echo "::warning::Credentials file not found at ${GOOGLE_APPLICATION_CREDENTIALS}"
         fi
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
