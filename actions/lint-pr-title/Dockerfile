@@ -1,4 +1,4 @@
-FROM oven/bun:1.1.27@sha256:0bce8e8f0eb41e131df5529fcce89dc8b97135f4a583fa7f28d48cbcdb26ff4e AS base
+FROM oven/bun:1.2.18@sha256:2cdd9c93006af1b433c214016d72a3c60d7aa2c75691cb44dfd5250aa379986b AS base
 WORKDIR /usr/src/app
 
 FROM base AS install
