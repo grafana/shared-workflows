@@ -8,6 +8,7 @@ require (
 	github.com/lmittmann/tint v1.1.2
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.7
+	github.com/urfave/cli/v3 v3.3.8
 	github.com/willabides/actionslog v0.5.1
 	golang.org/x/term v0.32.0
 )
