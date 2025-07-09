@@ -82,6 +82,11 @@ inputs:
     description: |
       Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
     required: false
+  load:
+    description: |
+      Whether to load the built image into the local docker daemon.
+    required: false
+    default: "false"
 
 outputs:
   version:
@@ -198,6 +203,7 @@ runs:
         ssh: ${{ inputs.ssh }}
         build-contexts: ${{ inputs.build-contexts }}
         secrets: ${{ inputs.secrets }}
+        load: ${{ inputs.load == 'true' }}
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
