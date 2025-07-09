@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -11,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
+	"github.com/cenkalti/backoff/v5"
 )
 
 type App struct {
@@ -165,26 +166,26 @@ func isFatalError(err error) bool {
 	return false
 }
 
-func (a *App) Run(md GitHubActionsMetadata) error {
-	bo := backoff.WithMaxRetries(backoff.NewExponentialBackOff(), a.retries)
+func (a *App) Run(ctx context.Context, md GitHubActionsMetadata) error {
+	bo := backoff.NewExponentialBackOff()
 
-	var uri string
 	var out string
 
-	run := func() error {
+	run := func() (string, error) {
+		var uri string
 		var err error
 		uri, out, err = a.runCmd(md)
 
 		if isFatalError(err) {
-			return backoff.Permanent(err)
+			return uri, backoff.Permanent(err)
 		}
 
-		return err
+		return uri, err
 	}
 
-	err := backoff.RetryNotify(run, bo, func(err error, t time.Duration) {
+	uri, err := backoff.Retry(ctx, run, backoff.WithBackOff(bo), backoff.WithMaxTries(uint(a.retries)), backoff.WithNotify(func(err error, t time.Duration) {
 		a.logger.With("error", err, "retry_in", t).Error("failed to run command, retrying")
-	})
+	}))
 	if err != nil {
 		return err
 	}

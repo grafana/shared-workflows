@@ -212,5 +212,5 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 		retries: retries,
 	}
 
-	return argo.Run(md)
+	return argo.Run(c.Context, md)
 }
