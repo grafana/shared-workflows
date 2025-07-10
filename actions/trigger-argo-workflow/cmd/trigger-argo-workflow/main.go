@@ -72,8 +72,9 @@ func main() {
 
 	app := cli.Command{}
 	app.Name = "Runs the Argo CLI"
-
-	app.Action = func(ctx context.Context, c *cli.Command) error { return run(ctx, c, &lv, logger) }
+	app.Action = func(ctx context.Context, c *cli.Command) error {
+		return fmt.Errorf("please specify a command")
+	}
 
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{
@@ -162,6 +163,13 @@ func main() {
 			},
 		},
 	}
+	app.Commands = []*cli.Command{
+		{
+			Name:            "submit",
+			SkipFlagParsing: true,
+			Action:          func(ctx context.Context, c *cli.Command) error { return run(ctx, c, &lv, logger, "submit") },
+		},
+	}
 
 	if err := app.Run(context.Background(), os.Args); err != nil {
 		logger.With("error", err).Error("failed to run")
@@ -169,10 +177,9 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, c *cli.Command, level *slog.LevelVar, logger *slog.Logger) error {
+func run(ctx context.Context, c *cli.Command, level *slog.LevelVar, logger *slog.Logger, command string) error {
 	addCILabels := c.Bool(flagAddCILabels)
 	argoToken := c.String(flagArgoToken)
-	command := c.Args().First()
 	instance := c.String(flagInstance)
 	namespace := c.String(flagNamespace)
 	parameters := c.StringSlice(flagParameter)
@@ -188,7 +195,7 @@ func run(ctx context.Context, c *cli.Command, level *slog.LevelVar, logger *slog
 		extraArgs = append(extraArgs, "--parameter", param)
 	}
 
-	extraArgs = append(extraArgs, c.Args().Tail()...)
+	extraArgs = append(extraArgs, c.Args().Slice()...)
 
 	md, err := NewGitHubActionsMetadata()
 	if err != nil {
