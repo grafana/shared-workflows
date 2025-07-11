@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -31,6 +32,36 @@ type App struct {
 	instance  string
 
 	retries uint64
+}
+
+type FullConfig struct {
+	ArgoToken             string
+	LogLevel              *slog.LevelVar
+	AddCILabels           bool
+	Command               string
+	ExtraArgs             []string
+	Instance              string
+	Namespace             string
+	Retries               uint64
+	WorkflowTemplate      string
+	GitHubActionsMetadata GitHubActionsMetadata
+}
+
+func (a App) PrintConfig(w io.Writer, md GitHubActionsMetadata) error {
+	cfg := FullConfig{
+		ArgoToken:             a.argoToken,
+		LogLevel:              a.levelVar,
+		Command:               a.command,
+		WorkflowTemplate:      a.workflowTemplate,
+		Instance:              a.instance,
+		Namespace:             a.namespace,
+		Retries:               a.retries,
+		ExtraArgs:             a.extraArgs,
+		GitHubActionsMetadata: md,
+	}
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(cfg)
 }
 
 var instanceToHost = map[string]string{

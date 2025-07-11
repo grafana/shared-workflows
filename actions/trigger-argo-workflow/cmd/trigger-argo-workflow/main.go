@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"maps"
 	"os"
@@ -24,6 +25,7 @@ const (
 	flagNamespace        = "namespace"
 	flagParameter        = "parameter"
 	flagRetries          = "retries"
+	flagPrintConfig      = "print-config"
 	flagWorkflowTemplate = "workflow-template"
 )
 
@@ -43,13 +45,17 @@ func parseLogLevel(level string) (slog.Level, error) {
 }
 
 func main() {
+	runMain(os.Args, os.Stdout, os.Stderr)
+}
+
+func runMain(args []string, writer io.Writer, errWriter io.Writer) {
 	// If we're on a terminal, we use tint, otherwise if we're on GitHub actions
 	// we use `willabites/actionslog` to log proper Actions messages, otherwise
 	// we use logfmt.
 	var lv slog.LevelVar
 
 	logger := slog.New(
-		slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		slog.NewTextHandler(errWriter, &slog.HandlerOptions{
 			Level: &lv,
 		}),
 	)
@@ -71,6 +77,8 @@ func main() {
 	}
 
 	app := cli.Command{}
+	app.Writer = writer
+	app.ErrWriter = errWriter
 	app.Name = "Runs the Argo CLI"
 
 	app.Action = func(ctx context.Context, c *cli.Command) error {
@@ -81,6 +89,8 @@ func main() {
 		{
 			Name:            "submit",
 			SkipFlagParsing: true,
+			Writer:          writer,
+			ErrWriter:       errWriter,
 			Action: func(ctx context.Context, c *cli.Command) error {
 				return run(ctx, c, &lv, logger, "submit")
 			},
@@ -88,6 +98,11 @@ func main() {
 	}
 
 	app.Flags = []cli.Flag{
+		&cli.BoolFlag{
+			Name:     flagPrintConfig,
+			Required: false,
+			Usage:    "If set thie command will only print the gathered configuration and exist",
+		},
 		&cli.BoolFlag{
 			Name: flagAddCILabels,
 			Sources: cli.NewValueSourceChain(
@@ -175,7 +190,7 @@ func main() {
 		},
 	}
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
+	if err := app.Run(context.Background(), args); err != nil {
 		logger.With("error", err).Error("failed to run")
 		os.Exit(1)
 	}
@@ -218,8 +233,6 @@ func run(ctx context.Context, c *cli.Command, level *slog.LevelVar, logger *slog
 		"namespace", namespace,
 	)
 
-	logger.With("extraArgs", extraArgs).Info("running command")
-
 	argo := App{
 		levelVar: level,
 		logger:   logger,
@@ -238,5 +251,13 @@ func run(ctx context.Context, c *cli.Command, level *slog.LevelVar, logger *slog
 		retries: retries,
 	}
 
+	if c.Bool(flagPrintConfig) {
+		if err := argo.PrintConfig(c.Writer, md); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	logger.With("extraArgs", extraArgs).Info("running command")
 	return argo.Run(ctx, md)
 }
