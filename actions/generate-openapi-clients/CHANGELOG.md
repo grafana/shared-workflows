@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients/v1.0.2...generate-openapi-clients/v1.0.3) (2025-07-11)
+
+
+### 🤖 Continuous Integration
+
+* enhance, fix, run pre-commit ([#1033](https://github.com/grafana/shared-workflows/issues/1033)) ([9ffb9ce](https://github.com/grafana/shared-workflows/commit/9ffb9cec67a7712b4247e4ac37eb69946d802aed))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update stefanzweifel/git-auto-commit-action action to v6 ([#1085](https://github.com/grafana/shared-workflows/issues/1085)) ([7a91eed](https://github.com/grafana/shared-workflows/commit/7a91eed93c921ed1a55795ad6f30fb01fe2de1aa))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients-v1.0.1...generate-openapi-clients/v1.0.2) (2025-06-04)
 
 
