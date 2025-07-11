@@ -16,7 +16,7 @@
   "devDependencies": {
     "@octokit/openapi-types": "25.1.0",
     "@types/bun": "latest",
-    "@types/node": "24.0.12"
+    "@types/node": "24.0.13"
   },
   "bugs": {
     "url": "https://github.com/grafana/get-latest-workflow-artifact-action/issues"
