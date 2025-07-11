@@ -57,13 +57,9 @@ func TestMainConfiguration(t *testing.T) {
 			}
 			writer := &bytes.Buffer{}
 			runMain(test.args, writer, os.Stderr)
-			if test.check != nil {
-				cfg := FullConfig{}
-				require.NoError(t, json.NewDecoder(writer).Decode(&cfg))
-				test.check(t, cfg)
-				return
-			}
-			t.Log(writer.String())
+			cfg := FullConfig{}
+			require.NoError(t, json.NewDecoder(writer).Decode(&cfg))
+			test.check(t, cfg)
 		})
 	}
 }
