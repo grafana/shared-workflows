@@ -42,7 +42,7 @@ inputs:
       If you want to keep the credentials file for a later step, set this to false.
     default: "true"
   gzip:
-    description:
+    description: |
       If true, then upload files with `content-encoding: gzip`
     default: true
 
