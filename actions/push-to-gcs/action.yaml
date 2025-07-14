@@ -44,7 +44,7 @@ inputs:
   gzip:
     description: |
       If true, then upload files with `content-encoding: gzip`
-    default: true
+    default: "true"
 
 outputs:
   uploaded:
