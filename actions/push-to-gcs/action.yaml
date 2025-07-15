@@ -41,6 +41,10 @@ inputs:
       Delete the credentials file after the action is finished.
       If you want to keep the credentials file for a later step, set this to false.
     default: "true"
+  gzip:
+    description: |
+      If true, then upload files with `content-encoding: gzip`
+    default: "true"
 
 outputs:
   uploaded:
@@ -103,6 +107,7 @@ runs:
         destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
         parent: ${{ inputs.parent }}
         predefinedAcl: ${{ inputs.predefinedAcl }}
+        gzip: ${{ inputs.gzip }}
         process_gcloudignore: false
 
     - name: Cleanup checkout directory
