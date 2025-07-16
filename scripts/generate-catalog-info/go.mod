@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/hairyhenderson/go-codeowners v0.7.0
-	k8s.io/apimachinery v0.33.2
+	k8s.io/apimachinery v0.33.3
 	sigs.k8s.io/yaml v1.5.0
 )
 
