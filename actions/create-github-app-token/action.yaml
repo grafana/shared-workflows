@@ -1,0 +1,75 @@
+name: Create Github App Token
+description: Composite action (step) to get create github app token using vault.
+inputs:
+  permission_set:
+    description: Permission set name
+    default: default
+  github_app:
+    description: |
+      Github app name in vault
+  vault_instance:
+    description: |
+      The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
+    default: ops
+outputs:
+  token:
+    description: "GitHub installation access token"
+    value: ${{ steps.generate-token.outputs.github_token }}
+runs:
+  using: composite
+  steps:
+    - id: check-vault-instance
+      if: inputs.vault_instance != 'dev' && inputs.vault_instance != 'ops'
+      shell: bash
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
+      run: |
+        echo "Invalid value for vault_instance input: ${VAULT_INSTANCE}. Must be 'dev' or 'ops'."
+        exit 1
+    - id: normalize-workflow-name
+      shell: bash
+      run: |
+        RAW_NAME="${{ github.workflow_ref }}"
+        REF_SHA=$(echo -n "$RAW_NAME" | sed -E 's|^[^/]*/[^/]*/||' | sed -E 's/@.*//' | sha256sum | awk '{print $1}')
+        echo "ref_sha=$REF_SHA" >> "$GITHUB_OUTPUT"
+    - id: get-github-jwt-token
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
+      with:
+        script: |
+          const jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+          core.setSecret(jwt);
+          core.setOutput("github-jwt",jwt);
+
+    - id: get-github-jwt-auth-token
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
+      with:
+        script: |
+          const jwt = await core.getIDToken(`https://vault-github-actions.grafana-${process.env.VAULT_INSTANCE}.net`);
+          core.setSecret(jwt);
+          core.setOutput("github-jwt",jwt);
+
+    - name: Authenticate with Vault
+      shell: bash
+      id: auth-vault
+      run: |
+        VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        curl --fail -X POST "$VAULT_URL/v1/auth/github-actions-oidc/login" \
+        -H "Content-Type: application/json" \
+        -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
+        -d '{"role": "${{ github.event.repository.name }}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${{ inputs.permission_set}}","jwt": "${{ steps.get-github-jwt-auth-token.outputs.github-jwt }}"}' \
+        | jq -r '.auth.client_token' > vault_token.txt
+        echo "vault_token=$(cat vault_token.txt)" >> $GITHUB_OUTPUT
+
+    - name: Get Github Token
+      id: generate-token
+      shell: bash
+      run: |
+        VAULT_URL="https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        curl --fail -H "X-Vault-Token: ${{ steps.auth-vault.outputs.vault_token }}" \
+        -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
+        "$VAULT_URL/v1/github-app-${{ inputs.github_app }}/token/${{ github.event.repository.name }}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${{ inputs.permission_set}}" | jq -r '.data.token' > github_token.txt
+        echo "github_token=$(cat github_token.txt)" >> $GITHUB_OUTPUT
