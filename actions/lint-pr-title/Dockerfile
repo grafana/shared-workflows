@@ -1,29 +1,52 @@
+# This file must be built from the root of the repository.
+# Example: docker build . -f actions/lint-pr-title/Dockerfile
+
 FROM oven/bun:1.2.18@sha256:2cdd9c93006af1b433c214016d72a3c60d7aa2c75691cb44dfd5250aa379986b AS base
+
 WORKDIR /usr/src/app
 
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json bun.lockb /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+# Create a non-root user to run the tests. Run tests as non-root user because
+# one test expects EACCES when writing to a read-only file, and this will not
+# fail as root.
+RUN useradd -ms /bin/bash newuser
 
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY package.json bun.lockb /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
+# Install dependencies
+FROM base AS deps
 
-FROM base AS prerelease
-COPY --from=install /temp/dev/node_modules node_modules
-COPY . .
+COPY package.json bun.lock ./
+COPY actions/dependabot-auto-triage/package.json ./actions/dependabot-auto-triage/
 
-# Install dev dependencies to run the tests
+# Because we use bun's workspaces, we need to have all package.json files
+# available, even if they're not used. (We filter to one workspace.)
+COPY actions/get-latest-workflow-artifact/package.json ./actions/get-latest-workflow-artifact/
+COPY actions/lint-pr-title/package.json ./actions/lint-pr-title/
+
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --filter lint-pr-title
+
+# Run tests
+FROM base AS test
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --chown=newuser:newuser actions/lint-pr-title/ ./actions/lint-pr-title/
+USER newuser
+
 ENV NODE_ENV=development
-RUN bun install --frozen-lockfile --dev
-RUN bun run test
-RUN bun run build
 
-FROM base AS release
-COPY --from=install /temp/prod/node_modules node_modules
-COPY --from=prerelease /usr/src/app/index.ts .
-COPY --from=prerelease /usr/src/app/package.json .
+RUN bun run --filter lint-pr-title test
 
-ENTRYPOINT [ "bun", "run", "index.ts" ]
+# Assemble final image from a clean stage
+FROM base
+
+USER root
+
+WORKDIR /usr/src/app
+
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY actions/lint-pr-title/src ./actions/lint-pr-title/src
+COPY actions/lint-pr-title/package.json ./actions/lint-pr-title/
+COPY actions/lint-pr-title/commitlint.config.js ./actions/lint-pr-title/
+
+WORKDIR /usr/src/app/actions/lint-pr-title
+
+ENTRYPOINT [ "bun", "run", "src/index.ts" ]
