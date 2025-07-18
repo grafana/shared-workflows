@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - id: get-github-token
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v1.2.1
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.1.0
         with:
           github_app: github-app-name
 
