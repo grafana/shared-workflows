@@ -1,4 +1,4 @@
-name: Create Github App Token
+name: Create GitHub App Token
 description: Composite action (step) to get create github app token using vault.
 inputs:
   permission_set:
@@ -6,7 +6,7 @@ inputs:
     default: default
   github_app:
     description: |
-      Github app name in vault
+      GitHub app name in Vault
   vault_instance:
     description: |
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
