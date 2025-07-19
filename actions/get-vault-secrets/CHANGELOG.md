@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.2](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v1.2.1...get-vault-secrets/v1.2.2) (2025-07-18)
+
+
+### 🤖 Continuous Integration
+
+* enhance, fix, run pre-commit ([#1033](https://github.com/grafana/shared-workflows/issues/1033)) ([9ffb9ce](https://github.com/grafana/shared-workflows/commit/9ffb9cec67a7712b4247e4ac37eb69946d802aed))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update hashicorp/vault-action action to v3.4.0 ([#1072](https://github.com/grafana/shared-workflows/issues/1072)) ([b1c5ce9](https://github.com/grafana/shared-workflows/commit/b1c5ce97ab9234836b62604ae52a90736f9a2f43))
+
 ## [1.2.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.2.0...get-vault-secrets/v1.2.1) (2025-06-04)
 
 
