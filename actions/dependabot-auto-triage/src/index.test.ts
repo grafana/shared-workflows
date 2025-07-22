@@ -11,6 +11,7 @@ import {
 import {
   matchesAnyPattern,
   fetchAllAlerts,
+  fetchSpecificAlertsWithPRs,
   run,
   DependabotAlert,
 } from "./index";
@@ -22,7 +23,20 @@ import * as minimatchModule from "minimatch"; // Import for spying
 const mockOctokit = {
   request: mock(),
   paginate: mock(),
+  rest: {
+    pulls: {
+      update: mock(),
+    },
+  },
 };
+
+// Mock the graphql module
+const mockGraphql = mock();
+await mock.module("@octokit/graphql", () => ({
+  graphql: {
+    defaults: mock(() => mockGraphql),
+  },
+}));
 
 await mock.module("@octokit/rest", () => ({
   Octokit: mock(() => mockOctokit),
@@ -37,12 +51,15 @@ describe("Dependabot Auto Triage Action", () => {
     // Reset mocks and environment variables
     mockOctokit.request.mockClear();
     mockOctokit.paginate.mockClear();
+    mockOctokit.rest.pulls.update.mockClear();
+    mockGraphql.mockClear();
     process.env.GITHUB_TOKEN = "test-token";
     process.env.GITHUB_REPOSITORY = "owner/repo";
     process.env.INPUT_ALERT_TYPES = "dependency";
     process.env.INPUT_PATHS = "**/package-lock.json\n**/yarn.lock";
     process.env.INPUT_DISMISSAL_COMMENT = "Test dismissal comment";
     process.env.INPUT_DISMISSAL_REASON = "tolerable_risk";
+    process.env.INPUT_CLOSE_PRS = "false";
 
     // Spy on console messages and process.exit
     consoleLogSpy = spyOn(console, "log").mockImplementation(() => {});
@@ -61,6 +78,7 @@ describe("Dependabot Auto Triage Action", () => {
     delete process.env.INPUT_PATHS;
     delete process.env.INPUT_DISMISSAL_COMMENT;
     delete process.env.INPUT_DISMISSAL_REASON;
+    delete process.env.INPUT_CLOSE_PRS;
   });
 
   describe("matchesAnyPattern", () => {
@@ -250,6 +268,113 @@ describe("Dependabot Auto Triage Action", () => {
     });
   });
 
+  describe("fetchSpecificAlertsWithPRs", () => {
+    it("should fetch alerts with associated PRs using GraphQL", async () => {
+      const alertNumbers = [1, 2, 3];
+      const mockGraphqlResponse = {
+        repository: {
+          alert0: {
+            number: 1,
+            dependabotUpdate: {
+              pullRequest: { number: 101 },
+            },
+          },
+          alert1: {
+            number: 2,
+            dependabotUpdate: null,
+          },
+          alert2: {
+            number: 3,
+            dependabotUpdate: {
+              pullRequest: { number: 103 },
+            },
+          },
+        },
+      };
+
+      mockGraphql.mockResolvedValue(mockGraphqlResponse);
+
+      const result = await fetchSpecificAlertsWithPRs(
+        "test-token",
+        "owner",
+        "repo",
+        alertNumbers,
+      );
+
+      expect(result.size).toBe(2);
+      expect(result.get(1)).toBe(101);
+      expect(result.get(2)).toBeUndefined();
+      expect(result.get(3)).toBe(103);
+      expect(mockGraphql).toHaveBeenCalledWith(
+        expect.stringContaining("query GetSpecificVulnerabilityAlerts"),
+        { owner: "owner", repo: "repo" },
+      );
+    });
+
+    it("should return empty map for empty alert numbers", async () => {
+      const result = await fetchSpecificAlertsWithPRs(
+        "test-token",
+        "owner",
+        "repo",
+        [],
+      );
+
+      expect(result.size).toBe(0);
+      expect(mockGraphql).not.toHaveBeenCalled();
+    });
+
+    it("should handle null alerts in GraphQL response", async () => {
+      const alertNumbers = [1, 2];
+      const mockGraphqlResponse = {
+        repository: {
+          alert0: null,
+          alert1: {
+            number: 2,
+            dependabotUpdate: {
+              pullRequest: { number: 102 },
+            },
+          },
+        },
+      };
+
+      mockGraphql.mockResolvedValue(mockGraphqlResponse);
+
+      const result = await fetchSpecificAlertsWithPRs(
+        "test-token",
+        "owner",
+        "repo",
+        alertNumbers,
+      );
+
+      expect(result.size).toBe(1);
+      expect(result.get(1)).toBeUndefined();
+      expect(result.get(2)).toBe(102);
+    });
+
+    it("should handle alerts without pull requests", async () => {
+      const alertNumbers = [1];
+      const mockGraphqlResponse = {
+        repository: {
+          alert0: {
+            number: 1,
+            dependabotUpdate: null,
+          },
+        },
+      };
+
+      mockGraphql.mockResolvedValue(mockGraphqlResponse);
+
+      const result = await fetchSpecificAlertsWithPRs(
+        "test-token",
+        "owner",
+        "repo",
+        alertNumbers,
+      );
+
+      expect(result.size).toBe(0);
+    });
+  });
+
   // More tests for fetchAllAlerts and run will be added here
   describe("run", () => {
     const createMockAlert = (
@@ -328,7 +453,7 @@ describe("Dependabot Auto Triage Action", () => {
         "Alert #2 dismissed successfully",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Successfully dismissed 2 alerts.",
+        "Successfully processed 2 alerts.",
       );
       expect(processExitSpy).not.toHaveBeenCalled();
     });
@@ -542,6 +667,239 @@ describe("Dependabot Auto Triage Action", () => {
         "Some other dismiss error",
       );
       expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should close PRs when INPUT_CLOSE_PRS is true", async () => {
+      const mockAlerts: DependabotAlert[] = [
+        createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
+        createMockAlert(2, "critical", "pkg-b", "other/yarn.lock"),
+      ];
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+      mockOctokit.request.mockResolvedValue({ status: 200 }); // For dismissal
+      mockOctokit.rest.pulls.update.mockResolvedValue({ status: 200 }); // For PR closure
+
+      // Mock successful repo check
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        if (
+          route ===
+          "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+        ) {
+          return { status: 200 };
+        }
+        return {};
+      });
+
+      // Mock GraphQL response for PR mappings
+      const mockGraphqlResponse = {
+        repository: {
+          alert0: {
+            number: 1,
+            dependabotUpdate: {
+              pullRequest: { number: 101 },
+            },
+          },
+          alert1: {
+            number: 2,
+            dependabotUpdate: {
+              pullRequest: { number: 102 },
+            },
+          },
+        },
+      };
+      mockGraphql.mockResolvedValue(mockGraphqlResponse);
+
+      process.env.INPUT_PATHS = "src/package-lock.json\nother/yarn.lock";
+      process.env.INPUT_CLOSE_PRS = "true";
+
+      await run();
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Fetching PR mappings for alerts before dismissal...",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Found 2 alerts with associated PRs",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Closing PR #101 for alert #1...",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Closing PR #102 for alert #2...",
+      );
+      expect(mockOctokit.rest.pulls.update).toHaveBeenCalledWith({
+        owner: "owner",
+        repo: "repo",
+        pull_number: 101,
+        state: "closed",
+      });
+      expect(mockOctokit.rest.pulls.update).toHaveBeenCalledWith({
+        owner: "owner",
+        repo: "repo",
+        pull_number: 102,
+        state: "closed",
+      });
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Successfully processed 2 alerts.",
+      );
+      expect(processExitSpy).not.toHaveBeenCalled();
+    });
+
+    it("should handle error when fetching PR mappings", async () => {
+      const mockAlerts: DependabotAlert[] = [
+        createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
+      ];
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+
+      // Mock successful repo check
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        return {};
+      });
+
+      // Mock GraphQL error
+      mockGraphql.mockRejectedValue(new Error("GraphQL API error"));
+
+      process.env.INPUT_PATHS = "src/package-lock.json";
+      process.env.INPUT_CLOSE_PRS = "true";
+
+      await run();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error fetching alert-PR mappings. Cannot proceed with PR closure.",
+        expect.any(Error),
+      );
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should handle error when closing PRs", async () => {
+      const mockAlerts: DependabotAlert[] = [
+        createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
+      ];
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+      mockOctokit.request.mockResolvedValue({ status: 200 }); // For repo check
+      mockOctokit.rest.pulls.update.mockRejectedValue(
+        new Error("PR close error"),
+      );
+
+      // Mock successful repo check
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        return {};
+      });
+
+      // Mock GraphQL response for PR mappings
+      const mockGraphqlResponse = {
+        repository: {
+          alert0: {
+            number: 1,
+            dependabotUpdate: {
+              pullRequest: { number: 101 },
+            },
+          },
+        },
+      };
+      mockGraphql.mockResolvedValue(mockGraphqlResponse);
+
+      process.env.INPUT_PATHS = "src/package-lock.json";
+      process.env.INPUT_CLOSE_PRS = "true";
+
+      await run();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error closing PR #101 for alert #1:",
+        expect.any(Error),
+      );
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("should skip closing PRs when no PR mappings are found", async () => {
+      const mockAlerts: DependabotAlert[] = [
+        createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
+      ];
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+      mockOctokit.request.mockResolvedValue({ status: 200 }); // For dismissal
+
+      // Mock successful repo check
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        if (
+          route ===
+          "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+        ) {
+          return { status: 200 };
+        }
+        return {};
+      });
+
+      // Mock GraphQL response with no PR mappings
+      const mockGraphqlResponse = {
+        repository: {
+          alert0: {
+            number: 1,
+            dependabotUpdate: null,
+          },
+        },
+      };
+      mockGraphql.mockResolvedValue(mockGraphqlResponse);
+
+      process.env.INPUT_PATHS = "src/package-lock.json";
+      process.env.INPUT_CLOSE_PRS = "true";
+
+      await run();
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Found 0 alerts with associated PRs",
+      );
+      expect(mockOctokit.rest.pulls.update).not.toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #1 dismissed successfully",
+      );
+      expect(processExitSpy).not.toHaveBeenCalled();
+    });
+
+    it("should not fetch PR mappings when INPUT_CLOSE_PRS is false", async () => {
+      const mockAlerts: DependabotAlert[] = [
+        createMockAlert(1, "high", "pkg-a", "src/package-lock.json"),
+      ];
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+      mockOctokit.request.mockResolvedValue({ status: 200 }); // For dismissal
+
+      // Mock successful repo check
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        if (
+          route ===
+          "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+        ) {
+          return { status: 200 };
+        }
+        return {};
+      });
+
+      process.env.INPUT_PATHS = "src/package-lock.json";
+      process.env.INPUT_CLOSE_PRS = "false";
+
+      await run();
+
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(
+        "Fetching PR mappings for alerts before dismissal...",
+      );
+      expect(mockGraphql).not.toHaveBeenCalled();
+      expect(mockOctokit.rest.pulls.update).not.toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #1 dismissed successfully",
+      );
+      expect(processExitSpy).not.toHaveBeenCalled();
     });
   });
 });
