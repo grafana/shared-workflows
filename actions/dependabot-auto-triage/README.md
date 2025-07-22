@@ -60,7 +60,7 @@ jobs:
             ksonnet/lib/argo-workflows/charts/**/*.json
           dismissal-reason: "not_used"
           dismissal-comment: "These dependencies are not used in production and pose no risk"
-          close-prs: "true"  # Optional: close associated Dependabot PRs
+          close-prs: "true" # Optional: close associated Dependabot PRs
 ```
 
 <!-- x-release-please-end-version -->

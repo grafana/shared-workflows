@@ -30,7 +30,6 @@ export interface VulnerabilityAlert {
   };
 }
 
-
 export async function run() {
   try {
     const token = process.env.GITHUB_TOKEN;
@@ -148,9 +147,14 @@ export async function run() {
             repo,
             alertsToProcess,
           );
-          console.log(`Found ${alertPRMappings.size} alerts with associated PRs`);
+          console.log(
+            `Found ${alertPRMappings.size} alerts with associated PRs`,
+          );
         } catch (error) {
-          console.error("Error fetching alert-PR mappings. Cannot proceed with PR closure.", error);
+          console.error(
+            "Error fetching alert-PR mappings. Cannot proceed with PR closure.",
+            error,
+          );
           process.exit(1);
         }
       }
@@ -171,7 +175,10 @@ export async function run() {
                 state: "closed",
               });
             } catch (error) {
-              console.error(`Error closing PR #${prNumber} for alert #${alertNumber}:`, error);
+              console.error(
+                `Error closing PR #${prNumber} for alert #${alertNumber}:`,
+                error,
+              );
               process.exit(1);
             }
           }
@@ -346,14 +353,17 @@ export async function fetchSpecificAlertsWithPRs(
 
   const mappings = new Map<number, number>();
   for (const [key, alert] of Object.entries(result.repository)) {
-    if (alert && key.startsWith("alert") && alert.dependabotUpdate?.pullRequest?.number) {
+    if (
+      alert &&
+      key.startsWith("alert") &&
+      alert.dependabotUpdate?.pullRequest?.number
+    ) {
       mappings.set(alert.number, alert.dependabotUpdate.pullRequest.number);
     }
   }
 
   return mappings;
 }
-
 
 export function matchesAnyPattern(
   manifestPath: string | undefined,
