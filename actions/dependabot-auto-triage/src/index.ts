@@ -45,6 +45,7 @@ export async function run() {
 
     const dismissalComment = process.env.INPUT_DISMISSAL_COMMENT;
     const dismissalReason = process.env.INPUT_DISMISSAL_REASON;
+    const closePRs = process.env.INPUT_CLOSE_PRS === "true";
 
     const allowedDismissalReasons = [
       "fix_started",
@@ -136,20 +137,22 @@ export async function run() {
         return;
       }
 
-      // Fetch alert-PR mappings
-      console.log("Fetching PR mappings for alerts before dismissal...");
+      // Fetch alert-PR mappings only if we need to close PRs
       let alertPRMappings = new Map<number, number>();
-      try {
-        alertPRMappings = await fetchSpecificAlertsWithPRs(
-          token,
-          owner,
-          repo,
-          alertsToProcess,
-        );
-        console.log(`Found ${alertPRMappings.size} alerts with associated PRs`);
-      } catch (error) {
-        console.error("Error fetching alert-PR mappings. Cannot proceed with PR closure.", error);
-        process.exit(1);
+      if (closePRs) {
+        console.log("Fetching PR mappings for alerts before dismissal...");
+        try {
+          alertPRMappings = await fetchSpecificAlertsWithPRs(
+            token,
+            owner,
+            repo,
+            alertsToProcess,
+          );
+          console.log(`Found ${alertPRMappings.size} alerts with associated PRs`);
+        } catch (error) {
+          console.error("Error fetching alert-PR mappings. Cannot proceed with PR closure.", error);
+          process.exit(1);
+        }
       }
 
       console.log(`Dismissing ${alertsToProcess.length} alerts...`);
