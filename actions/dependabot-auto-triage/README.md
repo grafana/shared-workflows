@@ -60,6 +60,7 @@ jobs:
             ksonnet/lib/argo-workflows/charts/**/*.json
           dismissal-reason: "not_used"
           dismissal-comment: "These dependencies are not used in production and pose no risk"
+          close-prs: "true"  # Optional: close associated Dependabot PRs
 ```
 
 <!-- x-release-please-end-version -->
@@ -73,12 +74,15 @@ jobs:
 | `paths`             | Multi-line list of glob patterns to match manifest paths to dismiss                                               | Yes      | N/A                                                   |
 | `dismissal-comment` | Default comment to add when dismissing alerts                                                                     | No       | `Auto-dismissed based on manifest path configuration` |
 | `dismissal-reason`  | Default reason for dismissal (options: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`) | No       | `not_used`                                            |
+| `close-prs`         | Whether to close associated Dependabot pull requests before dismissing alerts                                     | No       | `false`                                               |
 
 ### How It Works
 
 1. The action fetches all open Dependabot alerts for the repository
 2. For each alert, it checks if the manifest path matches any of the provided glob patterns
-3. If the path matches a pattern, it dismisses the alert with the specified reason and comment
+3. If `close-prs` is enabled, it fetches associated pull requests for matching alerts
+4. For each matching alert, it optionally closes the associated pull request first (if `close-prs` is true)
+5. It then dismisses the alert with the specified reason and comment
 
 ### Glob Pattern Syntax
 
@@ -100,6 +104,7 @@ To use this action, you need:
 1. A GitHub App with the following permissions:
    - Repository permissions:
      - **Dependabot alerts**: Read & Write
+     - **Pull requests**: Read & Write (only required if `close-prs` is set to `true`)
 
 2. The GitHub App needs to be installed on your repository or organization
 
