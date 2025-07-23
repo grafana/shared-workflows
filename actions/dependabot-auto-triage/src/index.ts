@@ -138,18 +138,55 @@ export async function run() {
 
       // Fetch alert-PR mappings only if we need to close PRs
       let alertPRMappings = new Map<number, number>();
+      let prToAlertsMapping = new Map<number, number[]>();
+      let safePRsToClose = new Set<number>();
+      
       if (closePRs) {
-        console.log("Fetching PR mappings for alerts before dismissal...");
+        console.log("Fetching PR mappings for all alerts to ensure safe closure...");
         try {
+          // Fetch PR mappings for ALL alerts, not just the ones being dismissed
+          const allAlertNumbers = alerts.map(alert => alert.number);
           alertPRMappings = await fetchSpecificAlertsWithPRs(
             token,
             owner,
             repo,
-            alertsToProcess,
+            allAlertNumbers,
           );
           console.log(
             `Found ${alertPRMappings.size} alerts with associated PRs`,
           );
+
+          // Build reverse mapping: PR number -> list of alert numbers
+          for (const [alertNumber, prNumber] of alertPRMappings.entries()) {
+            if (!prToAlertsMapping.has(prNumber)) {
+              prToAlertsMapping.set(prNumber, []);
+            }
+            prToAlertsMapping.get(prNumber)!.push(alertNumber);
+          }
+
+          // Determine which PRs are safe to close (all associated alerts are being dismissed)
+          for (const [prNumber, associatedAlerts] of prToAlertsMapping.entries()) {
+            const allAlertsBeingDismissed = associatedAlerts.every(alertNum => 
+              alertsToProcess.includes(alertNum)
+            );
+            
+            if (allAlertsBeingDismissed) {
+              safePRsToClose.add(prNumber);
+              console.log(
+                `PR #${prNumber} will be closed (all ${associatedAlerts.length} associated alerts are being dismissed: ${associatedAlerts.join(', ')})`
+              );
+            } else {
+              const dismissedAlerts = associatedAlerts.filter(alertNum => 
+                alertsToProcess.includes(alertNum)
+              );
+              const retainedAlerts = associatedAlerts.filter(alertNum => 
+                !alertsToProcess.includes(alertNum)
+              );
+              console.log(
+                `PR #${prNumber} will NOT be closed (${retainedAlerts.length} alerts retained: ${retainedAlerts.join(', ')})`
+              );
+            }
+          }
         } catch (error) {
           console.error(
             "Error fetching alert-PR mappings. Cannot proceed with PR closure.",
@@ -163,9 +200,9 @@ export async function run() {
 
       try {
         for (const alertNumber of alertsToProcess) {
-          // Find and close associated PR before dismissing alert
+          // Find and close associated PR before dismissing alert (only if safe to close)
           const prNumber = alertPRMappings.get(alertNumber);
-          if (prNumber) {
+          if (prNumber && safePRsToClose.has(prNumber)) {
             console.log(`Closing PR #${prNumber} for alert #${alertNumber}...`);
             try {
               await octokit.rest.pulls.update({
@@ -174,6 +211,8 @@ export async function run() {
                 pull_number: prNumber,
                 state: "closed",
               });
+              // Remove from safe set to avoid closing the same PR multiple times
+              safePRsToClose.delete(prNumber);
             } catch (error) {
               console.error(
                 `Error closing PR #${prNumber} for alert #${alertNumber}:`,
@@ -181,6 +220,10 @@ export async function run() {
               );
               process.exit(1);
             }
+          } else if (prNumber && !safePRsToClose.has(prNumber)) {
+            console.log(
+              `Skipping closure of PR #${prNumber} for alert #${alertNumber} (PR has other alerts that are not being dismissed)`
+            );
           }
 
           // Now dismiss the alert

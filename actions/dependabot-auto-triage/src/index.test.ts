@@ -717,10 +717,16 @@ describe("Dependabot Auto Triage Action", () => {
       await run();
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Fetching PR mappings for alerts before dismissal...",
+        "Fetching PR mappings for all alerts to ensure safe closure...",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Found 2 alerts with associated PRs",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "PR #101 will be closed (all 1 associated alerts are being dismissed: 1)"
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "PR #102 will be closed (all 1 associated alerts are being dismissed: 2)"
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Closing PR #101 for alert #1...",
@@ -892,12 +898,123 @@ describe("Dependabot Auto Triage Action", () => {
       await run();
 
       expect(consoleLogSpy).not.toHaveBeenCalledWith(
-        "Fetching PR mappings for alerts before dismissal...",
+        "Fetching PR mappings for all alerts to ensure safe closure...",
       );
       expect(mockGraphql).not.toHaveBeenCalled();
       expect(mockOctokit.rest.pulls.update).not.toHaveBeenCalled();
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Alert #1 dismissed successfully",
+      );
+      expect(processExitSpy).not.toHaveBeenCalled();
+    });
+
+    it("should only close PRs when all associated alerts are being dismissed", async () => {
+      // Create 3 alerts: 2 will be dismissed (match patterns), 1 will not (doesn't match pattern)
+      const mockAlerts: DependabotAlert[] = [
+        createMockAlert(1, "high", "pkg-a", "src/package-lock.json"), // Will be dismissed
+        createMockAlert(2, "critical", "pkg-b", "src/package-lock.json"), // Will be dismissed
+        createMockAlert(3, "medium", "pkg-c", "other/package.json"), // Will NOT be dismissed (pattern mismatch)
+      ];
+      mockOctokit.paginate.mockResolvedValue(mockAlerts);
+      mockOctokit.request.mockResolvedValue({ status: 200 }); // For dismissal
+      mockOctokit.rest.pulls.update.mockResolvedValue({ status: 200 }); // For PR closure
+
+      // Mock successful repo check
+      mockOctokit.request.mockImplementation((route: string) => {
+        if (route === "GET /repos/{owner}/{repo}") {
+          return { data: { owner: { login: "test-user" } } };
+        }
+        if (
+          route ===
+          "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+        ) {
+          return { status: 200 };
+        }
+        return {};
+      });
+
+      // Mock GraphQL response: PR 101 is only for alert 1 (safe to close), 
+      // PR 102 is for both alert 2 and alert 3 (NOT safe to close)
+      const mockGraphqlResponse = {
+        repository: {
+          alert0: {
+            number: 1,
+            dependabotUpdate: {
+              pullRequest: { number: 101 },
+            },
+          },
+          alert1: {
+            number: 2,
+            dependabotUpdate: {
+              pullRequest: { number: 102 },
+            },
+          },
+          alert2: {
+            number: 3,
+            dependabotUpdate: {
+              pullRequest: { number: 102 }, // Same PR as alert 2
+            },
+          },
+        },
+      };
+      mockGraphql.mockResolvedValue(mockGraphqlResponse);
+
+      process.env.INPUT_PATHS = "src/package-lock.json"; // Only matches alerts 1 and 2
+      process.env.INPUT_CLOSE_PRS = "true";
+
+      await run();
+
+      // Should fetch PR mappings for all alerts
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Fetching PR mappings for all alerts to ensure safe closure...",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Found 3 alerts with associated PRs",
+      );
+      
+      // Should indicate PR 101 will be closed (only associated with alert 1 which is being dismissed)
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "PR #101 will be closed (all 1 associated alerts are being dismissed: 1)"
+      );
+      
+      // Should indicate PR 102 will NOT be closed (associated with alert 2 being dismissed AND alert 3 not being dismissed)
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "PR #102 will NOT be closed (1 alerts retained: 3)"
+      );
+
+      // Should only close PR 101
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Closing PR #101 for alert #1...",
+      );
+      expect(mockOctokit.rest.pulls.update).toHaveBeenCalledWith({
+        owner: "owner",
+        repo: "repo",
+        pull_number: 101,
+        state: "closed",
+      });
+
+      // Should skip closing PR 102 and log the reason
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Skipping closure of PR #102 for alert #2 (PR has other alerts that are not being dismissed)"
+      );
+
+      // Should NOT call update for PR 102
+      expect(mockOctokit.rest.pulls.update).not.toHaveBeenCalledWith({
+        owner: "owner",
+        repo: "repo",
+        pull_number: 102,
+        state: "closed",
+      });
+
+      // Should dismiss both matching alerts
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #1 dismissed successfully",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Alert #2 dismissed successfully",
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Successfully processed 2 alerts.",
       );
       expect(processExitSpy).not.toHaveBeenCalled();
     });
