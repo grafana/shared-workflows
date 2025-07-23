@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.2](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.5.1...push-to-gar-docker/v0.5.2) (2025-07-23)
+
+
+### 🐛 Bug Fixes
+
+* remediate latest zizmor findings, fix supplying zizmor config ([#1101](https://github.com/grafana/shared-workflows/issues/1101)) ([712c599](https://github.com/grafana/shared-workflows/commit/712c59975bc0de22124b866153826f04023f18fd))
+
+
+### 📝 Documentation
+
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v6.18.0 ([#1065](https://github.com/grafana/shared-workflows/issues/1065)) ([5b5ee4c](https://github.com/grafana/shared-workflows/commit/5b5ee4cf0a527daf5e32b7f968637b8a8ed7efcb))
+* **deps:** update docker/setup-buildx-action action to v3.11.1 ([#1068](https://github.com/grafana/shared-workflows/issues/1068)) ([5233cbc](https://github.com/grafana/shared-workflows/commit/5233cbc5d62242fb17b2259c2c4bd2a628af5528))
+
 ## [0.5.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker-v0.5.0...push-to-gar-docker/v0.5.1) (2025-06-02)
 
 
