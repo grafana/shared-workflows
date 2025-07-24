@@ -138,8 +138,8 @@ export async function run() {
 
       // Fetch alert-PR mappings only if we need to close PRs
       let alertPRMappings = new Map<number, number>();
-      let prToAlertsMapping = new Map<number, number[]>();
-      let safePRsToClose = new Set<number>();
+      const prToAlertsMapping = new Map<number, number[]>();
+      const safePRsToClose = new Set<number>();
 
       if (closePRs) {
         console.log(
@@ -163,7 +163,10 @@ export async function run() {
             if (!prToAlertsMapping.has(prNumber)) {
               prToAlertsMapping.set(prNumber, []);
             }
-            prToAlertsMapping.get(prNumber)!.push(alertNumber);
+            const alertList = prToAlertsMapping.get(prNumber);
+            if (alertList) {
+              alertList.push(alertNumber);
+            }
           }
 
           // Determine which PRs are safe to close (all associated alerts are being dismissed)
@@ -181,9 +184,6 @@ export async function run() {
                 `PR #${prNumber} will be closed (all ${associatedAlerts.length} associated alerts are being dismissed: ${associatedAlerts.join(", ")})`,
               );
             } else {
-              const dismissedAlerts = associatedAlerts.filter((alertNum) =>
-                alertsToProcess.includes(alertNum),
-              );
               const retainedAlerts = associatedAlerts.filter(
                 (alertNum) => !alertsToProcess.includes(alertNum),
               );
