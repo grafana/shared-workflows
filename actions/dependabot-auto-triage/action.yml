@@ -23,6 +23,10 @@ inputs:
     required: false
     default: "not_used"
     # Options: 'fix_started', 'inaccurate', 'no_bandwidth', 'not_used', 'tolerable_risk'
+  close-prs:
+    description: "Whether to close associated pull requests when dismissing alerts"
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -47,6 +51,7 @@ runs:
         INPUT_PATHS: ${{ inputs.paths }}
         INPUT_DISMISSAL_COMMENT: ${{ inputs.dismissal-comment }}
         INPUT_DISMISSAL_REASON: ${{ inputs.dismissal-reason }}
+        INPUT_CLOSE_PRS: ${{ inputs.close-prs }}
         NODE_ENV: "production"
       run: |
         bun run src/index.ts

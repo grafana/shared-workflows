@@ -1,4 +1,5 @@
 import { Octokit } from "@octokit/rest";
+import { graphql } from "@octokit/graphql";
 import { minimatch } from "minimatch";
 import { RequestError } from "@octokit/request-error";
 
@@ -19,6 +20,16 @@ export interface DependabotAlert {
   };
 }
 
+// GraphQL types for vulnerability alerts and associated PRs
+export interface VulnerabilityAlert {
+  number: number;
+  dependabotUpdate?: {
+    pullRequest?: {
+      number: number;
+    };
+  };
+}
+
 export async function run() {
   try {
     const token = process.env.GITHUB_TOKEN;
@@ -33,6 +44,7 @@ export async function run() {
 
     const dismissalComment = process.env.INPUT_DISMISSAL_COMMENT;
     const dismissalReason = process.env.INPUT_DISMISSAL_REASON;
+    const closePRs = process.env.INPUT_CLOSE_PRS === "true";
 
     const allowedDismissalReasons = [
       "fix_started",
@@ -124,11 +136,102 @@ export async function run() {
         return;
       }
 
+      // Fetch alert-PR mappings only if we need to close PRs
+      let alertPRMappings = new Map<number, number>();
+      const prToAlertsMapping = new Map<number, number[]>();
+      const safePRsToClose = new Set<number>();
+
+      if (closePRs) {
+        console.log(
+          "Fetching PR mappings for all alerts to ensure safe closure...",
+        );
+        try {
+          // Fetch PR mappings for ALL alerts, not just the ones being dismissed
+          const allAlertNumbers = alerts.map((alert) => alert.number);
+          alertPRMappings = await fetchSpecificAlertsWithPRs(
+            token,
+            owner,
+            repo,
+            allAlertNumbers,
+          );
+          console.log(
+            `Found ${alertPRMappings.size} alerts with associated PRs`,
+          );
+
+          // Build reverse mapping: PR number -> list of alert numbers
+          for (const [alertNumber, prNumber] of alertPRMappings.entries()) {
+            if (!prToAlertsMapping.has(prNumber)) {
+              prToAlertsMapping.set(prNumber, []);
+            }
+            const alertList = prToAlertsMapping.get(prNumber);
+            if (alertList) {
+              alertList.push(alertNumber);
+            }
+          }
+
+          // Determine which PRs are safe to close (all associated alerts are being dismissed)
+          for (const [
+            prNumber,
+            associatedAlerts,
+          ] of prToAlertsMapping.entries()) {
+            const allAlertsBeingDismissed = associatedAlerts.every((alertNum) =>
+              alertsToProcess.includes(alertNum),
+            );
+
+            if (allAlertsBeingDismissed) {
+              safePRsToClose.add(prNumber);
+              console.log(
+                `PR #${prNumber} will be closed (all ${associatedAlerts.length} associated alerts are being dismissed: ${associatedAlerts.join(", ")})`,
+              );
+            } else {
+              const retainedAlerts = associatedAlerts.filter(
+                (alertNum) => !alertsToProcess.includes(alertNum),
+              );
+              console.log(
+                `PR #${prNumber} will NOT be closed (${retainedAlerts.length} alerts retained: ${retainedAlerts.join(", ")})`,
+              );
+            }
+          }
+        } catch (error) {
+          console.error(
+            "Error fetching alert-PR mappings. Cannot proceed with PR closure.",
+            error,
+          );
+          process.exit(1);
+        }
+      }
+
       console.log(`Dismissing ${alertsToProcess.length} alerts...`);
 
-      // Use the correct endpoint to dismiss multiple alerts at once
       try {
         for (const alertNumber of alertsToProcess) {
+          // Find and close associated PR before dismissing alert (only if safe to close)
+          const prNumber = alertPRMappings.get(alertNumber);
+          if (prNumber && safePRsToClose.has(prNumber)) {
+            console.log(`Closing PR #${prNumber} for alert #${alertNumber}...`);
+            try {
+              await octokit.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: prNumber,
+                state: "closed",
+              });
+              // Remove from safe set to avoid closing the same PR multiple times
+              safePRsToClose.delete(prNumber);
+            } catch (error) {
+              console.error(
+                `Error closing PR #${prNumber} for alert #${alertNumber}:`,
+                error,
+              );
+              process.exit(1);
+            }
+          } else if (prNumber && !safePRsToClose.has(prNumber)) {
+            console.log(
+              `Skipping closure of PR #${prNumber} for alert #${alertNumber} (PR has other alerts that are not being dismissed)`,
+            );
+          }
+
+          // Now dismiss the alert
           await octokit.request(
             "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}",
             {
@@ -148,7 +251,7 @@ export async function run() {
           );
           console.log(`Alert #${alertNumber} dismissed successfully`);
         }
-        console.log(`Successfully dismissed ${alertsToProcess.length} alerts.`);
+        console.log(`Successfully processed ${alertsToProcess.length} alerts.`);
       } catch (error) {
         if (error instanceof RequestError) {
           if (error.status === 403) {
@@ -249,6 +352,65 @@ export async function fetchAllAlerts(
   );
 
   return filteredAlerts;
+}
+
+export async function fetchSpecificAlertsWithPRs(
+  token: string,
+  owner: string,
+  repo: string,
+  alertNumbers: number[],
+): Promise<Map<number, number>> {
+  if (alertNumbers.length === 0) return new Map();
+
+  const graphqlWithAuth = graphql.defaults({
+    headers: {
+      authorization: `token ${token}`,
+    },
+  });
+
+  // Build a query to fetch each alert by its specific number
+  const alertQueries = alertNumbers
+    .map(
+      (num, index) => `
+    alert${index}: vulnerabilityAlert(number: ${num}) {
+      number
+      dependabotUpdate {
+        pullRequest {
+          number
+        }
+      }
+    }
+  `,
+    )
+    .join("");
+
+  const query = `
+    query GetSpecificVulnerabilityAlerts($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        ${alertQueries}
+      }
+    }
+  `;
+
+  const result = await graphqlWithAuth<{
+    repository: Record<string, VulnerabilityAlert | null>;
+  }>(query, {
+    owner,
+    repo,
+  });
+
+  const mappings = new Map<number, number>();
+  for (const [key, alert] of Object.entries(result.repository)) {
+    if (
+      alert &&
+      key.startsWith("alert") &&
+      alert.dependabotUpdate?.pullRequest?.number
+    ) {
+      mappings.set(alert.number, alert.dependabotUpdate.pullRequest.number);
+    }
+  }
+
+  return mappings;
 }
 
 export function matchesAnyPattern(
