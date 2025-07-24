@@ -140,12 +140,14 @@ export async function run() {
       let alertPRMappings = new Map<number, number>();
       let prToAlertsMapping = new Map<number, number[]>();
       let safePRsToClose = new Set<number>();
-      
+
       if (closePRs) {
-        console.log("Fetching PR mappings for all alerts to ensure safe closure...");
+        console.log(
+          "Fetching PR mappings for all alerts to ensure safe closure...",
+        );
         try {
           // Fetch PR mappings for ALL alerts, not just the ones being dismissed
-          const allAlertNumbers = alerts.map(alert => alert.number);
+          const allAlertNumbers = alerts.map((alert) => alert.number);
           alertPRMappings = await fetchSpecificAlertsWithPRs(
             token,
             owner,
@@ -165,25 +167,28 @@ export async function run() {
           }
 
           // Determine which PRs are safe to close (all associated alerts are being dismissed)
-          for (const [prNumber, associatedAlerts] of prToAlertsMapping.entries()) {
-            const allAlertsBeingDismissed = associatedAlerts.every(alertNum => 
-              alertsToProcess.includes(alertNum)
+          for (const [
+            prNumber,
+            associatedAlerts,
+          ] of prToAlertsMapping.entries()) {
+            const allAlertsBeingDismissed = associatedAlerts.every((alertNum) =>
+              alertsToProcess.includes(alertNum),
             );
-            
+
             if (allAlertsBeingDismissed) {
               safePRsToClose.add(prNumber);
               console.log(
-                `PR #${prNumber} will be closed (all ${associatedAlerts.length} associated alerts are being dismissed: ${associatedAlerts.join(', ')})`
+                `PR #${prNumber} will be closed (all ${associatedAlerts.length} associated alerts are being dismissed: ${associatedAlerts.join(", ")})`,
               );
             } else {
-              const dismissedAlerts = associatedAlerts.filter(alertNum => 
-                alertsToProcess.includes(alertNum)
+              const dismissedAlerts = associatedAlerts.filter((alertNum) =>
+                alertsToProcess.includes(alertNum),
               );
-              const retainedAlerts = associatedAlerts.filter(alertNum => 
-                !alertsToProcess.includes(alertNum)
+              const retainedAlerts = associatedAlerts.filter(
+                (alertNum) => !alertsToProcess.includes(alertNum),
               );
               console.log(
-                `PR #${prNumber} will NOT be closed (${retainedAlerts.length} alerts retained: ${retainedAlerts.join(', ')})`
+                `PR #${prNumber} will NOT be closed (${retainedAlerts.length} alerts retained: ${retainedAlerts.join(", ")})`,
               );
             }
           }
@@ -222,7 +227,7 @@ export async function run() {
             }
           } else if (prNumber && !safePRsToClose.has(prNumber)) {
             console.log(
-              `Skipping closure of PR #${prNumber} for alert #${alertNumber} (PR has other alerts that are not being dismissed)`
+              `Skipping closure of PR #${prNumber} for alert #${alertNumber} (PR has other alerts that are not being dismissed)`,
             );
           }
 

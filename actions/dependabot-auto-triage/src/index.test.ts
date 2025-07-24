@@ -723,10 +723,10 @@ describe("Dependabot Auto Triage Action", () => {
         "Found 2 alerts with associated PRs",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "PR #101 will be closed (all 1 associated alerts are being dismissed: 1)"
+        "PR #101 will be closed (all 1 associated alerts are being dismissed: 1)",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "PR #102 will be closed (all 1 associated alerts are being dismissed: 2)"
+        "PR #102 will be closed (all 1 associated alerts are being dismissed: 2)",
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Closing PR #101 for alert #1...",
@@ -933,7 +933,7 @@ describe("Dependabot Auto Triage Action", () => {
         return {};
       });
 
-      // Mock GraphQL response: PR 101 is only for alert 1 (safe to close), 
+      // Mock GraphQL response: PR 101 is only for alert 1 (safe to close),
       // PR 102 is for both alert 2 and alert 3 (NOT safe to close)
       const mockGraphqlResponse = {
         repository: {
@@ -971,15 +971,15 @@ describe("Dependabot Auto Triage Action", () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         "Found 3 alerts with associated PRs",
       );
-      
+
       // Should indicate PR 101 will be closed (only associated with alert 1 which is being dismissed)
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "PR #101 will be closed (all 1 associated alerts are being dismissed: 1)"
+        "PR #101 will be closed (all 1 associated alerts are being dismissed: 1)",
       );
-      
+
       // Should indicate PR 102 will NOT be closed (associated with alert 2 being dismissed AND alert 3 not being dismissed)
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "PR #102 will NOT be closed (1 alerts retained: 3)"
+        "PR #102 will NOT be closed (1 alerts retained: 3)",
       );
 
       // Should only close PR 101
@@ -995,7 +995,7 @@ describe("Dependabot Auto Triage Action", () => {
 
       // Should skip closing PR 102 and log the reason
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "Skipping closure of PR #102 for alert #2 (PR has other alerts that are not being dismissed)"
+        "Skipping closure of PR #102 for alert #2 (PR has other alerts that are not being dismissed)",
       );
 
       // Should NOT call update for PR 102
