@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@commitlint/types": "19.8.1",
-    "@eslint/js": "9.31.0",
+    "@eslint/js": "9.32.0",
     "@octokit/types": "14.1.0",
     "@octokit/webhooks-types": "7.6.1",
     "@types/bun": "1.2.19",
