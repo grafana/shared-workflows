@@ -1,5 +1,51 @@
 # Changelog
 
+## [1.2.1](https://github.com/grafana/shared-workflows/compare/lint-pr-title/v1.2.0...lint-pr-title/v1.2.1) (2025-07-25)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update commitlint monorepo to v19.8.1 ([#1052](https://github.com/grafana/shared-workflows/issues/1052)) ([28ef11a](https://github.com/grafana/shared-workflows/commit/28ef11a15dff285f58f915acae34fde2b0b48080))
+* **deps:** update dependency @actions/github to v6.0.1 ([#1054](https://github.com/grafana/shared-workflows/issues/1054)) ([23e7c85](https://github.com/grafana/shared-workflows/commit/23e7c85bf1b6a3e61a33c5a7d4ac3468a14e1e30))
+* **deps:** update dependency @octokit/core to v7.0.3 ([#1131](https://github.com/grafana/shared-workflows/issues/1131)) ([70731a5](https://github.com/grafana/shared-workflows/commit/70731a505da74b4f7430ffee6cfd205c0b7c66e3))
+* **deps:** update octokit monorepo ([ea7cd86](https://github.com/grafana/shared-workflows/commit/ea7cd862c0ed84ba64739d8914d76e38a7ea2dce))
+* **deps:** update octokit monorepo ([b67e3a0](https://github.com/grafana/shared-workflows/commit/b67e3a067cb1d5a0691c984af46dfd6da01a8a46))
+* **deps:** update octokit monorepo (major) ([#1091](https://github.com/grafana/shared-workflows/issues/1091)) ([b67e3a0](https://github.com/grafana/shared-workflows/commit/b67e3a067cb1d5a0691c984af46dfd6da01a8a46))
+* **deps:** update octokit monorepo (major) ([#1095](https://github.com/grafana/shared-workflows/issues/1095)) ([ea7cd86](https://github.com/grafana/shared-workflows/commit/ea7cd862c0ed84ba64739d8914d76e38a7ea2dce))
+* **lint-pr-title:** adapt action and Dockerfile to bun workspaces ([#1120](https://github.com/grafana/shared-workflows/issues/1120)) ([b5b28b5](https://github.com/grafana/shared-workflows/commit/b5b28b5c1706ebd3ec4fb5b0dfefebb66954566a))
+
+
+### 🤖 Continuous Integration
+
+* enhance, fix, run pre-commit ([#1033](https://github.com/grafana/shared-workflows/issues/1033)) ([9ffb9ce](https://github.com/grafana/shared-workflows/commit/9ffb9cec67a7712b4247e4ac37eb69946d802aed))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @eslint/js to v9.31.0 ([#1133](https://github.com/grafana/shared-workflows/issues/1133)) ([e9a3e88](https://github.com/grafana/shared-workflows/commit/e9a3e882ed031e55fc33fee856aa53ae9a054bd3))
+* **deps:** update dependency @eslint/js to v9.32.0 ([#1175](https://github.com/grafana/shared-workflows/issues/1175)) ([8c3f72c](https://github.com/grafana/shared-workflows/commit/8c3f72cb3fca78322dea8a578efeafd3e58b41be))
+* **deps:** update dependency @octokit/types to v14.1.0 ([#1057](https://github.com/grafana/shared-workflows/issues/1057)) ([dd576a6](https://github.com/grafana/shared-workflows/commit/dd576a6b0c691ee08fcfe7c4445b6fcb6fba3ba1))
+* **deps:** update dependency @types/bun to v1.2.17 ([#1098](https://github.com/grafana/shared-workflows/issues/1098)) ([a5e8a34](https://github.com/grafana/shared-workflows/commit/a5e8a3415aa1f313f5ffce2cb56a4288f040dbb4))
+* **deps:** update dependency @types/bun to v1.2.18 ([#1104](https://github.com/grafana/shared-workflows/issues/1104)) ([c6e5e2e](https://github.com/grafana/shared-workflows/commit/c6e5e2e4d64e41325193c2fa9bb71f69c159e340))
+* **deps:** update dependency @types/bun to v1.2.19 ([#1154](https://github.com/grafana/shared-workflows/issues/1154)) ([6350dae](https://github.com/grafana/shared-workflows/commit/6350daebe7e0caa34881f80f824f9941787de161))
+* **deps:** update dependency eslint-config-prettier to v10.1.5 ([#1043](https://github.com/grafana/shared-workflows/issues/1043)) ([6ceeaed](https://github.com/grafana/shared-workflows/commit/6ceeaedb6d38b4c3a96e8dc560d0db24cc58b0e7))
+* **deps:** update dependency eslint-config-prettier to v10.1.7 ([#1147](https://github.com/grafana/shared-workflows/issues/1147)) ([4009165](https://github.com/grafana/shared-workflows/commit/40091658291a33bf62f94407aba31049dbc84aac))
+* **deps:** update dependency eslint-config-prettier to v10.1.8 ([#1148](https://github.com/grafana/shared-workflows/issues/1148)) ([2616f60](https://github.com/grafana/shared-workflows/commit/2616f6063040d926cd04b1b656f404904d423c96))
+* **deps:** update dependency eslint-plugin-jest to v28.14.0 ([#1058](https://github.com/grafana/shared-workflows/issues/1058)) ([e2bd372](https://github.com/grafana/shared-workflows/commit/e2bd37281a937093cbcef294fd2ac955c086e7a9))
+* **deps:** update dependency eslint-plugin-jest to v29 ([#1080](https://github.com/grafana/shared-workflows/issues/1080)) ([2b634d9](https://github.com/grafana/shared-workflows/commit/2b634d9cb9ebe39e53a0fff8e33ce7386da3f415))
+* **deps:** update dependency eslint-plugin-prettier to v5.5.1 ([#1059](https://github.com/grafana/shared-workflows/issues/1059)) ([e3459ca](https://github.com/grafana/shared-workflows/commit/e3459ca4c7fd46953bb9f3b1e1ba5d8448679b74))
+* **deps:** update dependency eslint-plugin-prettier to v5.5.3 ([#1149](https://github.com/grafana/shared-workflows/issues/1149)) ([f3c6e9a](https://github.com/grafana/shared-workflows/commit/f3c6e9a273995d168a0b922f32333d99f5c5777c))
+* **deps:** update dependency prettier to v3.6.2 ([#1062](https://github.com/grafana/shared-workflows/issues/1062)) ([82c036c](https://github.com/grafana/shared-workflows/commit/82c036c05283174e20fa9128c17af97369240cb4))
+* **deps:** update dependency typescript-eslint to v8.35.1 ([#1063](https://github.com/grafana/shared-workflows/issues/1063)) ([5c4ae58](https://github.com/grafana/shared-workflows/commit/5c4ae586f02760e01b097f1d6e8e5fb538b12dc7))
+* **deps:** update dependency typescript-eslint to v8.36.0 ([#1114](https://github.com/grafana/shared-workflows/issues/1114)) ([bcc611d](https://github.com/grafana/shared-workflows/commit/bcc611dc3f77a85e0770a979f56489e8cddc8c7b))
+* **deps:** update dependency typescript-eslint to v8.37.0 ([#1137](https://github.com/grafana/shared-workflows/issues/1137)) ([2343b41](https://github.com/grafana/shared-workflows/commit/2343b41146825e958691cf2187c52df99b8fa492))
+* **deps:** update dependency typescript-eslint to v8.37.0 ([#1140](https://github.com/grafana/shared-workflows/issues/1140)) ([d804ccf](https://github.com/grafana/shared-workflows/commit/d804ccf199690510add9f96f6c2d6d6606833a71))
+* **deps:** update dependency typescript-eslint to v8.38.0 ([#1160](https://github.com/grafana/shared-workflows/issues/1160)) ([b7d8b85](https://github.com/grafana/shared-workflows/commit/b7d8b8575d8df5ff208883889f65d6db2a3dd9af))
+* **deps:** update eslint monorepo to v9.30.1 ([#1069](https://github.com/grafana/shared-workflows/issues/1069)) ([ddf4ef9](https://github.com/grafana/shared-workflows/commit/ddf4ef933ad77c335f9b6c082774c965c077df3a))
+* **deps:** update eslint monorepo to v9.31.0 ([e9a3e88](https://github.com/grafana/shared-workflows/commit/e9a3e882ed031e55fc33fee856aa53ae9a054bd3))
+* **deps:** update oven/bun docker tag to v1.2.18 ([#1111](https://github.com/grafana/shared-workflows/issues/1111)) ([9f67ec1](https://github.com/grafana/shared-workflows/commit/9f67ec194553e5162af87a6c60dbacacfaf0af50))
+* **deps:** update oven/bun docker tag to v1.2.19 ([#1159](https://github.com/grafana/shared-workflows/issues/1159)) ([49b1ab0](https://github.com/grafana/shared-workflows/commit/49b1ab073e3dd8f5315a267d541d4d9f55ad9caf))
+
 ## [1.2.0](https://github.com/grafana/shared-workflows/compare/lint-pr-title-v1.1.1...lint-pr-title/v1.2.0) (2025-06-04)
 
 
