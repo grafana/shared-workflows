@@ -11,7 +11,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@octokit/graphql": "^9.0.1",
+    "@octokit/graphql": "9.0.1",
     "@octokit/request-error": "7.0.0",
     "@octokit/rest": "22.0.0",
     "minimatch": "10.0.3"
