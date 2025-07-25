@@ -2,7 +2,7 @@
   "name": "shared-workflows",
   "private": true,
   "devDependencies": {
-    "@eslint/js": "9.31.0",
+    "@eslint/js": "9.32.0",
     "@types/bun": "latest",
     "eslint": "9.31.0",
     "eslint-config-prettier": "10.1.8",
