@@ -31,12 +31,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v1.1.0
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v1.1.1
 
       # Get GitHub App token with Dependabot alerts permissions
       - name: Retrieve GitHub App secrets
         id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.1.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.1.1
         with:
           common_secrets: |
             DEPENDABOT_AUTO_TRIAGE_APP_ID=dependabot-auto-triage:app-id
@@ -44,14 +44,14 @@ jobs:
 
       - name: Generate token
         id: generate-token
-        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v1.1.0
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v1.1.1
         with:
           app-id: ${{ env.DEPENDABOT_AUTO_TRIAGE_APP_ID }}
           private-key: ${{ env.DEPENDABOT_AUTO_TRIAGE_APP_PRIVATE_KEY }}
 
       # Use the token with the auto-triage action
       - name: Auto Dismiss Dependabot Alerts
-        uses: grafana/shared-workflows/actions/dependabot-auto-triage@dependabot-auto-triage/v1.1.0
+        uses: grafana/shared-workflows/actions/dependabot-auto-triage@dependabot-auto-triage/v1.1.1
         with:
           token: ${{ steps.generate-token.outputs.token }}
           paths: |
