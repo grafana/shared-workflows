@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.2](https://github.com/grafana/shared-workflows/compare/login-to-gcs/v0.2.1...login-to-gcs/v0.2.2) (2025-07-25)
+
+
+### 🐛 Bug Fixes
+
+* remediate latest zizmor findings, fix supplying zizmor config ([#1101](https://github.com/grafana/shared-workflows/issues/1101)) ([712c599](https://github.com/grafana/shared-workflows/commit/712c59975bc0de22124b866153826f04023f18fd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/auth action to v2.1.11 ([#1150](https://github.com/grafana/shared-workflows/issues/1150)) ([895722b](https://github.com/grafana/shared-workflows/commit/895722b12337ee97909efa8a78886ee69297ed50))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/login-to-gcs-v0.2.0...login-to-gcs/v0.2.1) (2025-06-04)
 
 
