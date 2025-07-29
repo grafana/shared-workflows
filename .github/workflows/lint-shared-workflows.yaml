@@ -50,6 +50,7 @@ jobs:
 
       - name: Restore github-action.json schema
         id: restore-schema
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: |
@@ -89,7 +90,7 @@ jobs:
       # Caches can't be overwritten, so we need to delete the previous cache if
       # the schema has changed
       - name: Delete Previous Cache
-        if: steps.restore-schema.outputs.cache-hit == 'true' && steps.download-schema.outputs.schema-changed == 'true'
+        if: steps.restore-schema.conclusion == 'success' && steps.restore-schema.outputs.cache-hit == 'true' && steps.download-schema.outputs.schema-changed == 'true'
         run: |
           gh extension install actions/gh-actions-cache
           gh actions-cache delete --repo "${{ github.repository }}" "github-action-schema" --confirm
@@ -98,7 +99,7 @@ jobs:
 
       - name: Save github-action.json schema to cache
         uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        if: steps.download-schema.outputs.schema-changed == 'true'
+        if: steps.restore-schema.conclusion == 'success' && steps.download-schema.outputs.schema-changed == 'true'
         with:
           path: |
             github-action.json
