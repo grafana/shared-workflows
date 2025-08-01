@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.5.2...push-to-gar-docker/v0.5.3) (2025-08-01)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/metadata-action action to v5.8.0 ([#1182](https://github.com/grafana/shared-workflows/issues/1182)) ([315e38a](https://github.com/grafana/shared-workflows/commit/315e38a03f442c39bd82e902b88d8ba6ff8879b7))
+
 ## [0.5.2](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.5.1...push-to-gar-docker/v0.5.2) (2025-07-23)
 
 
