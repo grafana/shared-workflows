@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/shared-workflows/actions/clean-up-stale-branches/pkg/gh"
 )
 
 // Goal:
@@ -27,13 +28,15 @@ import (
 // - how do I deal with authentication?
 func main() {
 	var (
-		repository string
+		repository    string
+		defaultBranch string
 
 		logger = initLogger()
 		ctx    = context.Background()
 	)
 
 	flag.StringVar(&repository, "repository", "", "The repostiory for which the stale branches should be cleaned up from")
+	flag.StringVar(&defaultBranch, "defaultBranch", "", "The branch that should not be marked as stale")
 
 	if repository == "" {
 		level.Error(logger).Log("msg", "No repository specified")
