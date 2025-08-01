@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.2.1...push-to-gcs/v0.3.0) (2025-08-01)
+
+
+### 🎉 Features
+
+* **push-to-gcs:** add `gzip` input ([#1138](https://github.com/grafana/shared-workflows/issues/1138)) ([589381a](https://github.com/grafana/shared-workflows/commit/589381ac26c629055574bff68951d452231cdc22))
+
+
+### 🐛 Bug Fixes
+
+* remediate latest zizmor findings, fix supplying zizmor config ([#1101](https://github.com/grafana/shared-workflows/issues/1101)) ([712c599](https://github.com/grafana/shared-workflows/commit/712c59975bc0de22124b866153826f04023f18fd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/upload-cloud-storage action to v2.2.3 ([#1153](https://github.com/grafana/shared-workflows/issues/1153)) ([346eeb2](https://github.com/grafana/shared-workflows/commit/346eeb2f8f5db9a0b7c563c41f7211c46850627e))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/push-to-gcs-v0.2.0...push-to-gcs/v0.2.1) (2025-06-04)
 
 
