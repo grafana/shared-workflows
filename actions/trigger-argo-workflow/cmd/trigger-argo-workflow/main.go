@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"maps"
 	"os"
@@ -9,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/lmittmann/tint"
-	cli "github.com/urfave/cli/v2"
+	cli "github.com/urfave/cli/v3"
 	"github.com/willabides/actionslog"
 	"github.com/willabides/actionslog/human"
 	"golang.org/x/term"
@@ -23,6 +25,7 @@ const (
 	flagNamespace        = "namespace"
 	flagParameter        = "parameter"
 	flagRetries          = "retries"
+	flagPrintConfig      = "print-config"
 	flagWorkflowTemplate = "workflow-template"
 )
 
@@ -42,13 +45,17 @@ func parseLogLevel(level string) (slog.Level, error) {
 }
 
 func main() {
+	runMain(os.Args, os.Stdout, os.Stderr)
+}
+
+func runMain(args []string, writer io.Writer, errWriter io.Writer) {
 	// If we're on a terminal, we use tint, otherwise if we're on GitHub actions
 	// we use `willabites/actionslog` to log proper Actions messages, otherwise
 	// we use logfmt.
 	var lv slog.LevelVar
 
 	logger := slog.New(
-		slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		slog.NewTextHandler(errWriter, &slog.HandlerOptions{
 			Level: &lv,
 		}),
 	)
@@ -69,35 +76,64 @@ func main() {
 		)
 	}
 
-	app := cli.NewApp()
+	app := cli.Command{}
+	app.Writer = writer
+	app.ErrWriter = errWriter
 	app.Name = "Runs the Argo CLI"
 
-	app.Action = func(c *cli.Context) error { return run(c, &lv, logger) }
+	app.Action = func(ctx context.Context, c *cli.Command) error {
+		return fmt.Errorf("please specify a command")
+	}
+
+	app.Commands = []*cli.Command{
+		{
+			Name:            "submit",
+			SkipFlagParsing: true,
+			Writer:          writer,
+			ErrWriter:       errWriter,
+			Action: func(ctx context.Context, c *cli.Command) error {
+				return run(ctx, c, &lv, logger, "submit")
+			},
+		},
+	}
 
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{
-			Name:    flagAddCILabels,
-			EnvVars: []string{"ADD_CI_LABELS"},
-			Value:   false,
-			Usage:   "If true, the `--labels` argument will be added with values from the environment. This is forced for the `submit` command",
+			Name:     flagPrintConfig,
+			Required: false,
+			Usage:    "If set thie command will only print the gathered configuration and exist",
+		},
+		&cli.BoolFlag{
+			Name: flagAddCILabels,
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("ADD_CI_LABELS"),
+			),
+			Value: false,
+			Usage: "If true, the `--labels` argument will be added with values from the environment. This is forced for the `submit` command",
 		},
 		&cli.StringFlag{
-			Name:     flagNamespace,
-			EnvVars:  []string{"ARGO_NAMESPACE"},
+			Name: flagNamespace,
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("ARGO_NAMESPACE"),
+			),
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:     flagArgoToken,
-			EnvVars:  []string{"ARGO_TOKEN"},
+			Name: flagArgoToken,
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("ARGO_TOKEN"),
+			),
 			Usage:    "The Argo token to use for authentication",
 			Required: true,
 		},
 		&cli.StringFlag{
-			Name:    flagLogLevel,
-			EnvVars: []string{"LOG_LEVEL"},
-			Usage:   "Which log level to use",
-			Value:   "info",
-			Action: func(c *cli.Context, level string) error {
+			Name: flagLogLevel,
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("LOG_LEVEL"),
+			),
+			Usage: "Which log level to use",
+			Value: "info",
+			Action: func(ctx context.Context, c *cli.Command, level string) error {
 				level = strings.ToLower(level)
 
 				lvl, err := parseLogLevel(level)
@@ -111,10 +147,12 @@ func main() {
 			},
 		},
 		&cli.StringFlag{
-			Name:    flagInstance,
-			EnvVars: []string{"INSTANCE"},
-			Value:   "ops",
-			Action: func(c *cli.Context, instance string) error {
+			Name: flagInstance,
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("INSTANCE"),
+			),
+			Value: "ops",
+			Action: func(ctx context.Context, c *cli.Command, instance string) error {
 				// Validate it is a known instance
 				instances := slices.Collect(maps.Keys(instanceToHost))
 				if !slices.Contains(instances, instance) {
@@ -129,16 +167,20 @@ func main() {
 			Usage: "Parameters to pass to the workflow template. Given as `key=value`. Specify multiple times for multiple parameters",
 		},
 		&cli.UintFlag{
-			Name:    flagRetries,
-			EnvVars: []string{"RETRIES"},
-			Value:   3,
-			Usage:   "Number of retries to make if the command fails",
+			Name: flagRetries,
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("RETRIES"),
+			),
+			Value: 3,
+			Usage: "Number of retries to make if the command fails",
 		},
 		&cli.StringFlag{
-			Name:    flagWorkflowTemplate,
-			EnvVars: []string{"WORKFLOW_TEMPLATE"},
-			Usage:   "The workflow template to use",
-			Action: func(c *cli.Context, tpl string) error {
+			Name: flagWorkflowTemplate,
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("WORKFLOW_TEMPLATE"),
+			),
+			Usage: "The workflow template to use",
+			Action: func(ctx context.Context, c *cli.Command, tpl string) error {
 				// Required if command is `submit`
 				if c.Args().First() == "submit" && tpl == "" {
 					return fmt.Errorf("required flag: %s", flagWorkflowTemplate)
@@ -148,16 +190,15 @@ func main() {
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(context.Background(), args); err != nil {
 		logger.With("error", err).Error("failed to run")
 		os.Exit(1)
 	}
 }
 
-func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
+func run(ctx context.Context, c *cli.Command, level *slog.LevelVar, logger *slog.Logger, command string) error {
 	addCILabels := c.Bool(flagAddCILabels)
 	argoToken := c.String(flagArgoToken)
-	command := c.Args().First()
 	instance := c.String(flagInstance)
 	namespace := c.String(flagNamespace)
 	parameters := c.StringSlice(flagParameter)
@@ -173,7 +214,7 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 		extraArgs = append(extraArgs, "--parameter", param)
 	}
 
-	extraArgs = append(extraArgs, c.Args().Tail()...)
+	extraArgs = append(extraArgs, c.Args().Slice()...)
 
 	md, err := NewGitHubActionsMetadata()
 	if err != nil {
@@ -191,8 +232,6 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 		"command", command,
 		"namespace", namespace,
 	)
-
-	logger.With("extraArgs", extraArgs).Info("running command")
 
 	argo := App{
 		levelVar: level,
@@ -212,5 +251,13 @@ func run(c *cli.Context, level *slog.LevelVar, logger *slog.Logger) error {
 		retries: retries,
 	}
 
-	return argo.Run(md)
+	if c.Bool(flagPrintConfig) {
+		if err := argo.PrintConfig(c.Writer, md); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	logger.With("extraArgs", extraArgs).Info("running command")
+	return argo.Run(ctx, md)
 }

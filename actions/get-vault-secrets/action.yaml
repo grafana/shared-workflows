@@ -64,7 +64,43 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+          let jwt;
+          try {
+            jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+          } catch (error) {
+            core.setFailed(`❌ Failed to get OIDC token: ${error.message}`);
+
+            // Provide helpful suggestions
+            core.error(`
+          🔧 OIDC Token Error - How to Fix:
+
+          This error typically occurs when your workflow lacks proper permissions for OIDC token generation.
+
+          ✅ Solution 1 - Add workflow-level permissions:
+          Add this to the top of your workflow YAML file:
+
+          permissions:
+            id-token: write
+            contents: read
+
+          ✅ Solution 2 - Add job-level permissions:
+          Add this to your specific job:
+
+          jobs:
+            your-job-name:
+              permissions:
+                id-token: write
+                contents: read
+
+          ✅ Solution 3 - Verify repository configuration:
+          - Ensure your repository has OIDC enabled
+          - Check that the Vault OIDC provider is configured for your repository
+
+          📚 More info: https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect
+            `);
+            return;
+          }
+
           core.setSecret(jwt);
           core.setOutput("github-jwt",jwt);
 

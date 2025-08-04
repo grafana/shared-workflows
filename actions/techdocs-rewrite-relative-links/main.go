@@ -16,7 +16,7 @@ import (
 	"github.com/lmittmann/tint"
 	"github.com/spf13/afero"
 	markdown "github.com/teekennedy/goldmark-markdown"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"github.com/willabides/actionslog"
 	"github.com/willabides/actionslog/human"
 	"github.com/yuin/goldmark"
@@ -29,7 +29,7 @@ import (
 )
 
 func main() {
-	app := cli.App{
+	app := cli.Command{
 		Name: "techdocs-rewrite-relative-links",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -66,20 +66,19 @@ func main() {
 				Value:    false,
 			},
 		},
-		Action: func(cliCtx *cli.Context) error {
-			repoURL := cliCtx.String("repo-url")
-			defaultBranch := cliCtx.String("default-branch")
-			rootDir := cliCtx.String("root-dir")
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			repoURL := cmd.String("repo-url")
+			defaultBranch := cmd.String("default-branch")
+			rootDir := cmd.String("root-dir")
 
 			level := slog.LevelWarn
-			if cliCtx.Bool("debug") {
+			if cmd.Bool("debug") {
 				level = slog.LevelDebug
 			}
-			if level == slog.LevelDebug && cliCtx.Bool("verbose") {
+			if level == slog.LevelDebug && cmd.Bool("verbose") {
 				level = slog.LevelInfo
 			}
 
-			ctx := cliCtx.Context
 			var logger *slog.Logger
 			if os.Getenv("GITHUB_ACTIONS") == "true" {
 				handler := &human.Handler{}
@@ -104,7 +103,7 @@ func main() {
 			}
 			ctrl := controller{
 				filesys:       afero.NewOsFs(),
-				dryRun:        cliCtx.Bool("dry-run"),
+				dryRun:        cmd.Bool("dry-run"),
 				logger:        logger,
 				rootDirectory: rootDir,
 				repoURL:       repoURL,
@@ -114,7 +113,7 @@ func main() {
 		},
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	if err := app.RunContext(ctx, os.Args); err != nil {
+	if err := app.Run(ctx, os.Args); err != nil {
 		cancel()
 		slog.Error(err.Error())
 		os.Exit(1)

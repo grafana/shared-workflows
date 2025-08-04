@@ -28,13 +28,13 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: mikefarah/yq:4.45.4@sha256:7cf28e5d67782f4b274a93a7bc54a840b553447a0807efd843d069f46bff718c
+      image: mikefarah/yq:4.47.1@sha256:b9285dd3b0bea3c34d0c54415dd48d767dabd9644d489bd6e253660847b58419
       # https://github.com/actions/checkout/issues/956
       options: --user root
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49 # v2.12.2
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
           egress-policy: audit
 
@@ -50,6 +50,7 @@ jobs:
 
       - name: Restore github-action.json schema
         id: restore-schema
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: |
@@ -89,7 +90,7 @@ jobs:
       # Caches can't be overwritten, so we need to delete the previous cache if
       # the schema has changed
       - name: Delete Previous Cache
-        if: steps.restore-schema.outputs.cache-hit == 'true' && steps.download-schema.outputs.schema-changed == 'true'
+        if: steps.restore-schema.conclusion == 'success' && steps.restore-schema.outputs.cache-hit == 'true' && steps.download-schema.outputs.schema-changed == 'true'
         run: |
           gh extension install actions/gh-actions-cache
           gh actions-cache delete --repo "${{ github.repository }}" "github-action-schema" --confirm
@@ -98,7 +99,7 @@ jobs:
 
       - name: Save github-action.json schema to cache
         uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        if: steps.download-schema.outputs.schema-changed == 'true'
+        if: steps.restore-schema.conclusion == 'success' && steps.download-schema.outputs.schema-changed == 'true'
         with:
           path: |
             github-action.json

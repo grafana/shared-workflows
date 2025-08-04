@@ -69,7 +69,7 @@ runs:
         BUCKET: ${{ inputs.bucket }}
         ENVIRONMENT: ${{ inputs.environment }}
         SERVICE_ACCOUNT: ${{ inputs.service_account }}
-    - uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # v2.1.10
+    - uses: google-github-actions/auth@b7593ed2efd1c1617e1b0254da33b86225adb2a5 # v2.1.12
       id: gcloud-auth
       with:
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"

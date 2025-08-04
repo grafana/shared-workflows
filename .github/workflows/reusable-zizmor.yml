@@ -78,7 +78,7 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49 # v2.12.2
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
           egress-policy: audit
 
@@ -93,7 +93,7 @@ jobs:
         env:
           # Keep this updated in a simpler way than needing a full package.json.
           # renovate: datasource=npm depName=jose
-          JOSE_VERSION: 6.0.11
+          JOSE_VERSION: 6.0.12
         run: npm install "jose@${JOSE_VERSION}"
 
       - id: get-job-workflow-ref
@@ -250,7 +250,7 @@ jobs:
     steps:
       - name: Harden the runner (Audit all outbound calls)
         if: ${{ ! github.event.repository.private }}
-        uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49 # v2.12.2
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
           egress-policy: audit
 
@@ -361,7 +361,7 @@ jobs:
           fi
 
       - name: Setup UV
-        uses: astral-sh/setup-uv@bd01e18f51369d5a26f1651c3cb451d3417e3bba # v6.3.1
+        uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc # v6.4.3
         with:
           enable-cache: true
           activate-environment: true
@@ -399,7 +399,7 @@ jobs:
           retention-days: 5
 
       - name: Upload to code-scanning
-        uses: github/codeql-action/upload-sarif@181d5eefc20863364f96762470ba6f862bdef56b # v3.29.2
+        uses: github/codeql-action/upload-sarif@51f77329afa6477de8c49fc9c7046c15b9a4e79d # v3.29.5
         continue-on-error: true
         with:
           sarif_file: results.sarif

@@ -31,12 +31,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v1.0.0
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v1.1.0
 
       # Get GitHub App token with Dependabot alerts permissions
       - name: Retrieve GitHub App secrets
         id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.0.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.1.0
         with:
           common_secrets: |
             DEPENDABOT_AUTO_TRIAGE_APP_ID=dependabot-auto-triage:app-id
@@ -44,14 +44,14 @@ jobs:
 
       - name: Generate token
         id: generate-token
-        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v1.0.0
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v1.1.0
         with:
           app-id: ${{ env.DEPENDABOT_AUTO_TRIAGE_APP_ID }}
           private-key: ${{ env.DEPENDABOT_AUTO_TRIAGE_APP_PRIVATE_KEY }}
 
       # Use the token with the auto-triage action
       - name: Auto Dismiss Dependabot Alerts
-        uses: grafana/shared-workflows/actions/dependabot-auto-triage@dependabot-auto-triage/v1.0.0
+        uses: grafana/shared-workflows/actions/dependabot-auto-triage@dependabot-auto-triage/v1.1.0
         with:
           token: ${{ steps.generate-token.outputs.token }}
           paths: |
@@ -60,6 +60,7 @@ jobs:
             ksonnet/lib/argo-workflows/charts/**/*.json
           dismissal-reason: "not_used"
           dismissal-comment: "These dependencies are not used in production and pose no risk"
+          close-prs: "true" # Optional: close associated Dependabot PRs
 ```
 
 <!-- x-release-please-end-version -->
@@ -73,12 +74,15 @@ jobs:
 | `paths`             | Multi-line list of glob patterns to match manifest paths to dismiss                                               | Yes      | N/A                                                   |
 | `dismissal-comment` | Default comment to add when dismissing alerts                                                                     | No       | `Auto-dismissed based on manifest path configuration` |
 | `dismissal-reason`  | Default reason for dismissal (options: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`) | No       | `not_used`                                            |
+| `close-prs`         | Whether to close associated Dependabot pull requests before dismissing alerts                                     | No       | `false`                                               |
 
 ### How It Works
 
 1. The action fetches all open Dependabot alerts for the repository
 2. For each alert, it checks if the manifest path matches any of the provided glob patterns
-3. If the path matches a pattern, it dismisses the alert with the specified reason and comment
+3. If `close-prs` is enabled, it fetches associated pull requests for matching alerts
+4. For each matching alert, it optionally closes the associated pull request first (if `close-prs` is true)
+5. It then dismisses the alert with the specified reason and comment
 
 ### Glob Pattern Syntax
 
@@ -100,6 +104,7 @@ To use this action, you need:
 1. A GitHub App with the following permissions:
    - Repository permissions:
      - **Dependabot alerts**: Read & Write
+     - **Pull requests**: Read & Write (only required if `close-prs` is set to `true`)
 
 2. The GitHub App needs to be installed on your repository or organization
 
