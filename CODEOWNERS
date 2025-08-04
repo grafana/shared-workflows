@@ -8,8 +8,8 @@
 .github/workflows/build-lint-pr.yml  @grafana/infra-o11y-frontend
 /actions/lint-pr-title/              @grafana/infra-o11y-frontend @grafana/platform-productivity
 
-# Platform CAT
-/actions/generate-openapi-clients @grafana/platform-cat
+# Grafana App Platform
+/actions/generate-openapi-clients @grafana/grafana-app-platform-squad
 
 # Platform productivity
 /.github/workflows/publish-techdocs.yaml @grafana/platform-productivity
