@@ -20,9 +20,11 @@ jobs:
 
       - name: Run Trufflehog
         id: trufflehog
-        uses: trufflesecurity/trufflehog@v3.90.3
+        uses: trufflesecurity/trufflehog@ed6d045b46642d0d94a60bdf9b1246aefbcf3d35
         with:
           path: .
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
           extra_args: --only-verified
 
       - name: Comment on PR if secrets found
