@@ -19,25 +19,22 @@ func (c *Client) GetStaleBranches(ctx context.Context, owner string, repository 
 	threeMonthsAgo := currentDate.AddDate(0, -3, 0)
 	staleBranches := []*github.Branch{}
 
-	// calculate three months before today
 	for _, branch := range branches {
 		if branch.GetName() == defaultBranch {
 			continue
 		}
 
-		// TODO: also ignore the main branch as well
 		opts := &github.PullRequestListOptions{
 			Head:  owner + ":" + branch.GetName(),
 			State: "open",
 		}
-		// TODO: what happens if the pull request doesn't exist
 		pullRequests, _, err := c.restClient.PullRequests.List(ctx, owner, repository, opts)
 		if err != nil {
 			return nil, err
 		}
 
 		if len(pullRequests) != 0 {
-			// there are open pull requests so n
+			// there are open pull requests
 			continue
 		}
 
@@ -50,4 +47,8 @@ func (c *Client) GetStaleBranches(ctx context.Context, owner string, repository 
 
 	// TODO: this is where the branches would be deleted
 	return staleBranches, nil
+}
+
+func (c *Client) DeleteStaleBranches() {
+
 }

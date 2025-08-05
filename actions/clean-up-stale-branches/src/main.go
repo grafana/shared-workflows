@@ -4,32 +4,26 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"log"
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/shared-workflows/actions/clean-up-stale-branches/pkg/gh"
+	"github.com/grafana/shared-workflows/stale-branches/gh"
 )
 
-// Goal:
-// Need to create an API client to fetch all of the branches from Github
-//
-//	this sounds like a paginated thing
-//
-// Then see if the last commit was more than three months ago
-// collect and mark as stale first
-//
-// don't need to delete them as a first step? just as a test run to see if I can fetch branches
-//
-// questions:
-// - what are Github API rate limit concerns? how do I avoid getting rate limited?
-// - how do I deal with authentication?
+const (
+	envGitHubToken         = "GITHUB_TOKEN"
+	envGitHubAppID         = "GITHUB_APP_ID"
+	envGitHubAppPrivateKey = "GITHUB_APP_PRIVATE_KEY"
+)
+
 func main() {
 	var (
 		repository    string
 		defaultBranch string
+		action        string
 
 		logger = initLogger()
 		ctx    = context.Background()
@@ -37,11 +31,28 @@ func main() {
 
 	flag.StringVar(&repository, "repository", "", "The repostiory for which the stale branches should be cleaned up from")
 	flag.StringVar(&defaultBranch, "defaultBranch", "", "The branch that should not be marked as stale")
+	flag.StringVar(&action, "action", "", "This should either be fetching stale branches or deleting stale branches")
 
+	// TODO: figure out how to have the action be customized to the following specs:
+	// list outputs branches to be deleted to a CSV artifact
+	// delete if input CSV specified then the CSV should be used as input for branches to delete. Otherwise, the get branches will
+	//  be called and used as input for delete (can have dry run option)
 	if repository == "" {
 		level.Error(logger).Log("msg", "No repository specified")
 		os.Exit(1)
 	}
+
+	if defaultBranch == "" {
+		level.Error(logger).Log("msg", "No default branch specified")
+		os.Exit(1)
+	}
+
+	if action == "" || (action != "fetchStaleBranches" && action != "deleteStaleBranches") {
+		level.Error(logger).Log("msg", "No action is provided")
+	}
+
+	// this needs to be passed to a configuration
+	owner, repo, err := parseRepository(repository)
 
 	// Plan:
 	// For now the only option is to just fetch the stale branches (for testing)
@@ -49,11 +60,37 @@ func main() {
 
 	// Create the Github client
 	var (
-		gitHubToken         = os.Getenv(envGitHubToken)
-		gitHubAppID         = os.Getenv(envGitHubAppID)
-		gitHubAppPrivateKey = os.Getenv(envGitHubAppPrivateKey)
+		githubToken         = os.Getenv(envGitHubToken)
+		githubAppID         = os.Getenv(envGitHubAppID)
+		githubAppPrivateKey = os.Getenv(envGitHubAppPrivateKey)
 		githubClient        *gh.Client
 	)
+	switch {
+	case githubToken != "":
+		githubClient = gh.NewGitHubClientWithTokenAuth(ctx, githubToken)
+
+	case githubAppID != "" && githubAppPrivateKey != "":
+		githubClient = gh.NewGitHubClientWithAppAuth(ctx, owner, githubAppID, githubAppPrivateKey)
+	default:
+		level.Error(logger).Log("msg", fmt.Sprintf("The GitHub authentication configuration is missing. Either %s or %s and %s environment variables must be provided.", envGitHubToken, envGitHubAppID, envGitHubAppPrivateKey))
+		os.Exit(1)
+	}
+
+	cfg := &config.Config{
+		Repository:    repo,
+		Owner:         owner,
+		DefaultBranch: defaultBranch,
+		Fetch:         action == "fetch",
+		Delete:        action == "delete",
+		csvFile:       csvFile,
+	}
+
+	a := &action.Action{
+		cfg:    cfg,
+		client: githubClient,
+		logger: logger,
+	}
+	a.Run(ctx)
 }
 
 func parseRepository(repository string) (owner, repo string, err error) {

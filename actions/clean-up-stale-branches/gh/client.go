@@ -2,25 +2,26 @@ package gh
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v74/github"
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
 
 // TODO: should these follow the Github API or the API that I would like to support?
 type GithubClient interface {
 	ListStaleBranches()
+	DeleteStaleBranches()
 }
 
 type Client struct {
 	restClient *github.Client
 }
 
-// so this is authenticating via token (so either authenticating via a token, which should be from an env variable)
+// so this is authenticating via token (which should be from an env variable)
 func NewGitHubClientWithTokenAuth(ctx context.Context, token string) *Client {
 	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
