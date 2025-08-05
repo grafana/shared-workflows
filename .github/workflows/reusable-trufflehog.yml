@@ -18,13 +18,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Trufflehog
-        id: trufflehog
+      - name: Run Trufflehog (PR)
+        if: github.event_name == 'pull_request'
+        id: trufflehog-pr
         uses: trufflesecurity/trufflehog@ed6d045b46642d0d94a60bdf9b1246aefbcf3d35
         with:
           path: .
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --only-verified
+
+      - name: Run Trufflehog (Push)
+        if: github.event_name != 'pull_request'
+        id: trufflehog-push
+        uses: trufflesecurity/trufflehog@v3.90.3
+        with:
+          path: .
           extra_args: --only-verified
 
       - name: Comment on PR if secrets found
