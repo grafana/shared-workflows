@@ -20,10 +20,10 @@ jobs:
 
       - name: Run Trufflehog
         id: trufflehog
-        uses: trufflesecurity/trufflehog@v3.76.0
+        uses: trufflesecurity/trufflehog@v3.90.3
         with:
-          scan: .
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          path: .
+          extra_args: --only-verified
 
       - name: Comment on PR if secrets found
         if: failure() && github.event_name == 'pull_request'
@@ -35,7 +35,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "Trufflehog found potential secrets in this PR!**\n\nPlease review the workflow logs and remediate any exposed secrets."
+              body: "🚨 **Trufflehog found potential secrets in this PR!**\n\nPlease review the workflow logs and remediate any exposed secrets."
             })
 
       - name: Fail if secrets found
