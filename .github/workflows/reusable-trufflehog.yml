@@ -20,46 +20,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Trufflehog and save JSON report
+      - name: Run Trufflehog
         id: trufflehog
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:latest \
-            filesystem --directory=/pwd --json > trufflehog-report.json || true
-
-      - name: Upload Trufflehog report
-        uses: actions/upload-artifact@v4
+        uses: trufflesecurity/trufflehog@v3.90.3
         with:
-          name: trufflehog-report
-          path: trufflehog-report.json
+          path: .
 
-      - name: Comment on PR with findings
-        if: github.event_name == 'pull_request' && failure()
+      - name: Comment on PR if secrets found
+        if: failure() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const fs = require('fs');
-            let findings = [];
-            try {
-              const lines = fs.readFileSync('trufflehog-report.json', 'utf8').split('\n').filter(Boolean);
-              for (const line of lines) {
-                const finding = JSON.parse(line);
-                if (finding.SourceMetadata && finding.SourceMetadata.Data) {
-                  findings.push(`- \`${finding.SourceMetadata.Data.path}\` line ${finding.SourceMetadata.Data.line || '?'}: \`${finding.Raw.slice(0, 80)}...\``);
-                }
-              }
-            } catch (e) {
-              findings = ['(Could not parse Trufflehog report)'];
-            }
-            const body = findings.length
-              ? `🚨 **Trufflehog found potential secrets in this PR!**\n\n${findings.join('\n')}\n\nFull report attached as artifact.`
-              : "Trufflehog ran but no findings were parsed.";
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body
-            });
+              body: "🚨 **Trufflehog found potential secrets in this PR!**\n\nPlease review the workflow logs and remediate any exposed secrets."
+            })
 
       - name: Fail if secrets found
         if: ${{ inputs.fail-on-secrets == 'true' && failure() }}
