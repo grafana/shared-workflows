@@ -53,6 +53,11 @@ inputs:
     description: |
       Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
     required: false
+  load:
+    description: |
+      Whether to load the built image into the local docker daemon.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -126,3 +131,4 @@ runs:
         cache-from: ${{ inputs.cache-from }}
         cache-to: ${{ inputs.cache-to }}
         secrets: ${{ inputs.secrets }}
+        load: ${{ inputs.load == 'true' }}
