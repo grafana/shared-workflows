@@ -1,20 +1,4 @@
-name: Reusable Trufflehog Scan
-
-on:
-  workflow_call:
-    inputs:
-      fail-on-secrets:
-        description: "Fail the workflow if secrets are found"
-        required: false
-        default: "true"
-        type: string
-
-jobs:
-  trufflehog-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
+...
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,11 +9,7 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:latest \
             filesystem --directory=/pwd --json > trufflehog-report.json || true
 
-      - name: Upload Trufflehog report
-        uses: actions/upload-artifact@v4
-        with:
-          name: trufflehog-report
-          path: trufflehog-report.json
+      # Artifact upload step removed
 
       - name: Comment on PR with findings
         if: github.event_name == 'pull_request' && failure()
@@ -51,7 +31,7 @@ jobs:
               findings = ['(Could not parse Trufflehog report)'];
             }
             const body = findings.length
-              ? `🚨 **Trufflehog found potential secrets in this PR!**\n\n${findings.join('\n')}\n\nFull report attached as artifact.`
+              ? `🚨 **Trufflehog found potential secrets in this PR!**\n\n${findings.join('\n')}`
               : "Trufflehog ran but no findings were parsed.";
             github.rest.issues.createComment({
               issue_number: context.issue.number,
