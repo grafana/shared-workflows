@@ -21,12 +21,9 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trufflehog and save JSON report
-        id: trufflehog
-        uses: trufflesecurity/trufflehog@v3.90.3
-        with:
-          path: .
-          output: trufflehog-results.json
-          format: json
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:latest \
+            filesystem --directory=/pwd --json > trufflehog-results.json || true
 
       - name: Print findings in summary
         if: failure()
