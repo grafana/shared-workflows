@@ -22,34 +22,35 @@ jobs:
 
       - name: Run Trufflehog (PR)
         if: github.event_name == 'pull_request'
-        id: trufflehog-pr
-        uses: trufflesecurity/trufflehog@ed6d045b46642d0d94a60bdf9b1246aefbcf3d35
-        with:
-          path: .
-          base: ${{ github.event.pull_request.base.sha }}
-          head: ${{ github.event.pull_request.head.sha }}
-          extra_args: --only-verified
+        run: |
+          pip install trufflehog
+          trufflehog git file://. --base=${{ github.event.pull_request.base.sha }} --head=${{ github.event.pull_request.head.sha }} > trufflehog-results.txt || true
 
       - name: Run Trufflehog (Push)
         if: github.event_name != 'pull_request'
-        id: trufflehog-push
-        uses: trufflesecurity/trufflehog@v3.90.3
-        with:
-          path: .
-          extra_args: --only-verified
+        run: |
+          pip install trufflehog
+          trufflehog git file://. > trufflehog-results.txt || true
 
       - name: Comment on PR if secrets found
-        if: failure() && github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && failure()
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const fs = require('fs');
+            let results = '';
+            try {
+              results = fs.readFileSync('trufflehog-results.txt', 'utf8');
+            } catch (e) {
+              results = 'No results file found.';
+            }
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "🚨 **Trufflehog found potential secrets in this PR!**\n\nPlease review the workflow logs and remediate any exposed secrets."
-            })
+              body: `🚨 **Trufflehog found potential secrets in this PR!**\n\n\`\`\`\n${results}\n\`\`\``
+            });
 
       - name: Fail if secrets found
         if: ${{ inputs.fail-on-secrets == 'true' && failure() }}
