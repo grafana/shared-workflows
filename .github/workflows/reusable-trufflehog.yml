@@ -20,18 +20,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Trufflehog (PR)
-        if: github.event_name == 'pull_request'
-        id: trufflehog-pr
-        uses: trufflesecurity/trufflehog@v3.90.3
-        with:
-          path: .
-          base: ${{ github.event.pull_request.base.sha }}
-          head: ${{ github.event.pull_request.head.sha }}
-
-      - name: Run Trufflehog (Push)
-        if: github.event_name != 'pull_request'
-        id: trufflehog-push
+      - name: Run Trufflehog
+        id: trufflehog
         uses: trufflesecurity/trufflehog@v3.90.3
         with:
           path: .
