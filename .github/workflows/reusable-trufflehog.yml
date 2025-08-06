@@ -26,11 +26,17 @@ jobs:
             filesystem --directory=/pwd --json > trufflehog-results.json || true
 
       - name: Print findings in summary
-        if: failure()
+        if: always()
         run: |
           if [ -s trufflehog-results.json ]; then
             echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
-            jq -r '.[] | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.json >> $GITHUB_STEP_SUMMARY
+            if jq -e 'type=="array"' trufflehog-results.json > /dev/null 2>&1; then
+              jq -r '.[] | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.json >> $GITHUB_STEP_SUMMARY
+            else
+              while read -r line; do
+                echo "$line" | jq -r '"- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"'
+              done < trufflehog-results.json >> $GITHUB_STEP_SUMMARY
+            fi
           else
             echo "No secrets found." >> $GITHUB_STEP_SUMMARY
           fi
@@ -44,10 +50,18 @@ jobs:
             const fs = require('fs');
             let findings = [];
             try {
-              const data = JSON.parse(fs.readFileSync('trufflehog-results.json', 'utf8'));
-              for (const finding of data) {
+              let data = fs.readFileSync('trufflehog-results.json', 'utf8');
+              let parsed;
+              try {
+                parsed = JSON.parse(data);
+              } catch {
+                parsed = data.split('\n').filter(Boolean).map(line => {
+                  try { return JSON.parse(line); } catch { return null; }
+                }).filter(Boolean);
+              }
+              for (const finding of parsed) {
                 if (finding.SourceMetadata && finding.SourceMetadata.Data) {
-                  findings.push(`- \`${finding.SourceMetadata.Data.path}\` line ${finding.SourceMetadata.Data.line || '?'}: \`${finding.Raw.slice(0, 80)}...\``);
+                  findings.push(`- \`${finding.SourceMetadata.Data.path}\` line ${finding.SourceMetadata.Data.line || '?'}: \`${(finding.Raw || '').slice(0, 80)}...\``);
                 }
               }
             } catch (e) {
