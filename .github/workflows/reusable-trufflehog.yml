@@ -23,7 +23,7 @@ jobs:
       - name: Run Trufflehog and save JSON report
         run: |
           docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:latest \
-            filesystem --directories=/pwd --json > trufflehog-results.json || true
+            filesystem/pwd --json > trufflehog-results.json || true
 
       - name: Print findings in summary
         if: always()
