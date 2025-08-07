@@ -21,18 +21,21 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trufflehog and print findings
+        id: trufflehog
         run: |
           docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:latest \
             filesystem --directory=/pwd --json | tee trufflehog-results.tmp
           if [ -s trufflehog-results.tmp ]; then
             echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
             jq -r '.[] | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.tmp >> $GITHUB_STEP_SUMMARY
+            echo "found_secrets=true" >> $GITHUB_OUTPUT
           else
             echo "No secrets found." >> $GITHUB_STEP_SUMMARY
+            echo "found_secrets=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Comment on PR with findings
-        if: failure() && github.event_name == 'pull_request'
+        if: ${{ steps.trufflehog.outputs.found_secrets == 'true' && github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -60,5 +63,5 @@ jobs:
             });
 
       - name: Fail if secrets found
-        if: ${{ inputs.fail-on-secrets == 'true' && failure() }}
+        if: ${{ inputs.fail-on-secrets == 'true' && steps.trufflehog.outputs.found_secrets == 'true' }}
         run: exit 1
