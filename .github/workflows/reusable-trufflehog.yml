@@ -20,23 +20,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Trufflehog and save JSON report
+      - name: Run Trufflehog and print findings
         run: |
           docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:latest \
-            filesystem /pwd --json > trufflehog-results.json || true
-
-      - name: Print findings in summary
-        if: always()
-        run: |
-          if [ -s trufflehog-results.json ]; then
+            filesystem --directory=/pwd --json | tee trufflehog-results.tmp
+          if [ -s trufflehog-results.tmp ]; then
             echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
-            if jq -e 'type=="array"' trufflehog-results.json > /dev/null 2>&1; then
-              jq -r '.[] | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.json >> $GITHUB_STEP_SUMMARY
-            else
-              while read -r line; do
-                echo "$line" | jq -r '"- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"'
-              done < trufflehog-results.json >> $GITHUB_STEP_SUMMARY
-            fi
+            jq -r '.[] | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.tmp >> $GITHUB_STEP_SUMMARY
           else
             echo "No secrets found." >> $GITHUB_STEP_SUMMARY
           fi
@@ -50,18 +40,10 @@ jobs:
             const fs = require('fs');
             let findings = [];
             try {
-              let data = fs.readFileSync('trufflehog-results.json', 'utf8');
-              let parsed;
-              try {
-                parsed = JSON.parse(data);
-              } catch {
-                parsed = data.split('\n').filter(Boolean).map(line => {
-                  try { return JSON.parse(line); } catch { return null; }
-                }).filter(Boolean);
-              }
-              for (const finding of parsed) {
+              const data = JSON.parse(fs.readFileSync('trufflehog-results.tmp', 'utf8'));
+              for (const finding of data) {
                 if (finding.SourceMetadata && finding.SourceMetadata.Data) {
-                  findings.push(`- \`${finding.SourceMetadata.Data.path}\` line ${finding.SourceMetadata.Data.line || '?'}: \`${(finding.Raw || '').slice(0, 80)}...\``);
+                  findings.push(`- \`${finding.SourceMetadata.Data.path}\` line ${finding.SourceMetadata.Data.line || '?'}: \`${finding.Raw.slice(0, 80)}...\``);
                 }
               }
             } catch (e) {
