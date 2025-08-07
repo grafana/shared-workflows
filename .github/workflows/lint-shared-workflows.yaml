@@ -51,7 +51,7 @@ jobs:
       - name: Restore github-action.json schema
         id: restore-schema
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             github-action.json
@@ -98,7 +98,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Save github-action.json schema to cache
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         if: steps.restore-schema.conclusion == 'success' && steps.download-schema.outputs.schema-changed == 'true'
         with:
           path: |
