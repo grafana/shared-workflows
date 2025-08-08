@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v1.0.2...dockerhub-login/v1.0.3) (2025-08-08)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/login-action action to v3.5.0 ([#1187](https://github.com/grafana/shared-workflows/issues/1187)) ([d8060f2](https://github.com/grafana/shared-workflows/commit/d8060f2893039ae143f0d9c26f766565fb334c6a))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/dockerhub-login-v1.0.1...dockerhub-login/v1.0.2) (2025-06-04)
 
 
