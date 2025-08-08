@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.1](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.0...dependabot-auto-triage/v1.1.1) (2025-08-08)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** pin dependency @octokit/graphql to 9.0.1 ([#1172](https://github.com/grafana/shared-workflows/issues/1172)) ([0d819e2](https://github.com/grafana/shared-workflows/commit/0d819e26c7e548303652f686c9385a877ce3043d))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @eslint/js to v9.32.0 ([#1175](https://github.com/grafana/shared-workflows/issues/1175)) ([8c3f72c](https://github.com/grafana/shared-workflows/commit/8c3f72cb3fca78322dea8a578efeafd3e58b41be))
+* **deps:** update dependency eslint-plugin-prettier to v5.5.4 ([#1197](https://github.com/grafana/shared-workflows/issues/1197)) ([0b6a915](https://github.com/grafana/shared-workflows/commit/0b6a915d0333b17d77057cdeb17420930ebfab4c))
+* **deps:** update dependency typescript to v5.9.2 ([#1181](https://github.com/grafana/shared-workflows/issues/1181)) ([a11b270](https://github.com/grafana/shared-workflows/commit/a11b2707a8ab4a93d1e6c2146d72aaa49d719223))
+* **deps:** update dependency typescript-eslint to v8.39.0 ([#1191](https://github.com/grafana/shared-workflows/issues/1191)) ([1915c31](https://github.com/grafana/shared-workflows/commit/1915c31bed43ddce6265e8e079f06e7a951b6e04))
+
 ## [1.1.0](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.0.0...dependabot-auto-triage/v1.1.0) (2025-07-24)
 
 
