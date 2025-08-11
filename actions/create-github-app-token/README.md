@@ -1,6 +1,6 @@
 # create-github-app-token
 
-From a `grafana/` org repository, get a ephemeral GitHub API token from a Github App using Vault.
+From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub App using Vault.
 
 ## Inputs
 
@@ -33,7 +33,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # These permissions are needed to assume roles from Github's OIDC.
+    # These permissions are needed to assume roles from GitHub's OIDC.
     permissions:
       contents: read
       id-token: write
@@ -65,7 +65,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # These permissions are needed to assume roles from Github's OIDC.
+    # These permissions are needed to assume roles from GitHub's OIDC.
     permissions:
       contents: read
       id-token: write
