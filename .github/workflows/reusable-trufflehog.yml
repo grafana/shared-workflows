@@ -36,7 +36,7 @@ jobs:
           echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
           jq -r 'select(type=="object" and .Raw and .SourceMetadata and .SourceMetadata.Data and .SourceMetadata.Data.path) | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.json >> $GITHUB_STEP_SUMMARY || true
 
-      - name: Comment on PR with verified Trufflehog findings (with clickable file links)
+      - name: Comment on PR with all Trufflehog findings (verified and unverified)
         if: ${{ hashFiles('trufflehog-results.json') != '' && github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
         with:
@@ -76,7 +76,7 @@ jobs:
                     finding.Redacted ? `**Redacted:** \`${finding.Redacted}\`` : '',
                     finding.Entropy ? `**Entropy:** ${finding.Entropy}` : '',
                     finding.Source ? `**Source:** ${finding.Source}` : '',
-                    `**Verified:** ${finding.Verified}`,
+                    `**Verified:** ${finding.Verified === true ? '✅ Verified' : '⚠️ Unverified'}`,
                     finding.Decoded ? `**Decoded:** \`${finding.Decoded}\`` : '',
                     finding.Comment ? `**Comment:** ${finding.Comment}` : '',
                     finding.Metadata ? `**Metadata:** \`${JSON.stringify(finding.Metadata)}\`` : ''
