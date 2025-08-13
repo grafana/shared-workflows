@@ -1,33 +1,43 @@
-name: Trufflehog Secret Scan
+name: Reusable Trufflehog Scan
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
+    inputs:
+      fail-on-secrets:
+        description: "Fail the workflow if any secrets are found"
+        required: false
+        default: "true"
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   trufflehog-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Install Trufflehog
-        run: pip install trufflehog
-
-      - name: Run Trufflehog
+      - name: Install Trufflehog CLI (Go v3+)
         run: |
-          trufflehog filesystem . --json --no-update > trufflehog-results.json || true
+          wget https://github.com/trufflesecurity/trufflehog/releases/download/v3.90.3/trufflehog_3.90.3_linux_amd64.tar.gz
+          tar -xzf trufflehog_3.90.3_linux_amd64.tar.gz
+          chmod +x trufflehog
+          ./trufflehog --version
 
-      - name: Debug Trufflehog output
-        run: cat trufflehog-results.json || echo "No trufflehog-results.json found"
+      - name: Run Trufflehog (JSON)
+        id: trufflehog
+        run: ./trufflehog filesystem . --json 2>&1 | tee trufflehog-results.json
+
+      - name: Add summary to PR
+        if: ${{ hashFiles('trufflehog-results.json') != '' }}
+        run: |
+          echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
+          jq -r 'select(type=="object" and .Raw and .SourceMetadata and .SourceMetadata.Data and .SourceMetadata.Data.path) | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.json >> $GITHUB_STEP_SUMMARY || true
 
       - name: Comment on PR with all Trufflehog findings (verified and unverified)
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ hashFiles('trufflehog-results.json') != '' && github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -49,14 +59,16 @@ jobs:
                 } catch (e) {
                   continue;
                 }
-                if (finding.Raw) {
-                  // Defensive: try to get file/line from Filesystem, fallback to path/line, fallback to unknown
-                  let path = finding.SourceMetadata?.Data?.Filesystem?.file
-                    || finding.SourceMetadata?.Data?.path
-                    || 'unknown';
-                  let lineNum = finding.SourceMetadata?.Data?.Filesystem?.line
-                    || finding.SourceMetadata?.Data?.line
-                    || 1;
+                // Only process lines that look like findings (have a Raw field)
+                if (
+                  finding.Raw &&
+                  finding.SourceMetadata &&
+                  finding.SourceMetadata.Data &&
+                  typeof finding.SourceMetadata.Data.path === 'string' &&
+                  finding.SourceMetadata.Data.path.length > 0
+                ) {
+                  const path = finding.SourceMetadata.Data.path;
+                  const lineNum = finding.SourceMetadata.Data.line || 1;
                   const fileUrl = `https://github.com/${owner}/${repo}/blob/${branch}/${path}#L${lineNum}`;
                   findings.push([
                     `**File:** [\`${path}\` line ${lineNum}](${fileUrl})`,
@@ -87,9 +99,8 @@ jobs:
             });
 
       - name: Fail if any secrets found
-        if: ${{ hashFiles('trufflehog-results.json') != '' }}
+        if: ${{ inputs.fail-on-secrets == 'true' && hashFiles('trufflehog-results.json') != '' }}
         run: |
           if grep -q '"Raw":' trufflehog-results.json; then
-            echo "Secrets found! Failing the workflow."
             exit 1
           fi
