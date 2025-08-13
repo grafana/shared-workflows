@@ -1,8 +1,13 @@
-name: Trufflehog Secret Scan
+name: Reusable Trufflehog Scan
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
+    inputs:
+      fail-on-secrets:
+        description: 'Fail the workflow if secrets are found'
+        required: false
+        default: 'true'
+        type: string
 
 jobs:
   trufflehog-scan:
@@ -50,7 +55,6 @@ jobs:
                   continue;
                 }
                 if (finding.Raw) {
-                  // Defensive: try to get file/line from Filesystem, fallback to path/line, fallback to unknown
                   let path = finding.SourceMetadata?.Data?.Filesystem?.file
                     || finding.SourceMetadata?.Data?.path
                     || 'unknown';
@@ -87,7 +91,7 @@ jobs:
             });
 
       - name: Fail if any secrets found
-        if: ${{ hashFiles('trufflehog-results.json') != '' }}
+        if: ${{ inputs.fail-on-secrets == 'true' && hashFiles('trufflehog-results.json') != '' }}
         run: |
           if grep -q '"Raw":' trufflehog-results.json; then
             echo "Secrets found! Failing the workflow."
