@@ -27,7 +27,7 @@ jobs:
             filesystem --directory=/pwd --json | tee trufflehog-results.tmp
           if [ -s trufflehog-results.tmp ]; then
             echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
-            jq -r '.[] | select(type=="object" and .Raw and .SourceMetadata and .SourceMetadata.Data and .SourceMetadata.Data.path) | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.tmp >> $GITHUB_STEP_SUMMARY
+            jq -r 'select(type=="array") | .[] | select(type=="object" and .Raw and .SourceMetadata and .SourceMetadata.Data and .SourceMetadata.Data.path) | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.tmp >> $GITHUB_STEP_SUMMARY || true
             echo "found_secrets=true" >> $GITHUB_OUTPUT
           else
             echo "No secrets found." >> $GITHUB_STEP_SUMMARY
@@ -43,8 +43,16 @@ jobs:
             const fs = require('fs');
             let findings = [];
             try {
-              const data = JSON.parse(fs.readFileSync('trufflehog-results.tmp', 'utf8'));
-              for (const finding of data) {
+              const lines = fs.readFileSync('trufflehog-results.tmp', 'utf8')
+                .split('\n')
+                .filter(Boolean);
+              for (const line of lines) {
+                let finding;
+                try {
+                  finding = JSON.parse(line);
+                } catch (e) {
+                  continue;
+                }
                 if (finding.SourceMetadata && finding.SourceMetadata.Data) {
                   findings.push(`- \`${finding.SourceMetadata.Data.path}\` line ${finding.SourceMetadata.Data.line || '?'}: \`${finding.Raw.slice(0, 80)}...\``);
                 }
