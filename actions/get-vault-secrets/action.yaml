@@ -31,11 +31,11 @@ inputs:
     description: |
       Whether to export secrets as environment variables, making them available to all subsequent steps. Defaults to `true`.
     default: "true"
-  
+
   ignore_missing:
     description: |
       When set to true, prevents the action from failing when a secret does not exist.
-    default: "false"    
+    default: "false"
 
 outputs:
   secrets:
