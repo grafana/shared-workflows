@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       fail-on-secrets:
-        description: "Fail the workflow if verified secrets are found"
+        description: "Fail the workflow if any secrets are found"
         required: false
         default: "true"
         type: string
@@ -33,8 +33,8 @@ jobs:
       - name: Add summary to PR
         if: ${{ hashFiles('trufflehog-results.json') != '' }}
         run: |
-          echo "### Trufflehog Verified Findings" >> $GITHUB_STEP_SUMMARY
-          jq -r 'select(type=="object" and .Raw and .SourceMetadata and .SourceMetadata.Data and .SourceMetadata.Data.path and .Verified == true) | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.json >> $GITHUB_STEP_SUMMARY || true
+          echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
+          jq -r 'select(type=="object" and .Raw and .SourceMetadata and .SourceMetadata.Data and .SourceMetadata.Data.path) | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.json >> $GITHUB_STEP_SUMMARY || true
 
       - name: Comment on PR with verified Trufflehog findings (with clickable file links)
         if: ${{ hashFiles('trufflehog-results.json') != '' && github.event_name == 'pull_request' }}
@@ -60,7 +60,6 @@ jobs:
                   continue;
                 }
                 if (
-                  finding.Verified === true &&
                   finding.SourceMetadata &&
                   finding.SourceMetadata.Data &&
                   typeof finding.SourceMetadata.Data.path === 'string' &&
@@ -88,8 +87,8 @@ jobs:
               findings = ['(Could not parse Trufflehog report)'];
             }
             const body = findings.length
-              ? `🚨 **Trufflehog found verified secrets in this PR!**\n\n${findings.map(f => `---\n${f}`).join('\n')}`
-              : "✅ Trufflehog ran and no verified secrets with file locations were found.";
+              ? `🚨 **Trufflehog found secrets in this PR!**\n\n${findings.map(f => `---\n${f}`).join('\n')}`
+              : "✅ Trufflehog ran and no secrets were found.";
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner,
@@ -97,9 +96,9 @@ jobs:
               body
             });
 
-      - name: Fail if verified secrets found
+      - name: Fail if any secrets found
         if: ${{ inputs.fail-on-secrets == 'true' && hashFiles('trufflehog-results.json') != '' }}
         run: |
-          if jq -e 'select(.Verified == true)' trufflehog-results.json > /dev/null; then
+          if grep -q . trufflehog-results.json; then
             exit 1
           fi
