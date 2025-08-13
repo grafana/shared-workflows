@@ -1,8 +1,7 @@
-name: Trufflehog Secret Scan
+name: Reusable Trufflehog Secret Scan
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
 
 jobs:
   trufflehog-scan:
@@ -46,15 +45,17 @@ jobs:
                   continue;
                 }
                 if (finding.Raw) {
-                  findings.push([
-                    '---',
-                    '**Trufflehog Finding:**',
-                    '',
-                    '```json',
-                    JSON.stringify(finding, null, 2),
-                    '```',
-                    ''
-                  ].join('\n'));
+                  findings.push(
+                    [
+                      '---',
+                      '**Trufflehog Finding:**',
+                      '',
+                      '```json',
+                      JSON.stringify(finding, null, 2),
+                      '```',
+                      ''
+                    ].join('\n')
+                  );
                 }
               }
             } catch (e) {
