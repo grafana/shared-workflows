@@ -32,6 +32,11 @@ inputs:
       Whether to export secrets as environment variables, making them available to all subsequent steps. Defaults to `true`.
     default: "true"
 
+  ignore_missing:
+    description: |
+      When set to true, prevents the action from failing when a secret does not exist.
+    default: "false"
+
 outputs:
   secrets:
     description: "JSON object containing all the secrets"
@@ -119,3 +124,4 @@ runs:
         secrets: |
           ${{ steps.translate-secrets.outputs.secrets }}
         exportEnv: ${{ inputs.export_env }}
+        ignoreNotFound: ${{ inputs.ignore_missing }}
