@@ -1,0 +1,67 @@
+name: Reusable Trufflehog Scan
+
+on:
+  workflow_call:
+    inputs:
+      fail-on-secrets:
+        description: "Fail the workflow if secrets are found"
+        required: false
+        default: "true"
+        type: string
+
+jobs:
+  trufflehog-scan:
+    runs-on: ubuntu-x64-small
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trufflehog and print findings
+        id: trufflehog
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:latest \
+            filesystem --directory=/pwd --json | tee trufflehog-results.tmp
+          if [ -s trufflehog-results.tmp ]; then
+            echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
+            jq -r '.[] | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.tmp >> $GITHUB_STEP_SUMMARY
+            echo "found_secrets=true" >> $GITHUB_OUTPUT
+          else
+            echo "No secrets found." >> $GITHUB_STEP_SUMMARY
+            echo "found_secrets=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR with findings
+        if: ${{ steps.trufflehog.outputs.found_secrets == 'true' && github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let findings = [];
+            try {
+              const data = JSON.parse(fs.readFileSync('trufflehog-results.tmp', 'utf8'));
+              for (const finding of data) {
+                if (finding.SourceMetadata && finding.SourceMetadata.Data) {
+                  findings.push(`- \`${finding.SourceMetadata.Data.path}\` line ${finding.SourceMetadata.Data.line || '?'}: \`${finding.Raw.slice(0, 80)}...\``);
+                }
+              }
+            } catch (e) {
+              findings = ['(Could not parse Trufflehog report)'];
+            }
+            const body = findings.length
+              ? `🚨 **Trufflehog found potential secrets in this PR!**\n\n${findings.join('\n')}`
+              : "Trufflehog ran but no findings were parsed.";
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Fail if secrets found
+        if: ${{ inputs.fail-on-secrets == 'true' && steps.trufflehog.outputs.found_secrets == 'true' }}
+        run: exit 1
