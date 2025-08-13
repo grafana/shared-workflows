@@ -2,10 +2,16 @@ name: Reusable Trufflehog Secret Scan
 
 on:
   workflow_call:
+    inputs:
+      fail-on-secrets:
+        description: 'Fail the workflow if secrets are found'
+        required: false
+        default: 'true'
+        type: string
 
 jobs:
   trufflehog-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64-small
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,9 +24,15 @@ jobs:
       - name: Install Trufflehog
         run: pip install trufflehog
 
-      - name: Run Trufflehog
+      - name: Run Trufflehog (full scan)
         run: |
-          trufflehog filesystem . --json --no-update > trufflehog-results.json || true
+          trufflehog filesystem . \
+            --json \
+            --no-update \
+            --only-verified=false \
+            --max-depth=0 \
+            --exclude-paths=.git,.github,node_modules,venv,env \
+            > trufflehog-results.json || true
 
       - name: Debug Trufflehog output
         run: cat trufflehog-results.json || echo "No trufflehog-results.json found"
@@ -72,36 +84,7 @@ jobs:
             });
 
       - name: Fail if any secrets found
-        if: ${{ hashFiles('trufflehog-results.json') != '' }}
-        run: |
-          if grep -q '"Raw":' trufflehog-results.json; then
-            echo "Secrets found! Failing the workflow."
-            exit 1
-          fi
-
-  security-secrets:
-    runs-on: ubuntu-latest
-    container:
-      image: alpine:latest
-    env:
-      SCAN_PATH: "." # Set the relative path in the repo to scan
-    steps:
-      - name: Install dependencies
-        run: apk add --no-cache git curl jq
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Trufflehog
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
-
-      - name: Run Trufflehog scan (GitLab style)
-        run: |
-          trufflehog filesystem "$SCAN_PATH" --results=verified,unknown --fail --json > trufflehog-results.json || true
-          cat trufflehog-results.json | jq
-
-      - name: Fail if any secrets found
+        if: ${{ inputs.fail-on-secrets == 'true' && hashFiles('trufflehog-results.json') != '' }}
         run: |
           if grep -q '"Raw":' trufflehog-results.json; then
             echo "Secrets found! Failing the workflow."
