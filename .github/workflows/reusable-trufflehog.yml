@@ -24,9 +24,9 @@ jobs:
       - name: Run Trufflehog (JSON and SARIF)
         id: trufflehog
         run: |
-          docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:v3.90.3 \
+          docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:3.90.3 \
             filesystem /pwd --format json --output /pwd/trufflehog-results.tmp
-          docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:v3.90.3 \
+          docker run --rm -v ${{ github.workspace }}:/pwd ghcr.io/trufflesecurity/trufflehog:3.90.3 \
             filesystem /pwd --format sarif --output /pwd/trufflehog.sarif
           if [ -s trufflehog-results.tmp ]; then
             echo "found_secrets=true" >> $GITHUB_OUTPUT
