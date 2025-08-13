@@ -59,7 +59,9 @@ jobs:
                 } catch (e) {
                   continue;
                 }
+                // Only process lines that look like findings (have a Raw field)
                 if (
+                  finding.Raw &&
                   finding.SourceMetadata &&
                   finding.SourceMetadata.Data &&
                   typeof finding.SourceMetadata.Data.path === 'string' &&
@@ -99,6 +101,6 @@ jobs:
       - name: Fail if any secrets found
         if: ${{ inputs.fail-on-secrets == 'true' && hashFiles('trufflehog-results.json') != '' }}
         run: |
-          if grep -q . trufflehog-results.json; then
+          if grep -q '"Raw":' trufflehog-results.json; then
             exit 1
           fi
