@@ -27,7 +27,7 @@ jobs:
             filesystem --directory=/pwd --json | tee trufflehog-results.tmp
           if [ -s trufflehog-results.tmp ]; then
             echo "### Trufflehog Findings" >> $GITHUB_STEP_SUMMARY
-            jq -r '.[] | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.tmp >> $GITHUB_STEP_SUMMARY
+            jq -r '.[] | select(type=="object" and .Raw and .SourceMetadata and .SourceMetadata.Data and .SourceMetadata.Data.path) | "- \(.SourceMetadata.Data.path):\(.SourceMetadata.Data.line // "?") \(.Raw | @json)"' trufflehog-results.tmp >> $GITHUB_STEP_SUMMARY
             echo "found_secrets=true" >> $GITHUB_OUTPUT
           else
             echo "No secrets found." >> $GITHUB_STEP_SUMMARY
