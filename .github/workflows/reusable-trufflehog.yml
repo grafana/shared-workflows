@@ -28,7 +28,7 @@ jobs:
 
       - name: Run Trufflehog (JSON)
         id: trufflehog
-        run: ./trufflehog filesystem . --json > trufflehog-results.json
+        run: ./trufflehog filesystem . --json 2>&1 | tee trufflehog-results.json
 
       - name: Add summary to PR
         if: ${{ hashFiles('trufflehog-results.json') != '' }}
