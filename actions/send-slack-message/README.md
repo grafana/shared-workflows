@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Send Slack Message via Payload
         id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.3
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.4
         with:
           method: chat.postMessage
           payload: |
@@ -38,7 +38,7 @@ jobs:
             }
 
       - name: Update Slack Message via Payload
-        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.3
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.4
         with:
           method: chat.update
           payload-templated: true
@@ -71,7 +71,7 @@ jobs:
     steps:
       - name: Post to a Slack channel
         id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.3
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.4
         with:
           method: chat.postMessage
           payload: |
@@ -80,7 +80,7 @@ jobs:
               "text": "Deployment started (In Progress)"
             }
       - name: Respond to Slack Message
-        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.3
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v2.0.4
         with:
           method: chat.postMessage
           payload-templated: true
