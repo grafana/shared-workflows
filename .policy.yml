@@ -1,0 +1,13 @@
+policy:
+  appoval:
+    - Actions skipped by GitHub Actions bot PRs pass
+
+approval_rules:
+  - name: Actions skipped by GitHub Actions bot PRs pass
+    if:
+      has_workflow_result:
+        conclusions: ["success", "skipped"]
+        workflows:
+          - ".github/workflows/codeql.yml"
+          - ".github/workflows/pre-commit.yaml"
+          - ".github/workflows/self-zizmor.yml"
