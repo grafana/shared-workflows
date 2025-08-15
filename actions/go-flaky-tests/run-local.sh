@@ -21,12 +21,13 @@ usage() {
     echo "  --loki-password PASS          Password for Loki authentication"
     echo "  --repository REPO             Repository name in 'owner/repo' format (required)"
     echo "  --time-range RANGE            Time range for query (default: ${DEFAULT_TIME_RANGE})"
+    echo "  --repository-directory DIR    Repository directory (default: current directory)"
     echo "  --skip-posting-issues BOOL    Skip creating GitHub issues (default: ${DEFAULT_SKIP_POSTING_ISSUES})"
     echo "  --top-k NUM                   Number of top flaky tests to analyze (default: ${DEFAULT_TOP_K})"
     echo ""
     echo "Environment variables:"
     echo "  LOKI_URL, LOKI_USERNAME, LOKI_PASSWORD, REPOSITORY, TIME_RANGE,"
-    echo "  SKIP_POSTING_ISSUES, TOP_K"
+    echo "  REPOSITORY_DIRECTORY, SKIP_POSTING_ISSUES, TOP_K"
     echo ""
     echo "Example:"
     echo "  $0 --loki-url http://localhost:3100 --repository myorg/myrepo --time-range 7d"
@@ -59,6 +60,10 @@ while [[ $# -gt 0 ]]; do
             TIME_RANGE="$2"
             shift 2
             ;;
+        --repository-directory)
+            REPOSITORY_DIRECTORY="$2"
+            shift 2
+            ;;
         --skip-posting-issues)
             SKIP_POSTING_ISSUES="$2"
             shift 2
@@ -78,6 +83,7 @@ done
 TIME_RANGE="${TIME_RANGE:-$DEFAULT_TIME_RANGE}"
 TOP_K="${TOP_K:-$DEFAULT_TOP_K}"
 SKIP_POSTING_ISSUES="${SKIP_POSTING_ISSUES:-$DEFAULT_SKIP_POSTING_ISSUES}"
+REPOSITORY_DIRECTORY="${REPOSITORY_DIRECTORY:-$(pwd)}"
 
 # Validate required parameters
 if [[ -z "$LOKI_URL" ]]; then
@@ -96,12 +102,14 @@ export LOKI_USERNAME
 export LOKI_PASSWORD
 export REPOSITORY
 export TIME_RANGE
+export REPOSITORY_DIRECTORY
 export SKIP_POSTING_ISSUES
 export TOP_K
 
 echo "🔧 Running go-flaky-tests locally..."
 echo "📊 Repository: $REPOSITORY"
 echo "⏰ Time range: $TIME_RANGE"
+echo "📁 Repository directory: $REPOSITORY_DIRECTORY"
 echo "🔝 Top K tests: $TOP_K"
 echo "🏃 Dry run mode: $SKIP_POSTING_ISSUES"
 echo ""
