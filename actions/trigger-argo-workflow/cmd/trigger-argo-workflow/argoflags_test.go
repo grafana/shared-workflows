@@ -32,6 +32,21 @@ func TestBuildCommand(t *testing.T) {
 			},
 		},
 		{
+			name:           "Override actor with OVERRIDE_ACTOR",
+			command:        "submit",
+			addCILabels:    true,
+			logLevel:       "info",
+			expectedOutput: []string{"--labels", "trigger-build-number=1,trigger-commit=abc,trigger-commit-author=override_actor,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-event=event", "--loglevel", "info", "submit"},
+			envVars: map[string]string{
+				"GITHUB_RUN_NUMBER": "1",
+				"GITHUB_SHA":        "abc",
+				"GITHUB_ACTOR":      "actor",
+				"GITHUB_REPOSITORY": "owner/repo",
+				"GITHUB_EVENT_NAME": "event",
+				"OVERRIDE_ACTOR":    "override_actor",
+			},
+		},
+		{
 			name:           "No labels when addCILabels is false",
 			command:        "stop",
 			addCILabels:    false,
