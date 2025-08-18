@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.2.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.1.2...trigger-argo-workflow/v1.2.0) (2025-08-18)
+
+
+### 🎉 Features
+
+* **trigger-argo-workflow:** allow overiding `sender` argument ([#1246](https://github.com/grafana/shared-workflows/issues/1246)) ([ff6c6f9](https://github.com/grafana/shared-workflows/commit/ff6c6f924c0b66afc6dccae7ad5b1498270ef1e9))
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update module github.com/urfave/cli/v3 to v3.4.1 ([#1229](https://github.com/grafana/shared-workflows/issues/1229)) ([d79478b](https://github.com/grafana/shared-workflows/commit/d79478b279700e6ab5af810a14cc86b0a7bed598))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump golang.org/x/term ([fbfc18b](https://github.com/grafana/shared-workflows/commit/fbfc18b9aec1427f23243459f62a8a9bb8f15d5a))
+* **deps:** bump golang.org/x/term from 0.33.0 to 0.34.0 ([#1213](https://github.com/grafana/shared-workflows/issues/1213)) ([fbfc18b](https://github.com/grafana/shared-workflows/commit/fbfc18b9aec1427f23243459f62a8a9bb8f15d5a))
+* **deps:** update actions/checkout action to v4.3.0 ([#1221](https://github.com/grafana/shared-workflows/issues/1221)) ([17ab531](https://github.com/grafana/shared-workflows/commit/17ab531bf2c16c79af38988e7caf7a3d8a37634b))
+* **deps:** update actions/checkout action to v5 ([#1227](https://github.com/grafana/shared-workflows/issues/1227)) ([fd79c02](https://github.com/grafana/shared-workflows/commit/fd79c02730e0629f728e2f5c3d614545269208a9))
+
 ## [1.1.2](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.1.1...trigger-argo-workflow/v1.1.2) (2025-07-30)
 
 
