@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v1.2.1...get-vault-secrets/v1.3.0) (2025-08-19)
+
+
+### 🎉 Features
+
+* add helpful error handling for OIDC token failures ([#1171](https://github.com/grafana/shared-workflows/issues/1171)) ([6272233](https://github.com/grafana/shared-workflows/commit/62722333225a1fae03ae27a63d638f9bc2176edb))
+* add support for ignoring missing secrets to get-vault-secrets action ([#1236](https://github.com/grafana/shared-workflows/issues/1236)) ([49ec8e2](https://github.com/grafana/shared-workflows/commit/49ec8e26626286f514faebe62b7eafcbe034fe30))
+
+
+### 🤖 Continuous Integration
+
+* enhance, fix, run pre-commit ([#1033](https://github.com/grafana/shared-workflows/issues/1033)) ([9ffb9ce](https://github.com/grafana/shared-workflows/commit/9ffb9cec67a7712b4247e4ac37eb69946d802aed))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update hashicorp/vault-action action to v3.4.0 ([#1072](https://github.com/grafana/shared-workflows/issues/1072)) ([b1c5ce9](https://github.com/grafana/shared-workflows/commit/b1c5ce97ab9234836b62604ae52a90736f9a2f43))
+
 ## [1.2.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets-v1.2.0...get-vault-secrets/v1.2.1) (2025-06-04)
 
 
