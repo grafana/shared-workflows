@@ -1,13 +1,27 @@
 policy:
-  appoval:
-    - Actions skipped by GitHub Actions bot PRs pass
+  approval:
+    - or:
+        - PR created by action
+        - All workflows succeeded or skipped
 
 approval_rules:
-  - name: Actions skipped by GitHub Actions bot PRs pass
+  - name: PR created by action
+    if:
+      has_author_in:
+        users:
+          - "github-actions[bot]"
+    requires:
+      count: 0
+
+  - name: All workflows succeeded or skipped
     if:
       has_workflow_result:
-        conclusions: ["success", "skipped"]
-        workflows:
+        paths:
           - ".github/workflows/codeql.yml"
           - ".github/workflows/pre-commit.yaml"
           - ".github/workflows/self-zizmor.yml"
+        conclusions:
+          - "success"
+          - "skipped"
+    requires:
+      count: 0
