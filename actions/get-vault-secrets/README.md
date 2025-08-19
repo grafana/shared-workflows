@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.2.1
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.3.0
         with:
           # Secrets placed in the ci/common/<path> path in Vault
           common_secrets: |
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.2.1
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.3.0
         with:
           # Secrets placed in the ci/common/<path> path in Vault
           common_secrets: |
