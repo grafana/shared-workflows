@@ -8,8 +8,6 @@ permissions: {}
 
 jobs:
   pre-commit:
-    if: github.triggering_actor != 'github-actions[bot]'
-
     runs-on: ubuntu-latest
 
     permissions:

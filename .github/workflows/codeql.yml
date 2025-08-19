@@ -25,10 +25,6 @@ permissions:
 
 jobs:
   analyze:
-    if: github.triggering_actor != 'github-actions[bot]'
-
-    name: Analyze (${{ matrix.language }})
-
     runs-on: ubuntu-latest-8-cores
 
     timeout-minutes: 360

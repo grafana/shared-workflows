@@ -8,8 +8,6 @@ permissions:
 
 jobs:
   zizmor:
-    if: github.triggering_actor != 'github-actions[bot]'
-
     name: Run zizmor from current branch (self test)
 
     permissions:
