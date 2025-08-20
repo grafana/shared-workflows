@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Remove old Trufflehog (if present)
         run: |
@@ -32,6 +34,8 @@ jobs:
           trufflehog --version
 
       - name: Run Trufflehog
+        env:
+          EXTRA_ARGS: ${{ inputs.extra_args }}
         run: |
           trufflehog filesystem . \
             --json \
@@ -39,7 +43,7 @@ jobs:
             --results=verified,unknown \
             --fail \
             --exclude-paths=.git,.github,node_modules,venv,env \
-            ${{ inputs.extra_args }} \
+            $EXTRA_ARGS \
             > trufflehog-results.json || true
 
       - name: Debug Trufflehog output
