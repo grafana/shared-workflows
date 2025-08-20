@@ -4,14 +4,14 @@ on:
   workflow_call:
     inputs:
       fail-on-secrets:
-        description: 'Fail the workflow if secrets are found'
+        description: "Fail the workflow if secrets are found"
         required: false
-        default: 'true'
+        default: "true"
         type: string
       extra_args:
-        description: 'Extra arguments to pass to Trufflehog'
+        description: "Extra arguments to pass to Trufflehog"
         required: false
-        default: ''
+        default: ""
         type: string
 
 jobs:
