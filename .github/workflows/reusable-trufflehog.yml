@@ -26,9 +26,9 @@ jobs:
           pip uninstall -y truffleHog || true
           pip uninstall -y trufflehog || true
 
-      - name: Install Trufflehog v3+
+      - name: Install Trufflehog (pinned to commit)
         run: |
-          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
           trufflehog --version
 
       - name: Run Trufflehog
