@@ -138,7 +138,11 @@ func summarizeNewCapabilities(keys []mapKey, baselineMap, currentMap capabilitie
 			newUsesOfExistingCapabilities += n
 		}
 	}
-	fmt.Printf("## Capability Comparison Report\n")
+	scope := os.Getenv("SCOPE")
+	if scope != "" {
+		scope = fmt.Sprintf(" for %s", scope)
+	}
+	fmt.Printf("## Capability Report%s\n", scope)
 	if n := len(newlyUsedCapabilities); n > 0 {
 		fmt.Printf("\n### ⚙️ Added %d new Capabilities", n)
 		fmt.Printf("\n```\n")
