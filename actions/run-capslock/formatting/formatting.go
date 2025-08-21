@@ -15,10 +15,10 @@ func main() {
 		panic(err)
 	}
 	text := string(data)
-	text = strings.ReplaceAll(text, "New packages", "END\nNew packages")
-	text += "END"
+	text = strings.ReplaceAll(text, "New packages", "{END}\nNew packages")
+	text += "{END}"
 	// Match commits + capabilities + everything after
-	mainRe := regexp.MustCompile(`(?s)Added (?P<numcaps>\d+) new .*?:\n(?P<capabilities>.*?)END\nNew packages`)
+	mainRe := regexp.MustCompile(`(?s)Added (?P<numcaps>\d+) new .*?:\n(?P<capabilities>.*?){END}\nNew packages`)
 	match := mainRe.FindStringSubmatch(text)
 	if match == nil {
 		fmt.Println("No match found")
@@ -34,7 +34,7 @@ func main() {
 
 	// Regex that finds each section *with its content until the next section or EOF*
 	// We capture the section header (capName) and the following block
-	capSectionRe := regexp.MustCompile(`(?s)New packages in call paths to capability (CAPABILITY_[A-Z0-9_]+):\n\n(.*?)(?:END)`)
+	capSectionRe := regexp.MustCompile(`(?s)New packages in call paths to capability (CAPABILITY_[A-Z0-9_]+):\n\n(.*?)(?:{END})`)
 	capMatches := capSectionRe.FindAllStringSubmatch(text, -1)
 
 	// ---- Markdown output ----
@@ -50,13 +50,13 @@ func main() {
 	fmt.Println("```")
 
 	// Loop over all capability sections
-	packagesRegx := regexp.MustCompile(`(?s)Package(?:s|) (?P<packages>.*?) (?:has|have).*?:(.*?)END`)
+	packagesRegx := regexp.MustCompile(`(?s)Package(?:s|) (?P<packages>.*?) (?:has|have).*?:(.*?){END}`)
 	for _, m := range capMatches {
 
 		capName := m[1]
 		fmt.Printf("## ⚠️ New Packages for %s\n", capName)
 		capContent := strings.TrimSpace(m[2])
-		capContent = strings.ReplaceAll(capContent, "Package", "END\nPackage")
+		capContent = strings.ReplaceAll(capContent, "Package", "{END}\nPackage")
 		capContent += "END"
 		matches := packagesRegx.FindAllStringSubmatch(capContent, -1)
 
