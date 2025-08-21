@@ -204,6 +204,7 @@ func diffCapabilityInfoLists(baseline, current *cpb.CapabilityInfoList) (differe
 				fmt.Printf("<details><summary>📦 %s</summary>\n\n", strings.Join(keys, ", "))
 				fmt.Printf("")
 				printCallPath(ci.Path)
+				fmt.Printf("</details>\n\n")
 			}
 		}
 	}
