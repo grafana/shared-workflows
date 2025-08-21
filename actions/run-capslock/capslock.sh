@@ -36,22 +36,22 @@ if [[ ! -f "go.mod" ]]; then
     echo "No go module found on branch ${MAIN_BRANCH}"
     exit 0
 fi
-run_capslock "${BASE_DIR}/capslock.json"
+run_capslock "${BASE_DIR}/capslock-main.json"
 
 # Switch back to feature branch and rerun
 git stash --quiet
 git checkout "${GITHUB_SHA}"
-run_capslock "${BASE_DIR}/capslock2.json"
+run_capslock "${BASE_DIR}/capslock-branch.json"
 git stash pop --quiet || true
 
 # Move results back to action path
-mv "${BASE_DIR}/capslock.json" "${GITHUB_ACTION_PATH}/capslock.json"
-mv "${BASE_DIR}/capslock2.json" "${GITHUB_ACTION_PATH}/capslock2.json"
+mv "${BASE_DIR}/capslock-main.json" "${GITHUB_ACTION_PATH}/capslock-main.json"
+mv "${BASE_DIR}/capslock-branch.json" "${GITHUB_ACTION_PATH}/capslock-branch.json"
 
 # Run comparison
 cd "${GITHUB_ACTION_PATH}"
 go mod tidy
-OUTPUT=$(go run compare.go capslock.json capslock2.json || true)
+OUTPUT=$(go run compare.go capslock-main.json capslock-branch.json || true)
 
 if [[ "${OUTPUT}" =~ "Between those commits, there were no uses of capabilities via a new package" ]]; then
     echo "No new Capabilities"
