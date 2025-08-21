@@ -17,8 +17,7 @@ import (
 )
 
 var (
-	verbose     = flag.Bool("v", false, "enable verbose logging")
-	granularity = flag.String("granularity", "intermediate", "the granularity to use for comparisons")
+	verbose = flag.Bool("v", false, "enable verbose logging")
 )
 
 func vlog(format string, a ...any) {
@@ -61,21 +60,10 @@ type mapKey struct {
 }
 type capabilitiesMap map[mapKey]*cpb.CapabilityInfo
 
-func populateMap(cil *cpb.CapabilityInfoList, granularity string) capabilitiesMap {
+func populateMap(cil *cpb.CapabilityInfoList) capabilitiesMap {
 	m := make(capabilitiesMap)
 	for _, ci := range cil.GetCapabilityInfo() {
-		var key string
-		switch granularity {
-		case "package", "intermediate":
-			key = ci.GetPackageDir()
-		case "function", "":
-			if len(ci.Path) == 0 {
-				continue
-			}
-			key = ci.Path[0].GetName()
-		default:
-			panic("unknown granularity " + granularity)
-		}
+		key := ci.GetPackageDir()
 		if key == "" {
 			continue
 		}
@@ -86,13 +74,7 @@ func populateMap(cil *cpb.CapabilityInfoList, granularity string) capabilitiesMa
 
 func cover(pending map[string]bool, ci *cpb.CapabilityInfo) (covered []string) {
 	for _, p := range ci.Path {
-		var key string
-		switch *granularity {
-		case "package", "intermediate":
-			key = p.GetPackage()
-		case "function", "":
-			key = p.GetName()
-		}
+		key := p.GetPackage()
 		if key == "" {
 			continue
 		}
@@ -157,44 +139,24 @@ func summarizeNewCapabilities(keys []mapKey, baselineMap, currentMap capabilitie
 			newUsesOfExistingCapabilities += n
 		}
 	}
+	fmt.Printf("## Capability Comparison Report\n\n")
 	if n := len(newlyUsedCapabilities); n > 0 {
-		if n == 1 {
-			fmt.Println("\nAdded 1 new capability:")
-		} else {
-			fmt.Printf("\nAdded %d new capabilities:\n", n)
-		}
+		fmt.Printf("### ⚙️ Added Capabilities (%d)\n", n)
 		sortAndPrintCapabilities(newlyUsedCapabilities)
 	}
 	if n := newUsesOfExistingCapabilities; n > 0 {
-		if n == 1 {
-			fmt.Println("\nAdded 1 new use of existing capability:")
-		} else {
-			fmt.Printf("\nAdded %d new uses of existing capabilities:\n", n)
-		}
+		fmt.Printf("### ⚙️ Added %d new uses of existing capabilities:\n", n)
 		sortAndPrintCapabilities(existingCapabilitiesWithNewUses)
 	}
 	if len(newlyUsedCapabilities) == 0 && newUsesOfExistingCapabilities == 0 {
-		switch *granularity {
-		case "package":
-			fmt.Printf("\nBetween those commits, none of those packages gained a new capability.\n")
-		case "intermediate":
-			fmt.Printf("\nBetween those commits, there were no uses of capabilities via a new package.\n")
-		case "function", "":
-			fmt.Printf("\nBetween those commits, no functions in those packages gained a new capability.\n")
-		}
+		fmt.Printf("\nBetween those commits, there were no uses of capabilities via a new package.\n")
 	}
 	return newlyUsedCapabilities, existingCapabilitiesWithNewUses
 }
 
 func diffCapabilityInfoLists(baseline, current *cpb.CapabilityInfoList) (different bool) {
-	granularityDescription := map[string]string{
-		"package":      "Package",
-		"intermediate": "Package",
-		"function":     "Function",
-		"":             "Function",
-	}[*granularity]
-	baselineMap := populateMap(baseline, *granularity)
-	currentMap := populateMap(current, *granularity)
+	baselineMap := populateMap(baseline)
+	currentMap := populateMap(current)
 	var keys []mapKey
 	for k := range baselineMap {
 		keys = append(keys, k)
@@ -215,14 +177,7 @@ func diffCapabilityInfoLists(baseline, current *cpb.CapabilityInfoList) (differe
 	// Output changes for each capability, in the order they were printed above.
 	for _, list := range [][]cpb.Capability{newlyUsedCapabilities, existingCapabilitiesWithNewUses} {
 		for _, c := range list {
-			switch *granularity {
-			case "package":
-				fmt.Printf("\nNew packages with capability %s:\n", c)
-			case "intermediate":
-				fmt.Printf("\nNew packages in call paths to capability %s:\n", c)
-			case "function":
-				fmt.Printf("\nNew functions with capability %s:\n", c)
-			}
+			fmt.Printf("\n### ⚠️ New Packages for %s\n", c)
 
 			pending := make(map[string]bool)
 			for _, key := range keys {
@@ -245,12 +200,9 @@ func diffCapabilityInfoLists(baseline, current *cpb.CapabilityInfoList) (differe
 					continue
 				}
 				ci := currentMap[key]
-				if keys := cover(pending, ci); len(keys) > 1 {
-					// This call path can be the example for multiple keys.
-					fmt.Printf("\n%ss %s have capability %s:\n", granularityDescription, strings.Join(keys, ", "), key.capability)
-				} else {
-					fmt.Printf("\n%s %s has capability %s:\n", granularityDescription, key.key, key.capability)
-				}
+				keys := cover(pending, ci)
+				fmt.Printf("<details><summary>📦 %s</summary>\n\n", strings.Join(keys, ", "))
+				fmt.Printf("")
 				printCallPath(ci.Path)
 			}
 		}
@@ -259,6 +211,7 @@ func diffCapabilityInfoLists(baseline, current *cpb.CapabilityInfoList) (differe
 }
 
 func printCallPath(fns []*cpb.Function) {
+	fmt.Printf("```\n")
 	tw := tabwriter.NewWriter(
 		os.Stdout, // output
 		10,        // minwidth
@@ -266,11 +219,24 @@ func printCallPath(fns []*cpb.Function) {
 		2,         // padding
 		' ',       // padchar
 		0)         // flags
+	fmt.Printf("- Packages tree:\n")
 	for _, f := range fns {
-		if f.Site != nil {
-			fmt.Fprint(tw, f.Site.GetFilename(), ":", f.Site.GetLine(), ":", f.Site.GetColumn())
+		if f.Site.GetFilename() == "" && !strings.Contains(f.GetName(), "(") {
+			fmt.Fprint(tw, "\t", f.GetName(), "\n")
 		}
-		fmt.Fprint(tw, "\t", f.GetName(), "\n")
 	}
 	tw.Flush()
+	fmt.Printf("- Path:\n")
+	for _, f := range fns {
+		if f.Site.GetFilename() != "" || strings.Contains(f.GetName(), "(") {
+			if f.Site.GetFilename() != "" {
+				fmt.Fprint(tw, "\t", f.Site.GetFilename(), ":", f.Site.GetLine(), ":", f.Site.GetColumn())
+				fmt.Fprint(tw, "\t", f.GetName(), "\n")
+			} else {
+				fmt.Fprint(tw, "\t\t", f.GetName(), "\n")
+			}
+		}
+	}
+	tw.Flush()
+	fmt.Printf("```\n")
 }

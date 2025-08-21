@@ -64,26 +64,19 @@ if [[ "${OUTPUT_PLACE}" == "log" ]]; then
     exit 0
 fi
 
-# Format output
-FORMATTED_OUTPUT=$(printf "%s" "${OUTPUT}" | go run "${GITHUB_ACTION_PATH}/formatting/formatting.go" || true)
-if [[ "${FORMATTED_OUTPUT}" =~ "No match found" ]]; then
-    printf "%s\n" "${OUTPUT}"
-    echo "ERROR: formatting the output"
-    exit 1
-fi
 
 # Send to GitHub Actions outputs
 case "${OUTPUT_PLACE}" in
     pr-comment)
         {
             echo 'output<<EOF'
-            printf "%s\nEOF" "${FORMATTED_OUTPUT}"
+            printf "%s\nEOF" "${OUTPUT}"
         } >>"${GITHUB_OUTPUT}"
         ;;
     summary)
         {
             echo 'output<<EOF'
-            printf "%s\nEOF" "${FORMATTED_OUTPUT}"
+            printf "%s\nEOF" "${OUTPUT}"
         } >>"${GITHUB_STEP_SUMMARY}"
         ;;
     *)
