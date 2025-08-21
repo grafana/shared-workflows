@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	verbose = flag.Bool("v", false, "enable verbose logging")
+	verbose = flag.Bool("v", true, "enable verbose logging")
 )
 
 func vlog(format string, a ...any) {
@@ -28,26 +28,31 @@ func vlog(format string, a ...any) {
 }
 
 func main() {
-	b1, err := os.ReadFile(os.Args[1])
+	args := len(os.Args)
+	if args == 1 || args > 3 {
+		fmt.Printf("Usage:\n   command main-capslock.json branch-capslock.json\n\n")
+		os.Exit(0)
+	}
+	mainCapabilitesFileData, err := os.ReadFile(os.Args[1])
 	if err != nil {
-		log.Fatal("error reading capslock.json")
+		log.Fatal("error reading main capablities file")
 	}
-	cil1 := new(cpb.CapabilityInfoList)
-	if err = protojson.Unmarshal(b1, cil1); err != nil {
-		log.Fatal("error unmarshalling 1")
+	mainCapabilites := new(cpb.CapabilityInfoList)
+	if err = protojson.Unmarshal(mainCapabilitesFileData, mainCapabilites); err != nil {
+		log.Fatal("error unmarshalling capablities file")
 	}
-	vlog("parsed CapabilityInfoList with %d entries", len(cil1.CapabilityInfo))
+	vlog("parsed Main CapabilityInfoList with %d entries", len(mainCapabilites.CapabilityInfo))
 
-	b2, err := os.ReadFile(os.Args[2])
+	branchCapabilitesFileData, err := os.ReadFile(os.Args[2])
 	if err != nil {
-		log.Fatal("error reading capslock2.json")
+		log.Fatal("error reading branch capablities file")
 	}
-	cil2 := new(cpb.CapabilityInfoList)
-	if err = protojson.Unmarshal(b2, cil2); err != nil {
-		log.Fatal("error unmarshalling 2")
+	branchCapabilites := new(cpb.CapabilityInfoList)
+	if err = protojson.Unmarshal(branchCapabilitesFileData, branchCapabilites); err != nil {
+		log.Fatal("error unmarshalling branch capablities file")
 	}
-	vlog("parsed CapabilityInfoList with %d entries", len(cil2.CapabilityInfo))
-	different := diffCapabilityInfoLists(cil1, cil2)
+	vlog("parsed Branch CapabilityInfoList with %d entries", len(mainCapabilites.CapabilityInfo))
+	different := diffCapabilityInfoLists(mainCapabilites, branchCapabilites)
 	if different {
 		log.Println("Different")
 	}
