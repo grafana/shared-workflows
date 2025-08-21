@@ -47,7 +47,6 @@ func main() {
 		log.Fatal("error unmarshalling 2")
 	}
 	vlog("parsed CapabilityInfoList with %d entries", len(cil2.CapabilityInfo))
-
 	different := diffCapabilityInfoLists(cil1, cil2)
 	if different {
 		log.Println("Different")
@@ -112,7 +111,7 @@ func sortAndPrintCapabilities(cs []cpb.Capability) {
 		14: "Execute other programs, usually via os/exec",
 	}
 	for _, c := range cs {
-		fmt.Fprint(tw, "\t", cpb.Capability_name[int32(c)], ":\t", capabilityDescription[c], "\n")
+		fmt.Fprint(tw, cpb.Capability_name[int32(c)], ":\t", capabilityDescription[c], "\n")
 	}
 	tw.Flush()
 }
@@ -139,14 +138,18 @@ func summarizeNewCapabilities(keys []mapKey, baselineMap, currentMap capabilitie
 			newUsesOfExistingCapabilities += n
 		}
 	}
-	fmt.Printf("## Capability Comparison Report\n\n")
+	fmt.Printf("## Capability Comparison Report\n")
 	if n := len(newlyUsedCapabilities); n > 0 {
-		fmt.Printf("### ⚙️ Added Capabilities (%d)\n", n)
+		fmt.Printf("\n### ⚙️ Added %d new Capabilities", n)
+		fmt.Printf("\n```\n")
 		sortAndPrintCapabilities(newlyUsedCapabilities)
+		fmt.Printf("```\n")
 	}
 	if n := newUsesOfExistingCapabilities; n > 0 {
-		fmt.Printf("### ⚙️ Added %d new uses of existing capabilities:\n", n)
+		fmt.Printf("\n### ⚙️ Added %d new uses of existing capabilities", n)
+		fmt.Printf("\n```\n")
 		sortAndPrintCapabilities(existingCapabilitiesWithNewUses)
+		fmt.Printf("```\n")
 	}
 	if len(newlyUsedCapabilities) == 0 && newUsesOfExistingCapabilities == 0 {
 		fmt.Printf("\nBetween those commits, there were no uses of capabilities via a new package.\n")
