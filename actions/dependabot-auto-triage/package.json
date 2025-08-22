@@ -17,7 +17,7 @@
     "minimatch": "10.0.3"
   },
   "devDependencies": {
-    "@eslint/js": "9.33.0",
+    "@eslint/js": "9.34.0",
     "@types/bun": "1.2.20",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-jest": "29.0.1",
