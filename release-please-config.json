@@ -145,8 +145,7 @@
     },
     "actions/run-capslock": {
       "package-name": "run-capslock",
-      "extra-files": ["README.md"],
-      "initial-version": "0.1.0"
+      "extra-files": ["README.md"]
     }
   },
   "release-type": "simple",
