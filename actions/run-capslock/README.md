@@ -11,7 +11,7 @@ jobs:
     name: Runs Capslock
     steps:
       - name: Run Capslock
-        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v0.1.0
+        uses: grafana/shared-workflows/actions/run-capslock@run-capslock/v0.1.0
         id: run-capslock
 ```
 
@@ -28,3 +28,7 @@ jobs:
 | `output-place`     | Output place (options: pr-comment\*, summary and log ) | pr-comment |
 
 \* For pr-comment the permission pull-request: write it's needed
+
+## PR Comment example
+
+![alt text](image.png)
