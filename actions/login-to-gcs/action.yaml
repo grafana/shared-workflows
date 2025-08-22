@@ -18,6 +18,11 @@ inputs:
       Delete the credentials file after the action is finished.
       If you want to keep the credentials file for a later step, set this to false.
     default: "false"
+  use_wif_auth:
+    description: |
+      Use WIF for authentication instead of service account.
+    required: false
+    default: "false"
 
 outputs:
   bucket:
@@ -58,20 +63,27 @@ runs:
         fi
         echo "bucket=${BUCKET}" | tee -a ${GITHUB_OUTPUT}
 
-        # Construct service account
-        if [[ "${SERVICE_ACCOUNT}" == "" ]]; then
-          SERVICE_ACCOUNT="github-${{ github.repository_id }}-${ENVIRONMENT}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
+        # set up a service account only if we're NOT using WIF auth.
+        if [[ "${USE_WIF_AUTH}" != "true" ]]; then
+          # Construct service account
+          if [[ "${SERVICE_ACCOUNT}" == "" ]]; then
+            SERVICE_ACCOUNT="github-${{ github.repository_id }}-${ENVIRONMENT}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
+          else
+            SERVICE_ACCOUNT="${SERVICE_ACCOUNT}"
+          fi
+          echo "service_account=${SERVICE_ACCOUNT}" | tee -a ${GITHUB_OUTPUT}
         else
-          SERVICE_ACCOUNT="${SERVICE_ACCOUNT}"
+          echo "service_account=" | tee -a ${GITHUB_OUTPUT}
         fi
-        echo "service_account=${SERVICE_ACCOUNT}" | tee -a ${GITHUB_OUTPUT}
       env:
         BUCKET: ${{ inputs.bucket }}
         ENVIRONMENT: ${{ inputs.environment }}
         SERVICE_ACCOUNT: ${{ inputs.service_account }}
     - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        USE_WIF_AUTH: ${{ inputs.use_wif_auth }}
       id: gcloud-auth
       with:
+        project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: ${{ steps.construct-account-vars.outputs.service_account }}
     - name: Delete Google Application Credentials file
