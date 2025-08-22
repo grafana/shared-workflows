@@ -142,6 +142,11 @@
       "package-name": "get-latest-workflow-artifact",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/run-capslock": {
+      "package-name": "run-capslock",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
