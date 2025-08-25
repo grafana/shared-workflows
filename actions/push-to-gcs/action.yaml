@@ -45,6 +45,11 @@ inputs:
     description: |
       If true, then upload files with `content-encoding: gzip`
     default: "true"
+  use_wif_auth:
+    description: |
+      Use WIF for authentication instead of service account.
+    required: false
+    default: "false"
 
 outputs:
   uploaded:
@@ -87,6 +92,7 @@ runs:
         environment: ${{ inputs.environment }}
         service_account: ${{ inputs.bucket && inputs.service_account || '' }}
         delete_credentials_file: false
+        use_wif_auth: ${{ inputs.use_wif_auth }}
     - name: Construct path
       id: construct-path
       shell: bash
@@ -106,7 +112,7 @@ runs:
         glob: ${{ inputs.glob }}
         destination: ${{ steps.construct-path.outputs.destination }} # bucket name plus folder prefix (if applicable)
         parent: ${{ inputs.parent }}
-        predefinedAcl: ${{ inputs.predefinedAcl }}
+        predefinedAcl: ${{ inputs.use_wif_auth == 'true' && ' ' || inputs.predefinedAcl }} # when using WIF auth, we cannot use predefinedAcl
         gzip: ${{ inputs.gzip }}
         process_gcloudignore: false
 
