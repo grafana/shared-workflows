@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/login-to-gar/v1.0.0...login-to-gar/v1.0.1) (2025-08-25)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/auth action to v2.1.11 ([#1150](https://github.com/grafana/shared-workflows/issues/1150)) ([895722b](https://github.com/grafana/shared-workflows/commit/895722b12337ee97909efa8a78886ee69297ed50))
+* **deps:** update google-github-actions/auth action to v2.1.12 ([#1184](https://github.com/grafana/shared-workflows/issues/1184)) ([ee464c5](https://github.com/grafana/shared-workflows/commit/ee464c522eba7d1a22b82d27739f4bf789102900))
+* **deps:** update google-github-actions/setup-gcloud action to v2.1.5 ([#1151](https://github.com/grafana/shared-workflows/issues/1151)) ([84f55b1](https://github.com/grafana/shared-workflows/commit/84f55b125e875869f7aead3c1ed900eaae2735bb))
+* **deps:** update google-github-actions/setup-gcloud action to v2.2.0 ([#1211](https://github.com/grafana/shared-workflows/issues/1211)) ([dc9441f](https://github.com/grafana/shared-workflows/commit/dc9441f43be7baaf190c5b1b6c0fa3589a988907))
+* **deps:** update google-github-actions/setup-gcloud action to v2.2.1 ([#1266](https://github.com/grafana/shared-workflows/issues/1266)) ([8bb65cb](https://github.com/grafana/shared-workflows/commit/8bb65cb7cc5b627ec350a229de34aee58872650a))
+* **deps:** update google-github-actions/setup-gcloud action to v3 ([#1267](https://github.com/grafana/shared-workflows/issues/1267)) ([ac79b81](https://github.com/grafana/shared-workflows/commit/ac79b814a3c74384d24bb0431a3d99caa948e806))
+
 ## [1.0.0](https://github.com/grafana/shared-workflows/compare/login-to-gar/v0.4.3...login-to-gar/v1.0.0) (2025-06-17)
 
 
