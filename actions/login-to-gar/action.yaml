@@ -54,7 +54,7 @@ runs:
 
     - name: Setup `gcloud` CLI
       if: ${{ !steps.check_if_gcloud_is_installed.outputs.gcloud-installed }}
-      uses: google-github-actions/setup-gcloud@cb1e50a9932213ecece00a606661ae9ca44f3397 # v2.2.0
+      uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
       with:
         # Accept any version
         version:
