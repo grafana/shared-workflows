@@ -146,6 +146,10 @@
     "actions/run-capslock": {
       "package-name": "run-capslock",
       "extra-files": ["README.md"]
+    },
+    "actions/create-github-app-token": {
+      "package-name": "create-github-app-token",
+      "extra-files": ["README.md"]
     }
   },
   "release-type": "simple",
