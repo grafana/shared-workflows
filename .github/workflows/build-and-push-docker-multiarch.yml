@@ -120,30 +120,30 @@ on:
         default: ""
         type: string
     outputs:
-      version:
-        description: "Generated Docker image version (from docker/metadata-action)"
-        value: ${{ steps.meta.outputs.version }}
-      tags:
-        description: "Generated Docker tags (from docker/metadata-action)"
-        value: ${{ steps.meta.outputs.tags }}
-      labels:
-        description: "Generated Docker labels (from docker/metadata-action)"
-        value: ${{ steps.meta.outputs.labels }}
-      annotations:
-        description: "Generated annotations (from docker/metadata-action)"
-        value: ${{ steps.meta.outputs.annotations }}
-      json:
-        description: "JSON output of tags and labels (from docker/metadata-action)"
-        value: ${{ steps.meta.outputs.json }}
-      imageid:
-        description: "Image ID (from docker/build-push-action)"
-        value: ${{ steps.build.outputs.imageid }}
-      digest:
-        description: "Image digest (from docker/build-push-action)"
-        value: ${{ steps.build.outputs.digest }}
-      metadata:
-        description: "Build result metadata (from docker/build-push-action)"
-        value: ${{ steps.build.outputs.metadata }}
+#      version:
+#        description: "Generated Docker image version (from docker/metadata-action)"
+#        value: ${{ steps.meta.outputs.version }}
+#      tags:
+#        description: "Generated Docker tags (from docker/metadata-action)"
+#        value: ${{ steps.meta.outputs.tags }}
+#      labels:
+#        description: "Generated Docker labels (from docker/metadata-action)"
+#        value: ${{ steps.meta.outputs.labels }}
+#      annotations:
+#        description: "Generated annotations (from docker/metadata-action)"
+#        value: ${{ steps.meta.outputs.annotations }}
+#      json:
+#        description: "JSON output of tags and labels (from docker/metadata-action)"
+#        value: ${{ steps.meta.outputs.json }}
+#      imageid:
+#        description: "Image ID (from docker/build-push-action)"
+#        value: ${{ steps.build.outputs.imageid }}
+#      digest:
+#        description: "Image digest (from docker/build-push-action)"
+#        value: ${{ steps.build.outputs.digest }}
+#      metadata:
+#        description: "Build result metadata (from docker/build-push-action)"
+#        value: ${{ steps.build.outputs.metadata }}
       platform-os-list:
         description: "The list of OS used to build images"
         value: ${{ jobs.prepare-matrix.outputs.platforms_list }}
