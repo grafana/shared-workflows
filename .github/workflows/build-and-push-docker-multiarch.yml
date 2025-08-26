@@ -289,6 +289,17 @@ jobs:
           environment: dev
           delete_credentials_file: false
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
