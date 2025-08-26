@@ -178,6 +178,8 @@ jobs:
     runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
     env:
       PLATFORM: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
+    outputs:
+      tags: ${{ steps.build.outputs.tags }}
     permissions:
       contents: read
       id-token: write
@@ -263,33 +265,55 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          tags: ${{ needs.build-and-push.outputs.tags }}
+
       - name: Login to GAR
         uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
         with:
           environment: dev
           delete_credentials_file: false
 
-      - name: Create and push manifest
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
         run: |
-          SAFE_TAG="${TAG//\//-}"
-          echo "Using sanitized tag: $SAFE_TAG"
-          IMAGE="us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test"
-          CMD="docker manifest create $IMAGE:$SAFE_TAG"
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
 
-          for PLATFORM in $(echo "$PLATFORMS" | tr ',' ' '); do
-            case "$PLATFORM" in
-              linux/amd64)
-                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-x64"
-                ;;
-              linux/arm64)
-                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-arm64"
-                ;;
-            esac
-          done
-
-          echo "Running: $CMD"
-          eval "$CMD"
-          docker manifest push $IMAGE:$SAFE_TAG
-        env:
-          TAG: ${{ github.ref_name }}
-          PLATFORMS: ${{ inputs.platforms }}
+#      - name: Create and push manifest
+#        run: |
+#          SAFE_TAG="${TAG//\//-}"
+#          echo "Using sanitized tag: $SAFE_TAG"
+#          IMAGE="us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test"
+#          CMD="docker manifest create $IMAGE:$SAFE_TAG"
+#
+#          for PLATFORM in $(echo "$PLATFORMS" | tr ',' ' '); do
+#            case "$PLATFORM" in
+#              linux/amd64)
+#                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-x64"
+#                ;;
+#              linux/arm64)
+#                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-arm64"
+#                ;;
+#            esac
+#          done
+#
+#          echo "Running: $CMD"
+#          eval "$CMD"
+#          docker manifest push $IMAGE:$SAFE_TAG
+#        env:
+#          TAG: ${{ github.ref_name }}
+#          PLATFORMS: ${{ inputs.platforms }}
