@@ -211,25 +211,45 @@ jobs:
         id: build
         uses: grafana/shared-workflows/actions/push-to-gar-docker@rwhitaker/multi-arch-builds
         with:
+          # from inputs
+          registry: ${{ inputs.registry }}
+
           context: ${{ inputs.context }}
+          environment: ${{ inputs.environment }}
           image_name: ${{ inputs.image_name }}
-          platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
+          build-args: ${{ inputs.build-args }}
+          file: ${{ inputs.file }}
+          cache-from: ${{ inputs.cache-from }}
+          cache-to: ${{ inputs.cache-to }}
+          ssh: ${{ inputs.ssh }}
+          build-contexts: ${{ inputs.build-contexts }}
+          docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
+          repository_name: ${{ inputs.repository_name }}
+          labels: ${{ inputs.labels }}
+          target: ${{ inputs.target }}
+          delete_credentials_file: ${{ inputs.delete_credentials_file }}
+          secrets: ${{ inputs.secrets }}
+
+          # hardcoded
           push: true
           load: true
+          platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
+          tags: |-
+            ${{ github.ref_name }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
-          tags: ${{ github.ref_name }}-${{ matrix.arch }}
+
 
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          # Save the full digest string to a per-arch file
-          echo "${{ steps.build.outputs.digest }}" > "${{ runner.temp }}/digests/${PLATFORM}.txt"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/digests/*.txt
+          path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
 #      - name: Login to GAR
@@ -269,16 +289,6 @@ jobs:
           environment: dev
           delete_credentials_file: false
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
