@@ -151,7 +151,7 @@ on:
 
 jobs:
   prepare-matrix:
-    runs-on: ubuntu-x64-small
+    runs-on: ubuntu-arm64-small
     outputs:
       platforms_list: ${{ steps.matrix.outputs.platforms_list }}
     steps:
@@ -283,7 +283,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          tags: ${{ needs.build-and-push.outputs.tags }}
+          tags: ${{ inputs.tags }}
+          images: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
 
       - name: Login to GAR
         uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
