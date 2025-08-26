@@ -192,6 +192,7 @@ runs:
         context: ${{ inputs.context }}
         build-args: ${{ inputs.build-args }}
         push: ${{ inputs.push == 'true' }}
+        tags: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         labels: ${{ inputs.labels }}
         target: ${{ inputs.target }}
         cache-from: ${{ inputs.cache-from }}
