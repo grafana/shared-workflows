@@ -230,13 +230,13 @@ jobs:
           push: false
           load: true
           platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+#          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
 
 
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
+          digest="${{ steps.build-docker-image.outputs.digest }}"
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
