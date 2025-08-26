@@ -182,6 +182,7 @@ jobs:
       tags: ${{ steps.build.outputs.tags }}
       metadata: ${{ steps.build.outputs.metadata }}
       metadatajson: ${{ steps.build.outputs.metadatajson }}
+      digest: ${{ steps.build.outputs.digest }}
     permissions:
       contents: read
       id-token: write
@@ -300,24 +301,13 @@ jobs:
           environment: dev
           delete_credentials_file: false
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-
       - name: Create manifest list and push
         run: |
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $DIGESTS
         env:
-          DOCKER_METADATA_OUTPUT_JSON: ${{ steps.meta.outputs.json }}
+          DOCKER_METADATA_OUTPUT_JSON: ${{ needs.build-and-push.outputs.metadatajson }}
           DIGESTS: ${{ steps.digests.outputs.digests }}
 
 #      - name: Create and push manifest
