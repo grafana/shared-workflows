@@ -1,5 +1,5 @@
 name: Push to artifact registry MultiArch
-description: Resuable workflow to push to Google Artifact Registry using runners of different architectures.
+description: Composite action to push to Google Artifact Registry using matrix strategy.
 
 on:
   workflow_call:
@@ -149,103 +149,71 @@ jobs:
         env:
           PLATFORMS: ${{ inputs.platforms }}
 
-  build-and-push:
-    needs: prepare-matrix
-    strategy:
-      matrix:
-        arch: ${{ fromJson(needs.prepare-matrix.outputs.platforms_list) }}
-    runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Checkout code
+
+
+      - name: Checkout
+        env:
+          action_repo: ${{ github.action_repository }}
+          action_ref: ${{ github.action_ref }}
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
+          repository: ${{ env.action_repo }}
+          ref: ${{ env.action_ref }}
+          path: _shared-workflows-push-to-gar
           persist-credentials: false
-      - name: Run custom build script if it exists
-        if: ${{ inputs.pre-build-script != '' }}
-        run: |
-          set -euo pipefail
-          echo "Running $PRE_BUILD_SCRIPT_PATH"
 
-          if [ -f "$PRE_BUILD_SCRIPT_PATH" ]; then
-            chmod +x "$PRE_BUILD_SCRIPT_PATH"
-            "$PRE_BUILD_SCRIPT_PATH"
-          else
-            echo "No script found at $PRE_BUILD_SCRIPT_PATH, skipping."
+      - name: Get repository name
+        id: get-repository-name
+        shell: bash
+        env:
+          REPO_NAME: ${{ inputs.repository_name }}
+        run: |
+          if [ -z "$REPO_NAME" ]; then
+            REPO_NAME="$(echo "${{ github.repository }}" | awk -F'/' '{print $2}')"
+            # In Artifact Registry, underscores are not allowed in repository
+            # names. By convention, we replace them with hyphens.
+            REPO_NAME="${REPO_NAME//_/-}"
           fi
+          echo "repo_name=${REPO_NAME}" >> "${GITHUB_OUTPUT}"
+
+      - name: Resolve GCP project
+        id: resolve-project
+        shell: bash
         env:
-          PRE_BUILD_SCRIPT_PATH: ${{ inputs.pre-build-script }}
-      - name: Build Docker Image
-        id: build-docker-image
-        uses: grafana/shared-workflows/actions/push-to-gar-docker@rwhitaker/multi-arch-builds
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          if [[ "${ENVIRONMENT}" == "dev" ]]; then
+            PROJECT="grafanalabs-dev"
+          elif [[ "${ENVIRONMENT}" == "prod" ]]; then
+            PROJECT="grafanalabs-global"
+          else
+            echo "Invalid environment. Valid environment variable inputs: dev, prod"
+            exit 1
+          fi
+          echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
+
+      - name: Login to GAR
+        if: ${{ inputs.push == 'true' }}
+        uses: ./_shared-workflows-push-to-gar/actions/login-to-gar
         with:
-          registry: ${{ inputs.registry }}
-          tags: |-
-            ${{ github.ref_name }}-${{ matrix.arch }}
-          context: ${{ inputs.context }}
           environment: ${{ inputs.environment }}
-          image_name: ${{ inputs.image_name }}
-          build-args: ${{ inputs.build-args }}
-          push: false
-          file: ${{ inputs.file }}
-          platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
-          cache-from: ${{ inputs.cache-from }}
-          cache-to: ${{ inputs.cache-to }}
-          ssh: ${{ inputs.ssh }}
-          build-contexts: ${{ inputs.build-contexts }}
-          docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
-          repository_name: ${{ inputs.repository_name }}
-          labels: ${{ inputs.labels }}
-          target: ${{ inputs.target }}
-          delete_credentials_file: ${{ inputs.delete_credentials_file }}
-          secrets: ${{ inputs.secrets }}
-          load: ${{ inputs.load }}
-      - name: Login to GAR
-        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
-        with:
-          environment: dev
           delete_credentials_file: false
-      - name: Push to GAR
-        run: |
-          echo docker push ${{ steps.build-docker-image.outputs.tags }}
-          docker push ${{ steps.build-docker-image.outputs.tags }}
-
-  push-manifest:
-    runs-on: ubuntu-x64-small
-    needs: build-and-push
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Login to GAR
-        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
-          environment: dev
-          delete_credentials_file: false
+          images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
+          tags: ${{ inputs.tags }}
 
-      - name: Create and push manifest
+
+      - name: Parse platforms into JSON
+        id: prepare-matrix
+        shell: bash
         run: |
-          SAFE_TAG="${TAG//\//-}"
-          echo "Using sanitized tag: $SAFE_TAG"
-          IMAGE="us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test"
-          CMD="docker manifest create $IMAGE:$SAFE_TAG"
+          # Remove whitespace and split into JSON array
+          platforms=$(echo "${{ inputs.platforms }}" | tr -d ' ' | tr ',' '\n' | jq -R . | jq -s .)
+          echo "Parsed platforms: $platforms"
+          echo "platforms_json=$platforms" >> $GITHUB_OUTPUT
 
-          for PLATFORM in $(echo "$PLATFORMS" | tr ',' ' '); do
-            case "$PLATFORM" in
-              linux/amd64)
-                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-x64"
-                ;;
-              linux/arm64)
-                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-arm64"
-                ;;
-            esac
-          done
-
-          echo "Running: $CMD"
-          eval "$CMD"
-          docker manifest push $IMAGE:$SAFE_TAG
-        env:
-          TAG: ${{ github.ref_name }}
-          PLATFORMS: ${{ inputs.platforms }}
+      - run: echo "JSON = ${{ steps.parse.outputs.platforms_json }}"
+        shell: bash
