@@ -181,6 +181,7 @@ jobs:
     outputs:
       tags: ${{ steps.build.outputs.tags }}
       metadata: ${{ steps.build.outputs.metadata }}
+      metadatajson: ${{ steps.build.outputs.metadatajson }}
     permissions:
       contents: read
       id-token: write
@@ -292,7 +293,7 @@ jobs:
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
         env:
-          DOCKER_METADATA_OUTPUT_JSON: ${{ needs.build-and-push.outputs.metadata }}
+          DOCKER_METADATA_OUTPUT_JSON: ${{ needs.build-and-push.outputs.metadatajson }}
 
 #      - name: Create and push manifest
 #        run: |

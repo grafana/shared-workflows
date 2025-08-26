@@ -113,6 +113,9 @@ outputs:
   metadata:
     description: "Build result metadata (from docker/build-push-action)"
     value: ${{ steps.build.outputs.metadata }}
+  metadatajson:
+    description: "Metadata JSON (from docker/metadata)"
+    value: ${{ steps.meta.outputs.json }}
 
 runs:
   using: composite
