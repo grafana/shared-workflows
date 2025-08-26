@@ -204,6 +204,7 @@ runs:
         build-contexts: ${{ inputs.build-contexts }}
         secrets: ${{ inputs.secrets }}
         load: ${{ inputs.load == 'true' }}
+        outputs: type=image,push-by-digest=true,name-canonical=true,push=true
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
