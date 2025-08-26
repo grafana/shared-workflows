@@ -276,11 +276,22 @@ jobs:
           pattern: digests-*
           merge-multiple: true
 
+      - name: Collect digests
+        id: digests
+        run: |
+          DIGESTS=""
+          for f in ${{ runner.temp }}/digests/*; do
+            d="sha256:$(basename "$f")"
+            DIGESTS="$DIGESTS us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test@$d"
+          done
+
+          echo "digests=$DIGESTS" >> $GITHUB_OUTPUT
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
         with:
-          driver: "docker-container"
-          version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
+          driver: docker-container
+          version: latest
           buildkitd-config: '/etc/buildkitd.toml'
 
       - name: Login to GAR
@@ -289,14 +300,25 @@ jobs:
           environment: dev
           delete_credentials_file: false
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Create manifest list and push
-        working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-          $(printf 'us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test@sha256:%s ' *)
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $DIGESTS
         env:
-          DOCKER_METADATA_OUTPUT_JSON: ${{ needs.build-and-push.outputs.metadatajson }}
+          DOCKER_METADATA_OUTPUT_JSON: ${{ steps.meta.outputs.json }}
+          DIGESTS: ${{ steps.digests.outputs.digests }}
 
 #      - name: Create and push manifest
 #        run: |
