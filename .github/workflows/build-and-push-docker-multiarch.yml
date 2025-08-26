@@ -172,6 +172,7 @@ jobs:
   build-and-push:
     needs: prepare-matrix
     strategy:
+      fail-fast: false
       matrix:
         arch: ${{ fromJson(needs.prepare-matrix.outputs.platforms_list) }}
     runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
@@ -201,15 +202,14 @@ jobs:
         id: build-docker-image
         uses: grafana/shared-workflows/actions/push-to-gar-docker@rwhitaker/multi-arch-builds
         with:
+          # from inputs
           registry: ${{ inputs.registry }}
-          tags: |-
-            ${{ github.ref_name }}-${{ matrix.arch }}
+
           context: ${{ inputs.context }}
           environment: ${{ inputs.environment }}
           image_name: ${{ inputs.image_name }}
           build-args: ${{ inputs.build-args }}
           file: ${{ inputs.file }}
-          platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
           cache-from: ${{ inputs.cache-from }}
           cache-to: ${{ inputs.cache-to }}
           ssh: ${{ inputs.ssh }}
@@ -220,52 +220,58 @@ jobs:
           target: ${{ inputs.target }}
           delete_credentials_file: ${{ inputs.delete_credentials_file }}
           secrets: ${{ inputs.secrets }}
+
+          # hardcoded
           push: false
           load: true
-      - name: Login to GAR
-        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
-        with:
-          environment: dev
-          delete_credentials_file: false
-      - name: Push to GAR
-        run: |
-          echo docker push ${{ steps.build-docker-image.outputs.tags }}
-          docker push ${{ steps.build-docker-image.outputs.tags }}
+          platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
+          tags: |-
+            ${{ github.ref_name }}-${{ matrix.arch }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+#      - name: Login to GAR
+#        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
+#        with:
+#          environment: dev
+#          delete_credentials_file: false
+#      - name: Push to GAR
+#        run: |
+#          echo docker push ${{ steps.build-docker-image.outputs.tags }}
+#          docker push ${{ steps.build-docker-image.outputs.tags }}
 
-  push-manifest:
-    runs-on: ubuntu-x64-small
-    needs: build-and-push
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Login to GAR
-        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
-        with:
-          environment: dev
-          delete_credentials_file: false
-
-      - name: Create and push manifest
-        run: |
-          SAFE_TAG="${TAG//\//-}"
-          echo "Using sanitized tag: $SAFE_TAG"
-          IMAGE="us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test"
-          CMD="docker manifest create $IMAGE:$SAFE_TAG"
-
-          for PLATFORM in $(echo "$PLATFORMS" | tr ',' ' '); do
-            case "$PLATFORM" in
-              linux/amd64)
-                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-x64"
-                ;;
-              linux/arm64)
-                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-arm64"
-                ;;
-            esac
-          done
-
-          echo "Running: $CMD"
-          eval "$CMD"
-          docker manifest push $IMAGE:$SAFE_TAG
-        env:
-          TAG: ${{ github.ref_name }}
-          PLATFORMS: ${{ inputs.platforms }}
+#  push-manifest:
+#    runs-on: ubuntu-x64-small
+#    needs: build-and-push
+#    permissions:
+#      contents: read
+#      id-token: write
+#    steps:
+#      - name: Login to GAR
+#        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
+#        with:
+#          environment: dev
+#          delete_credentials_file: false
+#
+#      - name: Create and push manifest
+#        run: |
+#          SAFE_TAG="${TAG//\//-}"
+#          echo "Using sanitized tag: $SAFE_TAG"
+#          IMAGE="us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test"
+#          CMD="docker manifest create $IMAGE:$SAFE_TAG"
+#
+#          for PLATFORM in $(echo "$PLATFORMS" | tr ',' ' '); do
+#            case "$PLATFORM" in
+#              linux/amd64)
+#                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-x64"
+#                ;;
+#              linux/arm64)
+#                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-arm64"
+#                ;;
+#            esac
+#          done
+#
+#          echo "Running: $CMD"
+#          eval "$CMD"
+#          docker manifest push $IMAGE:$SAFE_TAG
+#        env:
+#          TAG: ${{ github.ref_name }}
+#          PLATFORMS: ${{ inputs.platforms }}
