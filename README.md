@@ -9,6 +9,32 @@ themselves.
 [scorecard]: https://scorecard.dev/viewer/?uri=github.com/grafana/shared-workflows
 [scorecard image]: https://api.scorecard.dev/projects/github.com/grafana/shared-workflows/badge
 
+## Custom Renovate config
+
+This is a monorepo containing several Actions. When we release a workflow, we create a tag `<workflow name>/v<workflow version>`.
+
+While Dependabot can update references to these actions, Renovate can't do it out of the box. It can, however, be configured to do so:
+
+```json5
+{
+  packageRules: [
+    {
+      matchPackageNames: ["grafana/shared-workflows"],
+      versioning: "regex:^(?<compatibility>.*)[-/]v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$",
+
+      // By default, the dependency name is the same as the package name. For
+      // Actions, this is `org/repo`. This means that we'd get all actions from
+      // `shared-workflows` in the same branch. Our tag scheme contains the name
+      // of the action being update to as well, so we can grab it from there and
+      // set the dep name, then put this in the branch name. This should mean
+      // that each shared workflow is handled separately.
+      overrideDepName: 'grafana/shared-workflows/{{ lookup (split newVersion "/") 0 }}',
+      additionalBranchPrefix: "{{depName}}",
+    },
+  ],
+}
+```
+
 ## Notes
 
 ### Configure your IDE to run Prettier
@@ -40,7 +66,7 @@ include a tag in a commend after the SHA, it can update the comment too. For
 example:
 
 ```yaml
-- uses: action/foo@abcdef0123456789abcdef0123456789 # v1.2.3
+- uses: action/foo@abcdef0123456789abcdef0123456789 # foo-action/v1.2.3
 ```
 
 [hardening]: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
