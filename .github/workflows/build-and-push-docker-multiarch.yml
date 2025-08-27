@@ -237,7 +237,7 @@ jobs:
           platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
           tags: |-
             ${{ github.ref_name }}
-#          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
 
 
       - name: Export digest
@@ -279,24 +279,20 @@ jobs:
           pattern: digests-*
           merge-multiple: true
 
-      - name: Collect digests
-        id: digests
-        run: |
-          ls -lah ${{ runner.temp }}/digests
-          DIGESTS=""
-          for f in ${{ runner.temp }}/digests/*; do
-            d="sha256:$(basename "$f")"
-            DIGESTS="$DIGESTS us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test@$d"
-          done
-
-          echo "digests=$DIGESTS" | tee -a "${GITHUB_OUTPUT}"
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
         with:
           driver: docker-container
           version: latest
           buildkitd-config: '/etc/buildkitd.toml'
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            ${{ github.ref_name }}
 
       - name: Login to GAR
         uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
@@ -305,14 +301,14 @@ jobs:
           delete_credentials_file: false
 
       - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $DIGESTS
-        env:
-          DOCKER_METADATA_OUTPUT_JSON: ${{ needs.build-and-push.outputs.metadatajson }}
-          DOCKER_METADATA: ${{ needs.build-and-push.outputs.metadata }}
-          DIGESTS: ${{ steps.digests.outputs.digests }}
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
 
 #      - name: Create and push manifest
 #        run: |
