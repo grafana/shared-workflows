@@ -311,6 +311,7 @@ jobs:
             $DIGESTS
         env:
           DOCKER_METADATA_OUTPUT_JSON: ${{ needs.build-and-push.outputs.metadatajson }}
+          DOCKER_METADATA: ${{ needs.build-and-push.outputs.metadata }}
           DIGESTS: ${{ steps.digests.outputs.digests }}
 
 #      - name: Create and push manifest
