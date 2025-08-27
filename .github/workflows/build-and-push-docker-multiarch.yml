@@ -233,7 +233,7 @@ jobs:
 
           # hardcoded
           push: true
-          load: true
+          load: false
           platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
           tags: |-
             ${{ github.ref_name }}
