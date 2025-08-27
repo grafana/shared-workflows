@@ -9,7 +9,7 @@ require (
 	github.com/lmittmann/tint v1.1.2
 	github.com/neilotoole/slogt v1.1.0
 	github.com/spf13/afero v1.14.0
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	github.com/teekennedy/goldmark-markdown v0.5.1
 	github.com/urfave/cli/v3 v3.4.1
 	github.com/willabides/actionslog v0.5.1
