@@ -195,7 +195,7 @@ jobs:
     steps:
       - name: Prepare
         run: |
-          PLATFORM=$(echo "$ARCH_TO_PLATFORM_MAP" | jq -r --arg arch "${{ matrix.arch }}" '.[$arch]')"
+          PLATFORM=$(echo "$ARCH_TO_PLATFORM_MAP" | jq -r --arg arch "${{ matrix.arch }}" '.[$arch]')
           echo "PLATFORM=${PLATFORM}" | tee -a "${GITHUB_ENV}"
           echo "PLATFORM_PAIR=${PLATFORM//\//-}" | tee -a "${GITHUB_ENV}"
       - name: Checkout code
