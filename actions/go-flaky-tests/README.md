@@ -47,8 +47,8 @@ jobs:
 | `repository`           | Repository name in 'owner/repo' format                                                                                       | ✅       | -                         |
 | `time-range`           | Time range for the query (e.g., '1h', '24h', '7d')                                                                           | ❌       | `1h`                      |
 | `repository-directory` | Relative path to the directory with a git repository                                                                         | ❌       | `${{ github.workspace }}` |
-| `github-token`         | GitHub token for repository access                            | ❌       | `${{ github.token }}`     |
-| `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode)           | ❌       | `true`                    |
+| `github-token`         | GitHub token for repository access                                                                                           | ❌       | `${{ github.token }}`     |
+| `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode)                                                                          | ❌       | `true`                    |
 | `top-k`                | Include only the top K flaky tests by distinct branches count                                                                | ❌       | `3`                       |
 
 ## Outputs
