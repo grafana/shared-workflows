@@ -239,7 +239,7 @@ jobs:
           secrets: ${{ inputs.secrets }}
 
           # hardcoded
-          docker_outputs: ${{ inputs.push == 'true' && type=image,push-by-digest=true,name-canonical=true,push=true || '' }}
+          docker_outputs: ${{ inputs.push == 'true' && 'type=image,push-by-digest=true,name-canonical=true,push=true' || '' }}
           push: ${{ inputs.push }}
           load: false
           platforms: ${{ env.PLATFORM }}
