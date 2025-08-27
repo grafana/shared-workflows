@@ -237,7 +237,7 @@ jobs:
           platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
           tags: |-
             ${{ github.ref_name }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+#          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
 
 
       - name: Export digest
