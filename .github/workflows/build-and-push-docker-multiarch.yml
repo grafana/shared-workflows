@@ -120,44 +120,45 @@ on:
         default: ""
         type: string
     outputs:
-#      version:
-#        description: "Generated Docker image version (from docker/metadata-action)"
-#        value: ${{ steps.meta.outputs.version }}
-#      tags:
-#        description: "Generated Docker tags (from docker/metadata-action)"
-#        value: ${{ steps.meta.outputs.tags }}
-#      labels:
-#        description: "Generated Docker labels (from docker/metadata-action)"
-#        value: ${{ steps.meta.outputs.labels }}
-#      annotations:
-#        description: "Generated annotations (from docker/metadata-action)"
-#        value: ${{ steps.meta.outputs.annotations }}
-#      json:
-#        description: "JSON output of tags and labels (from docker/metadata-action)"
-#        value: ${{ steps.meta.outputs.json }}
-#      imageid:
-#        description: "Image ID (from docker/build-push-action)"
-#        value: ${{ steps.build.outputs.imageid }}
-#      digest:
-#        description: "Image digest (from docker/build-push-action)"
-#        value: ${{ steps.build.outputs.digest }}
-#      metadata:
-#        description: "Build result metadata (from docker/build-push-action)"
-#        value: ${{ steps.build.outputs.metadata }}
-      platform-os-list:
-        description: "The list of OS used to build images"
-        value: ${{ jobs.prepare-matrix.outputs.platforms_list }}
+      version:
+        description: "Generated Docker image version (from docker/metadata-action)"
+        value: ${{ steps.build-and-push.outputs.version }}
+      tags:
+        description: "Generated Docker tags (from docker/metadata-action)"
+        value: ${{ steps.build-and-push.outputs.tags }}
+      labels:
+        description: "Generated Docker labels (from docker/metadata-action)"
+        value: ${{ steps.build-and-push.outputs.labels }}
+      annotations:
+        description: "Generated annotations (from docker/metadata-action)"
+        value: ${{ steps.build-and-push.outputs.annotations }}
+      json:
+        description: "JSON output of tags and labels (from docker/metadata-action)"
+        value: ${{ steps.build-and-push.outputs.json }}
+      imageid:
+        description: "Image ID (from docker/build-push-action)"
+        value: ${{ steps.build-and-push.outputs.imageid }}
+      digest:
+        description: "Image digest (from docker/build-push-action)"
+        value: ${{ steps.build-and-push.outputs.digest }}
+      metadata:
+        description: "Build result metadata (from docker/build-push-action)"
+        value: ${{ steps.build-and-push.outputs.metadata }}
+      runner_arches:
+        description: "The list of OS used to build images (for mapping to self hosted runners)"
+        value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
 
 
 jobs:
   prepare-matrix:
     runs-on: ubuntu-arm64-small
     outputs:
-      platforms_list: ${{ steps.matrix.outputs.platforms_list }}
+      runner_arches: ${{ steps.matrix.outputs.runner_arches }}
     steps:
       - id: matrix
         run: |
-          # Convert input string like "linux/amd64,linux/arm64" into JSON array
+          # This converts the potential list of `linux/arm64,linux/amd64` into a matrix of `arm64,x64`
+          # to match our hosted runner labels
           MATRIX=$(echo "$PLATFORMS" | tr -d ' ' | tr ',' '\n' \
             | jq -R 'if .=="linux/amd64" then "x64" elif .=="linux/arm64" then "arm64" else . end' \
             | jq -s -c .)
@@ -165,7 +166,7 @@ jobs:
           echo "Matrix JSON: $MATRIX"
 
           # Set output
-          echo "platforms_list=$MATRIX" >> $GITHUB_OUTPUT
+          echo "runner_arches=$MATRIX" >> $GITHUB_OUTPUT
         env:
           PLATFORMS: ${{ inputs.platforms }}
 
@@ -174,22 +175,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ fromJson(needs.prepare-matrix.outputs.platforms_list) }}
+        arch: ${{ fromJson(needs.prepare-matrix.outputs.runner_arches) }}
     runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
     env:
-      PLATFORM: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
+      ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
     outputs:
+      version: ${{ steps.build.outputs.version }}
       tags: ${{ steps.build.outputs.tags }}
+      labels: ${{ steps.build.outputs.labels }}
+      annotations: ${{ steps.build.outputs.annotations }}
+      json: ${{ steps.build.outputs.json }}
+      imageid: ${{ steps.build.outputs.imageid }}
+      digest: ${{ steps.build.outputs.digest }}
       metadata: ${{ steps.build.outputs.metadata }}
       metadatajson: ${{ steps.build.outputs.metadatajson }}
-      digest: ${{ steps.build.outputs.digest }}
     permissions:
       contents: read
       id-token: write
     steps:
       - name: Prepare
         run: |
-          echo "PLATFORM_PAIR=${PLATFORM//\//-}" >> $GITHUB_ENV
+          PLATFORM=$(echo "$ARCH_TO_PLATFORM_MAP" | jq -r --arg arch "${{ matrix.arch }}" '.[$arch]')"
+          echo "PLATFORM=${PLATFORM}" | tee -a "${GITHUB_ENV}"
+          echo "PLATFORM_PAIR=${PLATFORM//\//-}" | tee -a "${GITHUB_ENV}"
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -214,7 +222,6 @@ jobs:
         with:
           # from inputs
           registry: ${{ inputs.registry }}
-
           context: ${{ inputs.context }}
           environment: ${{ inputs.environment }}
           image_name: ${{ inputs.image_name }}
@@ -232,13 +239,11 @@ jobs:
           secrets: ${{ inputs.secrets }}
 
           # hardcoded
-          push: true
+          docker_outputs: ${{ inputs.push == 'true' && type=image,push-by-digest=true,name-canonical=true,push=true || '' }}
+          push: ${{ inputs.push }}
           load: false
-          platforms: ${{ matrix.arch == 'x64' && 'linux/amd64' || 'linux/arm64' }}
-          tags: |-
-            ${{ github.ref_name }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
-
+          platforms: ${{ env.PLATFORM }}
+          tags: ${{ inputs.tags }}
 
       - name: Export digest
         run: |
@@ -255,15 +260,6 @@ jobs:
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
-#      - name: Login to GAR
-#        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
-#        with:
-#          environment: dev
-#          delete_credentials_file: false
-#      - name: Push to GAR
-#        run: |
-#          echo docker push ${{ steps.build-docker-image.outputs.tags }}
-#          docker push ${{ steps.build-docker-image.outputs.tags }}
 
   merge-digest:
     runs-on: ubuntu-arm64-small
@@ -311,28 +307,3 @@ jobs:
       - name: Inspect image
         run: |
           docker buildx imagetools inspect us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:${{ steps.meta.outputs.version }}
-
-#      - name: Create and push manifest
-#        run: |
-#          SAFE_TAG="${TAG//\//-}"
-#          echo "Using sanitized tag: $SAFE_TAG"
-#          IMAGE="us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test"
-#          CMD="docker manifest create $IMAGE:$SAFE_TAG"
-#
-#          for PLATFORM in $(echo "$PLATFORMS" | tr ',' ' '); do
-#            case "$PLATFORM" in
-#              linux/amd64)
-#                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-x64"
-#                ;;
-#              linux/arm64)
-#                CMD="$CMD --amend $IMAGE:${SAFE_TAG}-arm64"
-#                ;;
-#            esac
-#          done
-#
-#          echo "Running: $CMD"
-#          eval "$CMD"
-#          docker manifest push $IMAGE:$SAFE_TAG
-#        env:
-#          TAG: ${{ github.ref_name }}
-#          PLATFORMS: ${{ inputs.platforms }}
