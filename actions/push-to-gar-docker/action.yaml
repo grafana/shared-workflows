@@ -87,6 +87,11 @@ inputs:
       Whether to load the built image into the local docker daemon.
     required: false
     default: "false"
+  registry_cache:
+    description: |
+      Whether to use the registry cache.
+    required: false
+    default: "false"
 
 outputs:
   version:
@@ -178,6 +183,21 @@ runs:
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
         buildkitd-config: ${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
 
+    - name: Set cache-from and cache-to
+      id: set-cache-vars
+      shell: bash
+      env:
+        REGISTRY_CACHE: ${{ inputs.registry_cache }}
+      run: |
+        if [[ "${REGISTRY_CACHE}" == "true" ]]; then
+          CACHE_IMAGE="${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}:cache"
+          echo "cache_from=type=registry,ref=${CACHE_IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "cache_to=type=registry,ref=${CACHE_IMAGE},mode=max" >> "${GITHUB_OUTPUT}"
+        else
+          echo "cache_from=${{ inputs.cache-from }}" >> "${GITHUB_OUTPUT}"
+          echo "cache_to=${{ inputs.cache-to }}" >> "${GITHUB_OUTPUT}"
+        fi
+
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
     # the upstream action the user's input to the input ends up in an output,
     # and so if it's not handled properly, it could lead to a template injection
@@ -196,8 +216,8 @@ runs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ inputs.labels }}
         target: ${{ inputs.target }}
-        cache-from: ${{ inputs.cache-from }}
-        cache-to: ${{ inputs.cache-to }}
+        cache-from: ${{ steps.set-cache-vars.outputs.cache_from }}
+        cache-to: ${{ steps.set-cache-vars.outputs.cache_to }}
         file: ${{ inputs.file }}
         platforms: ${{ inputs.platforms }}
         ssh: ${{ inputs.ssh }}
