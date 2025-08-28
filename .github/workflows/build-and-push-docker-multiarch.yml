@@ -120,30 +120,30 @@ on:
         default: ""
         type: string
     outputs:
-#      version:
-#        description: "Generated Docker image version (from docker/metadata-action)"
-#        value: ${{ steps.build-and-push.outputs.version }}
-#      tags:
-#        description: "Generated Docker tags (from docker/metadata-action)"
-#        value: ${{ steps.build-and-push.outputs.tags }}
-#      labels:
-#        description: "Generated Docker labels (from docker/metadata-action)"
-#        value: ${{ steps.build-and-push.outputs.labels }}
-#      annotations:
-#        description: "Generated annotations (from docker/metadata-action)"
-#        value: ${{ steps.build-and-push.outputs.annotations }}
-#      json:
-#        description: "JSON output of tags and labels (from docker/metadata-action)"
-#        value: ${{ steps.build-and-push.outputs.json }}
-#      imageid:
-#        description: "Image ID (from docker/build-push-action)"
-#        value: ${{ steps.build-and-push.outputs.imageid }}
-#      digest:
-#        description: "Image digest (from docker/build-push-action)"
-#        value: ${{ steps.build-and-push.outputs.digest }}
-#      metadata:
-#        description: "Build result metadata (from docker/build-push-action)"
-#        value: ${{ steps.build-and-push.outputs.metadata }}
+      version:
+        description: "Generated Docker image version (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.version }}
+      tags:
+        description: "Generated Docker tags (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.tags }}
+      labels:
+        description: "Generated Docker labels (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.labels }}
+      annotations:
+        description: "Generated annotations (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.annotations }}
+      json:
+        description: "JSON output of tags and labels (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.json }}
+      imageid:
+        description: "Image ID (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.imageid }}
+      digest:
+        description: "Image digest (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.digest }}
+      metadata:
+        description: "Build result metadata (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.metadata }}
       runner_arches:
         description: "The list of OS used to build images (for mapping to self hosted runners)"
         value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
