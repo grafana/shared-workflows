@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.2.0...trigger-argo-workflow/v1.2.1) (2025-08-28)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update module github.com/stretchr/testify to v1.11.0 ([#1263](https://github.com/grafana/shared-workflows/issues/1263)) ([92d0612](https://github.com/grafana/shared-workflows/commit/92d06123e73d57688a53671d0239197efb06cc60))
+* **deps:** update module github.com/stretchr/testify to v1.11.1 ([#1279](https://github.com/grafana/shared-workflows/issues/1279)) ([6901f03](https://github.com/grafana/shared-workflows/commit/6901f036a3aa16cfaaba7020f3515c31eaa2f999))
+
 ## [1.2.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.1.2...trigger-argo-workflow/v1.2.0) (2025-08-18)
 
 
