@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/argo-lint/v1.0.2...argo-lint/v1.0.3) (2025-08-28)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v4.3.0 ([#1221](https://github.com/grafana/shared-workflows/issues/1221)) ([17ab531](https://github.com/grafana/shared-workflows/commit/17ab531bf2c16c79af38988e7caf7a3d8a37634b))
+* **deps:** update actions/checkout action to v5 ([#1227](https://github.com/grafana/shared-workflows/issues/1227)) ([fd79c02](https://github.com/grafana/shared-workflows/commit/fd79c02730e0629f728e2f5c3d614545269208a9))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/argo-lint-v1.0.1...argo-lint/v1.0.2) (2025-06-04)
 
 
