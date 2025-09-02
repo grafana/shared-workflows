@@ -8,7 +8,7 @@ inputs:
   application-url:
     description: "The optional URL to use of the application to sign the file(s) for. Defaults to the current GitHub repository URL."
     required: false
-    default: "${{ env.GITHUB_SERVER_URL }}/${{ env.GITHUB_REPOSITORY }}"
+    default: ${{ format('{0}/{1}', github.server_url, github.repository) }}
   artifact-to-sign:
     description: "The name of the GitHub Actions workflow artifact from the current workflow run to sign the contents of."
     required: true
@@ -73,7 +73,6 @@ runs:
     - name: Download artifact
       uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
         name: ${{ inputs.artifact-to-sign }}
         path: ${{ steps.get-staging-path.outputs.staging-path }}
 
