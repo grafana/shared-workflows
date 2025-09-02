@@ -61,6 +61,10 @@
       "package-name": "aws-auth",
       "extra-files": ["README.md"]
     },
+    "actions/azure-trusted-signing": {
+      "package-name": "azure-trusted-signing",
+      "extra-files": ["README.md"]
+    },
     "actions/build-push-to-dockerhub": {
       "package-name": "build-push-to-dockerhub",
       "extra-files": ["README.md"]
