@@ -141,7 +141,9 @@ runs:
           $signArgs += ${env:FILE_LIST}
         }
 
-        & ${env:SIGN_CLI_PATH} trusted-signing $signArgs
+        $signTool = Join-Path -Path ${env:SIGN_CLI_PATH} -ChildPath "sign"
+
+        & $signTool trusted-signing $signArgs
 
         if ($LASTEXITCODE -ne 0) {
           Write-Output "::error::Failed to sign files with Azure Trusted Signing"
