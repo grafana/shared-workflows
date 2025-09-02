@@ -1,0 +1,158 @@
+name: Azure Trusted Signing
+description: Signs files in a GitHub Actions artifact using Azure Trusted Signing
+
+inputs:
+  application-description:
+    description: 'The description of the application to sign the file(s) for.'
+    required: true
+  application-url:
+    description: 'The optional URL to use of the application to sign the file(s) for. Defaults to the current GitHub repository URL.'
+    required: false
+    default: '${{ env.GITHUB_SERVER_URL }}/${{ env.GITHUB_REPOSITORY }}'
+  artifact-to-sign:
+    description: 'The name of the GitHub Actions workflow artifact from the current workflow run to sign the contents of.'
+    required: true
+  azure-client-id:
+    description: 'The client ID to use to authenticate with Azure.'
+    required: true
+  azure-subscription-id:
+    description: 'The subscription ID to use to authenticate with Azure.'
+    required: true
+  azure-tenant-id:
+    description: 'The tenant ID to use to authenticate with Azure.'
+    required: true
+  file-filter:
+    description: 'The optional path filter of which files to sign the files from the artifact. Defaults to all files.'
+    required: false
+    default: '**/*'
+  file-list:
+    description: 'The optional path to a file containing paths of files to sign or to exclude from signing.'
+    required: false
+  publisher-name:
+    description: 'The optional name of the publisher of the application the signed file(s) belong to. Defaults to "Grafana Labs".'
+    required: false
+    default: 'Grafana Labs'
+  signed-artifact-name:
+    description: 'The name of the GitHub Actions workflow artifact to upload the signed files to.'
+    required: true
+  trusted-signing-account:
+    description: 'The optional name of the Azure Trusted Signing account to use.'
+    required: false
+    default: 'grafana-premium-eastus'
+  trusted-signing-endpoint:
+    description: 'The optional endpoint URL of the Azure Trusted Signing service to use.'
+    required: false
+    default: 'https://eus.codesigning.azure.net/'
+  trusted-signing-profile:
+    description: 'The optional name of the Azure Trusted Signing profile to use.'
+    required: false
+    default: 'grafana-production'
+outputs:
+  artifact-name:
+    description: 'The name of the GitHub Actions workflow artifact containing the signed file(s).'
+    value: ${{ inputs.signed-artifact-name }}
+
+runs:
+  using: composite
+  steps:
+
+    - name: Verify runner operating system
+      shell: pwsh
+      run: |
+        if (${env:RUNNER_OS} -ne "Windows") {
+          Write-Output "::error::This action can only be used on Windows runners."
+          exit 1
+        }
+
+    - name: Get staging path
+      id: get-staging-path
+      shell: pwsh
+      run: |
+        $stagingPath = Join-Path -Path ${env:RUNNER_TEMP} -ChildPath (New-Guid).ToString()
+        "staging-path=$stagingPath" >> ${env:GITHUB_OUTPUT}
+
+    - name: Download artifact
+      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        name: ${{ inputs.artifact-to-sign }}
+        path: ${{ steps.get-staging-path.outputs.staging-path }}
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+      with:
+        # renovate: datasource=dotnet-version depName=dotnet-sdk
+        dotnet-version: '8.0.413'
+
+    - name: Install Sign CLI tool
+      id: install-sign-tool
+      shell: pwsh
+      env:
+        # renovate: datasource=nuget depName=sign
+        DOTNET_SIGN_VERSION: '0.9.1-beta.25379.1'
+      run: |
+        $toolPath = Join-Path -Path ${env:RUNNER_TEMP} -ChildPath (New-Guid).ToString()
+        New-Item -ItemType Directory -Path $toolPath | Out-Null
+
+        dotnet tool install --tool-path $toolPath sign --version ${env:DOTNET_SIGN_VERSION}
+
+        if ($LASTEXITCODE -ne 0) {
+          Write-Output "::error::Failed to install Sign CLI tool"
+          exit 1
+        }
+
+        "sign-tool=$toolPath" >> ${env:GITHUB_OUTPUT}
+
+    - name: Azure log in
+      uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
+      with:
+        client-id: ${{ inputs.azure-client-id }}
+        subscription-id: ${{ inputs.azure-subscription-id }}
+        tenant-id: ${{ inputs.azure-tenant-id }}
+
+    - name: Sign files
+      shell: pwsh
+      env:
+        APPLICATION_DESCRIPTION: ${{ inputs.application-description }}
+        APPLICATION_URL: ${{ inputs.application-url }}
+        BASE_DIRECTORY: ${{ steps.get-staging-path.outputs.staging-path }}
+        FILE_FILTER: ${{ inputs.file-filter }}
+        FILE_LIST: ${{ inputs.file-list }}
+        PUBLISHER_NAME: ${{ inputs.publisher-name }}
+        SIGN_CLI_PATH: ${{ steps.install-sign-tool.outputs.sign-tool }}
+        TRUSTED_SIGNING_ACCOUNT: ${{ inputs.trusted-signing-account }}
+        TRUSTED_SIGNING_ENDPOINT: ${{ inputs.trusted-signing-endpoint }}
+        TRUSTED_SIGNING_PROFILE: ${{ inputs.trusted-signing-profile }}
+        VERBOSITY: ${{ runner.debug == '1' && 'Debug' || 'Error' }}
+      run: |
+        $signArgs = @(
+          ${env:FILE_FILTER},
+          "--base-directory", ${env:BASE_DIRECTORY},
+          "--application-name", ${env:APPLICATION_DESCRIPTION},
+          "--publisher-name", ${env:PUBLISHER_NAME},
+          "--description", ${env:APPLICATION_DESCRIPTION},
+          "--description-url", ${env:APPLICATION_URL},
+          "--trusted-signing-account", ${env:TRUSTED_SIGNING_ACCOUNT},
+          "--trusted-signing-certificate-profile", ${env:TRUSTED_SIGNING_PROFILE},
+          "--trusted-signing-endpoint", ${env:TRUSTED_SIGNING_ENDPOINT},
+          "--verbosity", ${env:VERBOSITY}
+        )
+
+        if (-Not [string]::IsNullOrEmpty(${env:FILE_LIST})) {
+          $signArgs += "--file-list"
+          $signArgs += ${env:FILE_LIST}
+        }
+
+        & ${env:SIGN_CLI_PATH} trusted-signing $signArgs
+
+        if ($LASTEXITCODE -ne 0) {
+          Write-Output "::error::Failed to sign files with Azure Trusted Signing"
+          exit 1
+        }
+
+    - name: Upload signed artifacts
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{ inputs.signed-artifact-name }}
+        path: ${{ steps.get-staging-path.outputs.staging-path }}
+        if-no-files-found: error
