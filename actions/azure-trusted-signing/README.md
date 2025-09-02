@@ -107,8 +107,8 @@ jobs:
 
 | **Name**                   | **Description**                                                                  | **Default**                                            |
 | :------------------------- | :------------------------------------------------------------------------------- | :----------------------------------------------------- |
-| `application-url`          | The URL to use of the application to sign the file(s) for.                       | The URL of the GitHub repository running the workflow. |
-| `file-filter`              | The path filter of which files to sign the files from the artifact.              | `'**/*'`                                               |
+| `application-url`          | The URL of the application to sign the file(s) for.                              | The URL of the GitHub repository running the workflow. |
+| `file-filter`              | The path filter of which files to sign from the artifact.                        | `'**/*'`                                               |
 | `file-list`                | The path to a file containing paths of files to sign or to exclude from signing. | -                                                      |
 | `publisher-name`           | The name of the publisher of the application the signed file(s) belong to.       | `'Grafana Labs'`                                       |
 | `trusted-signing-account`  | The name of the Azure Trusted Signing account to use.                            | -                                                      |

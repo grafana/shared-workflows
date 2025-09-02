@@ -6,7 +6,7 @@ inputs:
     description: "The description of the application to sign the file(s) for."
     required: true
   application-url:
-    description: "The optional URL to use of the application to sign the file(s) for. Defaults to the current GitHub repository URL."
+    description: "The optional URL of the application to sign the file(s) for. Defaults to the current GitHub repository URL."
     required: false
     default: ${{ format('{0}/{1}', github.server_url, github.repository) }}
   artifact-to-sign:
@@ -22,7 +22,7 @@ inputs:
     description: "The tenant ID to use to authenticate with Azure."
     required: true
   file-filter:
-    description: "The optional path filter of which files to sign the files from the artifact. Defaults to all files."
+    description: "The optional path filter of which files to sign from the artifact. Defaults to all files."
     required: false
     default: "**/*"
   file-list:
