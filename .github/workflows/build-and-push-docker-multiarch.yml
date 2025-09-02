@@ -218,7 +218,7 @@ jobs:
           PRE_BUILD_SCRIPT_PATH: ${{ inputs.pre-build-script }}
       - name: Build Docker Image
         id: build
-        uses: grafana/shared-workflows/actions/push-to-gar-docker@rwhitaker/multi-arch-builds
+        uses: grafana/shared-workflows/actions/docker-build-push-image@rwhitaker/multi-arch-builds
         with:
           # from inputs
           registry: ${{ inputs.registry }}
