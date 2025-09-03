@@ -6,5 +6,5 @@ type Config struct {
 	DefaultBranch string
 	Fetch         bool
 	Delete        bool
-	csvFile       string
+	CsvFile       string
 }

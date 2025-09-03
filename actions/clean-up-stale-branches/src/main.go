@@ -8,9 +8,10 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/config"
-	"github.com/grafana/shared-workflows/stale-branches/gh"
+	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/gh"
+	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/gh_action"
+
 	"github.com/spf13/cobra"
 )
 
@@ -59,41 +60,42 @@ func main() {
 			switch {
 			case githubToken != "":
 				githubClient = gh.NewGitHubClientWithTokenAuth(ctx, githubToken)
-
 			case githubAppID != "" && githubAppPrivateKey != "":
-				githubClient = gh.NewGitHubClientWithAppAuth(ctx, owner, githubAppID, githubAppPrivateKey)
+				githubClient, err = gh.NewGitHubClientWithAppAuth(ctx, owner, githubAppID, githubAppPrivateKey)
+				if err != nil {
+					return fmt.Errorf("")
+				}
 			default:
-				level.Error(logger).Log("msg", fmt.Sprintf("The GitHub authentication configuration is missing. Either %s or %s and %s environment variables must be provided.", envGitHubToken, envGitHubAppID, envGitHubAppPrivateKey))
-				os.Exit(1)
+				return fmt.Errorf("The GitHub authentication configuration is missing. Either %s or %s and %s environment variables must be provided.", envGitHubToken, envGitHubAppID, envGitHubAppPrivateKey)
 			}
 
+			// Set up the configuration and run the action
 			cfg := &config.Config{
 				Repository:    repo,
 				Owner:         owner,
 				DefaultBranch: defaultBranch,
 				Fetch:         action == "fetch",
 				Delete:        action == "delete",
-				csvFile:       csvFile,
+				CsvFile:       csvFile,
 			}
-
-			a := &action.Action{
-				cfg:    cfg,
-				client: githubClient,
-				logger: logger,
+			a := gh_action.Action{
+				Cfg:    *cfg,
+				Client: *githubClient,
+				Logger: logger,
 			}
 			a.Run(ctx)
 			return nil
 		},
 	}
 
-	rootCmd.Flags().StringVar(&action, "action", "", "Whether to delete or just fetch")
-	rootCmd.Flags().StringVar(&csvFile)
+	rootCmd.Flags().StringVar(&action, "action", "", "Whether to delete or fetch")
+	rootCmd.Flags().StringVar(&csvFile, "csvFile", "", "Path to the output csv file for all the stale branches to be removed")
+	rootCmd.Flags().StringVar(&repository, "repository", "Repository to run this action, should be in the format owner/repo-name")
 
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to convert due to error: %v\n", err)
 		os.Exit(1)
 	}
-
 }
 
 func parseRepository(repository string) (owner, repo string, err error) {

@@ -1,17 +1,17 @@
-package action
+package gh_action
 
 import (
 	"context"
 	"log"
 
-	"github.com/grafana/shared-workflows/stale-branches/config"
-	"github.com/grafana/shared-workflows/stale-branches/gh"
+	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/config"
+	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/gh"
 )
 
 type Action struct {
-	cfg    config.Config // should contain whether this is delete or a list and the CSV
-	client gh.GithubClient
-	logger log.Logger
+	Cfg    config.Config // should contain whether this is delete or a list and the CSV
+	Client gh.GithubClient
+	Logger log.Logger
 }
 
 func (a *Action) Run(ctx context.Context) error {
