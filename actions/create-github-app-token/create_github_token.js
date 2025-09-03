@@ -1,4 +1,4 @@
-module.exports = ({ audience }) => {
+module.exports = ({ core, audience }) => {
     async function retry(fn, retries = 3, delay = 5000) {
         for (let i = 0; i < retries; i++) {
             try {
