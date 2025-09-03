@@ -13,8 +13,8 @@ import (
 
 // TODO: should these follow the Github API or the API that I would like to support?
 type GithubClient interface {
-	FetchStaleBranches()
-	DeleteStaleBranches()
+	FetchStaleBranches(ctx context.Context, owner string, repository string, defaultBranch string) ([]*github.Branch, error)
+	DeleteStaleBranches() error
 }
 
 type Client struct {

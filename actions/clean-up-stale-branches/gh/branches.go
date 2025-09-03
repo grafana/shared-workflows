@@ -2,7 +2,7 @@ package gh
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/google/go-github/v74/github"
 )
@@ -15,8 +15,8 @@ func (c *Client) FetchStaleBranches(ctx context.Context, owner string, repositor
 		return nil, err
 	}
 
-	currentDate := time.Now()
-	threeMonthsAgo := currentDate.AddDate(0, -3, 0)
+	// currentDate := time.Now()
+	// threeMonthsAgo := currentDate.AddDate(0, -3, 0)
 	staleBranches := []*github.Branch{}
 
 	for _, branch := range branches {
@@ -39,16 +39,17 @@ func (c *Client) FetchStaleBranches(ctx context.Context, owner string, repositor
 		}
 
 		// check the timing of the branch
-		if branch.Commit.Commit.Committer.Date.Time.Before(threeMonthsAgo) {
-			// this is a stale branch and should be removed
-			staleBranches = append(staleBranches, branch)
-		}
+		fmt.Printf("Branch is here: %v\n", *branch.Name)
+		// if branch.Commit.Commit.Committer.Date.Time.Before(threeMonthsAgo) {
+		// 	// this is a stale branch and should be removed
+		// 	staleBranches = append(staleBranches, branch)
+		// }
 	}
 
 	// TODO: this is where the branches would be deleted
 	return staleBranches, nil
 }
 
-func (c *Client) DeleteStaleBranches() {
-
+func (c *Client) DeleteStaleBranches() error {
+	return nil
 }

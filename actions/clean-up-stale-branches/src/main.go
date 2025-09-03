@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/config"
 	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/gh"
 	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/gh_action"
@@ -28,8 +27,7 @@ func main() {
 		action        string
 		csvFile       string
 
-		logger = initLogger()
-		ctx    = context.Background()
+		ctx = context.Background()
 	)
 
 	// TODO: figure out how to have the action be customized to the following specs:
@@ -48,6 +46,10 @@ func main() {
 			owner, repo, err := parseRepository(repository)
 			if err != nil {
 				return fmt.Errorf("Failed to parse respository: %v\n", err)
+			}
+
+			if action == "fetch" && csvFile == "" {
+				return fmt.Errorf("If fetch action is specified then output CSV must be specified\n")
 			}
 
 			// Create the Github client
@@ -80,8 +82,7 @@ func main() {
 			}
 			a := gh_action.Action{
 				Cfg:    *cfg,
-				Client: *githubClient,
-				Logger: logger,
+				Client: githubClient,
 			}
 			a.Run(ctx)
 			return nil
@@ -90,7 +91,7 @@ func main() {
 
 	rootCmd.Flags().StringVar(&action, "action", "", "Whether to delete or fetch")
 	rootCmd.Flags().StringVar(&csvFile, "csvFile", "", "Path to the output csv file for all the stale branches to be removed")
-	rootCmd.Flags().StringVar(&repository, "repository", "Repository to run this action, should be in the format owner/repo-name")
+	rootCmd.Flags().StringVar(&repository, "repository", "", "Repository to run this action, should be in the format owner/repo-name")
 
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to convert due to error: %v\n", err)
@@ -108,11 +109,4 @@ func parseRepository(repository string) (owner, repo string, err error) {
 	owner = parts[0]
 	repo = parts[1]
 	return
-}
-
-func initLogger() log.Logger {
-	logger := log.NewLogfmtLogger(os.Stderr)
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
-
-	return logger
 }
