@@ -7,9 +7,9 @@ import (
 	"github.com/google/go-github/v74/github"
 )
 
-func (c *Client) GetStaleBranches(ctx context.Context, owner string, repository string, defaultBranch string) ([]*github.Branch, error) {
+func (c *Client) FetchStaleBranches(ctx context.Context, owner string, repository string, defaultBranch string) ([]*github.Branch, error) {
 	// TODO: what are the opts that are necessary
-	// TODO: this needs to be paginated to avoid the rate limiting
+	// TODO: this needs to be paginated and needs retry to deal with the backoff
 	branches, _, err := c.restClient.Repositories.ListBranches(ctx, owner, repository, nil)
 	if err != nil {
 		return nil, err

@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"errors"
-	"flag"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/shared-workflows/actions/cleanup-stale-branches/config"
 	"github.com/grafana/shared-workflows/stale-branches/gh"
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -24,73 +25,75 @@ func main() {
 		repository    string
 		defaultBranch string
 		action        string
+		csvFile       string
 
 		logger = initLogger()
 		ctx    = context.Background()
 	)
 
-	flag.StringVar(&repository, "repository", "", "The repostiory for which the stale branches should be cleaned up from")
-	flag.StringVar(&defaultBranch, "defaultBranch", "", "The branch that should not be marked as stale")
-	flag.StringVar(&action, "action", "", "This should either be fetching stale branches or deleting stale branches")
-
 	// TODO: figure out how to have the action be customized to the following specs:
 	// list outputs branches to be deleted to a CSV artifact
 	// delete if input CSV specified then the CSV should be used as input for branches to delete. Otherwise, the get branches will
 	//  be called and used as input for delete (can have dry run option)
-	if repository == "" {
-		level.Error(logger).Log("msg", "No repository specified")
-		os.Exit(1)
-	}
-
-	if defaultBranch == "" {
-		level.Error(logger).Log("msg", "No default branch specified")
-		os.Exit(1)
-	}
-
-	if action == "" || (action != "fetchStaleBranches" && action != "deleteStaleBranches") {
-		level.Error(logger).Log("msg", "No action is provided")
-	}
-
-	// this needs to be passed to a configuration
-	owner, repo, err := parseRepository(repository)
 
 	// Plan:
 	// For now the only option is to just fetch the stale branches (for testing)
 	// run!
+	rootCmd := &cobra.Command{
+		Use:   "clean-up-stale-branches",
+		Short: "Will iterate and either fetch the stale branches or delete them",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Get the repository and owner
+			owner, repo, err := parseRepository(repository)
+			if err != nil {
+				return fmt.Errorf("Failed to parse respository: %v\n", err)
+			}
 
-	// Create the Github client
-	var (
-		githubToken         = os.Getenv(envGitHubToken)
-		githubAppID         = os.Getenv(envGitHubAppID)
-		githubAppPrivateKey = os.Getenv(envGitHubAppPrivateKey)
-		githubClient        *gh.Client
-	)
-	switch {
-	case githubToken != "":
-		githubClient = gh.NewGitHubClientWithTokenAuth(ctx, githubToken)
+			// Create the Github client
+			var (
+				githubToken         = os.Getenv(envGitHubToken)
+				githubAppID         = os.Getenv(envGitHubAppID)
+				githubAppPrivateKey = os.Getenv(envGitHubAppPrivateKey)
+				githubClient        *gh.Client
+			)
+			switch {
+			case githubToken != "":
+				githubClient = gh.NewGitHubClientWithTokenAuth(ctx, githubToken)
 
-	case githubAppID != "" && githubAppPrivateKey != "":
-		githubClient = gh.NewGitHubClientWithAppAuth(ctx, owner, githubAppID, githubAppPrivateKey)
-	default:
-		level.Error(logger).Log("msg", fmt.Sprintf("The GitHub authentication configuration is missing. Either %s or %s and %s environment variables must be provided.", envGitHubToken, envGitHubAppID, envGitHubAppPrivateKey))
+			case githubAppID != "" && githubAppPrivateKey != "":
+				githubClient = gh.NewGitHubClientWithAppAuth(ctx, owner, githubAppID, githubAppPrivateKey)
+			default:
+				level.Error(logger).Log("msg", fmt.Sprintf("The GitHub authentication configuration is missing. Either %s or %s and %s environment variables must be provided.", envGitHubToken, envGitHubAppID, envGitHubAppPrivateKey))
+				os.Exit(1)
+			}
+
+			cfg := &config.Config{
+				Repository:    repo,
+				Owner:         owner,
+				DefaultBranch: defaultBranch,
+				Fetch:         action == "fetch",
+				Delete:        action == "delete",
+				csvFile:       csvFile,
+			}
+
+			a := &action.Action{
+				cfg:    cfg,
+				client: githubClient,
+				logger: logger,
+			}
+			a.Run(ctx)
+			return nil
+		},
+	}
+
+	rootCmd.Flags().StringVar(&action, "action", "", "Whether to delete or just fetch")
+	rootCmd.Flags().StringVar(&csvFile)
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to convert due to error: %v\n", err)
 		os.Exit(1)
 	}
 
-	cfg := &config.Config{
-		Repository:    repo,
-		Owner:         owner,
-		DefaultBranch: defaultBranch,
-		Fetch:         action == "fetch",
-		Delete:        action == "delete",
-		csvFile:       csvFile,
-	}
-
-	a := &action.Action{
-		cfg:    cfg,
-		client: githubClient,
-		logger: logger,
-	}
-	a.Run(ctx)
 }
 
 func parseRepository(repository string) (owner, repo string, err error) {

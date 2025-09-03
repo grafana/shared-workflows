@@ -13,7 +13,7 @@ import (
 
 // TODO: should these follow the Github API or the API that I would like to support?
 type GithubClient interface {
-	ListStaleBranches()
+	FetchStaleBranches()
 	DeleteStaleBranches()
 }
 

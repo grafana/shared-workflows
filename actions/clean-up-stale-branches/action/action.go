@@ -16,5 +16,6 @@ type Action struct {
 
 func (a *Action) Run(ctx context.Context) error {
 	// if it's a fetch, then call listStaleBranches and write the results to a CSV file
+	staleBranches := a.client.FetchStaleBranches()
 	// if it's a delete, then either use the previous step or use the CSV file specified
 }
