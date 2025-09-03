@@ -6,7 +6,7 @@ module.exports = ({ core, audience }) => {
             } catch (err) {
                 core.warning(`Attempt ${i + 1} failed: ${err.message}`);
                 if (i < retries - 1) {
-                    await new Promise(r => setTimeout(r, delay * i));
+                    await new Promise((r) => setTimeout(r, delay * i));
                 } else {
                     throw err;
                 }
@@ -16,4 +16,4 @@ module.exports = ({ core, audience }) => {
     const jwt = retry(() => core.getIDToken(audience));
     core.setSecret(jwt);
     core.setOutput("github-jwt", jwt);
-}
+};
