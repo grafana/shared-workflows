@@ -6,7 +6,7 @@ inputs:
     default: default
   github_app:
     description: |
-      GitHub app name in Vault
+      GitHub app name in Vault. You can define mutiple app to do a loadbalancing in a comma separated format.
   vault_instance:
     description: |
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
