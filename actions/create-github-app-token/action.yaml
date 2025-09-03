@@ -42,9 +42,9 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken("vault-github-actions-grafana-"+process.env.VAULT_INSTANCE);
-          core.setSecret(jwt);
-          core.setOutput("github-jwt",jwt);
+          const audience = "vault-github-actions-grafana-" + process.env.VAULT_INSTANCE
+          const script = require('${GITHUB_ACTION_PATH}/create_github_token.js')
+          console.log(script({audience}))
 
     - id: get-github-jwt-auth-token
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -52,9 +52,9 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken("https://vault-github-actions.grafana-"+process.env.VAULT_INSTANCE+".net");
-          core.setSecret(jwt);
-          core.setOutput("github-jwt",jwt);
+          const audience = "https://vault-github-actions.grafana-" + process.env.VAULT_INSTANCE + ".net"
+          const script = require('${GITHUB_ACTION_PATH}/create_github_token.js')
+          console.log(script({audience}))
 
     - name: Authenticate with Vault
       id: auth-vault
@@ -64,13 +64,11 @@ runs:
         REPOSITORY_NAME: ${{ github.event.repository.name }}
         PERMISSION_SET: ${{ inputs.permission_set}}
         VAULT_URL: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        GITHUB_JWT: ${{ steps.get-github-jwt-token.outputs.github-jwt }}
+        GITHUB_JWT_AUTH: ${{ steps.get-github-jwt-auth-token.outputs.github-jwt }}
+        REF_SHA: ${{ steps.normalize-workflow-name.outputs.ref_sha }}
       run: |
-        echo "${REPOSITORY_NAME}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${PERMISSION_SET}"
-        curl --fail -X POST "${VAULT_URL}/v1/auth/github-actions-oidc/login" \
-        -H "Content-Type: application/json" \
-        -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-        -d "{\"role\": \"${REPOSITORY_NAME}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${PERMISSION_SET}\",\"jwt\": \"${{ steps.get-github-jwt-auth-token.outputs.github-jwt }}\"}" \
-        | jq -r '"vault_token=\(.auth.client_token)"' >> $GITHUB_OUTPUT
+        ${GITHUB_ACTION_PATH}/auth_vault.sh
 
     - name: Get GitHub Token
       id: generate-token
@@ -81,8 +79,8 @@ runs:
         PERMISSION_SET: ${{ inputs.permission_set}}
         GITHUB_APP: ${{ inputs.github_app }}
         VAULT_URL: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        VAULT_TOKEN: ${{ steps.auth-vault.outputs.vault_token }}
+        GITHUB_JWT: ${{ steps.get-github-jwt-token.outputs.github-jwt }}
+        REF_SHA: ${{ steps.normalize-workflow-name.outputs.ref_sha }}
       run: |
-        curl --fail "{$VAULT_URL}/v1/github-app-${GITHUB_APP}/token/${REPOSITORY_NAME}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${PERMISSION_SET}" \
-        -H "X-Vault-Token: ${{ steps.auth-vault.outputs.vault_token }}" \
-        -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-        | jq -r '"github_token=\(.data.token)"' >> $GITHUB_OUTPUT
+        ${GITHUB_ACTION_PATH}/create_token.sh
