@@ -2,18 +2,15 @@
 set -euo pipefail
 
 MAX_ATTEMPTS=3
-
-# If GITHUB_APP contains commas, pick one randomly
-if [[ "${GITHUB_APP}" == *","* ]]; then
-    IFS=',' read -ra APPS <<< "${GITHUB_APP}"
-    # trim whitespace and pick one randomly
+IFS=',' read -ra APPS <<< "${GITHUB_APP}"
+setRandomApp() {
     GITHUB_APP=$(printf "%s\n" "${APPS[@]}" | sed 's/^ *//;s/ *$//' | shuf -n1)
     echo "Randomly selected GitHub App: ${GITHUB_APP}"
-fi
+}
 
 for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
     echo "Attempt ${attempt} to get GitHub token..."
-
+    setRandomApp
     RESPONSE=$(curl -sS -w "%{http_code}" -o response.json \
         "${VAULT_URL}/v1/github-app-${GITHUB_APP}/token/${REPOSITORY_NAME}-${REF_SHA}-${PERMISSION_SET}" \
         -H "X-Vault-Token: ${VAULT_TOKEN}" \
