@@ -53,7 +53,7 @@ jobs:
 
     steps:
       - name: Get secrets for Azure Trusted Signing
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.0.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.3.0
         id: get-signing-secrets
         with:
           export_env: false
