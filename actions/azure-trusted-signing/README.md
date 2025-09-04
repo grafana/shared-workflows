@@ -63,7 +63,7 @@ jobs:
             tenant-id=azure-trusted-signing:tenant-id
 
       - name: Sign artifacts
-        uses: grafana/shared-workflows/actions/azure-trusted-signing@azure-trusted-signing/v0.1.0
+        uses: grafana/shared-workflows/actions/azure-trusted-signing@azure-trusted-signing/v1.0.0
         id: sign-artifacts
         with:
           application-description: "My Awesome application"
