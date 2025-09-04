@@ -40,6 +40,7 @@ func (c *Client) FetchStaleBranches(ctx context.Context, owner string, repositor
 
 		// check the timing of the branch
 		fmt.Printf("Branch is here: %v\n", *branch.Name)
+		branch.Commit.
 		// if branch.Commit.Commit.Committer.Date.Time.Before(threeMonthsAgo) {
 		// 	// this is a stale branch and should be removed
 		// 	staleBranches = append(staleBranches, branch)
