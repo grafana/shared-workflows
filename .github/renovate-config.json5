@@ -44,6 +44,12 @@
       matchUpdateTypes: ["digest"],
     },
     {
+      extends: ["monorepo:dotnet"],
+      description: ["Disable major version updates for .NET"],
+      matchUpdateTypes: ["major"],
+      enabled: false,
+    },
+    {
       // Run the custom matcher on early Monday mornings (UTC)
       schedule: "* 0-4 * * 1",
       matchPackageNames: ["ghcr.io/renovatebot/renovate"],
