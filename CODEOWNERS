@@ -13,3 +13,6 @@
 
 # Platform productivity
 /.github/workflows/publish-techdocs.yaml @grafana/platform-productivity
+
+# Observability
+/actions/azure-trusted-signing/ @grafana/o11y-dept
