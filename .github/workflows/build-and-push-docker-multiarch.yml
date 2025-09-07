@@ -24,7 +24,7 @@ on:
           Environment for pushing artifacts (can be either dev or prod).
         default: dev
         type: string
-      image_name:
+      image-name:
         description: |
           Name of the image to be pushed to GAR.
         required: true
@@ -163,10 +163,8 @@ jobs:
             | jq -R 'if .=="linux/amd64" then "x64" elif .=="linux/arm64" then "arm64" else . end' \
             | jq -s -c .)
 
-          echo "Matrix JSON: $MATRIX"
-
           # Set output
-          echo "runner_arches=$MATRIX" >> $GITHUB_OUTPUT
+          echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
         env:
           PLATFORMS: ${{ inputs.platforms }}
 
@@ -218,13 +216,13 @@ jobs:
           PRE_BUILD_SCRIPT_PATH: ${{ inputs.pre-build-script }}
       - name: Build Docker Image
         id: build
-        uses: grafana/shared-workflows/actions/push-to-gar-docker@rwhitaker/multi-arch-builds
+        uses: grafana/shared-workflows/actions/docker-build-push-image@rwhitaker/multi-arch-builds
         with:
           # from inputs
           registry: ${{ inputs.registry }}
           context: ${{ inputs.context }}
           environment: ${{ inputs.environment }}
-          image_name: ${{ inputs.image_name }}
+          image-name: ${{ inputs.image-name }}
           build-args: ${{ inputs.build-args }}
           file: ${{ inputs.file }}
           cache-from: ${{ inputs.cache-from }}
@@ -237,6 +235,7 @@ jobs:
           target: ${{ inputs.target }}
           delete_credentials_file: ${{ inputs.delete_credentials_file }}
           secrets: ${{ inputs.secrets }}
+          push-to-gar: true
 
           # hardcoded
           docker_outputs: ${{ inputs.push == 'true' && 'type=image,push-by-digest=true,name-canonical=true,push=true' || '' }}
