@@ -18,6 +18,7 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
         TOKEN=$(jq -r '.auth.client_token' response.json)
         echo "::add-mask::$TOKEN"
         echo "vault_token=${TOKEN}" >> "${GITHUB_OUTPUT}"
+        echo "Vault auth done!"
         exit 0
     else
         echo "Vault auth failed (HTTP ${RESPONSE})"
