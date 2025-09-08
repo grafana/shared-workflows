@@ -16,7 +16,7 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
 
     if [[ "${RESPONSE}" -eq 200 ]]; then
         TOKEN=$(jq -r '.auth.client_token' response.json)
-        echo "::add-mask::$SWA_DEPLOYMENT_TOKEN"
+        echo "::add-mask::$TOKEN"
         echo "vault_token=${TOKEN}" >> "${GITHUB_OUTPUT}"
         exit 0
     else
