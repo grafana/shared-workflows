@@ -8,7 +8,7 @@ require (
 	github.com/aymanbagabas/go-udiff v0.3.1
 	github.com/lmittmann/tint v1.1.2
 	github.com/neilotoole/slogt v1.1.0
-	github.com/spf13/afero v1.14.0
+	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.11.1
 	github.com/teekennedy/goldmark-markdown v0.5.1
 	github.com/urfave/cli/v3 v3.4.1
@@ -28,7 +28,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
