@@ -1,0 +1,45 @@
+name: Export and Upload Docker Manifest
+description: Composite action to export and upload a docker manifest
+
+inputs:
+  digest:
+    description: | # TODO Desc
+      Digest from docker/build-push action
+    required: true
+  platform:
+    description: | # TODO: HERE
+      Docker platform, ex: linux/arm64
+    required: true
+outputs:
+  metadatajson:
+    description: "Metadata JSON (from docker/metadata)"
+    value: ${{ steps.meta.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare
+      shell: sh
+      env:
+        PLATFORM: ${{ inputs.platform }}
+      run: |
+        echo "PLATFORM_PAIR=${PLATFORM//\//-}" | tee -a "${GITHUB_ENV}"
+
+    - name: Export digest
+      shell: sh
+      run: |
+        mkdir -p ${{ runner.temp }}/digests
+        digest="${STEPS_BUILD_OUTPUTS_DIGEST}"
+        touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+        ls -lah ${{ runner.temp }}/digests
+      env:
+        STEPS_BUILD_OUTPUTS_DIGEST: ${{ inputs.digest }}
+
+    - name: Upload digest
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: digests-${{ env.PLATFORM_PAIR }}
+        path: ${{ runner.temp }}/digests/*
+        if-no-files-found: error
+        retention-days: 1

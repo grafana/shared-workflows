@@ -176,7 +176,7 @@ jobs:
         arch: ${{ fromJson(needs.prepare-matrix.outputs.runner_arches) }}
     runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
     env:
-      ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
+      ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}' # TODO: Document this somewhere
     outputs:
       version: ${{ steps.build.outputs.version }}
       tags: ${{ steps.build.outputs.tags }}
@@ -246,23 +246,11 @@ jobs:
           platforms: ${{ env.PLATFORM }}
           tags: ${{ inputs.tags }}
 
-      - name: Export digest
-        run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${STEPS_BUILD_OUTPUTS_DIGEST}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
-
-          ls -lah ${{ runner.temp }}/digests
-        env:
-          STEPS_BUILD_OUTPUTS_DIGEST: ${{ steps.build.outputs.digest }}
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
+      - name: Export and upload digest
+        uses: grafana/shared-workflows/actions/docker-export-upload-manifest@rwhitaker/multi-arch-builds
         with:
-          name: digests-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/digests/*
-          if-no-files-found: error
-          retention-days: 1
+          digest: ${{ steps.build.outputs.digest }}
+          platform: ${{ env.PLATFORM }}
 
   merge-digest:
     runs-on: ubuntu-arm64-small
@@ -306,8 +294,6 @@ jobs:
           ls -lah ${{ runner.temp }}/digests
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf 'us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test@sha256:%s ' *)
-        env:
-          IMAGE: ${{ steps.
 
       - name: Inspect image
         run: |
