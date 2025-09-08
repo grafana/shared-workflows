@@ -44,7 +44,8 @@ runs:
         script: |
           const audience = "vault-github-actions-grafana-" + process.env.VAULT_INSTANCE
           const script = require(process.env.GITHUB_ACTION_PATH + '/create_github_token.js')
-          console.log(script({core, audience}))
+          script({core, audience})
+          console.log("Github token creation done!")
 
     - id: get-github-jwt-token-vault
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -54,7 +55,8 @@ runs:
         script: |
           const audience = "https://vault-github-actions.grafana-" + process.env.VAULT_INSTANCE + ".net"
           const script = require(process.env.GITHUB_ACTION_PATH + '/create_github_token.js')
-          console.log(script({core, audience}))
+          script({core, audience})
+          console.log("Github token creation done!")
 
     - name: Authenticate with Vault
       id: auth-vault
