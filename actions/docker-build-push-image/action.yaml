@@ -193,11 +193,14 @@ runs:
         images=""
         for image in "${GAR_IMAGE}" "${DOCKERHUB_IMAGE}"
         do
-          # If images is not the empty string, add a comma
-          if [ -z images ]; then
-            images="${image}"
-          else
-            images="${images},${image}"
+          # if an image is not the emptry string, add it to the list
+          if [ -n "${image}" ]; then
+
+            # if we already have any images, prefix a comma
+            if [ -n "${images}" ]; then
+              images="${images},${image}"
+            else
+              images="${image}"
           fi
         done
         echo "images=${images}" | tee -a "${GITHUB_OUTPUT}"
