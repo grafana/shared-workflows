@@ -22,6 +22,17 @@ inputs:
       When set to true then any inputs prefixed with 'gar-' will apply.
     default: "false"
 
+  # DOCKERHUB CONFIGS
+  dockerhub-repository:
+    description: |
+      Ipsum dockerhubium
+    required: false
+  push-to-dockerhub:
+    description: |
+      Push images to DockerHub
+      When set to true then any inputs prefixed with 'dockerhub-' will apply.
+    default: "false"
+
   # BUILDKITD GRAFANA MIRROR CONFIG
   use-default-buildkitd-config:
     description: | # TODO: Desc
@@ -177,11 +188,14 @@ runs:
         ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/gar-setup-project-vars.sh
 
     - name: Setup DockerHub variables
-      if: ${{ 'false' == 'true' }}
+      if: ${{ inputs.push-to-dockerhub == 'true' }}
       id: setup-dockerhub-vars
       shell: bash
+      env:
+        DOCKERHUB_IMAGE: ${{ inputs.dockerhub-repository }}
       run: |
-        echo "image=" | tee -a "${GITHUB_OUTPUT}"
+        chmod +x ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/dockerhub-setup-project-vars.sh
+        ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/dockerhub-setup-project-vars.sh
 
     - name: Finalize build vars
       id: setup-vars
@@ -212,6 +226,10 @@ runs:
       with:
         environment: ${{ inputs.gar-environment }}
         delete_credentials_file: false
+
+    - name: Login to DockerHub
+      if: ${{ inputs.push == 'true' && inputs.push-to-dockerhub == 'true' }}
+      uses: ./_shared-workflows-docker-build-push-image/actions/dockerhub-login # TODO: Write up an issue to convert this to actions/login-to-dockerhub
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
