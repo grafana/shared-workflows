@@ -122,9 +122,9 @@ outputs:
   json:
     description: "JSON output of tags and labels (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.json }}
-  image:
+  images:
     description: "Lorem explainum maximus clearicus" # TODO: here
-    value: ${{ steps.resolve-project.outputs.image }}
+    value: ${{ steps.setup-vars.outputs.image }}
   imageid:
     description: "Image ID (from docker/build-push-action)"
     value: ${{ steps.build.outputs.imageid }}

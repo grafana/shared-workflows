@@ -187,6 +187,7 @@ jobs:
       digest: ${{ steps.build.outputs.digest }}
       metadata: ${{ steps.build.outputs.metadata }}
       metadatajson: ${{ steps.build.outputs.metadatajson }}
+      images: ${{ steps.build.outputs.images }}
     permissions:
       contents: read
       id-token: write
@@ -259,44 +260,10 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Download digests
-        uses: actions/download-artifact@v4
+      - name: Download Multi-Arch Digests, Construct and Upload Manifest
+        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@rwhitaker/multi-arch-builds
         with:
-          path: ${{ runner.temp }}/digests
-          pattern: digests-*
-          merge-multiple: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-        with:
-          driver: docker-container
-          version: latest
-          buildkitd-config: '/etc/buildkitd.toml'
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
-          tags: |
-            ${{ github.ref_name }}
-
-      - name: Login to GAR
-        uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
-        with:
-          environment: dev
-          delete_credentials_file: false
-
-      - name: Create manifest list and push
-        working-directory: ${{ runner.temp }}/digests
-        run: |
-          echo "ls -lah ${{ runner.temp }}/digests"
-          ls -lah ${{ runner.temp }}/digests
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test@sha256:%s ' *)
-
-      - name: Inspect image
-        run: |
-          docker buildx imagetools inspect us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:${STEPS_META_OUTPUTS_VERSION}
-        env:
-          STEPS_META_OUTPUTS_VERSION: ${{ steps.meta.outputs.version }}
+          images: ${{ needs.build-and-push.outputs.images }}
+          environment: ${{ inputs.environment }}
+          push-to-gar: true
+          docker-metadata: ${{ needs.build-and-push.outputs.metadatajson }}
