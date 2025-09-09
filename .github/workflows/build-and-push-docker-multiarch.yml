@@ -37,6 +37,7 @@ on:
       push:
         description: |
           Whether to push the image to the registry.
+          If this is set to false all auth and push steps will be skipped.
         required: false
         default: ${{ github.event_name == 'push' }}
         type: boolean
@@ -92,7 +93,7 @@ on:
           Sets the target stage to build
         required: false
         type: string
-      delete_credentials_file:
+      delete-credentials-file:
         description: |
           Delete the credentials file after the action is finished.
           If you want to keep the credentials file for a later step, set this to false.
@@ -116,6 +117,11 @@ on:
         type: string
       pre-build-script:
         description: "A script to run before docker build"
+        required: false
+        default: ""
+        type: string
+      post-build-script:
+        description: "A script to run after docker build"
         required: false
         default: ""
         type: string
@@ -233,10 +239,10 @@ jobs:
           ssh: ${{ inputs.ssh }}
           build-contexts: ${{ inputs.build-contexts }}
           docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
-          repository_name: ${{ inputs.repository_name }}
+          gar-repository: ${{ inputs.gar-repository }}
           labels: ${{ inputs.labels }}
           target: ${{ inputs.target }}
-          delete_credentials_file: ${{ inputs.delete_credentials_file }}
+          delete-credentials-file: ${{ inputs.delete-credentials-file }}
           secrets: ${{ inputs.secrets }}
           push-to-gar: true
 

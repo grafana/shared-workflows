@@ -22,20 +22,6 @@ inputs: # TODO: Fill in descriptions
 runs:
   using: composite
   steps:
-    - name: Setup buildkitd-config
-      id: buildkitd-config
-      if: ${{ inputs.use-default-buildkitd-config == 'true' && runner.environment == 'self-hosted' }}
-      shell: sh
-      run: |
-        {
-          echo 'config<<EOF'
-          echo '[registry."docker.io"]'
-          echo '  mirrors = ["https://docker-mirror-${ENVIRONMENT}.grafana.net"]'
-          echo 'EOF'
-        } >> "$GITHUB_OUTPUT"
-      env:
-        ENVIRONMENT: ${{ inputs.environment }}
-
     - name: Download digests
       uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
       with:
@@ -80,6 +66,7 @@ runs:
         DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata }}
       run: |
         for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+          echo ""
           echo "Inspecting $tag"
           docker buildx imagetools inspect "$tag"
         done
