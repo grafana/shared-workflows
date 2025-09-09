@@ -40,7 +40,7 @@ inputs:
     default: "true"
 
   # GRAFANA DOCKER CONFIGS
-  image-name:
+  image-name:  # TODO: rename to gar-image
     description: |
       Name of the image to build.
     required: true
