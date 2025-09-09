@@ -176,7 +176,7 @@ on:
 
 
 jobs:
-  prepare-matrix:
+  prepare-matrix: # TODO: Add warning for docker inputs that aren't handled here.. for example, outputs
     runs-on: ubuntu-arm64-small
     outputs:
       runner_arches: ${{ steps.matrix.outputs.runner_arches }}
@@ -264,12 +264,12 @@ jobs:
           target: ${{ inputs.target }}
           delete-credentials-file: ${{ inputs.delete-credentials-file }}
           secrets: ${{ inputs.secrets }}
-          push-to-gar: true
-          push-to-dockerhub: true
+          push-to-gar: ${{ inputs.push-to-gar }}
+          push-to-dockerhub: ${{ inputs.push-to-dockerhub }}
           dockerhub-repository: ${{ inputs.dockerhub-repository }}
 
           # hardcoded
-          docker_outputs: ${{ inputs.push == 'true' && 'type=image,push-by-digest=true,name-canonical=true,push=true' || '' }}
+          outputs: ${{ inputs.push == 'true' && 'type=image,push-by-digest=true,name-canonical=true,push=true' || '' }}
           push: ${{ inputs.push }}
           load: false
           platforms: ${{ env.PLATFORM }}
