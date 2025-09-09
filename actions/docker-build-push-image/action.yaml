@@ -201,6 +201,7 @@ runs:
               images="${images},${image}"
             else
               images="${image}"
+            fi
           fi
         done
         echo "images=${images}" | tee -a "${GITHUB_OUTPUT}"
