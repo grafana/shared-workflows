@@ -177,7 +177,7 @@ runs:
         ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/gar-setup-project-vars.sh
 
     - name: Setup DockerHub variables
-      if: ${{ "false" == "true" }}
+      if: ${{ 'false' == 'true' }}
       id: setup-dockerhub-vars
       shell: bash
       run: |
