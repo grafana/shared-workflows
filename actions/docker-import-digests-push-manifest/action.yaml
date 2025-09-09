@@ -1,0 +1,85 @@
+name: Download and Merge Digests into Manifest
+description: Composite action to export and upload a docker manifest
+
+inputs: # TODO: Fill in descriptions
+  images:
+    description: |
+      Lorem ipsum explainum
+    required: true
+  environment:
+    description: |
+      Lorem ipsum explainum
+    default: "dev"
+  push-to-gar:
+    description: |
+      Push resulting manifest to Google Artifact Registry
+    default: "false"
+  docker-metadata:
+    description: |
+      IPSUM Descriptionum
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Setup buildkitd-config
+      id: buildkitd-config
+      if: ${{ inputs.use-default-buildkitd-config == 'true' && runner.environment == 'self-hosted' }}
+      shell: sh
+      run: |
+        {
+          echo 'config<<EOF'
+          echo '[registry."docker.io"]'
+          echo '  mirrors = ["https://docker-mirror-${ENVIRONMENT}.grafana.net"]'
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
+
+    - name: Download digests
+      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+      with:
+        path: ${{ runner.temp }}/digests
+        pattern: digests-*
+        merge-multiple: true
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      with:
+        driver: docker-container
+        version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
+
+    - name: Login to GAR
+      if: ${{ inputs.push-to-gar == 'true' }}
+      uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
+      with:
+        environment: ${{ inputs.environment }}
+        delete_credentials_file: false
+
+    - name: Create manifest list and push
+      working-directory: ${{ runner.temp }}/digests
+      shell: bash
+      env:
+        IMAGES: ${{ inputs.images }}
+        DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata }}
+      run: |
+        echo "ls -lah ${{ runner.temp }}/digests"
+        ls -lah ${{ runner.temp }}/digests
+
+        echo docker buildx imagetools create \
+        $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+        $(printf "${IMAGES}@sha256:%s " *)
+
+        docker buildx imagetools create \
+        $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+        $(printf "${IMAGES}@sha256:%s " *)
+
+    - name: Inspect image
+      shell: bash
+      env:
+        DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata }}
+      run: |
+        for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+          echo "Inspecting $tag"
+          docker buildx imagetools inspect "$tag"
+        done
