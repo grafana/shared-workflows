@@ -19,7 +19,7 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
     if [[ "${RESPONSE}" -eq 200 ]]; then
         TOKEN=$(jq -r '.data.token' response.json)
         echo "github_token=${TOKEN}" >> "${GITHUB_OUTPUT}"
-        echo "Create Github Token done!"
+        echo "Create GitHub Token done!"
         exit 0
     else
         echo "Vault request failed (HTTP ${RESPONSE})"
