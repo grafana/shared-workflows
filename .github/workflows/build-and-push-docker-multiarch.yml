@@ -294,7 +294,7 @@ jobs:
           dockerhub-repository: ${{ inputs.dockerhub-repository }}
 
           # hardcoded
-          outputs: ${{ inputs.push == 'true' && 'type=image,push-by-digest=true,name-canonical=true,push=true' || '' }}
+          outputs: "type=image,push-by-digest=true,name-canonical=true,push=true"
 #          push: ${{ inputs.push }}
           load: false
           platforms: ${{ env.PLATFORM }}
