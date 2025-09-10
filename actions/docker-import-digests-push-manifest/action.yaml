@@ -56,7 +56,7 @@ runs:
       shell: bash
       env:
         IMAGES: ${{ inputs.images }}
-        DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata }}
+        DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata-json }}
       run: |
         echo "ls -lah ${{ runner.temp }}/digests"
         ls -lah ${{ runner.temp }}/digests
