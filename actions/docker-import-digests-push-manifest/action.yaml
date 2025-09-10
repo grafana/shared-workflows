@@ -48,7 +48,7 @@ runs:
 
     - name: Login to DockerHub
       if: ${{ inputs.push-to-dockerhub == 'true' }}
-      uses: grafana/shared-workflows/actions/dockerhub-login @rwhitaker/multi-arch-builds
+      uses: grafana/shared-workflows/actions/dockerhub-login@rwhitaker/multi-arch-builds
 
     # TODO: Add --dry-run if not configured to push anywhere
     - name: Create manifest list and push
