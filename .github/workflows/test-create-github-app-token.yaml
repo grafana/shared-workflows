@@ -1,0 +1,71 @@
+name: Test Create GitHub App Token
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/create-github-app-token/**"
+      - ".github/workflows/test-create-github-app-token.yaml"
+
+  pull_request:
+    paths:
+      - "actions/create-github-app-token/**"
+      - ".github/workflows/test-create-github-app-token.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC → Vault
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # The `get-vault-secrets` action only works when run from a `grafana`
+    # repository, so skip this test if the PR is from a different repository. We
+    # will still get a run of this workflow for the change before merging, as we
+    # use merge queues.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.owner.login == 'grafana'
+
+    strategy:
+      matrix:
+        instance:
+          - dev
+          - ops
+          - invalid
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Run Create GitHub App Token action
+        id: app-token
+        uses: ./actions/create-github-app-token
+        with:
+          github_app: grafana-create-app-token-test
+          vault_instance: ${{ matrix.instance }}
+        continue-on-error: ${{ matrix.instance == 'invalid' }}
+
+      - name: Validate token by calling GitHub API
+        if: ${{ matrix.instance != 'invalid' }}
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          echo "Testing token for instance: ${{ matrix.instance }}"
+          curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }} \
+            | jq '.full_name'
+
+      - name: Skip invalid instance
+        if: ${{ matrix.instance == 'invalid' }}
+        run: echo "Invalid vault_instance test run is expected to fail and is allowed."

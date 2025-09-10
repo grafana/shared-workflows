@@ -6,7 +6,7 @@ inputs:
     default: default
   github_app:
     description: |
-      GitHub app name in Vault
+      GitHub app name in Vault. You can define mutiple app to do a loadbalancing in a comma separated format.
   vault_instance:
     description: |
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
@@ -36,25 +36,27 @@ runs:
         REF_SHA=$(echo -n "$RAW_NAME" | sed -E 's|^[^/]*/[^/]*/||' | sed -E 's/@.*//' | sha256sum | awk '{print $1}')
         echo "ref_sha=$REF_SHA" >> "$GITHUB_OUTPUT"
 
-    - id: get-github-jwt-token
+    - id: get-github-jwt-token-proxy
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
       env:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken("vault-github-actions-grafana-"+process.env.VAULT_INSTANCE);
-          core.setSecret(jwt);
-          core.setOutput("github-jwt",jwt);
+          const audience = "vault-github-actions-grafana-" + process.env.VAULT_INSTANCE
+          const script = require(process.env.GITHUB_ACTION_PATH + '/create_github_token.js')
+          script({core, audience})
+          console.log("GitHub token creation done!")
 
-    - id: get-github-jwt-auth-token
+    - id: get-github-jwt-token-vault
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
       env:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken("https://vault-github-actions.grafana-"+process.env.VAULT_INSTANCE+".net");
-          core.setSecret(jwt);
-          core.setOutput("github-jwt",jwt);
+          const audience = "https://vault-github-actions.grafana-" + process.env.VAULT_INSTANCE + ".net"
+          const script = require(process.env.GITHUB_ACTION_PATH + '/create_github_token.js')
+          script({core, audience})
+          console.log("GitHub token creation done!")
 
     - name: Authenticate with Vault
       id: auth-vault
@@ -64,13 +66,11 @@ runs:
         REPOSITORY_NAME: ${{ github.event.repository.name }}
         PERMISSION_SET: ${{ inputs.permission_set}}
         VAULT_URL: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        GITHUB_JWT_PROXY: ${{ steps.get-github-jwt-token-proxy.outputs.github-jwt }}
+        GITHUB_JWT_VAULT: ${{ steps.get-github-jwt-token-vault.outputs.github-jwt }}
+        REF_SHA: ${{ steps.normalize-workflow-name.outputs.ref_sha }}
       run: |
-        echo "${REPOSITORY_NAME}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${PERMISSION_SET}"
-        curl --fail -X POST "${VAULT_URL}/v1/auth/github-actions-oidc/login" \
-        -H "Content-Type: application/json" \
-        -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-        -d "{\"role\": \"${REPOSITORY_NAME}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${PERMISSION_SET}\",\"jwt\": \"${{ steps.get-github-jwt-auth-token.outputs.github-jwt }}\"}" \
-        | jq -r '"vault_token=\(.auth.client_token)"' >> $GITHUB_OUTPUT
+        ${GITHUB_ACTION_PATH}/auth_vault.sh
 
     - name: Get GitHub Token
       id: generate-token
@@ -81,8 +81,8 @@ runs:
         PERMISSION_SET: ${{ inputs.permission_set}}
         GITHUB_APP: ${{ inputs.github_app }}
         VAULT_URL: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        VAULT_TOKEN: ${{ steps.auth-vault.outputs.vault_token }}
+        GITHUB_JWT_PROXY: ${{ steps.get-github-jwt-token-proxy.outputs.github-jwt }}
+        REF_SHA: ${{ steps.normalize-workflow-name.outputs.ref_sha }}
       run: |
-        curl --fail "{$VAULT_URL}/v1/github-app-${GITHUB_APP}/token/${REPOSITORY_NAME}-${{ steps.normalize-workflow-name.outputs.ref_sha }}-${PERMISSION_SET}" \
-        -H "X-Vault-Token: ${{ steps.auth-vault.outputs.vault_token }}" \
-        -H "Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}" \
-        | jq -r '"github_token=\(.data.token)"' >> $GITHUB_OUTPUT
+        ${GITHUB_ACTION_PATH}/create_token.sh

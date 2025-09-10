@@ -16,3 +16,6 @@
 
 # Observability
 /actions/azure-trusted-signing/ @grafana/o11y-dept
+
+# Platform Infrasec
+/actions/create-github-app-token @grafana/platform-infrasec
