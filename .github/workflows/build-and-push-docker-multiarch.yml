@@ -292,6 +292,7 @@ jobs:
         uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@rwhitaker/multi-arch-builds
         with:
           images: ${{ needs.build-and-push.outputs.images }}
-          environment: ${{ inputs.environment }}
+          gar-environment: ${{ inputs.gar-environment }}
           push-to-gar: true
-          docker-metadata: ${{ needs.build-and-push.outputs.metadatajson }}
+          push-to-dockerhub: true
+          docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}
