@@ -295,7 +295,7 @@ jobs:
 
           # hardcoded
           outputs: "type=image,push-by-digest=true,name-canonical=true,push=true"
-          push: false
+          push: true
           load: false
           platforms: ${{ env.PLATFORM }}
 #          tags: ${{ inputs.tags }}
