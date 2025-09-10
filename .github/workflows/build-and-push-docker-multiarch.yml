@@ -138,7 +138,6 @@ on:
         description: |
           Whether to push the image to the configured registries.
         required: false
-        default: ${{ github.event_name == 'push' }}
         type: string
       secrets:
         description: |
@@ -296,7 +295,7 @@ jobs:
 
           # hardcoded
           outputs: ${{ inputs.push == 'true' && 'type=image,push-by-digest=true,name-canonical=true,push=true' || '' }}
-          push: ${{ inputs.push }}
+#          push: ${{ inputs.push }}
           load: false
           platforms: ${{ env.PLATFORM }}
           tags: ${{ inputs.tags }}
