@@ -273,7 +273,7 @@ runs:
         context: ${{ inputs.context }}
         build-args: ${{ inputs.build-args }}
         push: ${{ inputs.push == 'true' }}
-        tags: ${{ steps.meta.outputs.tags }}
+#        tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ inputs.labels }}
         target: ${{ inputs.target }}
         cache-from: ${{ inputs.cache-from }}
