@@ -1,6 +1,8 @@
 name: Push to artifact registry MultiArch
 description: Resuable workflow to push to Google Artifact Registry using runners of different architectures.
 
+# TODO: docker.io/grafana/cicd-test:rickytest is the correct url style for dockerhub
+
 on:
   workflow_call: # TODO: Next step is to get inputs matching docker-build-push-image
     inputs:
@@ -165,7 +167,7 @@ on:
         required: false
         default: ""
         type: string
-      post-build-script:
+      post-build-script:  # TODO: BUild this in
         description: "A script to run after docker build"
         required: false
         default: ""
