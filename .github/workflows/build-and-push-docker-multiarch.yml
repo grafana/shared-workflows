@@ -295,10 +295,10 @@ jobs:
 
           # hardcoded
           outputs: "type=image,push-by-digest=true,name-canonical=true,push=true"
-#          push: ${{ inputs.push }}
+          push: false
           load: false
           platforms: ${{ env.PLATFORM }}
-          tags: ${{ inputs.tags }}
+#          tags: ${{ inputs.tags }}
 
       - name: Export and upload digest
         uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-builds

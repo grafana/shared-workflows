@@ -256,7 +256,7 @@ runs:
       with:
         driver: ${{ inputs.docker-buildx-driver }}
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
-        buildkitd-config-inline: ${{ steps.buildkitd-config.outputs.config }}
+        buildkitd-config-inline: ${{ steps.buildkitd-config.outputs.config }}  # TODO: Allow upload of custom config
 
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
     # the upstream action the user's input to the input ends up in an output,
