@@ -61,13 +61,16 @@ runs:
         echo "ls -lah ${{ runner.temp }}/digests"
         ls -lah ${{ runner.temp }}/digests
 
-        echo docker buildx imagetools create \
-        $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-        $(printf "${IMAGES}@sha256:%s " *)
+        for image in ${IMAGES//,/ }; do
+          echo docker buildx imagetools create \
+          $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          $(printf "${image}@sha256:%s " *)
 
-        docker buildx imagetools create \
-        $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-        $(printf "${IMAGES}@sha256:%s " *)
+          docker buildx imagetools create \
+          $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          $(printf "${image}@sha256:%s " *)
+        done
+
 
     - name: Inspect image
       shell: bash
