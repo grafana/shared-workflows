@@ -256,27 +256,28 @@ runs:
     - name: Setup buildkitd-config
       id: buildkitd-config
       shell: sh
+      env:
+        BUILDKITD_CONFIG_INLINE: ${{ inputs.buildkitd-config-inline }}
+        BUILDKITD_CONFIG: ${{ inputs.buildkitd-config }}
+        DEFAULT_BUILDKITD_CONFIG: ${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
       run: |
         # This step does the following:
         # if buildkitd-config-inline != "", use that
         # elif buildkitd-config != "", use that
         # else, use buildkitd-config default config if on self hosted runners
 
-        buildkitd-config=""
-        buildkitd-config-inline=""
+        buildkitd_config=""
+        buildkitd_config_inline=""
 
         if [ -n "${BUILDKITD_CONFIG_INLINE}" ]; then
-          buildkitd-config-inline="${BUILDKITD_CONFIG_INLINE}"
+          buildkitd_config_inline="${BUILDKITD_CONFIG_INLINE}"
         elif [ -n "${BUILDKITD_CONFIG}" ]; then
-          buildkitd-config="${BUILDKITD_CONFIG}"
+          buildkitd_config="${BUILDKITD_CONFIG}"
         else
-          buildkitd-config=${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
+          buildkitd_config="${DEFAULT_BUILDKITD_CONFIG}"
 
-        echo "buildkitd-config-inline=${buildkitd-config-inline}" | tee -a "${GITHUB_OUTPUT}"
-        echo "buildkitd-config=${buildkitd-config}" | tee -a "${GITHUB_OUTPUT}"
-      env:
-        BUILDKITD_CONFIG_INLINE: ${{ inputs.buildkitd-config-inline }}
-        BUILDKITD_CONFIG: ${{ inputs.buildkitd-config }}
+        echo "buildkitd-config-inline=${buildkitd_config_inline}" | tee -a "${GITHUB_OUTPUT}"
+        echo "buildkitd-config=${buildkitd_config}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
