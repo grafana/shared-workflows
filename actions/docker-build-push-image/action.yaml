@@ -275,6 +275,7 @@ runs:
           buildkitd_config="${BUILDKITD_CONFIG}"
         else
           buildkitd_config="${DEFAULT_BUILDKITD_CONFIG}"
+        fi
 
         echo "buildkitd-config-inline=${buildkitd_config_inline}" | tee -a "${GITHUB_OUTPUT}"
         echo "buildkitd-config=${buildkitd_config}" | tee -a "${GITHUB_OUTPUT}"
