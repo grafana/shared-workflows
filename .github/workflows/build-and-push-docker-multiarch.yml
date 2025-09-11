@@ -43,7 +43,6 @@ on:
           Ipsum dockerhubium
         required: false
         type: string
-        default: "${{ github.repository }}"
       push-to-dockerhub:
         description: |
           Push images to DockerHub

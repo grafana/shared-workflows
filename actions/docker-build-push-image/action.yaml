@@ -37,7 +37,7 @@ inputs:
   dockerhub-repository:
     description: |
       Ipsum dockerhubium
-    required: false
+    default: "${{ github.repository }}"
   push-to-dockerhub:
     description: |
       Push images to DockerHub
