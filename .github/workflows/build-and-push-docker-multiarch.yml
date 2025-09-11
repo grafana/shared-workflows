@@ -299,7 +299,7 @@ jobs:
 
           # hardcoded
           outputs: "type=image,push-by-digest=true,name-canonical=true,push=true"
-          push: true
+          push: ${{ inputs.push == 'true' }}
           load: false
           platforms: ${{ env.PLATFORM }}
           tags: ${{ inputs.tags }}
@@ -311,6 +311,7 @@ jobs:
           platform: ${{ env.PLATFORM }}
 
   merge-digest:
+    if: ${{ inputs.push == 'true' }}
     runs-on: ubuntu-arm64-small
     needs: build-and-push
     permissions:
