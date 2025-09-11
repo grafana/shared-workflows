@@ -16,13 +16,19 @@ on:
         description: |
           Override the 'repo_name' used to construct the GAR repository name.
           Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
-        required: false
+          Default: `docker-${GitHub Repo Name}-${gar-environment}`
+        default: ""
         type: string
       gar-environment:
         description: |
           Environment for pushing artifacts (can be either dev or prod).
         default: dev
         type: string
+      gar-image:
+        description: |
+          Name of the image to build.
+          Default: `${GitHub Repo Name}`
+        default: ""
       push-to-gar:
         description: |
           Push images to Google Artifact Registry.
@@ -42,20 +48,6 @@ on:
           Push images to DockerHub
           When set to true then any inputs prefixed with 'dockerhub-' will apply.
         default: "false"
-        type: string
-
-      # BUILDKITD GRAFANA MIRROR CONFIG
-      use-default-buildkitd-config:
-        description: | # TODO: Desc
-          Lorem ipsum explainum
-        default: "true"
-        type: string
-
-      # GRAFANA DOCKER CONFIGS
-      image-name: # TODO: rename to gar-image
-        description: |
-          Name of the image to build.
-        required: true
         type: string
 
       # GRAFANA AUTH CONFIGS
@@ -79,6 +71,16 @@ on:
           The driver to use for Docker Buildx
         required: false
         default: "docker-container"
+        type: string
+      buildkitd-config:
+        description: |
+          Configum buildkitium descriptium
+        default: ""
+        type: string
+      buildkitd-config-inline:
+        description: |
+          Inliumium configutorium buildkitium descriptium
+        default: ""
         type: string
 
       # DOCKER/BUILD-PUSH-ACTION CONFIGS
