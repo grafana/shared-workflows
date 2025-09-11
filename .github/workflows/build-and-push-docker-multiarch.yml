@@ -29,6 +29,7 @@ on:
           Name of the image to build.
           Default: `${GitHub Repo Name}`
         default: ""
+        type: string
       push-to-gar:
         description: |
           Push images to Google Artifact Registry.
