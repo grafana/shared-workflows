@@ -71,7 +71,6 @@ runs:
           $(printf "${image}@sha256:%s " *)
         done
 
-
     - name: Inspect image
       shell: bash
       env:

@@ -117,7 +117,7 @@ inputs:
     description: |
       List of platforms to build the image for
     required: false
-  push: # TODO: add check in for when this is true, but push-to-gar and push-to-dockerhub are false
+  push:
     description: |
       Whether to push the image to the configured registries.
     required: false
