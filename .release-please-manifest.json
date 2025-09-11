@@ -8,7 +8,7 @@
     "actions/build-push-to-dockerhub": "0.2.0",
     "actions/login-to-gar": "1.0.0",
     "actions/login-to-gcs": "0.2.1",
-    "actions/argo-lint": "1.0.2",
+    "actions/argo-lint": "1.0.3",
     "actions/setup-conftest": "1.0.2",
     "actions/setup-argo": "1.0.2",
     "actions/generate-openapi-clients": "1.0.2",
