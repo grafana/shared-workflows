@@ -230,9 +230,6 @@ runs:
         if [ -z "${images}" ]; then
           echo "::warning::This is not configured to push anything, will proceed as a dry run"
           echo "images=dry-run-image" | tee -a "${GITHUB_OUTPUT}"
-          echo "push=false" | tee -a "${GITHUB_OUTPUT}"
-        else
-          echo "push=${PUSH_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
         fi
 
     - name: Login to GAR
@@ -310,7 +307,7 @@ runs:
         load: ${{ inputs.load == 'true' }}
         platforms: ${{ inputs.platforms }}
         outputs: ${{ inputs.outputs }}
-        push: ${{ steps.setup-vars.outputs.push == 'true' }}
+        push: ${{ inputs.push == 'true' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
         tags: ${{ steps.setup-vars.outputs.images }}
