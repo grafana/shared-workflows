@@ -280,7 +280,7 @@ jobs:
           registry: ${{ inputs.registry }}
           context: ${{ inputs.context }}
           environment: ${{ inputs.environment }}
-          image-name: ${{ inputs.image-name }}
+          gar-image: ${{ inputs.gar-image }}
           build-args: ${{ inputs.build-args }}
           file: ${{ inputs.file }}
           cache-from: ${{ inputs.cache-from }}
