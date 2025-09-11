@@ -2,31 +2,39 @@
 set -euo pipefail
 
 # Optional env vars
-: "${REPO_NAME:=}"   # default, empty
+: "${GAR_REPO:=}"   # default, empty
+: "${GAR_IMAGE:=}"  # default, empty
 
 # Required env vars (provided in workflow yaml)
 : "${ENVIRONMENT:?ENVIRONMENT env var is required}"
 : "${REGISTRY:?REGISTRY env var is required}"
-: "${IMAGE_NAME:?IMAGE_NAME env var is required}"
 : "${GH_REPO:?GH_REPO env var is required}"
 
-# Outputs
-gar_repo_name="${REPO_NAME}"
-gar_project=""
-gar_image=""
+gh_repo_name="$(echo "${GH_REPO}" | awk -F'/' '{print $2}')"  # ex: grafana/repo -> repo
+
 
 ########################################
-# Resolve repo_name
+# Resolve name of Google Artifact Repository
 ########################################
-if [ -z "$REPO_NAME" ]; then
-  gar_repo_name="$(echo "${GH_REPO}" | awk -F'/' '{print $2}')"
-  gar_repo_name="${gar_repo_name//_/-}"
+gar_repo_name="${GAR_REPO}"
+if [ -z "${gar_repo_name}" ]; then
+  gar_repo_name="docker-${gh_repo_name//_/-}-${ENVIRONMENT}"
 fi
+echo "gar_repo_name=${gar_repo_name}"
+
+########################################
+# Resolve Image Name
+########################################
+gar_image="${GAR_IMAGE}"
+if [ -z "${gar_image}" ]; then
+  gar_image="${gh_repo_name}"
+fi
+echo "gar_image=${gar_image}"
 
 ########################################
 # Resolve project
 ########################################
-case "$ENVIRONMENT" in
+case "${ENVIRONMENT}" in
   dev)
     gar_project="grafanalabs-dev"
     ;;
@@ -38,17 +46,11 @@ case "$ENVIRONMENT" in
     exit 1
     ;;
 esac
+echo "gar_project=${gar_project}"
 
 ########################################
 # Build image path
 ########################################
-gar_image="${REGISTRY}/${gar_project}/docker-${gar_repo_name}-${ENVIRONMENT}/${IMAGE_NAME}"
+gar_image="${REGISTRY}/${gar_project}/${gar_repo_name}/${gar_image}"
 
-#export REPO_NAME=${gar_repo_name}"
-#export GAR_PROJECT=${gar_project}"
-#export GAR_IMAGE=${gar_image}"
-
-echo "repo_name=${gar_repo_name}" | tee -a "${GITHUB_OUTPUT}"
-echo "project=${gar_project}" | tee -a "${GITHUB_OUTPUT}"
 echo "image=${gar_image}" | tee -a "${GITHUB_OUTPUT}"
-
