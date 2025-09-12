@@ -191,12 +191,12 @@ runs:
         REGISTRIES: ${{ inputs.registries }}
       run: |
         for r in ${REGISTRIES//,/ }; do
-          echo "build-${r}=true" | tee -a "${GITHUB_OUTPUT}"
+          echo "include-${r}=true" | tee -a "${GITHUB_OUTPUT}"
         done
 
     - name: Setup GAR variables
       id: setup-gar-vars
-      if: ${{ inputs.push-to-gar == 'true' }}
+      if: ${{ steps.registries.outputs.include-gar == 'true' }}
       shell: bash
       env:
         GAR_REPO: ${{ inputs.gar-repository }}
@@ -209,7 +209,7 @@ runs:
         ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/gar-setup-project-vars.sh
 
     - name: Setup DockerHub variables
-      if: ${{ inputs.push-to-dockerhub == 'true' }}
+      if: ${{ steps.registries.outputs.include-dockerhub == 'true' }}
       id: setup-dockerhub-vars
       shell: bash
       env:
@@ -224,7 +224,6 @@ runs:
       env:
         GAR_IMAGE: ${{ steps.setup-gar-vars.outputs.image }}
         DOCKERHUB_IMAGE: ${{ steps.setup-dockerhub-vars.outputs.image }}
-        PUSH_CONFIG: ${{ inputs.push }}
       run: |
         images=""
         for image in "${GAR_IMAGE}" "${DOCKERHUB_IMAGE}"
@@ -248,14 +247,14 @@ runs:
         fi
 
     - name: Login to GAR
-      if: ${{ inputs.push == 'true' && inputs.push-to-gar == 'true' }}
+      if: ${{ inputs.push == 'true' && steps.registries.outputs.include-gar == 'true' }}
       uses: ./_shared-workflows-docker-build-push-image/actions/login-to-gar
       with:
         environment: ${{ inputs.gar-environment }}
         delete_credentials_file: false
 
     - name: Login to DockerHub
-      if: ${{ inputs.push == 'true' && inputs.push-to-dockerhub == 'true' }}
+      if: ${{ inputs.push == 'true' && steps.registries.outputs.include-dockerhub == 'true' }}
       uses: ./_shared-workflows-docker-build-push-image/actions/dockerhub-login # TODO: Write up an issue to convert this to actions/login-to-dockerhub
 
     - name: Extract metadata (tags, labels) for Docker
