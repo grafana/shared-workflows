@@ -192,6 +192,7 @@ runs:
       run: |
         for r in ${REGISTRIES//,/ }; do
           echo "build-${r}=true" | tee -a "${GITHUB_OUTPUT}"
+        done
 
     - name: Setup GAR variables
       id: setup-gar-vars
