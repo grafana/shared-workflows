@@ -270,33 +270,33 @@ jobs:
         uses: grafana/shared-workflows/actions/docker-build-push-image@rwhitaker/multi-arch-builds
         with:
           # from inputs
-          registry: ${{ inputs.registry }}
-          context: ${{ inputs.context }}
-          environment: ${{ inputs.environment }}
-          gar-image: ${{ inputs.gar-image }}
           build-args: ${{ inputs.build-args }}
-          file: ${{ inputs.file }}
+          build-contexts: ${{ inputs.build-contexts }}
+          buildkitd-config: ${{ inputs.buildkitd-config }}
+          buildkitd-config-inline: ${{ inputs.buildkitd-config-inline }}
           cache-from: ${{ inputs.cache-from }}
           cache-to: ${{ inputs.cache-to }}
-          ssh: ${{ inputs.ssh }}
-          build-contexts: ${{ inputs.build-contexts }}
-          docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
-          gar-repository: ${{ inputs.gar-repository }}
-          labels: ${{ inputs.labels }}
-          target: ${{ inputs.target }}
+          context: ${{ inputs.context }}
           delete-credentials-file: ${{ inputs.delete-credentials-file }}
-          secrets: ${{ inputs.secrets }}
-          push-to-gar: ${{ inputs.push-to-gar }}
-          push-to-dockerhub: ${{ inputs.push-to-dockerhub }}
           dockerhub-repository: ${{ inputs.dockerhub-repository }}
-
-          # hardcoded
-          outputs: "type=image,push-by-digest=true,name-canonical=true,push=${{ inputs.push == 'true' && 'true' || 'false' }}"
-          push: ${{ inputs.push == 'true' }}
-          load: ${{ inputs.load == 'true' }}
-          platforms: ${{ env.PLATFORM }}
+          docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
+          file: ${{ inputs.file }}
+          gar-registry: ${{ inputs.gar-registry }}
+          gar-repository: ${{ inputs.gar-repository }}
+          gar-environment: ${{ inputs.gar-environment }}
+          gar-image: ${{ inputs.gar-image }}
+          labels: ${{ inputs.labels }}
+          registries: ${{ inputs.registries }}
+          secrets: ${{ inputs.secrets }}
+          ssh: ${{ inputs.ssh }}
           tags: ${{ inputs.tags }}
+          target: ${{ inputs.target }}
 
+          # special cases
+          platforms: ${{ env.PLATFORM }}
+          outputs: "type=image,push-by-digest=true,name-canonical=true,push=${{ inputs.push == 'true' && 'true' || 'false' }}"
+          load: ${{ inputs.load == 'true' }}
+          push: ${{ inputs.push == 'true' }}
       - name: Export and upload digest
         uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-builds
         with:
