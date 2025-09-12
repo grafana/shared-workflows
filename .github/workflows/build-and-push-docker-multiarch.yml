@@ -291,6 +291,7 @@ jobs:
           ssh: ${{ inputs.ssh }}
           tags: ${{ inputs.tags }}
           target: ${{ inputs.target }}
+          include-tags-in-push: false
 
           # special cases
           platforms: ${{ env.PLATFORM }}

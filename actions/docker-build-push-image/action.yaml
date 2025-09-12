@@ -69,6 +69,10 @@ inputs:
       Name of the image to build.
       Default: `${GitHub Repo Name}`
     default: ""
+  include-tags-in-push:
+    description: | # TODO: Expand
+      Can't push tags with a digest, need a way to disable
+    default: "true"
   labels:
     description: |
       List of custom labels to add to the image as metadata.
@@ -297,7 +301,7 @@ runs:
         push: ${{ inputs.push == 'true' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: ${{ if inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || '' }}
         target: ${{ inputs.target }}
 
     - name: Cleanup checkout directory
