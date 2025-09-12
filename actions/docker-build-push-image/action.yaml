@@ -301,7 +301,7 @@ runs:
         push: ${{ inputs.push == 'true' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
-        tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || '' }}
+        tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || steps.setup-vars.outputs.images }}
         target: ${{ inputs.target }}
 
     - name: Cleanup checkout directory
