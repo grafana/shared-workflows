@@ -2,12 +2,11 @@ name: Push to artifact registry
 description: Composite action to push a docker image to GAR or DockerHub
 
 inputs:
-  # GAR CONFIGS
-  # The GAR image to push is configured as follows:
-  # ${gar-registry}/${gar-project}/${gar-repository}/${gar-image}
-  # Ex: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
-  #
-  # Note that gar-project is determined by the value of gar-environment.
+  # REGISTRY/IMAGE CONFIG
+  dockerhub-repository:
+    description: |
+      Ipsum dockerhubium
+    default: "${{ github.repository }}"
   gar-registry:
     description: |
       Google Artifact Registry to store docker images in.
@@ -27,42 +26,25 @@ inputs:
       Name of the image to build.
       Default: `${GitHub Repo Name}`
     default: ""
-  push-to-gar:
-    description: |
-      Push images to Google Artifact Registry.
-      When set to true then any inputs prefixed with 'gar-' will apply.
-    default: "false"
-
   registries:
     description: |
       List of registries to build images for.
     default: ""
 
-  # DOCKERHUB CONFIGS
-  dockerhub-repository:
-    description: |
-      Ipsum dockerhubium
-    default: "${{ github.repository }}"
-  push-to-dockerhub:
-    description: |
-      Push images to DockerHub
-      When set to true then any inputs prefixed with 'dockerhub-' will apply.
-    default: "false"
-
-  # GRAFANA AUTH CONFIGS
+  # AUTH
   delete-credentials-file: #TODO: Expand on this
     description: |
       Delete the credentials file after the action is finished.
       If you want to keep the credentials file for a later step, set this to false.
     default: "true"
 
-  # DOCKER/METADATA-ACTION CONFIGS
+  # DOCKER/METADATA-ACTION
   tags:
     description: |
       List of Docker tags to be pushed.
     required: true
 
-  # DOCKER/SETUP-BUILDX-ACTION CONFIGS
+  # DOCKER/SETUP-BUILDX-ACTION
   docker-buildx-driver:
     description: |
       The driver to use for Docker Buildx
@@ -77,7 +59,7 @@ inputs:
       Inliumium configutorium buildkitium descriptium
     default: ""
 
-  # DOCKER/BUILD-PUSH-ACTION CONFIGS
+  # DOCKER/BUILD-PUSH-ACTION
   build-args:
     description: |
       List of arguments necessary for the Docker image to be built.
