@@ -1,0 +1,104 @@
+name: Reusable Trufflehog Secret Scan
+
+on:
+  workflow_call:
+    inputs:
+      fail-on-secrets:
+        description: "Fail the workflow if secrets are found"
+        required: false
+        default: "true"
+        type: string
+      extra_args:
+        description: "Extra arguments to pass to Trufflehog"
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  trufflehog-scan:
+    runs-on: ubuntu-x64-small
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Remove old Trufflehog (if present)
+        run: |
+          pip uninstall -y truffleHog || true
+          pip uninstall -y trufflehog || true
+
+      - name: Install Trufflehog (pinned to commit)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
+          trufflehog --version
+
+      - name: Run Trufflehog
+        env:
+          EXTRA_ARGS: ${{ inputs.extra_args }}
+        run: |
+          trufflehog filesystem . \
+            --json \
+            --no-update \
+            --results=verified,unknown \
+            --fail \
+            --exclude-paths=.git,.github,node_modules,venv,env \
+            "$EXTRA_ARGS" \
+            > trufflehog-results.json || true
+
+      - name: Debug Trufflehog output
+        run: cat trufflehog-results.json || echo "No trufflehog-results.json found"
+
+      - name: Comment on PR with all Trufflehog findings (full JSON, clean format)
+        if: ${{ github.event.pull_request != null }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let findings = [];
+            try {
+              const lines = fs.readFileSync('trufflehog-results.json', 'utf8')
+                .split('\n')
+                .filter(Boolean);
+              for (const line of lines) {
+                let finding;
+                try {
+                  finding = JSON.parse(line);
+                } catch (e) {
+                  continue;
+                }
+                if (finding.Raw) {
+                  findings.push(
+                    [
+                      '---',
+                      '**Trufflehog Finding:**',
+                      '',
+                      '```json',
+                      JSON.stringify(finding, null, 2),
+                      '```',
+                      ''
+                    ].join('\n')
+                  );
+                }
+              }
+            } catch (e) {
+              findings = ['(Could not parse Trufflehog report)'];
+            }
+            const body = findings.length
+              ? `🚨 **Trufflehog found secrets in this PR!**\n\n${findings.join('\n')}`
+              : "✅ Trufflehog ran and no secrets were found.";
+            github.rest.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Fail if any secrets found
+        if: ${{ inputs.fail-on-secrets == 'true' && hashFiles('trufflehog-results.json') != '' }}
+        run: |
+          if grep -q '"Raw":' trufflehog-results.json; then
+            echo "Secrets found! Failing the workflow."
+            exit 1
+          fi
