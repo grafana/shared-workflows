@@ -306,7 +306,7 @@ runs:
         push: ${{ inputs.push == 'true' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
-        tags: ${{ steps.setup-vars.outputs.images }}
+        tags: ${{ steps.meta.outputs.tags }}
         target: ${{ inputs.target }}
 
     - name: Cleanup checkout directory
