@@ -33,6 +33,11 @@ inputs:
       When set to true then any inputs prefixed with 'gar-' will apply.
     default: "false"
 
+  registries:
+    description: |
+      List of registries to build images for.
+    default: ""
+
   # DOCKERHUB CONFIGS
   dockerhub-repository:
     description: |
@@ -179,6 +184,15 @@ runs:
         path: _shared-workflows-docker-build-push-image
         persist-credentials: false
 
+    - name: Set registries
+      id: registries
+      shell: bash
+      env:
+        REGISTRIES: ${{ inputs.registries }}
+      run: |
+        for r in ${REGISTRIES//,/ }; do
+          echo "build-${r}=true" | tee -a "${GITHUB_OUTPUT}"
+
     - name: Setup GAR variables
       id: setup-gar-vars
       if: ${{ inputs.push-to-gar == 'true' }}
@@ -228,7 +242,7 @@ runs:
         echo "images=${images}" | tee -a "${GITHUB_OUTPUT}"
 
         if [ -z "${images}" ]; then
-          echo "::warning::This is not configured to push anything, will proceed as a dry run"
+          echo "::warning::No registries have been selected, no images will be pushed"
           echo "images=dry-run-image" | tee -a "${GITHUB_OUTPUT}"
         fi
 
