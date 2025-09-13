@@ -242,7 +242,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.12.1
+      ZIZMOR_VERSION: 1.13.0
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
