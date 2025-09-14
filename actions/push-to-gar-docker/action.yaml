@@ -87,11 +87,6 @@ inputs:
       Whether to load the built image into the local docker daemon.
     required: false
     default: "false"
-  docker_outputs:
-    description: |
-      Ipsum factum explainum. # TODO Explain
-    required: false
-    default: ""
 
 outputs:
   version:
@@ -109,9 +104,6 @@ outputs:
   json:
     description: "JSON output of tags and labels (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.json }}
-  image:
-    description: "Lorem explainum maximus clearicus" # TODO: here
-    value: ${{ steps.resolve-project.outputs.image }}
   imageid:
     description: "Image ID (from docker/build-push-action)"
     value: ${{ steps.build.outputs.imageid }}
@@ -121,9 +113,6 @@ outputs:
   metadata:
     description: "Build result metadata (from docker/build-push-action)"
     value: ${{ steps.build.outputs.metadata }}
-  metadatajson:
-    description: "Metadata JSON (from docker/metadata)"
-    value: ${{ steps.meta.outputs.json }}
 
 runs:
   using: composite
@@ -167,9 +156,7 @@ runs:
           echo "Invalid environment. Valid environment variable inputs: dev, prod"
           exit 1
         fi
-        echo "project=${PROJECT}" | tee -a "${GITHUB_OUTPUT}"
-
-        echo "image=${{ inputs.registry }}/${PROJECT}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}" | tee -a "${GITHUB_OUTPUT}"
+        echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
 
     - name: Login to GAR
       if: ${{ inputs.push == 'true' }}
@@ -181,7 +168,7 @@ runs:
       id: meta
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
-        images: ${{ steps.resolve-project.outputs.image }}
+        images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
 
     - name: Set up Docker Buildx
@@ -217,7 +204,6 @@ runs:
         build-contexts: ${{ inputs.build-contexts }}
         secrets: ${{ inputs.secrets }}
         load: ${{ inputs.load == 'true' }}
-        outputs: ${{ inputs.docker_outputs }}
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
