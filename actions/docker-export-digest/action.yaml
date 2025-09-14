@@ -15,11 +15,12 @@ runs:
   using: composite
   steps:
     - name: Prepare
+      id: prepare
       shell: sh
       env:
         PLATFORM: ${{ inputs.platform }}
       run: |
-        echo "PLATFORM_PAIR=${PLATFORM//\//-}" | tee -a "${GITHUB_ENV}"
+        echo "platform-pair=${PLATFORM//\//-}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Export digest
       shell: sh
@@ -35,7 +36,7 @@ runs:
     - name: Upload digest
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
-        name: digests-${{ env.PLATFORM_PAIR }}
+        name: digests-${{ steps.prepare.outputs.platform-pair }}
         path: ${{ runner.temp }}/digests/*
         if-no-files-found: error
         retention-days: 1
