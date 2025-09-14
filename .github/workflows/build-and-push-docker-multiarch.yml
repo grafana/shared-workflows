@@ -196,7 +196,6 @@ on:
         description: "The list of OS used to build images (for mapping to self hosted runners)"
         value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
 
-
 jobs:
   prepare-matrix: # TODO: Add warning for docker inputs that aren't handled here.. for example, outputs
     runs-on: ubuntu-arm64-small

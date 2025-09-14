@@ -1,16 +1,21 @@
 ## Input sections
 
 # GAR CONFIGS
+
 # The GAR image to push is configured as follows:
+
 # ${gar-registry}/${gar-project}/${gar-repository}/${gar-image}
+
 # Ex: us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test
+
 #
+
 # Note that gar-project is determined by the value of gar-environment.
 
 # DOCKERHUB CONFIGS
 
-
 # REGISTRY/IMAGE CONFIG
+
 dockerhub-repository:
 description: |
 Ipsum dockerhubium
@@ -40,6 +45,7 @@ List of registries to build images for.
 default: ""
 
 # AUTH
+
 delete-credentials-file: #TODO: Expand on this
 description: |
 Delete the credentials file after the action is finished.
@@ -47,12 +53,14 @@ If you want to keep the credentials file for a later step, set this to false.
 default: "true"
 
 # DOCKER/METADATA-ACTION
+
 tags:
 description: |
 List of Docker tags to be pushed.
 required: true
 
 # DOCKER/SETUP-BUILDX-ACTION
+
 docker-buildx-driver:
 description: |
 The driver to use for Docker Buildx
@@ -68,6 +76,7 @@ Inliumium configutorium buildkitium descriptium
 default: ""
 
 # DOCKER/BUILD-PUSH-ACTION
+
 build-args:
 description: |
 List of arguments necessary for the Docker image to be built.
