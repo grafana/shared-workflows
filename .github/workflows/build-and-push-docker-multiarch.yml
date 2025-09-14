@@ -1,5 +1,5 @@
 name: Push to artifact registry MultiArch
-description: Resuable workflow to push to Google Artifact Registry using runners of different architectures.
+# description: Resuable workflow to push to Google Artifact Registry using runners of different architectures.
 
 # TODO: docker.io/grafana/cicd-test:rickytest is the correct url style for dockerhub
 
