@@ -10,10 +10,6 @@ inputs:
     description: | # TODO: HERE
       Docker platform, ex: linux/arm64
     required: true
-outputs:
-  metadatajson:
-    description: "Metadata JSON (from docker/metadata)"
-    value: ${{ steps.meta.outputs.json }}
 
 runs:
   using: composite
