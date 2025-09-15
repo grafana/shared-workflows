@@ -66,7 +66,11 @@ jobs:
             --no-update \
             --results=verified,unknown \
             --fail \
-            --exclude-paths=.git,.github,node_modules,venv,env \
+            --exclude-paths=.git \
+            --exclude-paths=.github \
+            --exclude-paths=node_modules \
+            --exclude-paths=venv \
+            --exclude-paths=env \
             "$EXTRA_ARGS" \
             > trufflehog-builtin-results.json || true
 
