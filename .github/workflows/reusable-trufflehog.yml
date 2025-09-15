@@ -91,8 +91,7 @@ jobs:
             --no-update \
             --results=verified,unknown \
             --exclude-paths=exclude_paths.txt \
-            "$EXTRA_ARGS" \
-            > trufflehog-builtin-results.json || true
+            "$EXTRA_ARGS" > trufflehog-builtin-results.json || true
 
           # Check if secrets were found
           if [ -s trufflehog-builtin-results.json ]; then
@@ -131,7 +130,6 @@ jobs:
             if [[ ! "$pattern" =~ ^# ]] && [[ -n "${pattern// }" ]]; then
               echo "🔍 Scanning for Grafana pattern: $pattern"
               results=$(grep -r -n -E "$pattern" . $exclude_args $include_args 2>/dev/null || true)
-              
               if [ ! -z "$results" ]; then
                 echo "🚨 GRAFANA SECRET DETECTED!"
                 echo "Pattern: $pattern"
@@ -217,7 +215,6 @@ jobs:
                   );
                 }
               }
-              
               // Add custom Grafana findings
               try {
                 const grafanaResults = fs.readFileSync('custom-grafana-results.txt', 'utf8');
