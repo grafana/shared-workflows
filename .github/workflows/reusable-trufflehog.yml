@@ -69,6 +69,10 @@ jobs:
           .venv
           dist
           build
+          trufflehog-.*\.json
+          custom-.*\.txt
+          exclude_paths\.txt
+          custom-patterns\.txt
           EOF
 
       - name: Run Trufflehog with Built-in Detectors
@@ -109,6 +113,10 @@ jobs:
                 --exclude-dir=node_modules \
                 --exclude-dir=venv \
                 --exclude-dir=env \
+                --exclude="trufflehog-*.json" \
+                --exclude="custom-*.txt" \
+                --exclude="exclude_paths.txt" \
+                --exclude="custom-patterns.txt" \
                 --include="*.go" \
                 --include="*.js" \
                 --include="*.ts" \
