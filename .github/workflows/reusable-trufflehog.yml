@@ -33,63 +33,79 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
           trufflehog --version
 
-      - name: Create Trufflehog Config
+      - name: Create Custom Regex Patterns
         run: |
-          cat > trufflehog-config.yaml << 'EOF'
-          detectors:
-            - name: GrafanaAPIKey
-              keywords:
-                - grafana
-                - eyJrIjoi
-              regex:
-                grafanaAPIKey: 'eyJrIjoi[A-Za-z0-9]{70,}={0,2}'
-            - name: GrafanaServiceAccountToken
-              keywords:
-                - grafana
-                - glsa_
-              regex:
-                serviceAccountToken: 'glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}'
-            - name: GrafanaCloudToken
-              keywords:
-                - grafana
-                - glc_
-              regex:
-                cloudToken: 'glc_[A-Za-z0-9+/]{32,}={0,2}'
-            - name: GrafanaDatabaseConnection
-              keywords:
-                - grafana
-                - mysql
-                - postgres
-                - postgresql
-              regex:
-                dbConnection: '(mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*'
-            - name: GrafanaConfigSecrets
-              keywords:
-                - GF_SECURITY
-                - GF_SMTP
-                - GF_AUTH
-                - GF_ENTERPRISE
-              regex:
-                secretKey: 'GF_SECURITY_SECRET_KEY\s*[=:]\s*["\']?([A-Za-z0-9+/]{32,}={0,2})["\']?'
-                adminPassword: 'GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{8,})["\']?'
-                smtpPassword: 'GF_SMTP_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{6,})["\']?'
-                oauthSecret: 'GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\']?([A-Za-z0-9_-]{20,})["\']?'
-                licenseKey: 'GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\']?([A-Za-z0-9+/=]{100,})["\']?'
+          cat > custom-patterns.txt << 'EOF'
+          # Grafana API Key - Pattern: eyJrIjoi[A-Za-z0-9]{70,}={0,2}
+          eyJrIjoi[A-Za-z0-9]{70,}={0,2}
+          
+          # Grafana Service Account Token - Pattern: glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}
+          glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}
+          
+          # Grafana Cloud API Token - Pattern: glc_[A-Za-z0-9+/]{32,}={0,2}
+          glc_[A-Za-z0-9+/]{32,}={0,2}
+          
+          # Grafana Database Connection Strings
+          (mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*
+          
+          # Grafana Configuration Secrets
+          GF_SECURITY_SECRET_KEY\s*[=:]\s*["\']?([A-Za-z0-9+/]{32,}={0,2})["\']?
+          GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{8,})["\']?
+          GF_SMTP_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{6,})["\']?
+          GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\']?([A-Za-z0-9_-]{20,})["\']?
+          GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\']?([A-Za-z0-9+/=]{100,})["\']?
           EOF
 
-      - name: Run Trufflehog
+      - name: Run Trufflehog with Built-in Detectors
         env:
           EXTRA_ARGS: ${{ inputs.extra_args }}
         run: |
+          echo "Running Trufflehog with built-in detectors..."
           trufflehog filesystem . \
             --json \
             --no-update \
             --results=verified,unknown \
             --fail \
             --exclude-paths=.git,.github,node_modules,venv,env \
-            --config=trufflehog-config.yaml \
             "$EXTRA_ARGS" \
-            > trufflehog-results.json || true
+            > trufflehog-builtin-results.json || true
+
+      - name: Run Custom Grafana Pattern Scan
+        run: |
+          echo "Running additional scan for Grafana-specific patterns..."
+          while IFS= read -r pattern || [ -n "$pattern" ]; do
+            if [[ ! "$pattern" =~ ^# ]] && [[ -n "${pattern// }" ]]; then
+              echo "Scanning for pattern: $pattern"
+              grep -r -E "$pattern" . \
+                --exclude-dir=.git \
+                --exclude-dir=.github \
+                --exclude-dir=node_modules \
+                --exclude-dir=venv \
+                --exclude-dir=env \
+                --include="*.go" \
+                --include="*.js" \
+                --include="*.ts" \
+                --include="*.json" \
+                --include="*.yaml" \
+                --include="*.yml" \
+                --include="*.env" \
+                --include="*.conf" \
+                --include="*.config" \
+                --include="*.ini" \
+                --include="*.toml" \
+                --include="*.txt" \
+                --include="*.md" \
+                || true
+            fi
+          done < custom-patterns.txt > custom-grafana-results.txt
+
+      - name: Combine Results
+        run: |
+          echo "=== TRUFFLEHOG BUILT-IN RESULTS ===" > trufflehog-results.json
+          cat trufflehog-builtin-results.json >> trufflehog-results.json || echo "No built-in results" >> trufflehog-results.json
+          echo "" >> trufflehog-results.json
+          echo "=== CUSTOM GRAFANA PATTERN RESULTS ===" >> trufflehog-results.json
+          cat custom-grafana-results.txt >> trufflehog-results.json || echo "No custom pattern results" >> trufflehog-results.json
 
       - name: Debug Trufflehog output
         run: cat trufflehog-results.json || echo "No trufflehog-results.json found"
