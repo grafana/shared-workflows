@@ -186,11 +186,38 @@ jobs:
           fi
 
       - name: Comment on PR with all Trufflehog findings (full JSON, clean format)
-        if: ${{ github.event.pull_request != null }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            // Find PR number
+            let prNumber = null;
+            
+            if (context.payload.pull_request) {
+              prNumber = context.payload.pull_request.number;
+            } else {
+              // For push events, try to find PR by commit SHA
+              try {
+                const prs = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open'
+                });
+                
+                const matchingPr = prs.data.find(pr => pr.head.sha === context.sha);
+                if (matchingPr) {
+                  prNumber = matchingPr.number;
+                }
+              } catch (e) {
+                console.log('Could not search for PRs');
+              }
+            }
+            
+            if (!prNumber) {
+              console.log('No PR found - skipping comment');
+              return;
+            }
+            
             const fs = require('fs');
             let findings = [];
             try {
@@ -244,7 +271,7 @@ jobs:
               ? `🚨 **Trufflehog found secrets in this PR!**\n\n${findings.join('\n')}`
               : "✅ Trufflehog ran and no secrets were found.";
             github.rest.issues.createComment({
-              issue_number: context.payload.pull_request.number,
+              issue_number: prNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body
