@@ -1,0 +1,327 @@
+name: Push to artifact registry
+description: Composite action to push a docker image to GAR or DockerHub
+
+inputs:
+  build-args:
+    description: |
+      List of arguments necessary for the Docker image to be built.
+    default: ""
+  build-contexts:
+    description: |
+      List of additional build contexts (e.g., name=path)
+    required: false
+  buildkitd-config:
+    description: |
+      Configum buildkitium descriptium
+    default: ""
+  buildkitd-config-inline:
+    description: |
+      Inliumium configutorium buildkitium descriptium
+    default: ""
+  cache-from:
+    description: |
+      Where cache should be fetched from
+    required: false
+    default: "type=gha"
+  cache-to:
+    description: |
+      Where cache should be stored to
+    required: false
+    default: "type=gha,mode=max"
+  context:
+    description: |
+      Path to the Docker build context.
+    default: "."
+  delete-credentials-file: #TODO: Expand on this
+    description: |
+      Delete the credentials file after the action is finished.
+      If you want to keep the credentials file for a later step, set this to false.
+    default: "true"
+  dockerhub-repository:
+    description: |
+      Ipsum dockerhubium
+    default: "${{ github.repository }}"
+  docker-buildx-driver:
+    description: |
+      The driver to use for Docker Buildx
+    required: false
+    default: "docker-container"
+  file:
+    description: |
+      The dockerfile to use.
+    required: false
+  gar-registry:
+    description: |
+      Google Artifact Registry to store docker images in.
+    default: "us-docker.pkg.dev"
+  gar-repository:
+    description: |
+      Override the 'repo_name' used to construct the GAR repository name.
+      Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
+      Default: `docker-${GitHub Repo Name}-${gar-environment}`
+    default: ""
+  gar-environment:
+    description: |
+      Environment for pushing artifacts (can be either dev or prod).
+    default: "dev"
+  gar-image:
+    description: |
+      Name of the image to build.
+      Default: `${GitHub Repo Name}`
+    default: ""
+  include-tags-in-push:
+    description: | # TODO: Expand
+      Can't push tags with a digest, need a way to disable
+    default: "true"
+  labels:
+    description: |
+      List of custom labels to add to the image as metadata.
+    required: false
+  load:
+    description: |
+      Whether to load the built image into the local docker daemon.
+    required: false
+    default: "false"
+  outputs:
+    description: | # TODO Desc
+      Ipsum factum explainum.
+    required: false
+    default: ""
+  platforms:
+    description: |
+      List of platforms to build the image for
+    required: false
+  push:
+    description: |
+      Whether to push the image to the configured registries.
+    required: false
+  registries:
+    description: |
+      List of registries to build images for.
+    default: ""
+  secrets:
+    description: |
+      Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
+    required: false
+  ssh:
+    description: |
+      List of SSH agent socket or keys to expose to the build
+  tags:
+    description: |
+      List of Docker tags to be pushed.
+    required: true
+  target:
+    description: |
+      Sets the target stage to build
+    required: false
+
+outputs:
+  annotations:
+    description: "Generated annotations (from docker/metadata-action)"
+    value: ${{ steps.meta.outputs.annotations }}
+  digest:
+    description: "Image digest (from docker/build-push-action)"
+    value: ${{ steps.build.outputs.digest }}
+  imageid:
+    description: "Image ID (from docker/build-push-action)"
+    value: ${{ steps.build.outputs.imageid }}
+  images:
+    description: "Comma separated list of the images that were built"
+    value: ${{ steps.setup-vars.outputs.images }}
+  json:
+    description: "JSON output of tags and labels (from docker/metadata-action)"
+    value: ${{ steps.meta.outputs.json }}
+  labels:
+    description: "Generated Docker labels (from docker/metadata-action)"
+    value: ${{ steps.meta.outputs.labels }}
+  metadata:
+    description: "Build result metadata (from docker/build-push-action)"
+    value: ${{ steps.build.outputs.metadata }}
+  metadatajson:
+    description: "Metadata JSON (from docker/metadata)"
+    value: ${{ steps.meta.outputs.json }}
+  version:
+    description: "Generated Docker image version (from docker/metadata-action)"
+    value: ${{ steps.meta.outputs.version }}
+  tags:
+    description: "Generated Docker tags (from docker/metadata-action)"
+    value: ${{ steps.meta.outputs.tags }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout shared-workflows
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _shared-workflows-docker-build-push-image
+        persist-credentials: false
+
+    - name: Set registries
+      id: registries
+      shell: bash
+      env:
+        REGISTRIES: ${{ inputs.registries }}
+      run: |
+        for r in ${REGISTRIES//,/ }; do
+          echo "include-${r}=true" | tee -a "${GITHUB_OUTPUT}"
+        done
+
+    - name: Setup GAR variables
+      id: setup-gar-vars
+      if: ${{ steps.registries.outputs.include-gar == 'true' }}
+      shell: bash
+      env:
+        GAR_REPO: ${{ inputs.gar-repository }}
+        ENVIRONMENT: ${{ inputs.gar-environment }}
+        GAR_IMAGE: ${{ inputs.gar-image }}
+        REGISTRY: ${{ inputs.gar-registry }}
+        GH_REPO: ${{ github.repository }}
+      run: |
+        chmod +x ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/gar-setup-project-vars.sh
+        ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/gar-setup-project-vars.sh
+
+    - name: Setup DockerHub variables
+      if: ${{ steps.registries.outputs.include-dockerhub == 'true' }}
+      id: setup-dockerhub-vars
+      shell: bash
+      env:
+        DOCKERHUB_IMAGE: ${{ inputs.dockerhub-repository }}
+      run: |
+        chmod +x ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/dockerhub-setup-project-vars.sh
+        ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/dockerhub-setup-project-vars.sh
+
+    - name: Finalize build vars
+      id: setup-vars
+      shell: bash
+      env:
+        GAR_IMAGE: ${{ steps.setup-gar-vars.outputs.image }}
+        DOCKERHUB_IMAGE: ${{ steps.setup-dockerhub-vars.outputs.image }}
+      run: |
+        images=""
+        for image in "${GAR_IMAGE}" "${DOCKERHUB_IMAGE}"
+        do
+          # if an image is not the emptry string, add it to the list
+          if [ -n "${image}" ]; then
+
+            # if we already have any images, prefix a comma
+            if [ -n "${images}" ]; then
+              images="${images},${image}"
+            else
+              images="${image}"
+            fi
+          fi
+        done
+        echo "images=${images}" | tee -a "${GITHUB_OUTPUT}"
+
+        if [ -z "${images}" ]; then
+          echo "::warning::No registries have been selected, no images will be pushed"
+          echo "images=dry-run-image" | tee -a "${GITHUB_OUTPUT}"
+        fi
+
+    - name: Login to GAR
+      if: ${{ inputs.push == 'true' && steps.registries.outputs.include-gar == 'true' }}
+      uses: ./_shared-workflows-docker-build-push-image/actions/login-to-gar
+
+    - name: Login to DockerHub
+      if: ${{ inputs.push == 'true' && steps.registries.outputs.include-dockerhub == 'true' }}
+      uses: ./_shared-workflows-docker-build-push-image/actions/dockerhub-login # TODO: Write up an issue to convert this to actions/login-to-dockerhub
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+      with:
+        images: ${{ steps.setup-vars.outputs.images }}
+        tags: ${{ inputs.tags }}
+
+    - name: Setup buildkitd-config
+      id: buildkitd-config
+      shell: sh
+      env:
+        BUILDKITD_CONFIG_INLINE: ${{ inputs.buildkitd-config-inline }}
+        BUILDKITD_CONFIG: ${{ inputs.buildkitd-config }}
+        DEFAULT_BUILDKITD_CONFIG: ${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
+      run: |
+        # This step does the following:
+        # if buildkitd-config-inline != "", use that
+        # elif buildkitd-config != "", use that
+        # else, use buildkitd-config default config if on self hosted runners
+
+        buildkitd_config=""
+        buildkitd_config_inline=""
+
+        if [ -n "${BUILDKITD_CONFIG_INLINE}" ]; then
+          buildkitd_config_inline="${BUILDKITD_CONFIG_INLINE}"
+        elif [ -n "${BUILDKITD_CONFIG}" ]; then
+          buildkitd_config="${BUILDKITD_CONFIG}"
+        else
+          buildkitd_config="${DEFAULT_BUILDKITD_CONFIG}"
+        fi
+
+        echo "buildkitd-config-inline=${buildkitd_config_inline}" | tee -a "${GITHUB_OUTPUT}"
+        echo "buildkitd-config=${buildkitd_config}" | tee -a "${GITHUB_OUTPUT}"
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      with:
+        driver: ${{ inputs.docker-buildx-driver }}
+        version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
+        buildkitd-config: ${{ steps.buildkitd-config.outputs.buildkitd-config }}
+        buildkitd-config-inline: ${{ steps.buildkitd-config.outputs.buildkitd-config-inline }}
+
+    # The `context` input is flagged by Zizmor as a [sink]. This means that with
+    # the upstream action the user's input to the input ends up in an output,
+    # and so if it's not handled properly, it could lead to a template injection
+    # attack. In this action, we do pass this back out via our `metadata`
+    # output. However, we consider ourselves a proxy, so in that case our job is
+    # to warn users but not to take any action.
+    #
+    # [sink]: https://github.blog/security/application-security/how-to-secure-your-github-actions-workflows-with-codeql/#models
+    - name: Build the container # zizmor: ignore[template-injection]
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+      id: build
+      with:
+        build-args: ${{ inputs.build-args }}
+        build-contexts: ${{ inputs.build-contexts }}
+        cache-from: ${{ inputs.cache-from }}
+        cache-to: ${{ inputs.cache-to }}
+        context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        labels: ${{ inputs.labels }}
+        load: ${{ inputs.load == 'true' }}
+        platforms: ${{ inputs.platforms }}
+        outputs: ${{ inputs.outputs }}
+        push: ${{ inputs.push == 'true' }}
+        secrets: ${{ inputs.secrets }}
+        ssh: ${{ inputs.ssh }}
+        tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || steps.setup-vars.outputs.images }}
+        target: ${{ inputs.target }}
+
+    - name: Cleanup checkout directory
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: |
+        # Check that the directory looks OK before removing it
+        if ! [ -d "_shared-workflows-docker-build-push-image/.git" ]; then
+          echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
+          exit 0
+        fi
+
+        rm -rf _shared-workflows-docker-build-push-image
+
+    - name: Delete Google Application Credentials file
+      if: ${{ inputs.delete-credentials-file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
+      shell: sh
+      run: |
+        if [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
+          rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
+          echo "::notice::Successfully deleted credentials file"
+        else
+          echo "::warning::Credentials file not found at ${GOOGLE_APPLICATION_CREDENTIALS}"
+        fi
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
