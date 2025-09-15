@@ -71,10 +71,13 @@ jobs:
           dist
           build
           trufflehog-.*\.json
+          trufflehog-builtin-results\.json
           custom-.*\.txt
+          custom-grafana-results\.txt
           exclude_paths\.txt
           custom-patterns\.txt
           grafana-secrets-flag\.txt
+          scan_file_types\.txt
           EOF
 
           # Define file types to scan
