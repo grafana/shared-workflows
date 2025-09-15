@@ -56,6 +56,21 @@ jobs:
           GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\']?([A-Za-z0-9+/=]{100,})["\']?
           EOF
 
+      - name: Create Trufflehog Exclusions File
+        run: |
+          cat > exclude_paths.txt << 'EOF'
+          .git
+          .github
+          node_modules
+          venv
+          env
+          __pycache__
+          .pytest_cache
+          .venv
+          dist
+          build
+          EOF
+
       - name: Run Trufflehog with Built-in Detectors
         env:
           EXTRA_ARGS: ${{ inputs.extra_args }}
@@ -66,11 +81,7 @@ jobs:
             --no-update \
             --results=verified,unknown \
             --fail \
-            --exclude-paths=.git \
-            --exclude-paths=.github \
-            --exclude-paths=node_modules \
-            --exclude-paths=venv \
-            --exclude-paths=env \
+            --exclude-paths=exclude_paths.txt \
             "$EXTRA_ARGS" \
             > trufflehog-builtin-results.json || true
 
