@@ -26,7 +26,7 @@ runs:
         readarray -t open_pr_branches < <(gh pr list --state open -L 1000 --json headRefName | jq -cr '.[].headRefName')
 
         # For repositories that have exceeded 2,000+ branches, this could fail.
-        readarray -t protected_branches < <(gh api --paginate '/repos/${ORG}/${REPO}/branches?protected=true' | jq -cr '.[].name')
+        readarray -t protected_branches < <(gh api --paginate "/repos/${ORG}/${REPO}/branches?protected=true" | jq -cr '.[].name')
 
         branches=()
         while IFS= read -r line; do
@@ -56,7 +56,7 @@ runs:
         done
 
         for branch in "${to_delete[@]}"; do
-          echo $branch >> branches.txt
+          echo "$branch" >> branches.txt
         done
     - name: Delete branches (dry run)
       shell: bash
