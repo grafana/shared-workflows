@@ -73,6 +73,7 @@ jobs:
           custom-.*\.txt
           exclude_paths\.txt
           custom-patterns\.txt
+          grafana-secrets-flag\.txt
           EOF
 
       - name: Run Trufflehog with Built-in Detectors
@@ -101,7 +102,7 @@ jobs:
       - name: Run Custom Grafana Pattern Scan
         run: |
           echo "Running additional scan for Grafana-specific patterns..."
-          echo "" > custom-grafana-results.txt
+          rm -f custom-grafana-results.txt
           secrets_found=false
           
           while IFS= read -r pattern || [ -n "$pattern" ]; do
@@ -117,6 +118,7 @@ jobs:
                 --exclude="custom-*.txt" \
                 --exclude="exclude_paths.txt" \
                 --exclude="custom-patterns.txt" \
+                --exclude="grafana-secrets-flag.txt" \
                 --include="*.go" \
                 --include="*.js" \
                 --include="*.ts" \
@@ -146,6 +148,11 @@ jobs:
           if [ "$secrets_found" = false ]; then
             echo "✅ No Grafana-specific secrets found"
           fi
+          
+          # Create a flag file to indicate if secrets were found
+          if [ "$secrets_found" = true ]; then
+            echo "SECRETS_FOUND" > grafana-secrets-flag.txt
+          fi
 
       - name: Combine Results
         run: |
@@ -171,7 +178,7 @@ jobs:
             echo "✅ Built-in detectors found no secrets"
           fi
           
-          if [ -s custom-grafana-results.txt ]; then
+          if [ -f grafana-secrets-flag.txt ]; then
             grafana_secrets=true
             echo "❌ Grafana custom patterns found secrets"
           else
