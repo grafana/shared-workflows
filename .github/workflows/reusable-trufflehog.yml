@@ -192,7 +192,7 @@ jobs:
           script: |
             // Find PR number
             let prNumber = null;
-            
+
             if (context.payload.pull_request) {
               prNumber = context.payload.pull_request.number;
             } else {
@@ -203,7 +203,7 @@ jobs:
                   repo: context.repo.repo,
                   state: 'open'
                 });
-                
+
                 const matchingPr = prs.data.find(pr => pr.head.sha === context.sha);
                 if (matchingPr) {
                   prNumber = matchingPr.number;
@@ -212,12 +212,12 @@ jobs:
                 console.log('Could not search for PRs');
               }
             }
-            
+
             if (!prNumber) {
               console.log('No PR found - skipping comment');
               return;
             }
-            
+
             const fs = require('fs');
             let findings = [];
             try {
