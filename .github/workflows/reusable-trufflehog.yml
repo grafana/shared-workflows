@@ -118,7 +118,7 @@ jobs:
               fi
             fi
           done < exclude_paths.txt
-          
+
           # Build include args from file types
           include_args=()
           for file_type in $(< scan_file_types.txt); do
