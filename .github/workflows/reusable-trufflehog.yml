@@ -149,13 +149,6 @@ jobs:
             echo "SECRETS_FOUND" > grafana-secrets-flag.txt
           fi
 
-      - name: Combine Results
-        run: |
-          echo "=== TRUFFLEHOG BUILT-IN RESULTS ===" > trufflehog-results.json
-          cat trufflehog-builtin-results.json >> trufflehog-results.json || echo "No built-in results" >> trufflehog-results.json
-          echo "" >> trufflehog-results.json
-          echo "=== CUSTOM GRAFANA PATTERN RESULTS ===" >> trufflehog-results.json
-          cat custom-grafana-results.txt >> trufflehog-results.json || echo "No custom pattern results" >> trufflehog-results.json
 
       - name: Security Scan Summary
         run: |
@@ -171,12 +164,14 @@ jobs:
           echo ""
           
           # Show detailed results
-          if [ -f trufflehog-results.json ]; then
-            echo "📄 DETAILED RESULTS:"
-            echo "==================="
-            cat trufflehog-results.json
-            echo ""
-          fi
+          echo "📄 DETAILED RESULTS:"
+          echo "==================="
+          echo "=== TRUFFLEHOG BUILT-IN RESULTS ==="
+          cat trufflehog-builtin-results.json 2>/dev/null || echo "No built-in results"
+          echo ""
+          echo "=== CUSTOM GRAFANA PATTERN RESULTS ==="
+          cat custom-grafana-results.txt 2>/dev/null || echo "No custom pattern results"
+          echo ""
           
           # Determine final result
           if [[ "$builtin_found" == "❌" || "$grafana_found" == "❌" ]]; then
@@ -188,8 +183,6 @@ jobs:
             echo "🎉 SCAN PASSED: No secrets detected!"
           fi
 
-      - name: Debug Trufflehog output
-        run: cat trufflehog-results.json || echo "No trufflehog-results.json found"
 
       - name: Comment on PR with all Trufflehog findings (full JSON, clean format)
         if: ${{ github.event.pull_request != null }}
@@ -200,10 +193,10 @@ jobs:
             const fs = require('fs');
             let findings = [];
             try {
-              const lines = fs.readFileSync('trufflehog-results.json', 'utf8')
+              const builtinResults = fs.readFileSync('trufflehog-builtin-results.json', 'utf8')
                 .split('\n')
                 .filter(Boolean);
-              for (const line of lines) {
+              for (const line of builtinResults) {
                 let finding;
                 try {
                   finding = JSON.parse(line);
@@ -224,6 +217,26 @@ jobs:
                   );
                 }
               }
+              
+              // Add custom Grafana findings
+              try {
+                const grafanaResults = fs.readFileSync('custom-grafana-results.txt', 'utf8');
+                if (grafanaResults.trim()) {
+                  findings.push(
+                    [
+                      '---',
+                      '**Custom Grafana Pattern Findings:**',
+                      '',
+                      '```',
+                      grafanaResults,
+                      '```',
+                      ''
+                    ].join('\n')
+                  );
+                }
+              } catch (e) {
+                // No custom results file
+              }
             } catch (e) {
               findings = ['(Could not parse Trufflehog report)'];
             }
@@ -237,10 +250,3 @@ jobs:
               body
             });
 
-      - name: Fail if any secrets found
-        if: ${{ inputs.fail-on-secrets == 'true' && hashFiles('trufflehog-results.json') != '' }}
-        run: |
-          if grep -q '"Raw":' trufflehog-results.json; then
-            echo "Secrets found! Failing the workflow."
-            exit 1
-          fi
