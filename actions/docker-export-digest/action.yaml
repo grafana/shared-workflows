@@ -20,7 +20,8 @@ runs:
       env:
         PLATFORM: ${{ inputs.platform }}
       run: |
-        echo "platform-pair=${PLATFORM//\//-}" | tee -a "${GITHUB_OUTPUT}"
+        PLATFORM_PAIR="${PLATFORM//\//-}"
+        echo "platform-pair=${PLATFORM_PAIR}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Export digest
       shell: sh
