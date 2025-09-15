@@ -97,7 +97,7 @@ jobs:
           if [ -s trufflehog-builtin-results.json ]; then
             echo "🚨 SECRETS DETECTED by Trufflehog built-in detectors!"
             echo "📄 Details:"
-            jq -r '.[] | "FILE: \(.SourceMetadata.Data.Filesystem.file // "unknown") | LINE: \(.SourceMetadata.Data.Filesystem.line // "unknown") | DETECTOR: \(.DetectorName) | SECRET: \(.Raw[0:50])..."' trufflehog-builtin-results.json 2>/dev/null || < trufflehog-builtin-results.json
+            jq -r '.[] | "FILE: \(.SourceMetadata.Data.Filesystem.file // "unknown") | LINE: \(.SourceMetadata.Data.Filesystem.line // "unknown") | DETECTOR: \(.DetectorName) | SECRET: \(.Raw[0:50])..."' trufflehog-builtin-results.json 2>/dev/null || cat trufflehog-builtin-results.json
           else
             echo "✅ No secrets found by Trufflehog built-in detectors"
           fi
@@ -130,7 +130,7 @@ jobs:
             if [[ ! "$pattern" =~ ^# ]] && [[ -n "${pattern// }" ]]; then
               echo "🔍 Scanning for Grafana pattern: $pattern"
               results=$(grep -r -n -E "$pattern" . $exclude_args $include_args 2>/dev/null || true)
-              if [ ! -z "$results" ]; then
+              if [ -n "$results" ]; then
                 echo "🚨 GRAFANA SECRET DETECTED!"
                 echo "Pattern: $pattern"
                 echo "$results"
@@ -166,10 +166,10 @@ jobs:
           echo "📄 DETAILED RESULTS:"
           echo "==================="
           echo "=== TRUFFLEHOG BUILT-IN RESULTS ==="
-          < trufflehog-builtin-results.json 2>/dev/null || echo "No built-in results"
+          cat trufflehog-builtin-results.json 2>/dev/null || echo "No built-in results"
           echo ""
           echo "=== CUSTOM GRAFANA PATTERN RESULTS ==="
-          < custom-grafana-results.txt 2>/dev/null || echo "No custom pattern results"
+          cat custom-grafana-results.txt 2>/dev/null || echo "No custom pattern results"
           echo ""
 
           # Determine final result
