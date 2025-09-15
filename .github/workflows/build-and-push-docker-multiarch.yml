@@ -197,7 +197,7 @@ on:
         value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
 
 jobs:
-  prepare-matrix: # TODO: Add warning for docker inputs that aren't handled here.. for example, outputs
+  prepare-matrix:
     runs-on: ubuntu-arm64-small
     outputs:
       runner_arches: ${{ steps.matrix.outputs.runner_arches }}
