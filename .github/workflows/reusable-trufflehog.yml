@@ -108,28 +108,28 @@ jobs:
           rm -f custom-grafana-results.txt grafana-secrets-flag.txt
 
           # Build grep exclusions from file
-          exclude_args=""
+          exclude_args=()
           while IFS= read -r exclude_path; do
             if [[ ! "$exclude_path" =~ ^# ]] && [[ -n "${exclude_path// }" ]]; then
               if [[ "$exclude_path" == *".*"* ]]; then
-                exclude_args="$exclude_args --exclude=${exclude_path//\\.*/.*}"
+                exclude_args+=("--exclude=${exclude_path//\\.*/.*}")
               else
-                exclude_args="$exclude_args --exclude-dir=$exclude_path"
+                exclude_args+=("--exclude-dir=$exclude_path")
               fi
             fi
           done < exclude_paths.txt
-
+          
           # Build include args from file types
-          include_args=""
+          include_args=()
           for file_type in $(< scan_file_types.txt); do
-            include_args="$include_args --include=$file_type"
+            include_args+=("--include=$file_type")
           done
 
           secrets_found=false
           while IFS= read -r pattern || [ -n "$pattern" ]; do
             if [[ ! "$pattern" =~ ^# ]] && [[ -n "${pattern// }" ]]; then
               echo "🔍 Scanning for Grafana pattern: $pattern"
-              results=$(grep -r -n -E "$pattern" . $exclude_args $include_args 2>/dev/null || true)
+              results=$(grep -r -n -E "$pattern" . "${exclude_args[@]}" "${include_args[@]}" 2>/dev/null || true)
               if [ -n "$results" ]; then
                 echo "🚨 GRAFANA SECRET DETECTED!"
                 echo "Pattern: $pattern"
