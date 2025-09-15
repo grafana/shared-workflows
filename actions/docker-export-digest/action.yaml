@@ -16,12 +16,11 @@ runs:
   steps:
     - name: Prepare
       id: prepare
-      shell: sh
+      shell: bash
       env:
         PLATFORM: ${{ inputs.platform }}
       run: |
-        PLATFORM_PAIR="${PLATFORM//\//-}"
-        echo "platform-pair=${PLATFORM_PAIR}" | tee -a "${GITHUB_OUTPUT}"
+        echo "platform-pair=${PLATFORM//\//-}" | tee -a "${GITHUB_OUTPUT}"
 
     - name: Export digest
       shell: sh

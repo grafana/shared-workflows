@@ -316,6 +316,6 @@ jobs:
         with:
           images: ${{ needs.build-and-push.outputs.images }}
           gar-environment: ${{ inputs.gar-environment }}
-          push-to-gar: true
+          push-to-gar: true # TODO: don't hardcode these
           push-to-dockerhub: true
           docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}

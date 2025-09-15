@@ -10,7 +10,7 @@ inputs: # TODO: Fill in descriptions
     description: |
       Lorem ipsum explainum
     default: "dev"
-  push-to-gar:
+  push-to-gar: # TODO: switch this to list style repositories input
     description: |
       Push resulting manifest to Google Artifact Registry
     default: "false"
