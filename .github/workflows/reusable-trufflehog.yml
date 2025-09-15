@@ -37,63 +37,59 @@ jobs:
         run: |
           cat > trufflehog-config.yaml << 'EOF'
           detectors:
-            - name: GrafanaAPIKey
-              keywords:
-                - grafana
-                - eyJrIjoi
-              regex:
-                grafanaAPIKey: 'eyJrIjoi[A-Za-z0-9]{70,}={0,2}'
-              verify:
-                - endpoint: https://grafana.com/api/
-                  unsafe: false
-                  headers:
-                    - "Authorization: Bearer {}"
-
-            - name: GrafanaServiceAccountToken
-              keywords:
-                - grafana
-                - glsa_
-              regex:
-                serviceAccountToken: 'glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}'
-              verify:
-                - endpoint: https://grafana.com/api/
-                  unsafe: false
-                  headers:
-                    - "Authorization: Bearer {}"
-
-            - name: GrafanaCloudToken
-              keywords:
-                - grafana
-                - glc_
-              regex:
-                cloudToken: 'glc_[A-Za-z0-9+/]{32,}={0,2}'
-              verify:
-                - endpoint: https://grafana.com/api/
-                  unsafe: false
-                  headers:
-                    - "Authorization: Bearer {}"
-
-            - name: GrafanaDatabaseConnection
-              keywords:
-                - grafana
-                - mysql
-                - postgres
-                - postgresql
-              regex:
-                dbConnection: '(mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*'
-
-            - name: GrafanaConfigSecrets
-              keywords:
-                - GF_SECURITY
-                - GF_SMTP
-                - GF_AUTH
-                - GF_ENTERPRISE
-              regex:
-                secretKey: 'GF_SECURITY_SECRET_KEY\s*[=:]\s*["\']?([A-Za-z0-9+/]{32,}={0,2})["\']?'
-                adminPassword: 'GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{8,})["\']?'
-                smtpPassword: 'GF_SMTP_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{6,})["\']?'
-                oauthSecret: 'GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\']?([A-Za-z0-9_-]{20,})["\']?'
-                licenseKey: 'GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\']?([A-Za-z0-9+/=]{100,})["\']?'
+          - name: GrafanaAPIKey
+            keywords:
+            - grafana
+            - eyJrIjoi
+            regex:
+              grafanaAPIKey: 'eyJrIjoi[A-Za-z0-9]{70,}={0,2}'
+            verify:
+            - endpoint: https://grafana.com/api/
+              unsafe: false
+              headers:
+              - "Authorization: Bearer {}"
+          - name: GrafanaServiceAccountToken
+            keywords:
+            - grafana
+            - glsa_
+            regex:
+              serviceAccountToken: 'glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}'
+            verify:
+            - endpoint: https://grafana.com/api/
+              unsafe: false
+              headers:
+              - "Authorization: Bearer {}"
+          - name: GrafanaCloudToken
+            keywords:
+            - grafana
+            - glc_
+            regex:
+              cloudToken: 'glc_[A-Za-z0-9+/]{32,}={0,2}'
+            verify:
+            - endpoint: https://grafana.com/api/
+              unsafe: false
+              headers:
+              - "Authorization: Bearer {}"
+          - name: GrafanaDatabaseConnection
+            keywords:
+            - grafana
+            - mysql
+            - postgres
+            - postgresql
+            regex:
+              dbConnection: '(mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*'
+          - name: GrafanaConfigSecrets
+            keywords:
+            - GF_SECURITY
+            - GF_SMTP
+            - GF_AUTH
+            - GF_ENTERPRISE
+            regex:
+              secretKey: 'GF_SECURITY_SECRET_KEY\s*[=:]\s*["\']?([A-Za-z0-9+/]{32,}={0,2})["\']?'
+              adminPassword: 'GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{8,})["\']?'
+              smtpPassword: 'GF_SMTP_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{6,})["\']?'
+              oauthSecret: 'GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\']?([A-Za-z0-9_-]{20,})["\']?'
+              licenseKey: 'GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\']?([A-Za-z0-9+/=]{100,})["\']?'
           EOF
 
       - name: Run Trufflehog
