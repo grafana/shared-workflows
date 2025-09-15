@@ -38,16 +38,16 @@ jobs:
           cat > custom-patterns.txt << 'EOF'
           # Grafana API Key - Pattern: eyJrIjoi[A-Za-z0-9]{70,}={0,2}
           eyJrIjoi[A-Za-z0-9]{70,}={0,2}
-          
+
           # Grafana Service Account Token - Pattern: glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}
           glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}
-          
+
           # Grafana Cloud API Token - Pattern: glc_[A-Za-z0-9+/]{32,}={0,2}
           glc_[A-Za-z0-9+/]{32,}={0,2}
-          
+
           # Grafana Database Connection Strings
           (mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*
-          
+
           # Grafana Configuration Secrets
           GF_SECURITY_SECRET_KEY\s*[=:]\s*["\']?([A-Za-z0-9+/]{32,}={0,2})["\']?
           GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{8,})["\']?
@@ -76,7 +76,7 @@ jobs:
           custom-patterns\.txt
           grafana-secrets-flag\.txt
           EOF
-          
+
           # Define file types to scan
           echo "*.go *.js *.ts *.json *.yaml *.yml *.env *.conf *.config *.ini *.toml *.txt *.md" > scan_file_types.txt
 
@@ -93,12 +93,12 @@ jobs:
             --exclude-paths=exclude_paths.txt \
             "$EXTRA_ARGS" \
             > trufflehog-builtin-results.json || true
-          
+
           # Check if secrets were found
           if [ -s trufflehog-builtin-results.json ]; then
             echo "🚨 SECRETS DETECTED by Trufflehog built-in detectors!"
             echo "📄 Details:"
-            cat trufflehog-builtin-results.json | jq -r '.[] | "FILE: \(.SourceMetadata.Data.Filesystem.file // "unknown") | LINE: \(.SourceMetadata.Data.Filesystem.line // "unknown") | DETECTOR: \(.DetectorName) | SECRET: \(.Raw[0:50])..."' 2>/dev/null || cat trufflehog-builtin-results.json
+            jq -r '.[] | "FILE: \(.SourceMetadata.Data.Filesystem.file // "unknown") | LINE: \(.SourceMetadata.Data.Filesystem.line // "unknown") | DETECTOR: \(.DetectorName) | SECRET: \(.Raw[0:50])..."' trufflehog-builtin-results.json 2>/dev/null || < trufflehog-builtin-results.json
           else
             echo "✅ No secrets found by Trufflehog built-in detectors"
           fi
@@ -107,7 +107,7 @@ jobs:
         run: |
           echo "Running additional scan for Grafana-specific patterns..."
           rm -f custom-grafana-results.txt grafana-secrets-flag.txt
-          
+
           # Build grep exclusions from file
           exclude_args=""
           while IFS= read -r exclude_path; do
@@ -119,13 +119,13 @@ jobs:
               fi
             fi
           done < exclude_paths.txt
-          
+
           # Build include args from file types
           include_args=""
-          for file_type in $(cat scan_file_types.txt); do
+          for file_type in $(< scan_file_types.txt); do
             include_args="$include_args --include=$file_type"
           done
-          
+
           secrets_found=false
           while IFS= read -r pattern || [ -n "$pattern" ]; do
             if [[ ! "$pattern" =~ ^# ]] && [[ -n "${pattern// }" ]]; then
@@ -142,13 +142,12 @@ jobs:
               fi
             fi
           done < custom-patterns.txt
-          
+
           if [ "$secrets_found" = false ]; then
             echo "✅ No Grafana-specific secrets found"
           else
             echo "SECRETS_FOUND" > grafana-secrets-flag.txt
           fi
-
 
       - name: Security Scan Summary
         env:
@@ -156,25 +155,25 @@ jobs:
         run: |
           echo "📊 SECURITY SCAN SUMMARY"
           echo "======================="
-          
+
           # Check scan results
           builtin_found=$([ -s trufflehog-builtin-results.json ] && echo "❌" || echo "✅")
           grafana_found=$([ -f grafana-secrets-flag.txt ] && echo "❌" || echo "✅")
-          
+
           echo "$builtin_found Built-in detectors: $([ "$builtin_found" = "❌" ] && echo "secrets found" || echo "no secrets")"
           echo "$grafana_found Grafana patterns: $([ "$grafana_found" = "❌" ] && echo "secrets found" || echo "no secrets")"
           echo ""
-          
+
           # Show detailed results
           echo "📄 DETAILED RESULTS:"
           echo "==================="
           echo "=== TRUFFLEHOG BUILT-IN RESULTS ==="
-          cat trufflehog-builtin-results.json 2>/dev/null || echo "No built-in results"
+          < trufflehog-builtin-results.json 2>/dev/null || echo "No built-in results"
           echo ""
           echo "=== CUSTOM GRAFANA PATTERN RESULTS ==="
-          cat custom-grafana-results.txt 2>/dev/null || echo "No custom pattern results"
+          < custom-grafana-results.txt 2>/dev/null || echo "No custom pattern results"
           echo ""
-          
+
           # Determine final result
           if [[ "$builtin_found" == "❌" || "$grafana_found" == "❌" ]]; then
             echo "🚨 SCAN FAILED: Secrets detected! Please review and remove exposed secrets."
@@ -184,7 +183,6 @@ jobs:
           else
             echo "🎉 SCAN PASSED: No secrets detected!"
           fi
-
 
       - name: Comment on PR with all Trufflehog findings (full JSON, clean format)
         if: ${{ github.event.pull_request != null }}
@@ -251,4 +249,3 @@ jobs:
               repo: context.repo.repo,
               body
             });
-
