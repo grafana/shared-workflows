@@ -8,6 +8,7 @@ Composite action (step) to query for for branches that are not in an open PR, an
 | ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- | -------- |
 | `token`          | `string` | GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (`contents: write`) and pull requests (`pull_requests: read`)   | `${{ github.token }}` | true     |
 | `dry-run`        | `bool`   | If `'true'`, then the action will print branches to be deleted, but will not delete them                                                                                             | `'true'`              | true     |
+| `max-date`       | `string` | Value passed to `date -d`; a human readable date string. Maximum date of the head ref of a branch in order to be deleted.                                                            | `"2 weeks ago"`       | false    |
 
 ## Examples
 
