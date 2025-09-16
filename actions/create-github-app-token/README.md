@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - id: get-github-token
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.1.0
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.0
         with:
           github_app: github-app-name
 
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - id: get-github-token-read
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.1.0
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.0
         with:
           github_app: github-app-name
           permissions-set: read-only-on-foo-repository
@@ -87,7 +87,7 @@ jobs:
             https://api.github.com/repos/grafana/foo-repository/assignees
 
       - id: get-github-token-write
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.1.0
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.0
         with:
           github_app: github-app-name
           permissions-set: write-on-bar-repository

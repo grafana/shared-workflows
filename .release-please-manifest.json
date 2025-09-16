@@ -21,7 +21,7 @@
     "actions/remove-checkout-credentials": "0.1.0",
     "actions/dependabot-auto-triage": "1.1.0",
     "actions/get-latest-workflow-artifact": "0.2.0",
-    "actions/create-github-app-token": "v0.1.0",
+    "actions/create-github-app-token": "0.2.0",
     "actions/run-capslock": "0.2.0",
     "actions/azure-trusted-signing": "1.0.0"
 }
