@@ -1,16 +1,15 @@
 name: Clean up orphaned git branches
 description: |
-  Composite action (step) to get create github app token using vault.
-  This action will query for for branches that are not in an open PR, and will delete them if 'dry-run' is 'false'.
+  This action will query for branches that are not in an open PR, and will delete them if 'dry-run' is 'false'.
   Protected branches are excluded as well.
 inputs:
   dry-run:
     default: "true"
     required: true
-    description: "If 'dry-run' is not 'true', then the action will print branches to be deleted, but will not delete them"
+    description: "If 'true', then the action will print branches to be deleted, but will not delete them"
   token:
     default: ${{ github.token }}
-    required: false
+    required: true
     description: "GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (contents: write) and pull requests (pull_requests: read)"
 runs:
   using: composite
@@ -18,20 +17,23 @@ runs:
     - name: List branches
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-        ORG: ${{ github.repository_owner }}
-        REPO: ${{ github.repository }}
+        GH_TOKEN: ${{ inputs.token }}
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       run: |
         # A limit of 1,000 open PRs is far beyond any repository that is in the grafana org
         readarray -t open_pr_branches < <(gh pr list --state open -L 1000 --json headRefName | jq -cr '.[].headRefName')
 
         # For repositories that have exceeded 2,000+ branches, this could fail.
-        readarray -t protected_branches < <(gh api --paginate "/repos/${ORG}/${REPO}/branches?protected=true" | jq -cr '.[].name')
+        readarray -t protected_branches < <(gh api --paginate "/repos/${GITHUB_REPOSITORY}/branches?protected=true" | jq -cr '.[].name')
 
+        # git remote show origin
+        # ...
+        # HEAD branch: main
+        # ...
         branches=()
         while IFS= read -r line; do
           branches+=("$line")
-        done < <(git branch -r | sed 's/^[[:space:]]*//' | grep -Ev '^(origin/)?(main|master)$' | grep -v 'HEAD' | sed 's|origin/||g')
+        done < <(git branch -r | sed 's/^[[:space:]]*//' | grep -Ev "^(origin/)?(${DEFAULT_BRANCH})$" | grep -v 'HEAD' | sed 's|origin/||g')
 
         to_delete=()
         for branch in "${branches[@]}"; do

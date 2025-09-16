@@ -1,13 +1,13 @@
 # cleanup-branches
 
-Composite action (step) to get create github app token using vault. This action will query for for branches that are not in an open PR, and will delete them if 'dry-run' is 'false'. Protected branches are excluded as well.
+Composite action (step) to query for for branches that are not in an open PR, and delete them if 'dry-run' is 'false'. Protected branches are excluded as well.
 
 ## Inputs
 
-| Name             | Type   | Description                                                                                                                                                                    | Default Value         | Required |
-| ---------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- | -------- |
-| `token`          | string | GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (contents: write) and pull requests (pull_requests: read) | `${{ github.token }}` | true     |
-| `dry-run`        | bool   | If 'dry-run' is not 'true', then the action will print branches to be deleted, but will not delete them                                                                        | `"true"`              | true     |
+| Name             | Type     | Description                                                                                                                                                                          | Default Value         | Required |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- | -------- |
+| `token`          | `string` | GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (`contents: write`) and pull requests (`pull_requests: read`)   | `${{ github.token }}` | true     |
+| `dry-run`        | `bool`   | If `'true'`, then the action will print branches to be deleted, but will not delete them                                                                                             | `'true'`              | true     |
 
 ## Examples
 
@@ -22,14 +22,14 @@ on:
     - cron: '0 9 * * 1'
 
 jobs:
-  main:
+  cleanup-branches::
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: read
     steps:
       - uses: actions/checkout@v5
-        uses: grafana/shared-workflows/actions/cleanup-branches@cleanup-branches/v1.0.0
+      - uses: grafana/shared-workflows/actions/cleanup-branches@cleanup-branches/v1.0.0
         with:
           dry-run: false
 ```
