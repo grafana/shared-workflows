@@ -64,7 +64,7 @@ runs:
         done
         max_date=$(TZ=utc date -d "$MAX_DATE" +%s)
         for branch in "${to_delete[@]}"; do
-          branch_date=$(git log --pretty=format:"%ad" --date=unix "origin/${branch}" | head -n 1)
+          branch_ts=$(git log -1 --format=%ct "origin/$branch")
           if [[ "$branch_date" -lt "$max_date" ]]; then
             echo "$branch" >> branches.txt
           fi
