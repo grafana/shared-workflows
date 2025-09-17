@@ -33,7 +33,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
           trufflehog --version
 
-      - name: Create Custom Regex Patterns
+      - name: Create Grafana-Specific Regex Patterns
         run: |
           cat > custom-patterns.txt << 'EOF'
           # Grafana API Key - Pattern: eyJrIjoi[A-Za-z0-9+/=]{40,}
@@ -45,20 +45,6 @@ jobs:
           # Grafana Cloud API Token - Pattern: glc_[A-Za-z0-9+/]{32,}={0,2}
           glc_[A-Za-z0-9+/]{32,}={0,2}
 
-          # GitHub Classic Token - ghp_[A-Za-z0-9]{36}
-          ghp_[A-Za-z0-9]{36}
-
-          # GitHub Fine-grained Personal Access Token - github_pat_[A-Za-z0-9_]{82,}
-          github_pat_[A-Za-z0-9_]{82,}
-
-          # GitHub OAuth Token - gho_[A-Za-z0-9]{36}
-          gho_[A-Za-z0-9]{36}
-
-          # GitHub User Token - ghu_[A-Za-z0-9]{36}
-          ghu_[A-Za-z0-9]{36}
-
-          # Any API_KEY pattern with long values
-          API_KEY\s*[=:]\s*["\']?[A-Za-z0-9+/=]{32,}["\']?
 
           # Grafana Database Connection Strings
           (mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*
@@ -131,7 +117,7 @@ jobs:
             echo "✅ No secrets found by Trufflehog built-in detectors"
           fi
 
-      - name: Run Custom Grafana Pattern Scan
+      - name: Run Grafana-Specific Pattern Scan
         run: |
           echo "Running additional scan for Grafana-specific patterns..."
           rm -f custom-grafana-results.txt grafana-secrets-flag.txt
