@@ -29,6 +29,8 @@ runs:
         MAX_DATE: ${{ inputs.max-date }}
       run: |
         #!/usr/bin/env bash
+        # Fetch all branches from remote. This is basically `git fetch --unshallow` but also fetches branches.
+        git fetch origin "+refs/heads/*:refs/remotes/origin/*"
 
         # A limit of 1,000 open PRs is far beyond any repository that is in the grafana org
         readarray -t open_pr_branches < <(gh pr list --state open -L 1000 --json headRefName | jq -cr '.[].headRefName')
