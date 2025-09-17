@@ -36,8 +36,8 @@ jobs:
       - name: Create Custom Regex Patterns
         run: |
           cat > custom-patterns.txt << 'EOF'
-          # Grafana API Key - Pattern: eyJrIjoi[A-Za-z0-9]{70,}={0,2}
-          eyJrIjoi[A-Za-z0-9]{70,}={0,2}
+          # Grafana API Key - Pattern: eyJrIjoi[A-Za-z0-9+/=]{40,}
+          eyJrIjoi[A-Za-z0-9+/=]{40,}
 
           # Grafana Service Account Token - Pattern: glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}
           glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}
@@ -45,15 +45,21 @@ jobs:
           # Grafana Cloud API Token - Pattern: glc_[A-Za-z0-9+/]{32,}={0,2}
           glc_[A-Za-z0-9+/]{32,}={0,2}
 
+          # GitHub Token - ghp_[A-Za-z0-9]{36}
+          ghp_[A-Za-z0-9]{36}
+
+          # Any API_KEY pattern with long values
+          API_KEY\s*[=:]\s*["\']?[A-Za-z0-9+/=]{32,}["\']?
+
           # Grafana Database Connection Strings
           (mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*
 
-          # Grafana Configuration Secrets
-          GF_SECURITY_SECRET_KEY\s*[=:]\s*["\']?([A-Za-z0-9+/]{32,}={0,2})["\']?
-          GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{8,})["\']?
-          GF_SMTP_PASSWORD\s*[=:]\s*["\']?([^"\'\\s]{6,})["\']?
-          GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\']?([A-Za-z0-9_-]{20,})["\']?
-          GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\']?([A-Za-z0-9+/=]{100,})["\']?
+          # Grafana Configuration Secrets - Fixed patterns
+          GF_SECURITY_SECRET_KEY\s*[=:]\s*["\']?[A-Za-z0-9+/=]{20,}["\']?
+          GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\']?[^"\'\\s]{8,}["\']?
+          GF_SMTP_PASSWORD\s*[=:]\s*["\']?[^"\'\\s]{6,}["\']?
+          GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\']?[A-Za-z0-9_-]{20,}["\']?
+          GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\']?[A-Za-z0-9+/=]{100,}["\']?
           EOF
 
       - name: Setup Scan Configuration
@@ -88,13 +94,24 @@ jobs:
           EXTRA_ARGS: ${{ inputs.extra_args }}
         run: |
           echo "Running Trufflehog with built-in detectors..."
-          # Run without --fail first to capture results
+
+          echo "🔍 Debug info:"
+          echo "Files to scan:"
+          find . -name "*.env" -o -name "*.txt" -o -name "*.md" | head -10
+          echo "Exclude paths:"
+          cat exclude_paths.txt
+
+          # Run with more aggressive settings to catch secrets
           trufflehog filesystem . \
             --json \
             --no-update \
-            --results=verified,unknown \
+            --results=verified,unverified,unknown \
             --exclude-paths=exclude_paths.txt \
+            --no-verification \
             "$EXTRA_ARGS" > trufflehog-builtin-results.json || true
+
+          echo "Raw Trufflehog output for debugging:"
+          head -5 trufflehog-builtin-results.json || echo "No output file created"
 
           # Check if secrets were found
           if [ -s trufflehog-builtin-results.json ]; then
