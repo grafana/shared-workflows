@@ -234,7 +234,6 @@ jobs:
             const fs = require('fs');
             let findings = [];
             let hasSecrets = false;
-            
             // Check for built-in Trufflehog findings
             try {
               const builtinResults = fs.readFileSync('trufflehog-builtin-results.json', 'utf8')
@@ -265,7 +264,7 @@ jobs:
             } catch (e) {
               // File doesn't exist or is empty - no built-in findings
             }
-            
+
             // Check for custom Grafana findings
             try {
               const grafanaResults = fs.readFileSync('custom-grafana-results.txt', 'utf8');
@@ -291,7 +290,7 @@ jobs:
             const body = hasSecrets
               ? `🚨 **Trufflehog found secrets in this PR!**\n\n${findings.join('\n')}`
               : "✅ **Trufflehog security scan completed successfully** - no secrets were found.";
-              
+
             github.rest.issues.createComment({
               issue_number: prNumber,
               owner: context.repo.owner,
