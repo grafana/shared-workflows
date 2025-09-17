@@ -192,14 +192,13 @@ jobs:
           cat custom-grafana-results.txt 2>/dev/null || echo "No custom pattern results"
           echo ""
 
-          # Determine final result
+          # Store results for later use but don't fail yet
           if [[ "$builtin_found" == "❌" || "$grafana_found" == "❌" ]]; then
             echo "🚨 SCAN FAILED: Secrets detected! Please review and remove exposed secrets."
-            if [ "$FAIL_ON_SECRETS" = "true" ]; then
-              exit 1
-            fi
+            echo "SECRETS_DETECTED=true" >> $GITHUB_ENV
           else
             echo "🎉 SCAN PASSED: No secrets detected!"
+            echo "SECRETS_DETECTED=false" >> $GITHUB_ENV
           fi
 
       - name: Comment on PR with all Trufflehog findings (full JSON, clean format)
@@ -293,3 +292,14 @@ jobs:
               repo: context.repo.repo,
               body
             });
+
+      - name: Fail workflow if secrets detected
+        env:
+          FAIL_ON_SECRETS: ${{ inputs.fail-on-secrets }}
+        run: |
+          if [ "$SECRETS_DETECTED" = "true" ] && [ "$FAIL_ON_SECRETS" = "true" ]; then
+            echo "❌ Workflow failed: Secrets were detected!"
+            exit 1
+          else
+            echo "✅ Workflow completed successfully"
+          fi
