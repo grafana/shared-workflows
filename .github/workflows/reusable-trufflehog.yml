@@ -97,7 +97,7 @@ jobs:
           echo "Files to scan (showing first 20 files):"
           find . -type f | grep -v -f exclude_paths.txt | head -20
           echo "Total files to scan:"
-          find . -type f | grep -v -f exclude_paths.txt | wc -l
+          find . -type f | grep -c -v -f exclude_paths.txt
           echo "Exclude paths:"
           cat exclude_paths.txt
 
@@ -192,10 +192,10 @@ jobs:
           # Store results for later use but don't fail yet
           if [[ "$builtin_found" == "❌" || "$grafana_found" == "❌" ]]; then
             echo "🚨 SCAN FAILED: Secrets detected! Please review and remove exposed secrets."
-            echo "SECRETS_DETECTED=true" >> $GITHUB_ENV
+            echo "SECRETS_DETECTED=true" >> "$GITHUB_ENV"
           else
             echo "🎉 SCAN PASSED: No secrets detected!"
-            echo "SECRETS_DETECTED=false" >> $GITHUB_ENV
+            echo "SECRETS_DETECTED=false" >> "$GITHUB_ENV"
           fi
 
       - name: Comment on PR with Trufflehog scan results
