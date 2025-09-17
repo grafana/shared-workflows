@@ -39,7 +39,7 @@ runs:
         branches=()
         while IFS= read -r line; do
           branches+=("$line")
-        done < <(git branch -r | sed 's/^[[:space:]]*//' | grep -Ev "^(origin/)?(${DEFAULT_BRANCH})$" | grep -v 'HEAD' | sed 's|origin/||g')
+        done < <(git ls-remote --heads origin | awk '{print $2}' | sed 's|refs/heads/||' | grep -Ev "^(origin/)?(${DEFAULT_BRANCH})$")
 
         to_delete=()
         for branch in "${branches[@]}"; do
