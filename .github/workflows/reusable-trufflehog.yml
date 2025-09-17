@@ -45,8 +45,17 @@ jobs:
           # Grafana Cloud API Token - Pattern: glc_[A-Za-z0-9+/]{32,}={0,2}
           glc_[A-Za-z0-9+/]{32,}={0,2}
 
-          # GitHub Token - ghp_[A-Za-z0-9]{36}
+          # GitHub Classic Token - ghp_[A-Za-z0-9]{36}
           ghp_[A-Za-z0-9]{36}
+
+          # GitHub Fine-grained Personal Access Token - github_pat_[A-Za-z0-9_]{82,}
+          github_pat_[A-Za-z0-9_]{82,}
+
+          # GitHub OAuth Token - gho_[A-Za-z0-9]{36}
+          gho_[A-Za-z0-9]{36}
+
+          # GitHub User Token - ghu_[A-Za-z0-9]{36}
+          ghu_[A-Za-z0-9]{36}
 
           # Any API_KEY pattern with long values
           API_KEY\s*[=:]\s*["\']?[A-Za-z0-9+/=]{32,}["\']?
