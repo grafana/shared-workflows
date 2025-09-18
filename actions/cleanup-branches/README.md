@@ -1,6 +1,6 @@
 # cleanup-branches
 
-Composite action (step) to query for for branches that are not in an open PR, and delete them if 'dry-run' is 'false'. Protected branches are excluded as well.
+Composite action (step) to query for branches that are not in an open PR, and delete them if 'dry-run' is 'false'. Protected branches are excluded as well.
 
 ## Inputs
 
