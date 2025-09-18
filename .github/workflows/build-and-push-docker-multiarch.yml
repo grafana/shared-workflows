@@ -1,0 +1,321 @@
+name: Push to artifact registry MultiArch
+# description: Resuable workflow to push to Google Artifact Registry using runners of different architectures.
+
+# TODO: docker.io/grafana/cicd-test:rickytest is the correct url style for dockerhub
+
+on:
+  workflow_call:
+    inputs:
+      # THE FOLLOWING INPUTS ARE UNIQUE TO THIS WORKFLOW
+      # MULTIARCH CONFIGS
+      server-size:
+        description: "Size of the hosted runner"
+        required: false
+        default: "small"
+        type: string
+      pre-build-script:
+        description: "A script to run before docker build"
+        required: false
+        default: ""
+        type: string
+      post-build-script: # TODO: BUild this in
+        description: "A script to run after docker build"
+        required: false
+        default: ""
+        type: string
+
+      # The following inputs are identical to the inputs
+      # found in `shared-workflows/actions/docker-build-push-image`
+      # INHERITED CONFIGS
+      build-args:
+        description: |
+          List of arguments necessary for the Docker image to be built.
+        default: ""
+        type: string
+      build-contexts:
+        description: |
+          List of additional build contexts (e.g., name=path)
+        required: false
+        type: string
+      buildkitd-config:
+        description: |
+          Configum buildkitium descriptium
+        default: ""
+        type: string
+      buildkitd-config-inline:
+        description: |
+          Inliumium configutorium buildkitium descriptium
+        default: ""
+        type: string
+      cache-from:
+        description: |
+          Where cache should be fetched from
+        required: false
+        default: "type=gha"
+        type: string
+      cache-to:
+        description: |
+          Where cache should be stored to
+        required: false
+        default: "type=gha,mode=max"
+        type: string
+      context:
+        description: |
+          Path to the Docker build context.
+        default: "."
+        type: string
+      delete-credentials-file: #TODO: Expand on this
+        description: |
+          Delete the credentials file after the action is finished.
+          If you want to keep the credentials file for a later step, set this to false.
+        default: "true"
+        type: string
+      dockerhub-repository:
+        description: |
+          Ipsum dockerhubium
+        default: "${{ github.repository }}"
+        type: string
+      docker-buildx-driver:
+        description: |
+          The driver to use for Docker Buildx
+        required: false
+        default: "docker-container"
+        type: string
+      file:
+        description: |
+          The dockerfile to use.
+        required: false
+        type: string
+      gar-registry:
+        description: |
+          Google Artifact Registry to store docker images in.
+        default: "us-docker.pkg.dev"
+        type: string
+      gar-repository:
+        description: |
+          Override the 'repo_name' used to construct the GAR repository name.
+          Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
+          Default: `docker-${GitHub Repo Name}-${gar-environment}`
+        default: ""
+        type: string
+      gar-environment:
+        description: |
+          Environment for pushing artifacts (can be either dev or prod).
+        default: "dev"
+        type: string
+      gar-image:
+        description: |
+          Name of the image to build.
+          Default: `${GitHub Repo Name}`
+        default: ""
+        type: string
+      labels:
+        description: |
+          List of custom labels to add to the image as metadata.
+        required: false
+        type: string
+      load:
+        description: |
+          Whether to load the built image into the local docker daemon.
+        required: false
+        default: "false"
+        type: string
+      outputs:
+        description: | # TODO Desc
+          Ipsum factum explainum.
+        required: false
+        default: ""
+        type: string
+      platforms:
+        description: |
+          List of platforms to build the image for
+        required: false
+        type: string
+      push:
+        description: |
+          Whether to push the image to the configured registries.
+        required: false
+        type: string
+      registries:
+        description: |
+          List of registries to build images for.
+        default: ""
+        type: string
+      secrets:
+        description: |
+          Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
+        required: false
+        type: string
+      ssh:
+        description: |
+          List of SSH agent socket or keys to expose to the build
+        type: string
+      tags:
+        description: |
+          List of Docker tags to be pushed.
+        required: true
+        type: string
+      target:
+        description: |
+          Sets the target stage to build
+        required: false
+        type: string
+      # /INHERITED CONFIGS
+    outputs:
+      annotations:
+        description: "Generated annotations (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.annotations }}
+      digest:
+        description: "Image digest (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.digest }}
+      imageid:
+        description: "Image ID (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.imageid }}
+      images:
+        description: "Comma separated list of the images that were built"
+        value: ${{ jobs.build-and-push.outputs.images }}
+      json:
+        description: "JSON output of tags and labels (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.json }}
+      labels:
+        description: "Generated Docker labels (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.labels }}
+      metadata:
+        description: "Build result metadata (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.metadata }}
+      metadatajson:
+        description: "Metadata JSON (from docker/metadata)"
+        value: ${{ jobs.build-and-push.outputs.json }}
+      tags:
+        description: "Generated Docker tags (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.tags }}
+      version:
+        description: "Generated Docker image version (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.version }}
+      runner_arches:
+        description: "The list of OS used to build images (for mapping to self hosted runners)"
+        value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
+
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-arm64-small
+    outputs:
+      runner_arches: ${{ steps.matrix.outputs.runner_arches }}
+    steps:
+      - id: matrix
+        run: |
+          # This converts the potential list of `linux/arm64,linux/amd64` into a matrix of `arm64,x64`
+          # to match our hosted runner labels
+          MATRIX=$(echo "$PLATFORMS" | tr -d ' ' | tr ',' '\n' \
+            | jq -R 'if .=="linux/amd64" then "x64" elif .=="linux/arm64" then "arm64" else . end' \
+            | jq -s -c .)
+
+          # Set output
+          echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+
+  build-and-push:
+    needs: prepare-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJson(needs.prepare-matrix.outputs.runner_arches) }}
+    runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
+    env:
+      ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}' # TODO: Document this somewhere
+    outputs:
+      annotations: ${{ steps.build.outputs.annotations }}
+      digest: ${{ steps.build.outputs.digest }}
+      imageid: ${{ steps.build.outputs.imageid }}
+      images: ${{ steps.build.outputs.images }}
+      json: ${{ steps.build.outputs.json }}
+      labels: ${{ steps.build.outputs.labels }}
+      metadata: ${{ steps.build.outputs.metadata }}
+      metadatajson: ${{ steps.build.outputs.metadatajson }}
+      tags: ${{ steps.build.outputs.tags }}
+      version: ${{ steps.build.outputs.version }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Prepare
+        run: |
+          PLATFORM=$(echo "$ARCH_TO_PLATFORM_MAP" | jq -r --arg arch "${MATRIX_ARCH}" '.[$arch]')
+          echo "PLATFORM=${PLATFORM}" | tee -a "${GITHUB_ENV}"
+          echo "PLATFORM_PAIR=${PLATFORM//\//-}" | tee -a "${GITHUB_ENV}"
+        env:
+          MATRIX_ARCH: ${{ matrix.arch }}
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Run custom build script if it exists
+        if: ${{ inputs.pre-build-script != '' }}
+        run: |
+          set -euo pipefail
+          echo "Running $PRE_BUILD_SCRIPT_PATH"
+
+          if [ -f "$PRE_BUILD_SCRIPT_PATH" ]; then
+            chmod +x "$PRE_BUILD_SCRIPT_PATH"
+            "$PRE_BUILD_SCRIPT_PATH"
+          else
+            echo "No script found at $PRE_BUILD_SCRIPT_PATH, skipping."
+          fi
+        env:
+          PRE_BUILD_SCRIPT_PATH: ${{ inputs.pre-build-script }}
+      - name: Build Docker Image
+        id: build
+        uses: grafana/shared-workflows/actions/docker-build-push-image@rwhitaker/multi-arch-builds
+        with:
+          # from inputs
+          build-args: ${{ inputs.build-args }}
+          build-contexts: ${{ inputs.build-contexts }}
+          buildkitd-config: ${{ inputs.buildkitd-config }}
+          buildkitd-config-inline: ${{ inputs.buildkitd-config-inline }}
+          cache-from: ${{ inputs.cache-from }}
+          cache-to: ${{ inputs.cache-to }}
+          context: ${{ inputs.context }}
+          delete-credentials-file: ${{ inputs.delete-credentials-file }}
+          dockerhub-repository: ${{ inputs.dockerhub-repository }}
+          docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
+          file: ${{ inputs.file }}
+          gar-registry: ${{ inputs.gar-registry }}
+          gar-repository: ${{ inputs.gar-repository }}
+          gar-environment: ${{ inputs.gar-environment }}
+          gar-image: ${{ inputs.gar-image }}
+          labels: ${{ inputs.labels }}
+          registries: ${{ inputs.registries }}
+          secrets: ${{ inputs.secrets }}
+          ssh: ${{ inputs.ssh }}
+          tags: ${{ inputs.tags }}
+          target: ${{ inputs.target }}
+          include-tags-in-push: false
+
+          # special cases
+          platforms: ${{ env.PLATFORM }}
+          outputs: "type=image,push-by-digest=true,name-canonical=true,push=${{ inputs.push == 'true' && 'true' || 'false' }}"
+          load: ${{ inputs.load == 'true' }}
+          push: ${{ inputs.push == 'true' }}
+      - name: Export and upload digest
+        uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-builds
+        with:
+          digest: ${{ steps.build.outputs.digest }}
+          platform: ${{ env.PLATFORM }}
+
+  merge-digest:
+    if: ${{ inputs.push == 'true' }}
+    runs-on: ubuntu-arm64-small
+    needs: build-and-push
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download Multi-Arch Digests, Construct and Upload Manifest
+        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@rwhitaker/multi-arch-builds
+        with:
+          images: ${{ needs.build-and-push.outputs.images }}
+          gar-environment: ${{ inputs.gar-environment }}
+          push-to-gar: true # TODO: don't hardcode these
+          push-to-dockerhub: true
+          docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}
