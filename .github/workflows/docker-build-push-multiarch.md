@@ -1,37 +1,40 @@
 # docker-build-push-multiaarch
 
-This is a reusable workflow, that uses Grafana's hosted runner to natively build and push multi-architecture docker
+This is a reusable workflow that uses Grafana's hosted runners to natively build and push multi-architecture docker
 images.
 
-This is effectively a wrapper around [docker-build-push-image](), [docker-export-digest](),
-and [docker-import-digests-push-manifest](), with a [matrix strategy]()k to determine which instance types to launch.
+Right now this supports pushing images to:
+- Google Artifact Registry
+- DockerHub
 
-# TODO: do we need QEMU?
+And supports building the following image types:
+- linux/arm64
+- linux/amd64
+
+## How it works
+
+This generates a matrix based off of the `platforms` input, then creates a job per platform that runs the composite actions [docker-build-push-image](https://github.com/grafana/shared-workflows/tree/main/actions/docker-build-push-image) and [docker-export-digest](https://github.com/grafana/shared-workflows/tree/main/actions/docker-export-digest) to build and push docker images, and capture their digests.
+There is a then a final job that runs the composite action [docker-import-digests-push-manifest](https://github.com/grafana/shared-workflows/tree/main/actions/docker-import-digests-push-manifest) to push the final docker manifest.
 
 <!-- x-release-please-start-version -->
 
 ```yaml
-name: Build a Docker Image
+name: Build and Push and Push MultiArch
 
-on:
-  push:
-    branches:
-      - main
+on: push
 
 jobs:
-  build-push-image:
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: grafana/shared-workflows/actions/docker-build-push-image@main # TODO: Fix version once released
-        with:
-          platforms: linux/arm64,linux/amd64
-          tags: |
-            ${{ github.sha }}
-            main
-          push: true
-          registries: "gar,dockerhub"
+  build-push-multiarch:
+    uses: grafana/shared-workflows/.github/workflows/build-and-push-docker-multiarch.yml@rwhitaker/multi-arch-builds # TODO: Pin to version
+    with:
+      platforms: linux/arm64,linux/amd64
+      tags: |
+        ${{ github.sha }}
+        rickytest
+      push: true
+      registries: "gar,dockerhub"
+      pre-build-script: scripts/ci-build.sh
+
 ```
 
 <!-- x-release-please-end-version -->

@@ -9,17 +9,17 @@ on:
       # THE FOLLOWING INPUTS ARE UNIQUE TO THIS WORKFLOW
       # MULTIARCH CONFIGS
       server-size:
-        description: "Size of the hosted runner"
+        description: "Size of the Grafana self-hosted runner"
         required: false
         default: "small"
         type: string
       pre-build-script:
-        description: "A script to run before docker build"
+        description: "A script to run before `docker build`"
         required: false
         default: ""
         type: string
-      post-build-script: # TODO: BUild this in
-        description: "A script to run after docker build"
+      post-build-script:
+        description: "A script to run after `docker build`"
         required: false
         default: ""
         type: string
@@ -64,22 +64,22 @@ on:
           Path to the Docker build context.
         default: "."
         type: string
-      delete-credentials-file: #TODO: Expand on this
+      delete-credentials-file:
         description: |
           Delete the credentials file after the action is finished.
           If you want to keep the credentials file for a later step, set this to false.
         default: "true"
-        type: string
-      dockerhub-repository:
-        description: |
-          Ipsum dockerhubium
-        default: "${{ github.repository }}"
         type: string
       docker-buildx-driver:
         description: |
           The driver to use for Docker Buildx
         required: false
         default: "docker-container"
+        type: string
+      dockerhub-repository:
+        description: |
+          Ipsum dockerhubium
+        default: "${{ github.repository }}"
         type: string
       file:
         description: |
@@ -297,6 +297,20 @@ jobs:
           outputs: "type=image,push-by-digest=true,name-canonical=true,push=${{ inputs.push == 'true' && 'true' || 'false' }}"
           load: ${{ inputs.load == 'true' }}
           push: ${{ inputs.push == 'true' }}
+      - name: Run post build script if it exists
+        if: ${{ inputs.post-build-script != '' }}
+        run: |
+          set -euo pipefail
+          echo "Running $POST_BUILD_SCRIPT_PATH"
+
+          if [ -f "$POST_BUILD_SCRIPT_PATH" ]; then
+            chmod +x "$POST_BUILD_SCRIPT_PATH"
+            "$POST_BUILD_SCRIPT_PATH"
+          else
+            echo "No script found at $POST_BUILD_SCRIPT_PATH, skipping."
+          fi
+        env:
+          $POST_BUILD_SCRIPT_PATH: ${{ inputs.post-build-script }}
       - name: Export and upload digest
         uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-builds
         with:
