@@ -46,7 +46,7 @@ inputs:
   dockerhub-repository:
     description: |
       DockerHub Repository to store docker images in.
-      Default: ${{ github.repository }}
+      Default: github.repository
     default: ${{ github.repository }}
   file:
     description: |
