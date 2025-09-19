@@ -2,41 +2,41 @@ name: Run e2e tests
 description: Run e2e tests against specific stack and environment
 inputs:
   plugin_id:
-    description: 'Name of the plugin running the tests'
+    description: "Name of the plugin running the tests"
     required: true
 
   stack_slug:
-    description: 'Name of the stack where you want to run the tests'
+    description: "Name of the stack where you want to run the tests"
     required: true
 
   env:
-    description: 'Region of the stack where you want to run the tests'
+    description: "Region of the stack where you want to run the tests"
     required: true
 
   other_plugins:
-    description: 'List of other plugins that you want to enable separated by comma'
+    description: "List of other plugins that you want to enable separated by comma"
     required: false
 
   datasource_ids:
-    description: 'List of data sources that you want to enable separated by comma'
+    description: "List of data sources that you want to enable separated by comma"
     required: false
 
   upload_report_path:
-    description: 'Name of the artifact where you want to store the test report'
+    description: "Name of the artifact where you want to store the test report"
     required: false
-    default: 'playwright-report'
+    default: "playwright-report"
 
   upload_videos_path:
-    description: 'Name of the artifact where you want to store the test videos'
+    description: "Name of the artifact where you want to store the test videos"
     required: false
-    default: 'playwright-videos'
+    default: "playwright-videos"
 
   plugin-secrets:
-    description: 'A JSON string containing key-value paris of specific plugin secrets necessary to run the tests.'
+    description: "A JSON string containing key-value paris of specific plugin secrets necessary to run the tests."
     required: false
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Checkout repository
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -46,8 +46,8 @@ runs:
     - name: Setup Node.js environment
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       with:
-        node-version: '20'
-        cache: 'yarn'
+        node-version: "20"
+        cache: "yarn"
 
     - name: Install e2e action dependencies
       run: yarn install
@@ -58,8 +58,8 @@ runs:
       working-directory: ${{ github.workspace }}
       with:
         token_format: access_token
-        workload_identity_provider: 'projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider'
-        service_account: 'github-cloud-npm-dev-pkgs@grafanalabs-workload-identity.iam.gserviceaccount.com'
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+        service_account: "github-cloud-npm-dev-pkgs@grafanalabs-workload-identity.iam.gserviceaccount.com"
 
     - name: NPM registry auth
       working-directory: ${{ github.workspace }}
@@ -89,7 +89,7 @@ runs:
       if: ${{ inputs.plugin-secrets != '' }}
       shell: bash
       env:
-        SECRETS_JSON: '${{ inputs.plugin-secrets }}'
+        SECRETS_JSON: "${{ inputs.plugin-secrets }}"
       run: |
         echo "Parsing and setting plugin environment variables..."
         echo "$SECRETS_JSON" | jq -r 'to_entries[] | "echo \"\(.key)=\(.value)\" >> $GITHUB_ENV"'

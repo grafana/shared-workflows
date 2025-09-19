@@ -3,8 +3,14 @@ import yaml from "js-yaml";
 import * as path from "path";
 
 const HG_TOKEN = process.env.HG_TOKEN;
-const APPS_YAML_FILE = path.join(process.cwd(), "./provisioning/plugins/apps.yaml");
-const DATASOURCES_YAML_FILE = path.join(process.cwd(), "./provisioning/datasources/default.yaml");
+const APPS_YAML_FILE = path.join(
+  process.cwd(),
+  "./provisioning/plugins/apps.yaml",
+);
+const DATASOURCES_YAML_FILE = path.join(
+  process.cwd(),
+  "./provisioning/datasources/default.yaml",
+);
 
 function formatDataSource(dataSource) {
   if (dataSource) {
@@ -13,7 +19,9 @@ function formatDataSource(dataSource) {
       type: dataSource.type,
       url: dataSource.url,
       basicAuth: dataSource.basicAuth === 1 || dataSource.basicAuth === true,
-      basicAuthUser: dataSource.basicAuthUser ? Number(dataSource.basicAuthUser) : undefined,
+      basicAuthUser: dataSource.basicAuthUser
+        ? Number(dataSource.basicAuthUser)
+        : undefined,
       isDefault: dataSource.isDefault === 1 || dataSource.isDefault === true,
       jsonData: dataSource.jsonData,
       secureJsonData: {
@@ -49,7 +57,10 @@ function removeEmptyProperties(obj) {
           cleanedValue !== null &&
           cleanedValue !== undefined &&
           !(Array.isArray(cleanedValue) && cleanedValue.length === 0) &&
-          !(typeof cleanedValue === "object" && Object.keys(cleanedValue).length === 0)
+          !(
+            typeof cleanedValue === "object" &&
+            Object.keys(cleanedValue).length === 0
+          )
         ) {
           newObj[key] = cleanedValue;
         }
@@ -80,7 +91,9 @@ function getBaseUrlByEnv(env) {
 
 async function fetchMultipleAppConfigs(stackSlug, env, pluginIds) {
   try {
-    const fetchPromises = pluginIds.map((pluginId) => fetchAppConfig(stackSlug, env, pluginId));
+    const fetchPromises = pluginIds.map((pluginId) =>
+      fetchAppConfig(stackSlug, env, pluginId),
+    );
     return await Promise.all(fetchPromises);
   } catch (error) {
     console.error("Error fetching multiple app configs:", error.message);
@@ -108,7 +121,9 @@ async function fetchAppConfig(stackSlug, env, pluginId) {
 
 async function fetchMultipleDatasources(stackSlug, env, datasourceNames) {
   try {
-    const fetchPromises = datasourceNames.map((dsName) => fetchDataSource(stackSlug, env, dsName));
+    const fetchPromises = datasourceNames.map((dsName) =>
+      fetchDataSource(stackSlug, env, dsName),
+    );
     if (fetchPromises.length > 0) {
       return Promise.all(fetchPromises);
     }
@@ -130,10 +145,16 @@ async function fetchDataSource(stackSlug, env, datasourceName) {
       },
     });
     const dataSourceWithToken = await response.json();
-    const dataSourceWithNoEmptyField = removeEmptyProperties(dataSourceWithToken);
+    const dataSourceWithNoEmptyField =
+      removeEmptyProperties(dataSourceWithToken);
     return formatDataSource(dataSourceWithNoEmptyField);
   } catch (error) {
-    console.error("Error fetching datasource", datasourceName, ":", error.message);
+    console.error(
+      "Error fetching datasource",
+      datasourceName,
+      ":",
+      error.message,
+    );
     throw error;
   }
 }
@@ -201,7 +222,9 @@ function addAppConfigs(yamlData, appConfigs) {
 function addDataSourceConfigs(yamlData, dataSourceConfigs = []) {
   dataSourceConfigs.forEach((dsConfig, i) => {
     yamlData.datasources.push(dsConfig);
-    console.log(`Data source with type '${dsConfig.type}' and name '${dsConfig.name}' has been added`);
+    console.log(
+      `Data source with type '${dsConfig.type}' and name '${dsConfig.name}' has been added`,
+    );
   });
 }
 
@@ -215,24 +238,42 @@ function writeAppsYamlFile(yamlData) {
   const yamlString = yaml.dump(yamlData);
 
   // just for asserts
-  const fixed = yamlString.replace("enableGrafanaManagedLLM: true", "enableGrafanaManagedLLM: false");
+  const fixed = yamlString.replace(
+    "enableGrafanaManagedLLM: true",
+    "enableGrafanaManagedLLM: false",
+  );
   fs.writeFileSync(APPS_YAML_FILE, fixed);
-  console.log("apps.yaml plugins file has been updated. Asserts prop enableGrafanaManagedLLM was disabled");
+  console.log(
+    "apps.yaml plugins file has been updated. Asserts prop enableGrafanaManagedLLM was disabled",
+  );
 }
 
 async function fillAnswers(answers) {
-  const appConfigs = await fetchMultipleAppConfigs(answers.STACK_SLUG, answers.ENV, answers.PLUGIN_IDS);
+  const appConfigs = await fetchMultipleAppConfigs(
+    answers.STACK_SLUG,
+    answers.ENV,
+    answers.PLUGIN_IDS,
+  );
   const yamlAppsData = createAppsYamlFile();
   addAppConfigs(yamlAppsData, appConfigs);
   writeAppsYamlFile(yamlAppsData);
 
-  const dataSourceConfigs = await fetchMultipleDatasources(answers.STACK_SLUG, answers.ENV, answers.DATASOURCE_IDS);
+  const dataSourceConfigs = await fetchMultipleDatasources(
+    answers.STACK_SLUG,
+    answers.ENV,
+    answers.DATASOURCE_IDS,
+  );
   const yamlDataSourcesData = createDataSourcesYamlFile();
   addDataSourceConfigs(yamlDataSourcesData, dataSourceConfigs);
   writeDataSourcesYamlFile(yamlDataSourcesData);
 
-  const grafanaConfig = await fetchGrafanaConfig(answers.STACK_SLUG, answers.ENV, answers.GF_PLUGIN_ID);
-  answers.GF_GRAFANA_COM_SSO_API_TOKEN = grafanaConfig.hosted_grafana.hg_auth_token;
+  const grafanaConfig = await fetchGrafanaConfig(
+    answers.STACK_SLUG,
+    answers.ENV,
+    answers.GF_PLUGIN_ID,
+  );
+  answers.GF_GRAFANA_COM_SSO_API_TOKEN =
+    grafanaConfig.hosted_grafana.hg_auth_token;
 
   // Use hardcoded URL for ops stack when grafana_net.url is missing
   const grafanaNetUrl =
@@ -242,10 +283,12 @@ async function fillAnswers(answers) {
 
   answers.GF_GRAFANA_COM_URL = grafanaNetUrl;
   answers.GF_GRAFANA_COM_API_URL = `${grafanaNetUrl}/api`;
-  answers.GF_PLUGINS_PREINSTALL_SYNC = answers.PLUGIN_IDS.filter((p) => p !== answers.GF_PLUGIN_ID).join(",");
+  answers.GF_PLUGINS_PREINSTALL_SYNC = answers.PLUGIN_IDS.filter(
+    (p) => p !== answers.GF_PLUGIN_ID,
+  ).join(",");
 }
 
-export default function(plop) {
+export default function (plop) {
   plop.setHelper("env", (text) => process.env[text]);
 
   plop.setGenerator("e2e-testing-provisioning", {
@@ -271,7 +314,9 @@ export default function(plop) {
           answers.ENV = process.env.E2E_ENV;
 
           answers.GF_PLUGIN_ID = process.env.E2E_PLUGIN_ID;
-          const otherPlugins = process.env.E2E_OTHER_PLUGINS ? process.env.E2E_OTHER_PLUGINS.split(",").map((i) => i.trim()) : [];
+          const otherPlugins = process.env.E2E_OTHER_PLUGINS
+            ? process.env.E2E_OTHER_PLUGINS.split(",").map((i) => i.trim())
+            : [];
           answers.PLUGIN_IDS = [process.env.E2E_PLUGIN_ID].concat(otherPlugins);
 
           answers.DATASOURCE_IDS = process.env.E2E_DATASOURCE_IDS
