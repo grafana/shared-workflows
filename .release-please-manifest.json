@@ -10,7 +10,7 @@
     "actions/login-to-gcs": "0.2.1",
     "actions/argo-lint": "1.0.2",
     "actions/setup-conftest": "1.0.2",
-    "actions/setup-argo": "1.0.2",
+    "actions/setup-argo": "1.0.3",
     "actions/generate-openapi-clients": "1.0.2",
     "actions/push-to-gcs": "0.2.1",
     "actions/techdocs-rewrite-relative-links": "1.0.2",
