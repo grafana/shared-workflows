@@ -1,0 +1,83 @@
+name: Clean up orphaned git branches
+description: |
+  This action will query for branches that are not in an open PR, and will delete them if 'dry-run' is 'false'.
+  Protected branches are excluded as well.
+inputs:
+  dry-run:
+    default: "true"
+    required: true
+    description: "If 'true', then the action will print branches to be deleted, but will not delete them"
+  token:
+    default: ${{ github.token }}
+    required: true
+    description: "GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (contents: write) and pull requests (pull_requests: read)"
+  max-date:
+    default: "2 weeks ago"
+    required: false
+    description: |
+      Value provided to `date -d={}. From `man date`: "The --date=STRING is a mostly free format human readable date string such as "Sun, 29 Feb 2004 16:21:42 -0800" or "2004-02-29 16:21:42" or even "next Thursday".  A date string may
+       contain items indicating calendar date, time of day, time zone, day of week, relative time, relative date, and numbers.  An empty string indicates the beginning of the day.  The
+       date string format is more complex than is easily documented here but is fully described in the info documentation."
+runs:
+  using: composite
+  steps:
+    - name: List branches
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        MAX_DATE: ${{ inputs.max-date }}
+      run: |
+        #!/usr/bin/env bash
+        # Fetch all branches from remote. This is basically `git fetch --unshallow` but also fetches branches.
+        git fetch origin "+refs/heads/*:refs/remotes/origin/*"
+
+        # A limit of 1,000 open PRs is far beyond any repository that is in the grafana org
+        readarray -t open_pr_branches < <(gh pr list --state open -L 1000 --json headRefName | jq -cr '.[].headRefName')
+
+        # For repositories that have exceeded 2,000+ branches, this could fail.
+        readarray -t protected_branches < <(gh api --paginate "/repos/${GITHUB_REPOSITORY}/branches?protected=true" | jq -cr '.[].name')
+
+        branches=()
+        while IFS= read -r line; do
+          branches+=("$line")
+        done < <(git ls-remote --heads origin | awk '{print $2}' | sed 's|refs/heads/||' | grep -Ev "^(origin/)?(${DEFAULT_BRANCH})$")
+
+        to_delete=()
+        for branch in "${branches[@]}"; do
+          found=0
+          for pr_branch in "${open_pr_branches[@]}"; do
+            if [[ "$branch" == "$pr_branch" ]]; then
+              found=1
+              break
+            fi
+          done
+          if [ "$found" != 1 ]; then
+            for protected_branch in "${protected_branches[@]}"; do
+              if [[ "$branch" == "$protected_branch" ]]; then
+                found=1
+                break
+              fi
+            done
+          fi
+          if [ "$found" != 1 ]; then
+            to_delete+=("$branch")
+          fi
+        done
+        max_date=$(TZ=utc date -d "$MAX_DATE" +%s)
+        for branch in "${to_delete[@]}"; do
+          branch_ts=$(git log -1 --format=%ct "origin/$branch")
+          if [[ "$branch_ts" -lt "$max_date" ]]; then
+            echo "$branch" >> branches.txt
+          fi
+        done
+    - name: Delete branches (dry run)
+      shell: bash
+      if: ${{ inputs.dry-run == "true" }}
+      run: |
+        cat branches.txt | xargs -I {} echo git push origin --delete "{}"
+    - name: Delete branches
+      shell: bash
+      if: ${{ inputs.dry-run != "true" }}
+      run: |
+        cat branches.txt | xargs -I {} git push origin --delete "{}"
