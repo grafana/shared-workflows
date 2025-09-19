@@ -4,33 +4,33 @@ inputs:
   plugin_id:
     description: 'Name of the plugin running the tests'
     required: true
-    type: string
+
   stack_slug:
     description: 'Name of the stack where you want to run the tests'
     required: true
-    type: string
+
   env:
     description: 'Region of the stack where you want to run the tests'
     required: true
-    type: string
+
   other_plugins:
     description: 'List of other plugins that you want to enable separated by comma'
     required: false
-    type: string
+
   datasource_ids:
     description: 'List of data sources that you want to enable separated by comma'
     required: false
-    type: string
+
   upload_report_path:
     description: 'Name of the artifact where you want to store the test report'
     required: false
-    type: string
     default: 'playwright-report'
+
   upload_videos_path:
     description: 'Name of the artifact where you want to store the test videos'
     required: false
-    type: string
     default: 'playwright-videos'
+
   plugin-secrets:
     description: 'A JSON string containing key-value paris of specific plugin secrets necessary to run the tests.'
     required: false
