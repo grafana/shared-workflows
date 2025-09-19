@@ -35,7 +35,7 @@ runs:
           for r in ${REGISTRIES//,/ }; do
             echo "include-${r}=true" | tee -a "${GITHUB_OUTPUT}"
           done
-        done
+        fi
 
     - name: Download digests
       uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
