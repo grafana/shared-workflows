@@ -80,6 +80,7 @@ runs:
 
     - name: Inspect image
       shell: bash
+      if: ${{ inputs.push == 'true' }}
       env:
         DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata-json }}
       run: |
