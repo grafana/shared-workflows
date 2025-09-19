@@ -71,7 +71,7 @@ runs:
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
               $(printf "${image}@sha256:%s " *)
             else
-              echo Skipping `docker buildx imagetools create` because push is set to false.
+              echo Skipping "docker buildx imagetools create" because push is set to false.
             fi
           done
         else
