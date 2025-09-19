@@ -72,7 +72,7 @@ runs:
               $(printf "${image}@sha256:%s " *)
             else
               echo Skipping `docker buildx imagetools create` because push is set to false.
-            done
+            fi
           done
         else
           echo "No images to push, skipping imagetools creation"
