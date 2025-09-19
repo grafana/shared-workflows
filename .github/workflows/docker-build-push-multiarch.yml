@@ -318,7 +318,6 @@ jobs:
           platform: ${{ env.PLATFORM }}
 
   merge-digest:
-    if: ${{ inputs.push == 'true' }}
     runs-on: ubuntu-arm64-small
     needs: build-and-push
     permissions:
@@ -331,3 +330,4 @@ jobs:
           images: ${{ needs.build-and-push.outputs.images }}
           gar-environment: ${{ inputs.gar-environment }}
           docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}
+          push: ${{ inputs.push }}
