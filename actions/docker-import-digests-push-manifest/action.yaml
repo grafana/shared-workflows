@@ -16,10 +16,27 @@ inputs:
       CSV of Docker images to push. These images should not include tags.
       Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image
     required: true
+  registries:
+    description: |
+      CSV list of registries to build images for.
+      Accepted registries are "gar" and "dockerhub".
 
 runs:
   using: composite
   steps:
+    - name: Set registries
+      id: registries
+      shell: bash
+      env:
+        REGISTRIES: ${{ inputs.registries }}
+      run: |
+        if [ -n "${REGISTRIES}" ]; then
+          echo "push=true" | tee -a "${GITHUB_OUTPUT}"
+          for r in ${REGISTRIES//,/ }; do
+            echo "include-${r}=true" | tee -a "${GITHUB_OUTPUT}"
+          done
+        done
+
     - name: Download digests
       uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
       with:
@@ -34,12 +51,14 @@ runs:
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
 
     - name: Login to GAR
+      if: ${{ steps.registries.outputs.include-gar == 'true' }}
       uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
       with:
         environment: ${{ inputs.gar-environment }}
         delete_credentials_file: false
 
     - name: Login to DockerHub
+      if: ${{ steps.registries.outputs.include-dockerhub == 'true' }}
       uses: grafana/shared-workflows/actions/dockerhub-login@rwhitaker/multi-arch-builds
 
     # TODO: Add --dry-run if not configured to push anywhere
@@ -49,18 +68,27 @@ runs:
       env:
         IMAGES: ${{ inputs.images }}
         DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata-json }}
+        PUSH: ${{ steps.registries.outputs.push }}
       run: |
+        set -euo pipefail
         echo "ls -lah ${{ runner.temp }}/digests"
         ls -lah ${{ runner.temp }}/digests
+
+        if [ "${PUSH}" == "true" ]; then
+          DRY_RUN=""
+        else
+          echo "No images to push, setting --dry-run=true"
+          DRY_RUN="--dry-run"
+        fi
 
         for image in ${IMAGES//,/ }; do
           echo docker buildx imagetools create \
           $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-          $(printf "${image}@sha256:%s " *)
+          $(printf "${image}@sha256:%s " *) $DRY_RUN
 
           docker buildx imagetools create \
           $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-          $(printf "${image}@sha256:%s " *)
+          $(printf "${image}@sha256:%s " *) $DRY_RUN
         done
 
     - name: Inspect image
