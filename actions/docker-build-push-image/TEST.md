@@ -1,5 +1,9 @@
 Design decisions
 
+## Whole workflow
+
+1. All actions are prefixed with `docker-`, to improve discoverability.
+
 docker-build-push-image
 
 1. This should handle both gar and dockerhub logins, with a framework in place that makes it easy to add other
