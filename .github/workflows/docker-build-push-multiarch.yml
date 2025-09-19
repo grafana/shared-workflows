@@ -266,7 +266,7 @@ jobs:
           PRE_BUILD_SCRIPT_PATH: ${{ inputs.pre-build-script }}
       - name: Build Docker Image
         id: build
-        uses: grafana/shared-workflows/actions/docker-build-push-image@rwhitaker/multi-arch-builds
+        uses: grafana/shared-workflows/actions/docker-build-push-image@rwhitaker/multi-arch-composite-actions
         with:
           # from inputs
           build-args: ${{ inputs.build-args }}
@@ -312,7 +312,7 @@ jobs:
         env:
           $POST_BUILD_SCRIPT_PATH: ${{ inputs.post-build-script }}
       - name: Export and upload digest
-        uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-builds
+        uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-composite-actions
         with:
           digest: ${{ steps.build.outputs.digest }}
           platform: ${{ env.PLATFORM }}
@@ -326,10 +326,8 @@ jobs:
       id-token: write
     steps:
       - name: Download Multi-Arch Digests, Construct and Upload Manifest
-        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@rwhitaker/multi-arch-builds
+        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@rwhitaker/multi-arch-composite-actions
         with:
           images: ${{ needs.build-and-push.outputs.images }}
           gar-environment: ${{ inputs.gar-environment }}
-          push-to-gar: true # TODO: don't hardcode these
-          push-to-dockerhub: true
           docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}
