@@ -60,13 +60,6 @@ runs:
         echo "ls -lah ${{ runner.temp }}/digests"
         ls -lah ${{ runner.temp }}/digests
 
-
-          DRY_RUN=""
-        else
-          echo "No images to push, setting --dry-run=true"
-          DRY_RUN="--dry-run"
-        fi
-
         if [ -n "${IMAGES}" ]; then
           for image in ${IMAGES//,/ }; do
             echo docker buildx imagetools create \
