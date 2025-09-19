@@ -1,6 +1,8 @@
 # Run e2e tests from plugins against specific stack
 
 This is a [GitHub Action][github-action] that help the execution of e2e tests on any plugin against specific selected stacks.
+You need to define in which region the selected stack belong, the plugin from where are executed the tests and optionally which other plugins and datasources you want to provision when starting a Grafana instance.
+Also, you need to have the **playwright** configuration and the test specifications in the plugin that run the tests and the action will do the rest.
 This action use the following input parameters to run:
 
 | Name                 | Description                                                                                     | Default            | Required |
