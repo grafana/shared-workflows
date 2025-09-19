@@ -67,7 +67,7 @@ jobs:
 
 ## Inputs
 
-| Name       | Type   | Description                          |
-|------------|--------|--------------------------------------|
-| `digest`   | String | Digest from docker/build-push action |
-| `platform` | String | Docker platform, ex: linux/arm64     |
+| Name       | Type   | Description                                                                                                |
+|------------|--------|------------------------------------------------------------------------------------------------------------|
+| `digest`   | String | Docker digest. This is included as an output for `docker-build-push-image` and `docker/build-push-action`. |
+| `platform` | String | Docker platform, ex: linux/arm64.                                                                          |

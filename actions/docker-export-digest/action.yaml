@@ -3,12 +3,13 @@ description: Composite action to export and upload a docker manifest
 
 inputs:
   digest:
-    description: | # TODO Desc
-      Digest from docker/build-push action
+    description: |
+      Docker digest.
+      This is included as an output for `docker-build-push-image` and `docker/build-push-action`.
     required: true
   platform:
-    description: | # TODO: HERE
-      Docker platform, ex: linux/arm64
+    description: |
+      Docker platform, ex: linux/arm64.
     required: true
 
 runs:
