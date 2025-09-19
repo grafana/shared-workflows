@@ -67,10 +67,8 @@ jobs:
 
 ## Inputs
 
-| Name                   | Type    | Description                                         |
-|------------------------|---------|-----------------------------------------------------|
-| `images`               | String  | Lorem ipsum explainum                               |
-| `gar-environment`      | String  | Lorem ipsum explainum                               |
-| `push-to-gar`          | Boolean | Push resulting manifest to Google Artifact Registry |
-| `push-to-dockerhub`    | Boolean | Push resulting manifest to DockerHub                |
-| `docker-metadata-json` | String  | IPSUM Descriptionum                                 |
+| Name                   | Type   | Description                                                                                                                                                         |
+|------------------------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `docker-metadata-json` | String | Docker metadata JSON, from `docker-build-push-image` or `docker/build-push-action`.                                                                                 |
+| `gar-environment`      | String | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project to either `grafanalabs-dev` or `grafanalabs-global`.                       |
+| `images`               | String | CSV of Docker images to push. These images should not include tags. Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image |
