@@ -60,6 +60,10 @@ runs:
         echo "ls -lah ${{ runner.temp }}/digests"
         ls -lah ${{ runner.temp }}/digests
 
+        if [ "${PUSH}" != "true" ]; then
+          echo "::warning::push=${PUSH}, no images will be pushed"
+        fi
+
         if [ -n "${IMAGES}" ]; then
           for image in ${IMAGES//,/ }; do
             echo docker buildx imagetools create \
@@ -71,11 +75,11 @@ runs:
               $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
               $(printf "${image}@sha256:%s " *)
             else
-              echo Skipping command because push is set to false.
+              echo Skipping command since push is set to false.
             fi
           done
         else
-          echo "No images to push, skipping imagetools creation"
+          echo "::warning::No images to push, skipping imagetools creation"
         fi
 
     - name: Inspect image
