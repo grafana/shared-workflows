@@ -1,4 +1,4 @@
-name: Push to artifact registry
+name: Build and Push Docker Image
 description: Composite action to push a docker image to GAR or DockerHub
 
 inputs:
@@ -254,11 +254,12 @@ runs:
 
     - name: Setup buildkitd-config
       id: buildkitd-config
-      shell: sh
+      shell: bash
       env:
         BUILDKITD_CONFIG_INLINE: ${{ inputs.buildkitd-config-inline }}
         BUILDKITD_CONFIG: ${{ inputs.buildkitd-config }}
-        DEFAULT_BUILDKITD_CONFIG: ${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
+        DEFAULT_BUILDKITD_CONFIG: /etc/buildkitd.toml
+        RUNNER_ENVIRONMENT: ${{ runner.environment }}
       run: |
         # This step does the following:
         # if buildkitd-config-inline != "", use that
@@ -269,11 +270,23 @@ runs:
         buildkitd_config_inline=""
 
         if [ -n "${BUILDKITD_CONFIG_INLINE}" ]; then
+          echo "Inline config was provided"
           buildkitd_config_inline="${BUILDKITD_CONFIG_INLINE}"
         elif [ -n "${BUILDKITD_CONFIG}" ]; then
+          echo "Config file was provided"
           buildkitd_config="${BUILDKITD_CONFIG}"
         else
-          buildkitd_config="${DEFAULT_BUILDKITD_CONFIG}"
+          echo "No configs were provided, building default config setting"
+          if [ "${RUNNER_ENVIRONMENT}" != "self-hosted" ]; then
+            echo "Not on self hosted runner, no config will be applied"
+          else
+            if [ -f "${DEFAULT_BUILDKITD_CONFIG}" ]; then
+              echo "${DEFAULT_BUILDKITD_CONFIG} exists, using that as default config."
+              buildkitd_config="${DEFAULT_BUILDKITD_CONFIG}"
+            else
+              echo "${DEFAULT_BUILDKITD_CONFIG} does not exist, no config will be applied"
+            fi
+          fi
         fi
 
         echo "buildkitd-config-inline=${buildkitd_config_inline}" | tee -a "${GITHUB_OUTPUT}"

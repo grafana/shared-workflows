@@ -1,4 +1,4 @@
-name: Download and Merge Digests into Manifest
+name: Download and Merge Docker Digests into Manifest
 description: Composite action to export and upload a docker manifest
 
 inputs:
