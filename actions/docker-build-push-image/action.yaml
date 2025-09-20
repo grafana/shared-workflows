@@ -210,6 +210,7 @@ runs:
       env:
         GAR_IMAGE: ${{ steps.setup-gar-vars.outputs.image }}
         DOCKERHUB_IMAGE: ${{ steps.setup-dockerhub-vars.outputs.image }}
+        PUSH: ${{ inputs.push }}
       run: |
         images=""
         for image in "${GAR_IMAGE}" "${DOCKERHUB_IMAGE}"
@@ -230,6 +231,10 @@ runs:
         if [ -z "${images}" ]; then
           echo "::warning::No registries have been selected, no images will be pushed"
           echo "images=dry-run-image" | tee -a "${GITHUB_OUTPUT}"
+        fi
+
+        if [ "${PUSH}" != "true" ]; then
+          echo "::warning::push=${PUSH}, no images will be pushed"
         fi
 
     - name: Login to GAR
