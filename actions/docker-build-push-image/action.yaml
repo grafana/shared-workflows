@@ -284,7 +284,7 @@ runs:
               echo "${DEFAULT_BUILDKITD_CONFIG} exists, using that as default config."
               buildkitd_config="${DEFAULT_BUILDKITD_CONFIG}"
             else
-              echo "${DEFAULT_BUILDKITD_CONFIG} does not exist, no config will be applied"
+              echo "::warning::${DEFAULT_BUILDKITD_CONFIG} does not exist, no config will be applied"
             fi
           fi
         fi
