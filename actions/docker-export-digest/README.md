@@ -57,7 +57,7 @@ jobs:
         uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@main # TODO: Pin sha
         with:
           images: ${{ needs.build-push-image.outputs.images }}
-          gar-environment: 'dev'
+          gar-environment: "dev"
           registries: "gar,dockerhub"
           docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}
 ```
@@ -67,6 +67,6 @@ jobs:
 ## Inputs
 
 | Name       | Type   | Description                                                                                                |
-|------------|--------|------------------------------------------------------------------------------------------------------------|
+| ---------- | ------ | ---------------------------------------------------------------------------------------------------------- |
 | `digest`   | String | Docker digest. This is included as an output for `docker-build-push-image` and `docker/build-push-action`. |
 | `platform` | String | Docker platform, ex: linux/arm64.                                                                          |

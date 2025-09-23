@@ -57,7 +57,7 @@ jobs:
         uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@main # TODO: Pin sha
         with:
           images: ${{ needs.build-push-image.outputs.images }}
-          gar-environment: 'dev'
+          gar-environment: "dev"
           registries: "gar,dockerhub"
           docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}
 ```
@@ -67,7 +67,7 @@ jobs:
 ## Inputs
 
 | Name                   | Type   | Description                                                                                                                                                         |
-|------------------------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `docker-metadata-json` | String | Docker metadata JSON, from `docker-build-push-image` or `docker/build-push-action`.                                                                                 |
 | `gar-environment`      | String | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project to either `grafanalabs-dev` or `grafanalabs-global`.                       |
 | `images`               | String | CSV of Docker images to push. These images should not include tags. Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image |

@@ -11,6 +11,7 @@ This action can work 1 of 2 ways:
    images whose digests are later exported and merged into a tagged docker manifest. For true multi-arch builds.
 
 This can push to the following registries:
+
 1. Google Artifact Registry
 2. DockerHub
 
@@ -50,7 +51,7 @@ jobs:
 ## Inputs
 
 | Name                          | Type    | Description                                                                                                                                                                                                            |
-|-------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `build-args`                  | String  | List of arguments necessary for the Docker image to be built. Passed to `docker/build-push-action`.                                                                                                                    |
 | `build-contexts`              | String  | List of additional build contexts (e.g., name=path). Passed to `docker/build-push-action`.                                                                                                                             |
 | `buildkitd-config`            | String  | The buildkitd config file to use. Defaults to `/etc/buildkitd.toml` if you're using Grafana's self-hosted runners. Passed to `docker/setup-buildx-action`.                                                             |
@@ -81,7 +82,7 @@ jobs:
 ## Outputs
 
 | Name           | Type   | Description                                                  |
-|----------------|--------|--------------------------------------------------------------|
+| -------------- | ------ | ------------------------------------------------------------ |
 | `annotations`  | String | Generated annotations (from docker/metadata-action)          |
 | `digest`       | String | Image digest (from docker/build-push-action)                 |
 | `imageid`      | String | Image ID (from docker/build-push-action)                     |
@@ -126,13 +127,13 @@ Each registry is setup as follows:
 So then the full checklist of work to do to implement a new registry is:
 
 - [ ] Add (and document) any inputs that you need to capture. Use the same prefix for all inputs, and all inputs must
-  _not_ be required.
+      _not_ be required.
 - [ ] Add a step before `setup-vars` that takes those input values and constructs a valid untagged image name for the
-  registry you'll be pushing to. Then set that as an output.
-  Ex: `echo "image=${DOCKERHUB_REGISTRY}/${DOCKERHUB_IMAGE}" | tee -a "${GITHUB_OUTPUT}"`
+      registry you'll be pushing to. Then set that as an output.
+      Ex: `echo "image=${DOCKERHUB_REGISTRY}/${DOCKERHUB_IMAGE}" | tee -a "${GITHUB_OUTPUT}"`
 - [ ] Add your image into the `setup-vars` step by passing the output image into an env variable, and adding it to the
-  list of images to be parsed. Use the existing repos as examples.
+      list of images to be parsed. Use the existing repos as examples.
 - [ ] Add a login step that depends
-  on `${{ inputs.push == 'true' && steps.registries.outputs.include-<yourRegistry> == 'true' }}`, where yourRegistry is
-  the value that will be passed into the `registries` input. Again, use existing repos as examples.
+      on `${{ inputs.push == 'true' && steps.registries.outputs.include-<yourRegistry> == 'true' }}`, where yourRegistry is
+      the value that will be passed into the `registries` input. Again, use existing repos as examples.
 - [ ] Celebrate

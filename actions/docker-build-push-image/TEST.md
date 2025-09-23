@@ -60,8 +60,7 @@ Design decisions
 ## Potential Follow-up Items
 
 1. Should we convert naming to match new standards?
-    - `actions/dockerhub-login` -> `actions/login-to-dockerhub`
+   - `actions/dockerhub-login` -> `actions/login-to-dockerhub`
 2. Deprecate `actions/push-to-gar-docker` and `actions/build-push-to-dockerhub` in favor
    of `actions/docker-build-push-image`
 3. Integrated GHCR registry into `docker-build-push-image`.
-
