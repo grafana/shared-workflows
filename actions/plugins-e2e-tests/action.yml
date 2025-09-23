@@ -13,10 +13,6 @@ inputs:
     description: "Region of the stack where you want to run the tests"
     required: true
 
-  hg_token:
-    description: "Hosted grafana token necessary to call HG apis"
-    required: true
-
   other_plugins:
     description: "List of other plugins that you want to enable separated by comma"
     required: false
@@ -79,6 +75,13 @@ runs:
       working-directory: ${{ github.workspace }}
       shell: bash
 
+    - name: Get common secrets
+      id: get-common-secrets
+      uses: grafana/shared-workflows/actions/get-vault-secrets@5d7e361bc7e0a183cde8afe9899fb7b596d2659b # v1.2.0
+      with:
+        common_secrets: |
+          HG_TOKEN=hg-ci:token
+
     - name: Set plugin secrets as environment variables
       id: set-env-vars
       if: ${{ inputs.plugin-secrets != '' }}
@@ -97,7 +100,7 @@ runs:
       env:
         E2E_STACK_SLUG: ${{ inputs.stack_slug }}
         E2E_ENV: ${{ inputs.env }}
-        HG_TOKEN: ${{ inputs.hg_token }}
+        HG_TOKEN: ${{ env.HG_TOKEN }}
         E2E_PLUGIN_ID: ${{ inputs.plugin_id }}
         E2E_OTHER_PLUGINS: ${{ inputs.other_plugins }}
         E2E_DATASOURCE_IDS: ${{ inputs.datasource_ids }}
@@ -111,13 +114,6 @@ runs:
       run: npx playwright install chromium --with-deps
       working-directory: ${{ github.workspace }}
       shell: bash
-
-    - name: Check playwright tests path
-      shell: bash
-      env:
-        PLAYWRIGHT_TESTS_GROUP_PATH: ${{ env.PLAYWRIGHT_TESTS_GROUP_PATH }}
-      run: |
-        echo "PLAYWRIGHT_TESTS_GROUP_PATH is $PLAYWRIGHT_TESTS_GROUP_PATH"
 
     - name: Run Playwright tests
       shell: bash
