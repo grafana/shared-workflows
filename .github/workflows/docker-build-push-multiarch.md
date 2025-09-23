@@ -4,17 +4,26 @@ This is a reusable workflow that uses Grafana's hosted runners to natively build
 images.
 
 Right now this supports pushing images to:
+
 - Google Artifact Registry
 - DockerHub
 
 And supports building the following image types:
+
 - linux/arm64
 - linux/amd64
 
 ## How it works
 
-This generates a matrix based off of the `platforms` input, then creates a job per platform that runs the composite actions [docker-build-push-image](https://github.com/grafana/shared-workflows/tree/main/actions/docker-build-push-image) and [docker-export-digest](https://github.com/grafana/shared-workflows/tree/main/actions/docker-export-digest) to build and push docker images, and capture their digests.
-There is a then a final job that runs the composite action [docker-import-digests-push-manifest](https://github.com/grafana/shared-workflows/tree/main/actions/docker-import-digests-push-manifest) to push the final docker manifest.
+This generates a matrix based off of the `platforms` input, then creates a job per platform that runs the composite
+actions [docker-build-push-image] and [docker-export-digest] to build and push docker images, and capture their digests.
+There is a then a final job that runs the composite action [docker-import-digests-push-manifest] to push the final
+docker manifest.
+
+[docker/build-push-action]: https://github.com/docker/build-push-action
+[docker-build-push-image]: ../../docker-build-push-image/README.md
+[docker-export-digest]: ../../docker-export-digest/README.md
+[docker-import-digests-push-manifest]: ../../docker-import-digests-push-manifest/README.md
 
 <!-- x-release-please-start-version -->
 
