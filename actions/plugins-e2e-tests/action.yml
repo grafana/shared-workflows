@@ -87,7 +87,8 @@ runs:
         SECRETS_JSON: "${{ inputs.plugin-secrets }}"
       run: |
         echo "Parsing and setting plugin environment variables..."
-        echo "$SECRETS_JSON" | jq -r 'to_entries[] | "echo \"\(.key)=\(.value)\" >> $GITHUB_ENV"'
+        echo "$SECRETS_JSON" | jq -r 'to_entries[] | "echo \"\(.key)=\(.value)\" >> $GITHUB_ENV"' | bash
+        echo "PLAYWRIGHT_TESTS_GROUP_PATH is ${env.PLAYWRIGHT_TESTS_GROUP_PATH}"
         echo "Plugin environment variables set."
 
     - name: Generate provisioning
@@ -135,6 +136,7 @@ runs:
         done
 
         echo "Grafana is ready!"
+        echo "PLAYWRIGHT_TESTS_GROUP_PATH is ${env.PLAYWRIGHT_TESTS_GROUP_PATH}"
         npx playwright test
       working-directory: ${{ github.workspace }}
 
