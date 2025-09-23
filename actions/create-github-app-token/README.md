@@ -4,11 +4,11 @@ From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub
 
 ## Inputs
 
-| Name             | Type   | Description                 | Default Value | Required |
-| ---------------- | ------ | --------------------------- | ------------- | -------- |
-| `permission_set` | String | The required permission set | `default`     | Yes      |
-| `github-app`     | String | The required GitHub app     |               | Yes      |
-| `vault_instance` | String | Vault instance to point     | `ops`         | No       |
+| Name             | Type   | Description                 | Default Value         | Required |
+| ---------------- | ------ | --------------------------- | --------------------- | -------- |
+| `permission_set` | String | The required permission set | `default`             | Yes      |
+| `github_app`     | String | The required GitHub app     | `gh-api-token-broker` | Yes      |
+| `vault_instance` | String | Vault instance to point     | `ops`                 | No       |
 
 ## Outputs
 
@@ -75,7 +75,7 @@ jobs:
         uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.0
         with:
           github_app: github-app-name
-          permissions-set: read-only-on-foo-repository
+          permission_set: read-only-on-foo-repository
 
       # Use the secrets
       - name: list issues assignees
@@ -90,7 +90,7 @@ jobs:
         uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.0
         with:
           github_app: github-app-name
-          permissions-set: write-on-bar-repository
+          permission_set: write-on-bar-repository
 
       # Use the secrets
       - name: create a pull request

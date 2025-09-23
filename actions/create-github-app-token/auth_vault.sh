@@ -10,7 +10,7 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
         -H "Content-Type: application/json" \
         -H "Proxy-Authorization-Token: Bearer ${GITHUB_JWT_PROXY}" \
         -d "{
-            \"role\": \"${REPOSITORY_NAME}-${REF_SHA}-${PERMISSION_SET}\",
+            \"role\": \"${REPOSITORY_NAME}-${GITHUB_APP}-${REF_SHA}-${PERMISSION_SET}\",
             \"jwt\": \"${GITHUB_JWT_VAULT}\"
         }" || true)
 

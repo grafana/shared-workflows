@@ -7,6 +7,7 @@ inputs:
   github_app:
     description: |
       GitHub app name in Vault. You can define mutiple app to do a loadbalancing in a comma separated format.
+    default: gh-api-token-broker
   vault_instance:
     description: |
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
@@ -65,6 +66,7 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
         REPOSITORY_NAME: ${{ github.event.repository.name }}
         PERMISSION_SET: ${{ inputs.permission_set}}
+        GITHUB_APP: ${{ inputs.github_app }}
         VAULT_URL: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
         GITHUB_JWT_PROXY: ${{ steps.get-github-jwt-token-proxy.outputs.github-jwt }}
         GITHUB_JWT_VAULT: ${{ steps.get-github-jwt-token-vault.outputs.github-jwt }}
