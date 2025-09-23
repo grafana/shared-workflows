@@ -18,6 +18,16 @@ on:
         required: false
         default: "auto"
         type: string
+      history-scan:
+        description: "Enable git history scanning for secrets"
+        required: false
+        default: "false"
+        type: string
+      history-depth:
+        description: "Number of commits to scan in history (default: 100)"
+        required: false
+        default: "100"
+        type: string
 
 jobs:
   prepare-scan:
@@ -42,19 +52,18 @@ jobs:
         env:
           SCAN_MODE: ${{ inputs.scan-mode }}
         run: |
-          # Define file patterns that might contain secrets
-          SCAN_EXTENSIONS="\.(go|sh|yml|yaml|json|env|sql|py|js|ts|conf|config|ini|properties|toml)$|Dockerfile$|\.env\."
-          
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" && ("$SCAN_MODE" == "auto" || "$SCAN_MODE" == "delta") ]]; then
-            echo "🔍 Delta scan mode: scanning only changed files"
+            echo "🔍 Delta scan mode: scanning ALL changed files"
             
-            # Get changed files that match our patterns
+            # Get ALL changed files (no extension filtering)
             git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }}..${{ github.sha }} \
-              | grep -E "$SCAN_EXTENSIONS" \
               | head -1000 > files_to_scan.txt || echo "" > files_to_scan.txt
             
-            SCAN_COUNT=$(wc -l < files_to_scan.txt)
-            echo "Changed files matching scan patterns: $SCAN_COUNT"
+            # Filter out only build artifacts and dependencies
+            grep -v -E '(^\.git/|node_modules/|vendor/|dist/|build/|__pycache__/|\.min\.(js|css)$|\.lock$)' files_to_scan.txt > filtered_files.txt || echo "" > filtered_files.txt
+            
+            SCAN_COUNT=$(wc -l < filtered_files.txt)
+            echo "Changed files (excluding build artifacts): $SCAN_COUNT"
             
             if [[ $SCAN_COUNT -eq 0 ]]; then
               echo "No relevant files changed - skipping scan"
@@ -64,7 +73,7 @@ jobs:
             fi
             
             # Convert to space-separated list
-            FILES=$(tr '\n' ' ' < files_to_scan.txt | sed 's/[[:space:]]*$//')
+            FILES=$(tr '\n' ' ' < filtered_files.txt | sed 's/[[:space:]]*$//')
             echo "files=$FILES" >> $GITHUB_OUTPUT
             echo "count=$SCAN_COUNT" >> $GITHUB_OUTPUT
             
@@ -225,9 +234,84 @@ jobs:
           path: custom-results.txt
           retention-days: 30
 
+  history-scan:
+    needs: prepare-scan
+    if: inputs.history-scan == 'true'
+    runs-on: ubuntu-x64-small
+    outputs:
+      secrets-found: ${{ steps.history.outputs.secrets-found }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ inputs.history-depth }}
+
+      - name: Cache Trufflehog binary
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/trufflehog
+          key: ${{ needs.prepare-scan.outputs.cache-key }}
+
+      - name: Install Trufflehog (if not cached)
+        run: |
+          if [ ! -f /usr/local/bin/trufflehog ]; then
+            echo "Installing TruffleHog..."
+            curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
+          else
+            echo "Using cached TruffleHog binary"
+          fi
+          trufflehog --version
+
+      - name: Run TruffleHog git history scan
+        id: history
+        env:
+          HISTORY_DEPTH: ${{ inputs.history-depth }}
+          EXTRA_ARGS: ${{ inputs.extra_args }}
+        run: |
+          echo "🕰️ Running TruffleHog git history scan..."
+          echo "Scanning last $HISTORY_DEPTH commits"
+          
+          # Scan git history
+          timeout 600 trufflehog git . \
+            --json \
+            --no-update \
+            --results=verified,unverified \
+            --no-verification \
+            --concurrency=4 \
+            --max-depth=$HISTORY_DEPTH \
+            $EXTRA_ARGS > history-results.json || {
+              EXIT_CODE=$?
+              if [[ $EXIT_CODE -eq 124 ]]; then
+                echo "⚠️ History scan timed out after 10 minutes"
+                echo '{"timeout": true, "message": "History scan timed out"}' > history-results.json
+              else
+                echo "History scan completed with exit code: $EXIT_CODE"
+              fi
+            }
+          
+          # Check results
+          if [[ -s history-results.json ]] && grep -q '"Raw"' history-results.json; then
+            echo "🚨 Secrets found in git history!"
+            SECRET_COUNT=$(grep -c '"Raw"' history-results.json)
+            echo "Found $SECRET_COUNT potential secrets in commit history"
+            echo "secrets-found=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ No secrets found in git history"
+            echo "secrets-found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload history results artifact
+        if: steps.history.outputs.secrets-found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trufflehog-history-results
+          path: history-results.json
+          retention-days: 30
+
   summarize-results:
-    needs: [prepare-scan, builtin-detectors, custom-patterns]
-    if: always() && needs.prepare-scan.outputs.scan-count != '0'
+    needs: [prepare-scan, builtin-detectors, custom-patterns, history-scan]
+    if: always() && (needs.prepare-scan.outputs.scan-count != '0' || inputs.history-scan == 'true')
     runs-on: ubuntu-x64-small
     steps:
       - name: Checkout code
@@ -245,14 +329,16 @@ jobs:
         env:
           BUILTIN_FOUND: ${{ needs.builtin-detectors.outputs.secrets-found }}
           CUSTOM_FOUND: ${{ needs.custom-patterns.outputs.secrets-found }}
+          HISTORY_FOUND: ${{ needs.history-scan.outputs.secrets-found }}
           FAIL_ON_SECRETS: ${{ inputs.fail-on-secrets }}
+          HISTORY_ENABLED: ${{ inputs.history-scan }}
         run: |
           echo "📊 OPTIMIZED SECURITY SCAN SUMMARY"
           echo "=================================="
           echo ""
           
           # Determine overall status
-          if [[ "$BUILTIN_FOUND" == "true" || "$CUSTOM_FOUND" == "true" ]]; then
+          if [[ "$BUILTIN_FOUND" == "true" || "$CUSTOM_FOUND" == "true" || "$HISTORY_FOUND" == "true" ]]; then
             OVERALL_STATUS="❌ FAILED"
             echo "SECRETS_DETECTED=true" >> $GITHUB_ENV
           else
@@ -265,6 +351,9 @@ jobs:
           echo "Scan Results:"
           echo "- Built-in detectors: $([[ "$BUILTIN_FOUND" == "true" ]] && echo "❌ secrets found" || echo "✅ clean")"
           echo "- Custom patterns: $([[ "$CUSTOM_FOUND" == "true" ]] && echo "❌ secrets found" || echo "✅ clean")"
+          if [[ "$HISTORY_ENABLED" == "true" ]]; then
+            echo "- Git history: $([[ "$HISTORY_FOUND" == "true" ]] && echo "❌ secrets found" || echo "✅ clean")"
+          fi
           echo ""
 
       - name: Comment on PR with optimized results
