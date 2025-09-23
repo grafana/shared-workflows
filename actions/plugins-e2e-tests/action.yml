@@ -13,6 +13,10 @@ inputs:
     description: "Region of the stack where you want to run the tests"
     required: true
 
+  hg_token:
+    description: "Hosted grafana token necessary to call HG apis"
+    required: true
+
   other_plugins:
     description: "List of other plugins that you want to enable separated by comma"
     required: false
@@ -55,34 +59,25 @@ runs:
 
     - uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
       id: gcloud-auth
-      working-directory: ${{ github.workspace }}
       with:
         token_format: access_token
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: "github-cloud-npm-dev-pkgs@grafanalabs-workload-identity.iam.gserviceaccount.com"
 
     - name: NPM registry auth
-      working-directory: ${{ github.workspace }}
       run: npx google-artifactregistry-auth --credential-config
+      working-directory: ${{ github.workspace }}
       shell: bash
 
     - name: Install plugin dependencies
-      working-directory: ${{ github.workspace }}
       run: yarn install --immutable --prefer-offline
+      working-directory: ${{ github.workspace }}
       shell: bash
 
     - name: Build frontend
-      working-directory: ${{ github.workspace }}
       run: yarn run build
-      shell: bash
-
-    - name: setup e2e env
-      id: get-secrets
       working-directory: ${{ github.workspace }}
-      uses: grafana/shared-workflows/actions/get-vault-secrets@5d7e361bc7e0a183cde8afe9899fb7b596d2659b # v1.2.0
-      with:
-        repo_secrets: |
-          HG_TOKEN=hg-ci:token
+      shell: bash
 
     - name: Set plugin secrets as environment variables
       id: set-env-vars
@@ -102,24 +97,23 @@ runs:
       env:
         E2E_STACK_SLUG: ${{ inputs.stack_slug }}
         E2E_ENV: ${{ inputs.env }}
-        HG_TOKEN: ${{ env.HG_TOKEN }}
+        HG_TOKEN: ${{ inputs.hg_token }}
         E2E_PLUGIN_ID: ${{ inputs.plugin_id }}
         E2E_OTHER_PLUGINS: ${{ inputs.other_plugins }}
         E2E_DATASOURCE_IDS: ${{ inputs.datasource_ids }}
 
     - name: Start server
-      working-directory: ${{ github.workspace }}
       run: docker compose up -d --build --quiet-pull --timestamps
+      working-directory: ${{ github.workspace }}
       shell: bash
 
     - name: Install Playwright Browsers
-      working-directory: ${{ github.workspace }}
       run: npx playwright install chromium --with-deps
+      working-directory: ${{ github.workspace }}
       shell: bash
 
     - name: Run Playwright tests
       shell: bash
-      working-directory: ${{ github.workspace }}
       env:
         NODE_ENV: production
       run: |
@@ -142,14 +136,14 @@ runs:
 
         echo "Grafana is ready!"
         npx playwright test
+      working-directory: ${{ github.workspace }}
 
     - name: Stop grafana docker
-      working-directory: ${{ github.workspace }}
       run: docker compose down
+      working-directory: ${{ github.workspace }}
       shell: bash
 
     - name: Upload E2E report
-      working-directory: ${{ github.workspace }}
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -158,7 +152,6 @@ runs:
         retention-days: 30
 
     - name: Upload E2E videos
-      working-directory: ${{ github.workspace }}
       uses: actions/upload-artifact@v4
       if: always()
       with:
