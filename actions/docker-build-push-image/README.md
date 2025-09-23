@@ -2,9 +2,22 @@
 
 This is a composite GitHub Action, used to build and push docker images to private Grafana registries.
 It builds registry URLs for Grafana's registries, authenticates to them, and then
-uses [docker/build-push-action](https://github.com/docker/build-push-action) to build and push the image(s).
+uses [docker/build-push-action] to build and push the image(s).
 
-# TODO: do we need QEMU?
+This action can work 1 of 2 ways:
+
+1. It can be run on a single runner, and if multiple `platforms` are configured then buildx/QEMU emulation is used.
+2. It can be used in conjunction with [docker-export-digest] and [docker-import-digests-push-manifest] to push untagged
+   images whose digests are later exported and merged into a tagged docker manifest. For true multi-arch builds.
+
+This can push to the following registries:
+1. Google Artifact Registry
+2. DockerHub
+
+[docker/build-push-action]: https://github.com/docker/build-push-action
+[docker-build-push-image]: ../docker-build-push-image/README.md
+[docker-export-digest]: ../docker-export-digest/README.md
+[docker-import-digests-push-manifest]: ../docker-import-digests-push-manifest/README.md
 
 <!-- x-release-please-start-version -->
 
@@ -80,7 +93,6 @@ jobs:
 | `tags`         | String | Generated Docker tags (from docker/metadata-action)          |
 | `version`      | String | Generated Docker image version (from docker/metadata-action) |
 
-
 ## How we construct Google Artifact Registry Images
 
 The full GAR image is constructed as follows, where `gar-project` is determined by `inputs.gar-environment`.
@@ -91,3 +103,36 @@ The full GAR image is constructed as follows, where `gar-project` is determined 
 
 The full DockerHub image is constructed as follows:
 
+"${{ inputs.dockerhub-registry }}/${{ inputs.dockerhub-repository }}"
+
+## Adding New Registries
+
+This is currently configured to push to:
+
+Each registry is setup as follows:
+
+- All inputs for a registry share the same prefix (ex: `gar-image`, `gar-repository`).
+- Inputs that are used for a specific registry are _not_ required by the workflow. Instead, validation is done in a step
+  specific to that registry.
+- To calculate which registries have been configured, we loop through `inputs.registries`, and for each registry
+  configured we set the outputs `include-<registry>`. Those flags can be used to create steps that only execute when X
+  registry is configured.
+- Each registry has a Setup step. This step takes the inputs specific to that registry and generates an untagged,
+  `image` name for that specific registry.
+- The `setup-vars` step then loops through each configured image and creates a full list of images to push.
+- That's it! That list of images to push is fed to `docker/build-push-action` along with the configured tags, and each
+  tagged image is pushed to each registry.
+
+So then the full checklist of work to do to implement a new registry is:
+
+- [ ] Add (and document) any inputs that you need to capture. Use the same prefix for all inputs, and all inputs must
+  _not_ be required.
+- [ ] Add a step before `setup-vars` that takes those input values and constructs a valid untagged image name for the
+  registry you'll be pushing to. Then set that as an output.
+  Ex: `echo "image=${DOCKERHUB_REGISTRY}/${DOCKERHUB_IMAGE}" | tee -a "${GITHUB_OUTPUT}"`
+- [ ] Add your image into the `setup-vars` step by passing the output image into an env variable, and adding it to the
+  list of images to be parsed. Use the existing repos as examples.
+- [ ] Add a login step that depends
+  on `${{ inputs.push == 'true' && steps.registries.outputs.include-<yourRegistry> == 'true' }}`, where yourRegistry is
+  the value that will be passed into the `registries` input. Again, use existing repos as examples.
+- [ ] Celebrate

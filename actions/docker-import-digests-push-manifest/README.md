@@ -1,15 +1,14 @@
 # docker-import-digest-push-manifest
 
-This is a composite GitHub Action used to export a docker digest as a workflow artifact, so it can be merged and pushed
-as part of a manifest.
+This is a composite GitHub Action used to import Docker digests from a shared workflow artifact and merge them into a
+tagged manifest.
 
-[//]: # (TODO: Link to docs for the following)
-This is meant to work in conjuction with `docker-build-push-image` and `docker-import-digests-push-manifest`.
+This is meant to work in conjunction with [docker-build-push-image] and [docker-export-digest].
 
-It builds registry URLs for Grafana's registries, authenticates to them, and then
-uses [docker/build-push-action](https://github.com/docker/build-push-action) to build and push the image(s).
-
-# TODO: do we need QEMU?
+[docker/build-push-action]: https://github.com/docker/build-push-action
+[docker-build-push-image]: ../docker-build-push-image/README.md
+[docker-export-digest]: ../docker-export-digest/README.md
+[docker-import-digests-push-manifest]: ../docker-import-digests-push-manifest/README.md
 
 <!-- x-release-please-start-version -->
 
