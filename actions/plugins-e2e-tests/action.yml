@@ -88,7 +88,6 @@ runs:
       run: |
         echo "Parsing and setting plugin environment variables..."
         echo "$SECRETS_JSON" | jq -r 'to_entries[] | "echo \"\(.key)=\(.value)\" >> $GITHUB_ENV"' | bash
-        echo "PLAYWRIGHT_TESTS_GROUP_PATH is ${env.PLAYWRIGHT_TESTS_GROUP_PATH}"
         echo "Plugin environment variables set."
 
     - name: Generate provisioning
@@ -113,6 +112,13 @@ runs:
       working-directory: ${{ github.workspace }}
       shell: bash
 
+    - name: Check playwright tests path
+      shell: bash
+      env:
+        PLAYWRIGHT_TESTS_GROUP_PATH: ${{ env.PLAYWRIGHT_TESTS_GROUP_PATH }}
+      run: |
+        echo "PLAYWRIGHT_TESTS_GROUP_PATH is $PLAYWRIGHT_TESTS_GROUP_PATH"
+
     - name: Run Playwright tests
       shell: bash
       env:
@@ -136,7 +142,6 @@ runs:
         done
 
         echo "Grafana is ready!"
-        echo "PLAYWRIGHT_TESTS_GROUP_PATH is ${env.PLAYWRIGHT_TESTS_GROUP_PATH}"
         npx playwright test
       working-directory: ${{ github.workspace }}
 
