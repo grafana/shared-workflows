@@ -28,9 +28,214 @@ on:
         required: false
         default: "100"
         type: string
+      unified-scan:
+        description: "Run all scans in a single job for speed (faster but less granular)"
+        required: false
+        default: "false"
+        type: string
 
 jobs:
+  unified-security-scan:
+    if: inputs.unified-scan == 'true'
+    runs-on: ubuntu-x64-small
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ inputs.history-scan == 'true' && inputs.history-depth || 0 }}
+
+      - name: Cache Trufflehog binary
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/trufflehog
+          key: trufflehog-${{ runner.os }}-0f58ae7c5036094a1e3e750d18772af92821b503
+
+      - name: Install Trufflehog
+        run: |
+          if [ ! -f /usr/local/bin/trufflehog ]; then
+            echo "Installing TruffleHog..."
+            curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
+          else
+            echo "Using cached TruffleHog binary"
+          fi
+          trufflehog --version
+
+      - name: Determine scan scope
+        id: scope
+        env:
+          SCAN_MODE: ${{ inputs.scan-mode }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && ("$SCAN_MODE" == "auto" || "$SCAN_MODE" == "delta") ]]; then
+            echo "🔍 Delta scan: scanning changed files only"
+            git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }}..${{ github.sha }} \
+              | grep -v -E '(^\.git/|node_modules/|vendor/|dist/|build/|__pycache__/|\.min\.(js|css)$|\.lock$|\.sum$|\.mod$|^go\.sum$|^package-lock\.json$|^yarn\.lock$|^Pipfile\.lock$)' \
+              | head -100 > files_to_scan.txt || echo "" > files_to_scan.txt
+            
+            SCAN_COUNT=$(wc -l < files_to_scan.txt)
+            if [[ $SCAN_COUNT -eq 0 ]]; then
+              echo "No relevant files changed - skipping scan"
+              echo "skip=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            FILES=$(tr '\n' ' ' < files_to_scan.txt | sed 's/[[:space:]]*$//')
+            echo "scan_target=$FILES" >> $GITHUB_OUTPUT
+            echo "skip=false" >> $GITHUB_OUTPUT
+          else
+            echo "🔍 Full repository scan"
+            echo "scan_target=." >> $GITHUB_OUTPUT
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run comprehensive TruffleHog scan
+        if: steps.scope.outputs.skip != 'true'
+        env:
+          SCAN_TARGET: ${{ steps.scope.outputs.scan_target }}
+          EXTRA_ARGS: ${{ inputs.extra_args }}
+          HISTORY_ENABLED: ${{ inputs.history-scan }}
+          HISTORY_DEPTH: ${{ inputs.history-depth }}
+        run: |
+          echo "🚀 Running unified TruffleHog security scan..."
+          
+          # Create exclude patterns
+          cat > exclude_paths.txt << 'EOF'
+          .git
+          node_modules
+          vendor
+          dist
+          build
+          __pycache__
+          .pytest_cache
+          .venv
+          *.min.js
+          *.min.css
+          third_party
+          EOF
+
+          SECRETS_FOUND=false
+
+          # 1. Run TruffleHog built-in detectors
+          echo "🔍 Step 1: Built-in secret detectors..."
+          timeout 180 trufflehog filesystem $SCAN_TARGET \
+            --json \
+            --no-update \
+            --results=verified,unverified \
+            --exclude-paths=exclude_paths.txt \
+            --no-verification \
+            --concurrency=6 \
+            $EXTRA_ARGS > builtin-results.json || true
+
+          if [[ -s builtin-results.json ]] && grep -q '"Raw"' builtin-results.json; then
+            echo "🚨 Built-in detectors found secrets!"
+            SECRETS_FOUND=true
+          fi
+
+          # 2. Run custom Grafana patterns
+          echo "🔍 Step 2: Grafana-specific patterns..."
+          GRAFANA_PATTERNS='(eyJrIjoi[A-Za-z0-9+/=]{40,}|glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}|glc_[A-Za-z0-9+/]{32,}={0,2}|(mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*|GF_SECURITY_SECRET_KEY\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{20,}["\'"'"']?|GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{8,}["\'"'"']?|GF_SMTP_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{6,}["\'"'"']?|GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\'"'"']?[A-Za-z0-9_-]{20,}["\'"'"']?|GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{100,}["\'"'"']?)'
+          
+          if [[ "$SCAN_TARGET" == "." ]]; then
+            CUSTOM_RESULTS=$(timeout 60 grep -r -n -E "$GRAFANA_PATTERNS" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=__pycache__ 2>/dev/null || true)
+          else
+            CUSTOM_RESULTS=$(timeout 30 grep -n -E "$GRAFANA_PATTERNS" $SCAN_TARGET 2>/dev/null || true)
+          fi
+
+          if [[ -n "$CUSTOM_RESULTS" ]]; then
+            echo "🚨 Custom patterns found secrets!"
+            echo "$CUSTOM_RESULTS" > custom-results.txt
+            SECRETS_FOUND=true
+          fi
+
+          # 3. Run git history scan (if enabled)
+          if [[ "$HISTORY_ENABLED" == "true" ]]; then
+            echo "🔍 Step 3: Git history scan..."
+            timeout 300 trufflehog git . \
+              --json \
+              --no-update \
+              --results=verified,unverified \
+              --no-verification \
+              --concurrency=4 \
+              --max-depth=$HISTORY_DEPTH \
+              $EXTRA_ARGS > history-results.json || true
+
+            if [[ -s history-results.json ]] && grep -q '"Raw"' history-results.json; then
+              echo "🚨 Git history scan found secrets!"
+              SECRETS_FOUND=true
+            fi
+          fi
+
+          # 4. Generate summary
+          echo "📊 UNIFIED SECURITY SCAN SUMMARY"
+          echo "================================"
+          
+          if [[ "$SECRETS_FOUND" == "true" ]]; then
+            echo "❌ SCAN FAILED: Secrets detected!"
+            echo "SECRETS_DETECTED=true" >> $GITHUB_ENV
+            
+            # Count findings
+            BUILTIN_COUNT=$(grep -c '"Raw"' builtin-results.json 2>/dev/null || echo "0")
+            CUSTOM_COUNT=$(wc -l < custom-results.txt 2>/dev/null || echo "0")
+            HISTORY_COUNT=$(grep -c '"Raw"' history-results.json 2>/dev/null || echo "0")
+            
+            echo "Findings:"
+            echo "- Built-in detectors: $BUILTIN_COUNT"
+            echo "- Custom patterns: $CUSTOM_COUNT"
+            [[ "$HISTORY_ENABLED" == "true" ]] && echo "- Git history: $HISTORY_COUNT"
+          else
+            echo "✅ SCAN PASSED: No secrets detected!"
+            echo "SECRETS_DETECTED=false" >> $GITHUB_ENV
+          fi
+
+      - name: Upload scan results
+        if: steps.scope.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-scan-results
+          path: |
+            builtin-results.json
+            custom-results.txt
+            history-results.json
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.scope.outputs.skip != 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let hasSecrets = process.env.SECRETS_DETECTED === 'true';
+            
+            const body = hasSecrets
+              ? "🚨 **Unified security scan detected secrets** - please review and remove them before merging."
+              : "✅ **Unified security scan completed** - no secrets detected.";
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Skip notification
+        if: steps.scope.outputs.skip == 'true'
+        run: echo "⏭️ Unified scan skipped - no relevant files changed"
+
+      - name: Final status
+        if: steps.scope.outputs.skip != 'true'
+        env:
+          FAIL_ON_SECRETS: ${{ inputs.fail-on-secrets }}
+        run: |
+          if [[ "$SECRETS_DETECTED" == "true" && "$FAIL_ON_SECRETS" == "true" ]]; then
+            echo "❌ Unified scan failed: Secrets detected!"
+            exit 1
+          else
+            echo "✅ Unified scan completed successfully"
+          fi
+
   prepare-scan:
+    if: inputs.unified-scan != 'true'
     runs-on: ubuntu-x64-small
     outputs:
       files-to-scan: ${{ steps.get-files.outputs.files }}
@@ -86,7 +291,7 @@ jobs:
 
   builtin-detectors:
     needs: prepare-scan
-    if: needs.prepare-scan.outputs.scan-count != '0'
+    if: inputs.unified-scan != 'true' && needs.prepare-scan.outputs.scan-count != '0'
     runs-on: ubuntu-x64-small
     outputs:
       secrets-found: ${{ steps.scan.outputs.secrets-found }}
@@ -187,7 +392,7 @@ jobs:
 
   custom-patterns:
     needs: prepare-scan
-    if: needs.prepare-scan.outputs.scan-count != '0'
+    if: inputs.unified-scan != 'true' && needs.prepare-scan.outputs.scan-count != '0'
     runs-on: ubuntu-x64-small
     outputs:
       secrets-found: ${{ steps.patterns.outputs.secrets-found }}
@@ -236,7 +441,7 @@ jobs:
 
   history-scan:
     needs: prepare-scan
-    if: inputs.history-scan == 'true'
+    if: inputs.unified-scan != 'true' && inputs.history-scan == 'true'
     runs-on: ubuntu-x64-small
     outputs:
       secrets-found: ${{ steps.history.outputs.secrets-found }}
@@ -311,7 +516,7 @@ jobs:
 
   summarize-results:
     needs: [prepare-scan, builtin-detectors, custom-patterns, history-scan]
-    if: always() && (needs.prepare-scan.outputs.scan-count != '0' || inputs.history-scan == 'true')
+    if: inputs.unified-scan != 'true' && always() && (needs.prepare-scan.outputs.scan-count != '0' || inputs.history-scan == 'true')
     runs-on: ubuntu-x64-small
     steps:
       - name: Checkout code
@@ -432,7 +637,7 @@ jobs:
 
   skip-scan:
     needs: prepare-scan
-    if: needs.prepare-scan.outputs.scan-count == '0'
+    if: inputs.unified-scan != 'true' && needs.prepare-scan.outputs.scan-count == '0'
     runs-on: ubuntu-x64-small
     steps:
       - name: Skip scan notification
