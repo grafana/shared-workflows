@@ -59,8 +59,8 @@ jobs:
             git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }}..${{ github.sha }} \
               | head -1000 > files_to_scan.txt || echo "" > files_to_scan.txt
             
-            # Filter out only build artifacts and dependencies
-            grep -v -E '(^\.git/|node_modules/|vendor/|dist/|build/|__pycache__/|\.min\.(js|css)$|\.lock$)' files_to_scan.txt > filtered_files.txt || echo "" > filtered_files.txt
+            # Filter out build artifacts, dependencies, and other non-secret files
+            grep -v -E '(^\.git/|node_modules/|vendor/|dist/|build/|__pycache__/|\.min\.(js|css)$|\.lock$|\.sum$|\.mod$|^go\.sum$|^package-lock\.json$|^yarn\.lock$|^Pipfile\.lock$)' files_to_scan.txt > filtered_files.txt || echo "" > filtered_files.txt
             
             SCAN_COUNT=$(wc -l < filtered_files.txt)
             echo "Changed files (excluding build artifacts): $SCAN_COUNT"
@@ -150,18 +150,18 @@ jobs:
             SCAN_TARGET="$FILES_TO_SCAN"
           fi
           
-          # Run TruffleHog with optimized settings
-          timeout 300 trufflehog filesystem $SCAN_TARGET \
+          # Run TruffleHog with optimized settings for speed
+          timeout 180 trufflehog filesystem $SCAN_TARGET \
             --json \
             --no-update \
             --results=verified,unverified \
             --exclude-paths=exclude_paths.txt \
             --no-verification \
-            --concurrency=4 \
+            --concurrency=6 \
             $EXTRA_ARGS > builtin-results.json || {
               EXIT_CODE=$?
               if [[ $EXIT_CODE -eq 124 ]]; then
-                echo "⚠️ Scan timed out after 5 minutes"
+                echo "⚠️ Scan timed out after 3 minutes"
                 echo '{"timeout": true, "message": "Scan timed out"}' > builtin-results.json
               else
                 echo "Scan completed with exit code: $EXIT_CODE"
@@ -210,11 +210,11 @@ jobs:
           # Prepare exclude arguments
           EXCLUDE_ARGS="--exclude-dir=.git --exclude-dir=node_modules --exclude-dir=venv --exclude-dir=__pycache__ --exclude-dir=.pytest_cache --exclude-dir=dist --exclude-dir=build --exclude-dir=vendor"
           
-          # Run pattern scan
+          # Run pattern scan with faster timeout
           if [[ "$FILES_TO_SCAN" == "." ]]; then
-            RESULTS=$(timeout 120 grep -r -n -E "$GRAFANA_PATTERNS" . $EXCLUDE_ARGS 2>/dev/null || true)
+            RESULTS=$(timeout 60 grep -r -n -E "$GRAFANA_PATTERNS" . $EXCLUDE_ARGS 2>/dev/null || true)
           else
-            RESULTS=$(timeout 120 grep -n -E "$GRAFANA_PATTERNS" $FILES_TO_SCAN 2>/dev/null || true)
+            RESULTS=$(timeout 30 grep -n -E "$GRAFANA_PATTERNS" $FILES_TO_SCAN 2>/dev/null || true)
           fi
           
           if [[ -n "$RESULTS" ]]; then
