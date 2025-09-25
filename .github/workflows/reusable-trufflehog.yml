@@ -1,659 +1,530 @@
-name: Reusable Trufflehog Secret Scan
+name: Reusable TruffleHog Secret Scan
 
 on:
   workflow_call:
     inputs:
-      fail-on-secrets:
-        description: "Fail the workflow if secrets are found"
+      base-ref:
+        description: "Base reference for commit range scanning (defaults to PR base or main)"
         required: false
-        default: "true"
         type: string
-      extra_args:
-        description: "Extra arguments to pass to Trufflehog"
+      head-ref:
+        description: "Head reference for commit range scanning (defaults to current SHA)"
+        required: false
+        type: string
+      custom-detectors-path:
+        description: "Path to custom detector configuration file"
         required: false
         default: ""
         type: string
-      scan-mode:
-        description: "Scan mode: 'full' for complete repo scan, 'delta' for changed files only"
+      exclude-paths:
+        description: "Additional paths to exclude (newline separated)"
         required: false
-        default: "auto"
+        default: ""
         type: string
-      history-scan:
-        description: "Enable git history scanning for secrets"
-        required: false
-        default: "false"
-        type: string
-      history-depth:
-        description: "Number of commits to scan in history (default: 100)"
-        required: false
-        default: "100"
-        type: string
-      unified-scan:
-        description: "Run all scans in a single job for speed (faster but less granular)"
+      fail-on-unverified:
+        description: "Fail workflow on unverified secrets"
         required: false
         default: "false"
         type: string
+      fail-on-verified:
+        description: "Fail workflow on verified secrets"
+        required: false
+        default: "true"
+        type: string
+      trufflehog-version:
+        description: "TruffleHog version to use"
+        required: false
+        default: ""
+        type: string
+      scan-type:
+        description: "Scan type: commits, filesystem, or both"
+        required: false
+        default: "commits"
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  checks: write
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -eo pipefail
 
 jobs:
-  unified-security-scan:
-    if: inputs.unified-scan == 'true'
-    runs-on: ubuntu-x64-small
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          fetch-depth: ${{ inputs.history-scan == 'true' && inputs.history-depth || 0 }}
-
-      - name: Cache Trufflehog binary
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/trufflehog
-          key: trufflehog-${{ runner.os }}-0f58ae7c5036094a1e3e750d18772af92821b503
-
-      - name: Install Trufflehog
-        run: |
-          if [ ! -f /usr/local/bin/trufflehog ]; then
-            echo "Installing TruffleHog..."
-            curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
-          else
-            echo "Using cached TruffleHog binary"
-          fi
-          trufflehog --version
-
-      - name: Determine scan scope
-        id: scope
-        env:
-          SCAN_MODE: ${{ inputs.scan-mode }}
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && ("$SCAN_MODE" == "auto" || "$SCAN_MODE" == "delta") ]]; then
-            echo "🔍 Delta scan: scanning changed files only"
-            git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }}..${{ github.sha }} \
-              | grep -v -E '(^\.git/|node_modules/|vendor/|dist/|build/|__pycache__/|\.min\.(js|css)$|\.lock$|\.sum$|\.mod$|^go\.sum$|^package-lock\.json$|^yarn\.lock$|^Pipfile\.lock$)' \
-              | head -100 > files_to_scan.txt || echo "" > files_to_scan.txt
-            
-            SCAN_COUNT=$(wc -l < files_to_scan.txt)
-            if [[ $SCAN_COUNT -eq 0 ]]; then
-              echo "No relevant files changed - skipping scan"
-              echo "skip=true" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-            
-            FILES=$(tr '\n' ' ' < files_to_scan.txt | sed 's/[[:space:]]*$//')
-            echo "scan_target=$FILES" >> $GITHUB_OUTPUT
-            echo "skip=false" >> $GITHUB_OUTPUT
-          else
-            echo "🔍 Full repository scan"
-            echo "scan_target=." >> $GITHUB_OUTPUT
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run comprehensive TruffleHog scan
-        if: steps.scope.outputs.skip != 'true'
-        env:
-          SCAN_TARGET: ${{ steps.scope.outputs.scan_target }}
-          EXTRA_ARGS: ${{ inputs.extra_args }}
-          HISTORY_ENABLED: ${{ inputs.history-scan }}
-          HISTORY_DEPTH: ${{ inputs.history-depth }}
-        run: |
-          echo "🚀 Running unified TruffleHog security scan..."
-          
-          # Create exclude patterns
-          cat > exclude_paths.txt << 'EOF'
-          .git
-          node_modules
-          vendor
-          dist
-          build
-          __pycache__
-          .pytest_cache
-          .venv
-          *.min.js
-          *.min.css
-          third_party
-          EOF
-
-          SECRETS_FOUND=false
-
-          # 1. Run TruffleHog built-in detectors
-          echo "🔍 Step 1: Built-in secret detectors..."
-          timeout 180 trufflehog filesystem $SCAN_TARGET \
-            --json \
-            --no-update \
-            --results=verified,unverified \
-            --exclude-paths=exclude_paths.txt \
-            --no-verification \
-            --concurrency=6 \
-            $EXTRA_ARGS > builtin-results.json || true
-
-          if [[ -s builtin-results.json ]] && grep -q '"Raw"' builtin-results.json; then
-            echo "🚨 Built-in detectors found secrets!"
-            SECRETS_FOUND=true
-          fi
-
-          # 2. Run custom Grafana patterns
-          echo "🔍 Step 2: Grafana-specific patterns..."
-          GRAFANA_PATTERNS='(eyJrIjoi[A-Za-z0-9+/=]{40,}|glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}|glc_[A-Za-z0-9+/]{32,}={0,2}|(mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*|GF_SECURITY_SECRET_KEY\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{20,}["\'"'"']?|GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{8,}["\'"'"']?|GF_SMTP_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{6,}["\'"'"']?|GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\'"'"']?[A-Za-z0-9_-]{20,}["\'"'"']?|GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{100,}["\'"'"']?)'
-          
-          if [[ "$SCAN_TARGET" == "." ]]; then
-            CUSTOM_RESULTS=$(timeout 60 grep -r -n -E "$GRAFANA_PATTERNS" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=__pycache__ 2>/dev/null || true)
-          else
-            CUSTOM_RESULTS=$(timeout 30 grep -n -E "$GRAFANA_PATTERNS" $SCAN_TARGET 2>/dev/null || true)
-          fi
-
-          if [[ -n "$CUSTOM_RESULTS" ]]; then
-            echo "🚨 Custom patterns found secrets!"
-            echo "$CUSTOM_RESULTS" > custom-results.txt
-            SECRETS_FOUND=true
-          fi
-
-          # 3. Run git history scan (if enabled)
-          if [[ "$HISTORY_ENABLED" == "true" ]]; then
-            echo "🔍 Step 3: Git history scan..."
-            timeout 300 trufflehog git . \
-              --json \
-              --no-update \
-              --results=verified,unverified \
-              --no-verification \
-              --concurrency=4 \
-              --max-depth=$HISTORY_DEPTH \
-              $EXTRA_ARGS > history-results.json || true
-
-            if [[ -s history-results.json ]] && grep -q '"Raw"' history-results.json; then
-              echo "🚨 Git history scan found secrets!"
-              SECRETS_FOUND=true
-            fi
-          fi
-
-          # 4. Generate summary
-          echo "📊 UNIFIED SECURITY SCAN SUMMARY"
-          echo "================================"
-          
-          if [[ "$SECRETS_FOUND" == "true" ]]; then
-            echo "❌ SCAN FAILED: Secrets detected!"
-            echo "SECRETS_DETECTED=true" >> $GITHUB_ENV
-            
-            # Count findings
-            BUILTIN_COUNT=$(grep -c '"Raw"' builtin-results.json 2>/dev/null || echo "0")
-            CUSTOM_COUNT=$(wc -l < custom-results.txt 2>/dev/null || echo "0")
-            HISTORY_COUNT=$(grep -c '"Raw"' history-results.json 2>/dev/null || echo "0")
-            
-            echo "Findings:"
-            echo "- Built-in detectors: $BUILTIN_COUNT"
-            echo "- Custom patterns: $CUSTOM_COUNT"
-            [[ "$HISTORY_ENABLED" == "true" ]] && echo "- Git history: $HISTORY_COUNT"
-          else
-            echo "✅ SCAN PASSED: No secrets detected!"
-            echo "SECRETS_DETECTED=false" >> $GITHUB_ENV
-          fi
-
-      - name: Upload scan results
-        if: steps.scope.outputs.skip != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: unified-scan-results
-          path: |
-            builtin-results.json
-            custom-results.txt
-            history-results.json
-          retention-days: 30
-
-      - name: Comment on PR
-        if: github.event_name == 'pull_request' && steps.scope.outputs.skip != 'true'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            let hasSecrets = process.env.SECRETS_DETECTED === 'true';
-            
-            const body = hasSecrets
-              ? "🚨 **Unified security scan detected secrets** - please review and remove them before merging."
-              : "✅ **Unified security scan completed** - no secrets detected.";
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body
-            });
-
-      - name: Skip notification
-        if: steps.scope.outputs.skip == 'true'
-        run: echo "⏭️ Unified scan skipped - no relevant files changed"
-
-      - name: Final status
-        if: steps.scope.outputs.skip != 'true'
-        env:
-          FAIL_ON_SECRETS: ${{ inputs.fail-on-secrets }}
-        run: |
-          if [[ "$SECRETS_DETECTED" == "true" && "$FAIL_ON_SECRETS" == "true" ]]; then
-            echo "❌ Unified scan failed: Secrets detected!"
-            exit 1
-          else
-            echo "✅ Unified scan completed successfully"
-          fi
-
-  prepare-scan:
-    if: inputs.unified-scan != 'true'
-    runs-on: ubuntu-x64-small
-    outputs:
-      files-to-scan: ${{ steps.get-files.outputs.files }}
-      scan-count: ${{ steps.get-files.outputs.count }}
-      cache-key: ${{ steps.cache-key.outputs.key }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Generate cache key
-        id: cache-key
-        run: echo "key=trufflehog-${{ runner.os }}-0f58ae7c5036094a1e3e750d18772af92821b503" >> $GITHUB_OUTPUT
-
-      - name: Determine files to scan
-        id: get-files
-        env:
-          SCAN_MODE: ${{ inputs.scan-mode }}
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && ("$SCAN_MODE" == "auto" || "$SCAN_MODE" == "delta") ]]; then
-            echo "🔍 Delta scan mode: scanning ALL changed files"
-            
-            # Get ALL changed files (no extension filtering)
-            git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }}..${{ github.sha }} \
-              | head -1000 > files_to_scan.txt || echo "" > files_to_scan.txt
-            
-            # Filter out build artifacts, dependencies, and other non-secret files
-            grep -v -E '(^\.git/|node_modules/|vendor/|dist/|build/|__pycache__/|\.min\.(js|css)$|\.lock$|\.sum$|\.mod$|^go\.sum$|^package-lock\.json$|^yarn\.lock$|^Pipfile\.lock$)' files_to_scan.txt > filtered_files.txt || echo "" > filtered_files.txt
-            
-            SCAN_COUNT=$(wc -l < filtered_files.txt)
-            echo "Changed files (excluding build artifacts): $SCAN_COUNT"
-            
-            if [[ $SCAN_COUNT -eq 0 ]]; then
-              echo "No relevant files changed - skipping scan"
-              echo "files=" >> $GITHUB_OUTPUT
-              echo "count=0" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-            
-            # Convert to space-separated list
-            FILES=$(tr '\n' ' ' < filtered_files.txt | sed 's/[[:space:]]*$//')
-            echo "files=$FILES" >> $GITHUB_OUTPUT
-            echo "count=$SCAN_COUNT" >> $GITHUB_OUTPUT
-            
-          else
-            echo "🔍 Full scan mode: scanning entire repository"
-            # For full scans, we'll let trufflehog handle file discovery
-            echo "files=." >> $GITHUB_OUTPUT
-            echo "count=full" >> $GITHUB_OUTPUT
-          fi
-
-  builtin-detectors:
-    needs: prepare-scan
-    if: inputs.unified-scan != 'true' && needs.prepare-scan.outputs.scan-count != '0'
-    runs-on: ubuntu-x64-small
+  trufflehog-scan:
+    runs-on: ubuntu-latest
+    env:
+      TRUFFLEHOG_VERSION: v3.75.0 # ratchet:trufflesecurity/trufflehog@v3.75.0
     outputs:
       secrets-found: ${{ steps.scan.outputs.secrets-found }}
+      verified-count: ${{ steps.scan.outputs.verified-count }}
+      unverified-count: ${{ steps.scan.outputs.unverified-count }}
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 0
+          token: ${{ github.token }}
 
-      - name: Cache Trufflehog binary
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/trufflehog
-          key: ${{ needs.prepare-scan.outputs.cache-key }}
-
-      - name: Install Trufflehog (if not cached)
+      - name: Install TruffleHog
+        id: install
+        env:
+          REQUESTED_REF: ${{ inputs.trufflehog-version }}
         run: |
-          if [ ! -f /usr/local/bin/trufflehog ]; then
-            echo "Installing TruffleHog..."
-            curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
+          ref="${REQUESTED_REF:-$TRUFFLEHOG_VERSION}"
+
+          if [[ -n "$ref" && "$ref" != "latest" ]]; then
+            echo "Installing TruffleHog at ref '$ref'"
+            curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin "$ref"
           else
-            echo "Using cached TruffleHog binary"
+            echo "Installing latest TruffleHog release"
+            curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
           fi
+
           trufflehog --version
 
-      - name: Create optimized exclude patterns
+      - name: Setup scan parameters
+        id: setup
         run: |
-          cat > exclude_paths.txt << 'EOF'
-          .git
-          node_modules
-          venv
-          env
-          __pycache__
-          .pytest_cache
-          .venv
-          dist
-          build
+          # Determine base and head refs
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_REF="${{ inputs.base-ref || github.event.pull_request.base.sha }}"
+            HEAD_REF="${{ inputs.head-ref || github.sha }}"
+          else
+            # For push events, scan the commits in the push
+            BASE_REF="${{ inputs.base-ref || github.event.before }}"
+            HEAD_REF="${{ inputs.head-ref || github.sha }}"
+          fi
+          
+          echo "base-ref=${BASE_REF}" >> $GITHUB_OUTPUT
+          echo "head-ref=${HEAD_REF}" >> $GITHUB_OUTPUT
+          
+          # Create allowlist file if it exists
+          if [[ -f ".trufflehog-allowlist.yml" ]]; then
+            echo "allowlist-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "allowlist-exists=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Setup exclude patterns
+          cat > exclude-patterns.txt << 'EOF'
+          .git/
+          node_modules/
+          vendor/
+          dist/
+          build/
+          __pycache__/
+          .pytest_cache/
+          .venv/
+          venv/
           *.min.js
           *.min.css
-          vendor
-          third_party
-          trufflehog-.*\.json
-          custom-.*\.txt
-          exclude_paths\.txt
+          *.map
+          *.lock
+          *.sum
+          go.sum
+          package-lock.json
+          yarn.lock
+          Pipfile.lock
+          poetry.lock
           EOF
+          
+          # Add custom exclude paths
+          if [[ -n "${{ inputs.exclude-paths }}" ]]; then
+            echo "${{ inputs.exclude-paths }}" >> exclude-patterns.txt
+          fi
+
+      - name: Setup custom detectors
+        id: custom-detectors
+        run: |
+          # Create custom detectors configuration
+          cat > custom-detectors.yml << 'EOF'
+          detectors:
+            - name: grafana-api-key
+              keywords:
+                - "eyJrIjoi"
+              regex:
+                grafana_api_key: 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
+            - name: grafana-service-account
+              keywords:
+                - "glsa_"
+              regex:
+                grafana_service_account: 'glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}'
+            - name: grafana-cloud-token
+              keywords:
+                - "glc_"
+              regex:
+                grafana_cloud_token: 'glc_[A-Za-z0-9+/]{32,}={0,2}'
+            - name: grafana-config-secrets
+              keywords:
+                - "GF_SECURITY_SECRET_KEY"
+                - "GF_SECURITY_ADMIN_PASSWORD"
+                - "GF_SMTP_PASSWORD"
+                - "GF_AUTH_"
+                - "GF_ENTERPRISE_LICENSE"
+              regex:
+                gf_secret_key: 'GF_SECURITY_SECRET_KEY\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{20,}["\'"'"']?'
+                gf_admin_password: 'GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{8,}["\'"'"']?'
+                gf_smtp_password: 'GF_SMTP_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{6,}["\'"'"']?'
+                gf_client_secret: 'GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\'"'"']?[A-Za-z0-9_-]{20,}["\'"'"']?'
+                gf_license: 'GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{100,}["\'"'"']?'
+            - name: database-urls
+              keywords:
+                - "mysql://"
+                - "postgres://"
+                - "postgresql://"
+              regex:
+                database_url: '(mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*'
+          EOF
+          
+          # Use custom detectors file if provided
+          if [[ -n "${{ inputs.custom-detectors-path }}" ]] && [[ -f "${{ inputs.custom-detectors-path }}" ]]; then
+            cp "${{ inputs.custom-detectors-path }}" custom-detectors.yml
+          fi
 
       - name: Run TruffleHog scan
         id: scan
-        env:
-          FILES_TO_SCAN: ${{ needs.prepare-scan.outputs.files-to-scan }}
-          EXTRA_ARGS: ${{ inputs.extra_args }}
         run: |
-          echo "🔍 Running TruffleHog with built-in detectors..."
+          set +e  # Don't exit on trufflehog findings
           
-          # Prepare scan command
-          if [[ "$FILES_TO_SCAN" == "." ]]; then
-            echo "Scanning entire repository"
-            SCAN_TARGET="."
-          else
-            echo "Scanning specific files: $FILES_TO_SCAN"
-            SCAN_TARGET="$FILES_TO_SCAN"
+          SCAN_ARGS=""
+          VERIFIED_COUNT=0
+          UNVERIFIED_COUNT=0
+          SECRETS_FOUND=false
+          
+          # Add verification flag
+          SCAN_ARGS="$SCAN_ARGS --results=verified,unverified"
+          
+          # Add allowlist if exists
+          if [[ "${{ steps.setup.outputs.allowlist-exists }}" == "true" ]]; then
+            SCAN_ARGS="$SCAN_ARGS --allow-verification-overlap --config=.trufflehog-allowlist.yml"
           fi
           
-          # Run TruffleHog with optimized settings for speed
-          timeout 180 trufflehog filesystem $SCAN_TARGET \
-            --json \
-            --no-update \
-            --results=verified,unverified \
-            --exclude-paths=exclude_paths.txt \
-            --no-verification \
-            --concurrency=6 \
-            $EXTRA_ARGS > builtin-results.json || {
-              EXIT_CODE=$?
-              if [[ $EXIT_CODE -eq 124 ]]; then
-                echo "⚠️ Scan timed out after 3 minutes"
-                echo '{"timeout": true, "message": "Scan timed out"}' > builtin-results.json
-              else
-                echo "Scan completed with exit code: $EXIT_CODE"
+          # Add exclude patterns
+          SCAN_ARGS="$SCAN_ARGS --exclude-paths=exclude-patterns.txt"
+          
+          # Add custom detectors
+          SCAN_ARGS="$SCAN_ARGS --custom-detectors=custom-detectors.yml"
+          
+          echo "Starting TruffleHog scan"
+          echo "Base ref: ${{ steps.setup.outputs.base-ref }}"
+          echo "Head ref: ${{ steps.setup.outputs.head-ref }}"
+          echo "Scan type: ${{ inputs.scan-type }}"
+          
+          # Run appropriate scan type
+          if [[ "${{ inputs.scan-type }}" == "commits" ]] || [[ "${{ inputs.scan-type }}" == "both" ]]; then
+            echo "Scanning commits"
+            trufflehog git file://. \
+              --since-commit=${{ steps.setup.outputs.base-ref }} \
+              --branch=${{ steps.setup.outputs.head-ref }} \
+              --json \
+              --no-update \
+              $SCAN_ARGS > commits-results.json || true
+          fi
+          
+          if [[ "${{ inputs.scan-type }}" == "filesystem" ]] || [[ "${{ inputs.scan-type }}" == "both" ]]; then
+            echo "Scanning filesystem"
+            trufflehog filesystem . \
+              --json \
+              --no-update \
+              $SCAN_ARGS > filesystem-results.json || true
+          fi
+          
+          # Process results
+          for result_file in commits-results.json filesystem-results.json; do
+            if [[ -f "$result_file" ]] && [[ -s "$result_file" ]]; then
+              echo "📊 Processing $result_file..."
+              
+              # Count verified and unverified secrets
+              VERIFIED_IN_FILE=$(jq -r 'select(.Verified == true) | .DetectorName' "$result_file" 2>/dev/null | wc -l || echo "0")
+              UNVERIFIED_IN_FILE=$(jq -r 'select(.Verified == false) | .DetectorName' "$result_file" 2>/dev/null | wc -l || echo "0")
+              
+              VERIFIED_COUNT=$((VERIFIED_COUNT + VERIFIED_IN_FILE))
+              UNVERIFIED_COUNT=$((UNVERIFIED_COUNT + UNVERIFIED_IN_FILE))
+              
+              if [[ $VERIFIED_IN_FILE -gt 0 ]] || [[ $UNVERIFIED_IN_FILE -gt 0 ]]; then
+                SECRETS_FOUND=true
               fi
-            }
+            fi
+          done
           
-          # Check results efficiently
-          if [[ -s builtin-results.json ]] && grep -q '"Raw"' builtin-results.json; then
-            echo "🚨 Secrets detected by built-in detectors"
-            echo "secrets-found=true" >> $GITHUB_OUTPUT
+          echo "verified-count=$VERIFIED_COUNT" >> $GITHUB_OUTPUT
+          echo "unverified-count=$UNVERIFIED_COUNT" >> $GITHUB_OUTPUT
+          echo "secrets-found=$SECRETS_FOUND" >> $GITHUB_OUTPUT
+          
+          echo "Scan summary"
+          echo "  verified: $VERIFIED_COUNT"
+          echo "  unverified: $UNVERIFIED_COUNT"
+          echo "  total: $((VERIFIED_COUNT + UNVERIFIED_COUNT))"
+          
+          # Determine if workflow should fail
+          SHOULD_FAIL=false
+          if [[ "${{ inputs.fail-on-verified }}" == "true" ]] && [[ $VERIFIED_COUNT -gt 0 ]]; then
+            SHOULD_FAIL=true
+            echo "Workflow marked as failed because verified secrets were found"
+          fi
+          if [[ "${{ inputs.fail-on-unverified }}" == "true" ]] && [[ $UNVERIFIED_COUNT -gt 0 ]]; then
+            SHOULD_FAIL=true
+            echo "Workflow marked as failed because unverified secrets were found"
+          fi
+          
+          # Set exit code for later steps
+          if [[ "$SHOULD_FAIL" == "true" ]]; then
+            echo "workflow-should-fail=true" >> $GITHUB_OUTPUT
           else
-            echo "✅ No secrets found by built-in detectors"
-            echo "secrets-found=false" >> $GITHUB_OUTPUT
+            echo "workflow-should-fail=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload results artifact
-        if: steps.scan.outputs.secrets-found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: trufflehog-builtin-results
-          path: builtin-results.json
-          retention-days: 30
-
-  custom-patterns:
-    needs: prepare-scan
-    if: inputs.unified-scan != 'true' && needs.prepare-scan.outputs.scan-count != '0'
-    runs-on: ubuntu-x64-small
-    outputs:
-      secrets-found: ${{ steps.patterns.outputs.secrets-found }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Run Grafana-specific pattern scan
-        id: patterns
-        env:
-          FILES_TO_SCAN: ${{ needs.prepare-scan.outputs.files-to-scan }}
+      - name: Process scan results for comments
+        id: process-results
+        if: always()
         run: |
-          echo "🔍 Running optimized Grafana-specific pattern scan..."
+          # Combine and process all results
+          echo "[]" > all-results.json
           
-          # Combined regex pattern for efficiency
-          GRAFANA_PATTERNS='(eyJrIjoi[A-Za-z0-9+/=]{40,}|glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}|glc_[A-Za-z0-9+/]{32,}={0,2}|(mysql|postgres|postgresql)://[^:\s]+:[^@\s]+@[^/\s]+/[^?\s]*grafana[^?\s]*|GF_SECURITY_SECRET_KEY\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{20,}["\'"'"']?|GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{8,}["\'"'"']?|GF_SMTP_PASSWORD\s*[=:]\s*["\'"'"']?[^"'\''\\s]{6,}["\'"'"']?|GF_AUTH_[A-Z_]*CLIENT_SECRET\s*[=:]\s*["\'"'"']?[A-Za-z0-9_-]{20,}["\'"'"']?|GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*["\'"'"']?[A-Za-z0-9+/=]{100,}["\'"'"']?)'
+          for result_file in commits-results.json filesystem-results.json; do
+            if [[ -f "$result_file" ]] && [[ -s "$result_file" ]]; then
+              # Merge results
+              jq -s 'add' all-results.json "$result_file" > temp-results.json
+              mv temp-results.json all-results.json
+            fi
+          done
           
-          # Prepare exclude arguments
-          EXCLUDE_ARGS="--exclude-dir=.git --exclude-dir=node_modules --exclude-dir=venv --exclude-dir=__pycache__ --exclude-dir=.pytest_cache --exclude-dir=dist --exclude-dir=build --exclude-dir=vendor"
+          # Create summary for comments
+          python3 << 'EOF'
+          import json
+          import os
+          from collections import defaultdict
           
-          # Run pattern scan with faster timeout
-          if [[ "$FILES_TO_SCAN" == "." ]]; then
-            RESULTS=$(timeout 60 grep -r -n -E "$GRAFANA_PATTERNS" . $EXCLUDE_ARGS 2>/dev/null || true)
-          else
-            RESULTS=$(timeout 30 grep -n -E "$GRAFANA_PATTERNS" $FILES_TO_SCAN 2>/dev/null || true)
-          fi
+          try:
+              with open('all-results.json', 'r') as f:
+                  results = json.load(f)
+          except:
+              results = []
           
-          if [[ -n "$RESULTS" ]]; then
-            echo "🚨 Grafana-specific secrets detected!"
-            echo "$RESULTS" > custom-results.txt
-            echo "secrets-found=true" >> $GITHUB_OUTPUT
-          else
-            echo "✅ No Grafana-specific secrets found"
-            echo "secrets-found=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload custom results artifact
-        if: steps.patterns.outputs.secrets-found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: trufflehog-custom-results
-          path: custom-results.txt
-          retention-days: 30
-
-  history-scan:
-    needs: prepare-scan
-    if: inputs.unified-scan != 'true' && inputs.history-scan == 'true'
-    runs-on: ubuntu-x64-small
-    outputs:
-      secrets-found: ${{ steps.history.outputs.secrets-found }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          fetch-depth: ${{ inputs.history-depth }}
-
-      - name: Cache Trufflehog binary
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/trufflehog
-          key: ${{ needs.prepare-scan.outputs.cache-key }}
-
-      - name: Install Trufflehog (if not cached)
-        run: |
-          if [ ! -f /usr/local/bin/trufflehog ]; then
-            echo "Installing TruffleHog..."
-            curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/0f58ae7c5036094a1e3e750d18772af92821b503/scripts/install.sh | sh -s -- -b /usr/local/bin
-          else
-            echo "Using cached TruffleHog binary"
-          fi
-          trufflehog --version
-
-      - name: Run TruffleHog git history scan
-        id: history
-        env:
-          HISTORY_DEPTH: ${{ inputs.history-depth }}
-          EXTRA_ARGS: ${{ inputs.extra_args }}
-        run: |
-          echo "🕰️ Running TruffleHog git history scan..."
-          echo "Scanning last $HISTORY_DEPTH commits"
+          # Group findings by file and line
+          findings_by_file = defaultdict(list)
+          summary_stats = {
+              'verified': 0,
+              'unverified': 0,
+              'total': 0,
+              'detectors': set()
+          }
           
-          # Scan git history
-          timeout 600 trufflehog git . \
-            --json \
-            --no-update \
-            --results=verified,unverified \
-            --no-verification \
-            --concurrency=4 \
-            --max-depth=$HISTORY_DEPTH \
-            $EXTRA_ARGS > history-results.json || {
-              EXIT_CODE=$?
-              if [[ $EXIT_CODE -eq 124 ]]; then
-                echo "⚠️ History scan timed out after 10 minutes"
-                echo '{"timeout": true, "message": "History scan timed out"}' > history-results.json
-              else
-                echo "History scan completed with exit code: $EXIT_CODE"
-              fi
-            }
+          for finding in results:
+              if not finding:
+                  continue
+                  
+              file_path = finding.get('SourceMetadata', {}).get('Data', {}).get('Filesystem', {}).get('file', 'unknown')
+              line_num = finding.get('SourceMetadata', {}).get('Data', {}).get('Filesystem', {}).get('line', 0)
+              
+              is_verified = finding.get('Verified', False)
+              detector = finding.get('DetectorName', 'unknown')
+              raw_secret = finding.get('Raw', '')
+              
+              # Mask the secret for display
+              if len(raw_secret) > 8:
+                  masked_secret = raw_secret[:4] + '***' + raw_secret[-4:]
+              else:
+                  masked_secret = '***'
+              
+              finding_info = {
+                  'line': line_num,
+                  'detector': detector,
+                  'verified': is_verified,
+                  'masked_secret': masked_secret,
+                  'severity': 'HIGH' if is_verified else 'MEDIUM'
+              }
+              
+              findings_by_file[file_path].append(finding_info)
+              
+              # Update summary
+              if is_verified:
+                  summary_stats['verified'] += 1
+              else:
+                  summary_stats['unverified'] += 1
+              summary_stats['total'] += 1
+              summary_stats['detectors'].add(detector)
           
-          # Check results
-          if [[ -s history-results.json ]] && grep -q '"Raw"' history-results.json; then
-            echo "🚨 Secrets found in git history!"
-            SECRET_COUNT=$(grep -c '"Raw"' history-results.json)
-            echo "Found $SECRET_COUNT potential secrets in commit history"
-            echo "secrets-found=true" >> $GITHUB_OUTPUT
-          else
-            echo "✅ No secrets found in git history"
-            echo "secrets-found=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload history results artifact
-        if: steps.history.outputs.secrets-found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: trufflehog-history-results
-          path: history-results.json
-          retention-days: 30
-
-  summarize-results:
-    needs: [prepare-scan, builtin-detectors, custom-patterns, history-scan]
-    if: inputs.unified-scan != 'true' && always() && (needs.prepare-scan.outputs.scan-count != '0' || inputs.history-scan == 'true')
-    runs-on: ubuntu-x64-small
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-        continue-on-error: true
-
-      - name: Generate security scan summary
-        env:
-          BUILTIN_FOUND: ${{ needs.builtin-detectors.outputs.secrets-found }}
-          CUSTOM_FOUND: ${{ needs.custom-patterns.outputs.secrets-found }}
-          HISTORY_FOUND: ${{ needs.history-scan.outputs.secrets-found }}
-          FAIL_ON_SECRETS: ${{ inputs.fail-on-secrets }}
-          HISTORY_ENABLED: ${{ inputs.history-scan }}
-        run: |
-          echo "📊 OPTIMIZED SECURITY SCAN SUMMARY"
-          echo "=================================="
-          echo ""
+          # Write summary
+          summary_stats['detectors'] = list(summary_stats['detectors'])
+          with open('scan-summary.json', 'w') as f:
+              json.dump(summary_stats, f, indent=2)
           
-          # Determine overall status
-          if [[ "$BUILTIN_FOUND" == "true" || "$CUSTOM_FOUND" == "true" || "$HISTORY_FOUND" == "true" ]]; then
-            OVERALL_STATUS="❌ FAILED"
-            echo "SECRETS_DETECTED=true" >> $GITHUB_ENV
-          else
-            OVERALL_STATUS="✅ PASSED"
-            echo "SECRETS_DETECTED=false" >> $GITHUB_ENV
-          fi
+          # Write findings by file
+          with open('findings-by-file.json', 'w') as f:
+              json.dump(dict(findings_by_file), f, indent=2)
           
-          echo "Overall Status: $OVERALL_STATUS"
-          echo ""
-          echo "Scan Results:"
-          echo "- Built-in detectors: $([[ "$BUILTIN_FOUND" == "true" ]] && echo "❌ secrets found" || echo "✅ clean")"
-          echo "- Custom patterns: $([[ "$CUSTOM_FOUND" == "true" ]] && echo "❌ secrets found" || echo "✅ clean")"
-          if [[ "$HISTORY_ENABLED" == "true" ]]; then
-            echo "- Git history: $([[ "$HISTORY_FOUND" == "true" ]] && echo "❌ secrets found" || echo "✅ clean")"
-          fi
-          echo ""
+          EOF
 
-      - name: Comment on PR with optimized results
-        if: github.event_name == 'pull_request'
+      - name: Post PR review comments
+        if: github.event_name == 'pull_request' && steps.scan.outputs.secrets-found == 'true'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             const fs = require('fs');
-            let findings = [];
-            let hasSecrets = false;
             
-            // Check built-in results
+            // Read findings
+            let findingsByFile = {};
             try {
-              const builtinPath = './artifacts/trufflehog-builtin-results/builtin-results.json';
-              if (fs.existsSync(builtinPath)) {
-                const builtinData = fs.readFileSync(builtinPath, 'utf8')
-                  .split('\n')
-                  .filter(Boolean)
-                  .slice(0, 5); // Limit to first 5 findings
-                
-                for (const line of builtinData) {
-                  try {
-                    const finding = JSON.parse(line);
-                    if (finding.Raw) {
-                      hasSecrets = true;
-                      const fileName = finding.SourceMetadata?.Data?.Filesystem?.file || 'unknown';
-                      const lineNum = finding.SourceMetadata?.Data?.Filesystem?.line || 'unknown';
-                      findings.push(`📁 **${fileName}:${lineNum}** - ${finding.DetectorName}`);
-                    }
-                  } catch (e) { continue; }
-                }
-              }
+              findingsByFile = JSON.parse(fs.readFileSync('findings-by-file.json', 'utf8'));
             } catch (e) {
-              console.log('No built-in results found');
+              console.log('No findings file found');
+              return;
             }
             
-            // Check custom results
-            try {
-              const customPath = './artifacts/trufflehog-custom-results/custom-results.txt';
-              if (fs.existsSync(customPath)) {
-                const customData = fs.readFileSync(customPath, 'utf8').trim();
-                if (customData) {
-                  hasSecrets = true;
-                  const lines = customData.split('\n').slice(0, 5);
-                  findings.push('🔍 **Custom Grafana Patterns:**');
-                  findings.push(...lines.map(line => `  ${line}`));
+            // Post review comments for each finding
+            for (const [filePath, findings] of Object.entries(findingsByFile)) {
+              for (const finding of findings) {
+                const severity = finding.verified ? 'Verified secret' : 'Possible secret';
+                const actionLine = finding.verified
+                  ? 'Remove the credential from version control and rotate it.'
+                  : 'Review this value and confirm whether it is a credential.';
+
+                const body = `${severity} detected by TruffleHog.
+
+Detector: ${finding.detector}
+Line: ${finding.line}
+Masked value: \`${finding.masked_secret}\`
+
+Next steps:
+- ${actionLine}
+- Suppress confirmed false positives in \`.trufflehog-allowlist.yml\`.
+- Prefer environment variables or a secrets manager for sensitive values.`;
+
+                try {
+                  await github.rest.pulls.createReviewComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.issue.number,
+                    commit_id: context.payload.pull_request.head.sha,
+                    path: filePath,
+                    line: finding.line,
+                    body: body
+                  });
+                } catch (error) {
+                  console.log(`Failed to comment on ${filePath}:${finding.line} - ${error.message}`);
+                  // Fallback to regular comment if review comment fails
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    body: `**Secret detected in ${filePath}:${finding.line}**\n\n${body}`
+                  });
                 }
               }
-            } catch (e) {
-              console.log('No custom results found');
             }
-            
-            // Create optimized comment
-            const body = hasSecrets
-              ? `🚨 **Security scan found ${findings.length} potential secret(s)**\n\n${findings.join('\n')}\n\n${findings.length >= 5 ? '_Showing first 5 findings. Download artifacts for complete results._' : ''}`
-              : "✅ **Optimized security scan completed** - no secrets detected.";
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body
-            });
 
-      - name: Final workflow status
-        env:
-          FAIL_ON_SECRETS: ${{ inputs.fail-on-secrets }}
-        run: |
-          if [[ "$SECRETS_DETECTED" == "true" && "$FAIL_ON_SECRETS" == "true" ]]; then
-            echo "❌ Workflow failed: Secrets detected!"
-            exit 1
-          else
-            echo "✅ Optimized workflow completed successfully"
-          fi
-
-  skip-scan:
-    needs: prepare-scan
-    if: inputs.unified-scan != 'true' && needs.prepare-scan.outputs.scan-count == '0'
-    runs-on: ubuntu-x64-small
-    steps:
-      - name: Skip scan notification
-        run: |
-          echo "⏭️ No relevant files changed - skipping security scan"
-          echo "This is an optimization to avoid unnecessary scans."
-
-      - name: Comment on PR about skipped scan
+      - name: Post PR summary comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            const fs = require('fs');
+
+            let summary = {verified: 0, unverified: 0, total: 0, detectors: []};
+            try {
+              summary = JSON.parse(fs.readFileSync('scan-summary.json', 'utf8'));
+            } catch (e) {
+              console.log('No summary file found');
+            }
+
+            const hasSecrets = summary.total > 0;
+            let body = 'TruffleHog scan completed.\n\n';
+
+            if (hasSecrets) {
+              body += `Findings:\n- verified: ${summary.verified}\n- unverified: ${summary.unverified}\n- detectors: ${summary.detectors.join(', ') || 'n/a'}\n\n`;
+              body += 'Review the inline comments for affected files. Confirm false positives in `.trufflehog-allowlist.yml` and rotate credentials where needed.';
+            } else {
+              body += 'No secrets detected in this change set.';
+            }
+
+            const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "⏭️ **Security scan skipped** - no relevant files were changed in this PR."
-            })
+              issue_number: context.issue.number
+            });
+
+            const existingComment = comments.data.find(comment =>
+              comment.body.startsWith('TruffleHog scan completed.') &&
+              comment.user.type === 'Bot'
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
+
+      - name: Upload scan artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trufflehog-scan-results
+          path: |
+            commits-results.json
+            filesystem-results.json
+            all-results.json
+            scan-summary.json
+            findings-by-file.json
+            custom-detectors.yml
+            exclude-patterns.txt
+          retention-days: 30
+
+      - name: Create check run
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require('fs');
+            
+            let summary = {verified: 0, unverified: 0, total: 0};
+            try {
+              summary = JSON.parse(fs.readFileSync('scan-summary.json', 'utf8'));
+            } catch (e) {
+              console.log('No summary file found');
+            }
+            
+            const conclusion = summary.total > 0 ? 'failure' : 'success';
+            const title = summary.total > 0 ? 
+              `Found ${summary.total} potential secrets (${summary.verified} verified)` :
+              'No secrets detected';
+            
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'TruffleHog Secret Scan',
+              head_sha: context.sha,
+              status: 'completed',
+              conclusion: conclusion,
+              output: {
+                title: title,
+                summary: `TruffleHog scanned for secrets and found ${summary.total} potential issues.`,
+                text: summary.total > 0 ? 
+                  `Verified secrets: ${summary.verified}\nUnverified secrets: ${summary.unverified}` :
+                  'No secrets were detected in this scan.'
+              }
+            });
+
+      - name: Fail workflow if needed
+        if: steps.scan.outputs.workflow-should-fail == 'true'
+        run: |
+          echo "❌ Workflow failed due to detected secrets"
+          echo "Verified secrets: ${{ steps.scan.outputs.verified-count }}"
+          echo "Unverified secrets: ${{ steps.scan.outputs.unverified-count }}"
+          exit 1
