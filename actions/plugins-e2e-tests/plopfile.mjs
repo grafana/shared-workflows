@@ -11,12 +11,44 @@ const DATASOURCES_YAML_FILE = path.join(
   process.cwd(),
   "./provisioning/datasources/default.yaml",
 );
+// TODO check how to get the uid from the provisioning api or call /api/datasources instead
+function getUid(dataSource, stackSlug) {
+  let uid = '';
+  switch (dataSource.type) {
+    case 'prometheus':
+      if (dataSource.name === `grafanacloud-${stackSlug}-prom`) {
+        uid = 'grafanacloud-prom';
+      }
+      break;
 
-function formatDataSource(dataSource) {
+    case 'loki':
+      if (dataSource.name === `grafanacloud-${stackSlug}-logs`) {
+        uid = 'grafanacloud-logs';
+      }
+      break;
+
+    case 'tempo':
+      if (dataSource.name === `grafanacloud-${stackSlug}-traces`) {
+        uid = 'grafanacloud-traces';
+      }
+      break;
+
+    case 'alertmanager':
+      if (dataSource.name === `grafanacloud-${stackSlug}-ngalertmanager`) {
+        uid = 'grafanacloud-ngalertmanager';
+      }
+      break;
+  }
+  return uid;
+}
+
+function formatDataSource(dataSource, stackSlug) {
   if (dataSource) {
+    const uid = !dataSource.uid ? getUid(dataSource, stackSlug) : dataSource.uid;
     return {
       name: dataSource.name,
       type: dataSource.type,
+      ...(uid && { uid }),
       url: dataSource.url,
       basicAuth: dataSource.basicAuth === 1 || dataSource.basicAuth === true,
       basicAuthUser: dataSource.basicAuthUser
@@ -147,7 +179,7 @@ async function fetchDataSource(stackSlug, env, datasourceName) {
     const dataSourceWithToken = await response.json();
     const dataSourceWithNoEmptyField =
       removeEmptyProperties(dataSourceWithToken);
-    return formatDataSource(dataSourceWithNoEmptyField);
+    return formatDataSource(dataSourceWithNoEmptyField, stackSlug);
   } catch (error) {
     console.error(
       "Error fetching datasource",

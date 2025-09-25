@@ -1,0 +1,23 @@
+services:
+  grafana:
+    environment:
+      - GF_PLUGINS_PREINSTALL_SYNC={{{GF_PLUGINS_PREINSTALL_SYNC}}}
+      - GF_GRAFANA_COM_SSO_API_TOKEN={{{GF_GRAFANA_COM_SSO_API_TOKEN}}}
+      - GF_GRAFANA_COM_URL={{{GF_GRAFANA_COM_URL}}}
+      - GF_GRAFANA_COM_API_URL={{{GF_GRAFANA_COM_API_URL}}}
+
+    container_name: '{{{GF_PLUGIN_ID}}}'
+    restart: on-failure
+    platform: 'linux/amd64'
+    build:
+      context: ./.config
+      args:
+        grafana_image: ${GRAFANA_IMAGE:-grafana-enterprise}
+        grafana_version: ${GRAFANA_VERSION:-main}
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/{{{GF_PLUGIN_ID}}}
+      - ./provisioning:/etc/grafana/provisioning
+      - ./provisioning/grafana.ini:/etc/grafana/grafana.ini
+      - ./provisioning/license.jwt:/etc/grafana/license.jwt
