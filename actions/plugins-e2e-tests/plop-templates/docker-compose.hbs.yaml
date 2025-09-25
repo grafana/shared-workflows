@@ -6,9 +6,9 @@ services:
       - GF_GRAFANA_COM_URL={{{GF_GRAFANA_COM_URL}}}
       - GF_GRAFANA_COM_API_URL={{{GF_GRAFANA_COM_API_URL}}}
 
-    container_name: '{{{GF_PLUGIN_ID}}}'
+    container_name: "{{{GF_PLUGIN_ID}}}"
     restart: on-failure
-    platform: 'linux/amd64'
+    platform: "linux/amd64"
     build:
       context: ./.config
       args:

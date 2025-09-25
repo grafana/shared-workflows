@@ -13,29 +13,29 @@ const DATASOURCES_YAML_FILE = path.join(
 );
 // TODO check how to get the uid from the provisioning api or call /api/datasources instead
 function getUid(dataSource, stackSlug) {
-  let uid = '';
+  let uid = "";
   switch (dataSource.type) {
-    case 'prometheus':
+    case "prometheus":
       if (dataSource.name === `grafanacloud-${stackSlug}-prom`) {
-        uid = 'grafanacloud-prom';
+        uid = "grafanacloud-prom";
       }
       break;
 
-    case 'loki':
+    case "loki":
       if (dataSource.name === `grafanacloud-${stackSlug}-logs`) {
-        uid = 'grafanacloud-logs';
+        uid = "grafanacloud-logs";
       }
       break;
 
-    case 'tempo':
+    case "tempo":
       if (dataSource.name === `grafanacloud-${stackSlug}-traces`) {
-        uid = 'grafanacloud-traces';
+        uid = "grafanacloud-traces";
       }
       break;
 
-    case 'alertmanager':
+    case "alertmanager":
       if (dataSource.name === `grafanacloud-${stackSlug}-ngalertmanager`) {
-        uid = 'grafanacloud-ngalertmanager';
+        uid = "grafanacloud-ngalertmanager";
       }
       break;
   }
@@ -44,7 +44,9 @@ function getUid(dataSource, stackSlug) {
 
 function formatDataSource(dataSource, stackSlug) {
   if (dataSource) {
-    const uid = !dataSource.uid ? getUid(dataSource, stackSlug) : dataSource.uid;
+    const uid = !dataSource.uid
+      ? getUid(dataSource, stackSlug)
+      : dataSource.uid;
     return {
       name: dataSource.name,
       type: dataSource.type,
