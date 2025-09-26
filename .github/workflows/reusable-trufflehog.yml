@@ -77,17 +77,17 @@ jobs:
               keywords:
                 - "glsa_"
               regex:
-                - 'glsa_[A-Za-z0-9]{32}_[a-fA-F0-9]{8}'
+                token: 'glsa_[A-Za-z0-9]{48}'
             - name: "grafana-api-key"  
               keywords:
                 - "eyJrIjoi"
               regex:
-                - 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
-            - name: "simple-test"
+                token: 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
+            - name: "grafana-sa-token-with-prefix"
               keywords:
                 - "GRAFANA_SA_TOKEN"
               regex:
-                - 'GRAFANA_SA_TOKEN=[A-Za-z0-9_]+'
+                token: 'GRAFANA_SA_TOKEN=glsa_[A-Za-z0-9]{48}'
           EOF
           
           echo "=== Custom detector config ==="
