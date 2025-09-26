@@ -77,7 +77,7 @@ jobs:
               keywords:
                 - "glsa_"
               regex:
-                token: 'glsa_[A-Za-z0-9]{48}'
+                token: 'glsa_[A-Za-z0-9]{40,50}'
             - name: "grafana-api-key"
               keywords:
                 - "eyJrIjoi"
@@ -87,7 +87,7 @@ jobs:
               keywords:
                 - "GRAFANA_SA_TOKEN"
               regex:
-                token: 'GRAFANA_SA_TOKEN=glsa_[A-Za-z0-9]{48}'
+                token: 'GRAFANA_SA_TOKEN=glsa_[A-Za-z0-9]{40,50}'
           EOF
 
           echo "=== Custom detector config ==="
