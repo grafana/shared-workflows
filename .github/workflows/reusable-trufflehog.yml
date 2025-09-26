@@ -340,6 +340,39 @@ jobs:
               }
             });
 
+      - name: Create TruffleHog scan artifact
+        run: |
+          # Create a comprehensive scan report
+          {
+            echo "TruffleHog Scan Report"
+            echo "====================="
+            echo "Scan Date: $(date)"
+            echo "Repository: ${{ github.repository }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "Commit: ${{ github.sha }}"
+            echo ""
+            echo "Summary:"
+            echo "- Total secrets found: ${{ steps.scan.outputs.total }}"
+            echo "- Verified secrets: ${{ steps.scan.outputs.verified }}"
+            echo "- Unverified secrets: ${{ steps.scan.outputs.unverified }}"
+            echo ""
+            echo "Detailed Results:"
+            echo "=================="
+            if [[ -f "all-results.json" && -s "all-results.json" ]]; then
+              jq -r '.[] | "- " + (if .Verified then "VERIFIED" else "Unverified" end) + " " + .DetectorName + " at " + ((.SourceMetadata?.Data?.Filesystem?.file // .SourceMetadata?.Data?.Git?.file) // "unknown") + ":" + ((.SourceMetadata?.Data?.Filesystem?.line // .SourceMetadata?.Data?.Git?.line) | tostring) + " → " + (if (.Raw | length) > 8 then (.Raw[:4] + "***" + .Raw[-4:]) else "***" end)' all-results.json || echo "No detailed results available"
+            else
+              echo "No secrets detected"
+            fi
+          } > trufflehog_scan.txt
+
+      - name: Upload TruffleHog scan results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trufflehog_scan
+          path: trufflehog_scan.txt
+          retention-days: 30
+
       - name: Fail workflow based on secret detection policy (verified/unverified thresholds)
         env:
           VERIFIED_COUNT: ${{ steps.scan.outputs.verified }}
