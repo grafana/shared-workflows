@@ -16,7 +16,7 @@ on:
       scan-type:
         description: "Scan type: commits, filesystem, or both"
         required: false
-        default: "both"
+        default: "filesystem"
         type: string
       scan-scope:
         description: "Scan scope: changed-files, full-repo, or both"
