@@ -220,14 +220,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `${severity} **TruffleHog Scan Results**
-
-**Summary:** Found ${results.length} potential secrets (${verified} verified, ${unverified} unverified)
-
-${findings}
-
-${verified > 0 ? "**ACTION REQUIRED:** Rotate verified credentials immediately." : "**Review:** Check if unverified secrets are false positives."}
-`
+              body: `${severity} **TruffleHog Scan Results**\n\n**Summary:** Found ${results.length} potential secrets (${verified} verified, ${unverified} unverified)\n\n${findings}\n\n${verified > 0 ? "**ACTION REQUIRED:** Rotate verified credentials immediately." : "**Review:** Check if unverified secrets are false positives."}`
             });
 
       - name: Create Check Status
