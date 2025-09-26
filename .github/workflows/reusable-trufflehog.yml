@@ -57,9 +57,9 @@ jobs:
           DEFAULT_VERSION: ${{ env.TRUFFLEHOG_VERSION }}
         run: |
           if [ -n "${INPUT_VERSION}" ]; then
-            echo "version=${INPUT_VERSION}" >> $GITHUB_OUTPUT
+            echo "version=${INPUT_VERSION}" >> "${GITHUB_OUTPUT}"
           else
-            echo "version=v${DEFAULT_VERSION}" >> $GITHUB_OUTPUT
+            echo "version=v${DEFAULT_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Install TruffleHog
@@ -154,33 +154,39 @@ jobs:
           fi
 
           # Changed files scanning (PR only)
-          if [[ "${EVENT_NAME}" == "pull_request" && ("${SCAN_SCOPE}" == "changed-files" || "${SCAN_SCOPE}" == "both") ]]; then
-            if [[ -s "changed-files.txt" ]]; then
-              echo "Scanning changed files..."
-              echo "[]" > changed-files-results.json
-              while IFS= read -r file; do
-                if [[ -f "$file" ]]; then
-                  echo "Scanning: $file"
-                  trufflehog filesystem "$file" \
-                    --json \
-                    --no-update \
-                    --config=trufflehog-config.yml \
-                    | jq -s 'add' changed-files-results.json - > tmp.json && mv tmp.json changed-files-results.json || true
-                fi
-              done < changed-files.txt
-            else
-              echo "No changed files to scan"
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            if [[ "${SCAN_SCOPE}" == "changed-files" || "${SCAN_SCOPE}" == "both" ]]; then
+              if [[ -s "changed-files.txt" ]]; then
+                echo "Scanning changed files..."
+                echo "[]" > changed-files-results.json
+                while IFS= read -r file; do
+                  if [[ -f "${file}" ]]; then
+                    echo "Scanning: ${file}"
+                    if trufflehog filesystem "${file}" \
+                        --json \
+                        --no-update \
+                        --config=trufflehog-config.yml \
+                        | jq -s 'add' changed-files-results.json - > tmp.json; then
+                      mv tmp.json changed-files-results.json
+                    fi
+                  fi
+                done < changed-files.txt
+              else
+                echo "No changed files to scan"
+              fi
             fi
           fi
 
           # Merge all results
           echo "Merging scan results..."
-          for f in commit-results.json fs-results.json changed-files-results.json; do
-            if [[ -s "$f" ]]; then
-              echo "Merging results from $f"
-              jq -s 'add' all-results.json "$f" > tmp.json && mv tmp.json all-results.json
-            fi
-          done
+          {
+            for f in commit-results.json fs-results.json changed-files-results.json; do
+              if [[ -s "${f}" ]]; then
+                echo "Merging results from ${f}"
+                jq -s 'add' all-results.json "${f}" > tmp.json && mv tmp.json all-results.json
+              fi
+            done
+          }
 
           # Count results
           VERIFIED=$(jq '[.[] | select(.Verified==true)] | length' all-results.json)
@@ -188,13 +194,15 @@ jobs:
           TOTAL=$((VERIFIED+UNVERIFIED))
 
           echo "Scan Summary:"
-          echo "Verified secrets: $VERIFIED"
-          echo "Unverified secrets: $UNVERIFIED"
-          echo "Total findings: $TOTAL"
+          echo "Verified secrets: ${VERIFIED}"
+          echo "Unverified secrets: ${UNVERIFIED}"
+          echo "Total findings: ${TOTAL}"
 
-          echo "verified=$VERIFIED" >> $GITHUB_OUTPUT
-          echo "unverified=$UNVERIFIED" >> $GITHUB_OUTPUT
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          {
+            echo "verified=${VERIFIED}"
+            echo "unverified=${UNVERIFIED}"
+            echo "total=${TOTAL}"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
