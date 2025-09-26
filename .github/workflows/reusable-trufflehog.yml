@@ -279,7 +279,7 @@ jobs:
 
             {
               echo 'body<<EOF'
-              echo "${SEVERITY} **TruffleHog Scan Results**"
+              echo "**TruffleHog Scan Results**"
               echo ''
               echo "**Summary:** Found ${TOTAL} potential secrets (${VERIFIED} verified, ${UNVERIFIED} unverified)"
               echo ''
