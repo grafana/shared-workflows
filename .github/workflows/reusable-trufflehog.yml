@@ -68,7 +68,7 @@ jobs:
             | sh -s -- -b /usr/local/bin "${{ steps.version.outputs.version }}"
           trufflehog --version
 
-      - name: Create custom detectors config  
+      - name: Create custom detectors config
         run: |
           cat > trufflehog-config.yml <<'EOF'
           # Custom detectors for Grafana secrets
@@ -89,7 +89,7 @@ jobs:
               regex:
                 token: 'GRAFANA_SA_TOKEN=glsa_[A-Za-z0-9]{48}'
           EOF
-          
+
           echo "=== Custom detector config ==="
           cat trufflehog-config.yml
           echo "=============================="
@@ -186,14 +186,14 @@ jobs:
 
           # Merge all results - TruffleHog outputs newline-delimited JSON (NDJSON)
           echo "Merging scan results..."
-          > all-results.ndjson  # Create empty file
+          touch all-results.ndjson  # Create empty file
           for f in commit-results-basic.json commit-results.json fs-results.json changed-files-results.json; do
             if [[ -s "${f}" ]]; then
               echo "Merging results from ${f}"
               cat "${f}" >> all-results.ndjson
             fi
           done
-          
+
           # Convert NDJSON to JSON array for processing
           if [[ -s all-results.ndjson ]]; then
             jq -s '.' all-results.ndjson > all-results.json
