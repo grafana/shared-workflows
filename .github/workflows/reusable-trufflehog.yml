@@ -68,41 +68,31 @@ jobs:
             | sh -s -- -b /usr/local/bin "${{ steps.version.outputs.version }}"
           trufflehog --version
 
-      - name: Create Grafana custom detectors config
+      - name: Create custom detectors config  
         run: |
           cat > trufflehog-config.yml <<'EOF'
+          # Custom detectors for Grafana secrets
           detectors:
-            - name: grafana-api-key
+            - name: "grafana-service-account"
               keywords:
-                - eyJrIjoi
+                - "glsa_"
               regex:
-                api_key: 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
-            - name: grafana-service-account
+                - 'glsa_[A-Za-z0-9]{32}_[a-fA-F0-9]{8}'
+            - name: "grafana-api-key"  
               keywords:
-                - glsa_
+                - "eyJrIjoi"
               regex:
-                service_account: 'glsa_[A-Za-z0-9]{32}_[a-fA-F0-9]{8}'
-            - name: grafana-cloud-token
+                - 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
+            - name: "simple-test"
               keywords:
-                - glc_
+                - "GRAFANA_SA_TOKEN"
               regex:
-                cloud_token: 'glc_[A-Za-z0-9+/]{32,}={0,2}'
-            - name: grafana-admin-password
-              keywords:
-                - GF_SECURITY_ADMIN_PASSWORD
-              regex:
-                admin_pass: 'GF_SECURITY_ADMIN_PASSWORD\s*[=:]\s*[^ \t\n]+'
-            - name: grafana-smtp-password
-              keywords:
-                - GF_SMTP_PASSWORD
-              regex:
-                smtp_pass: 'GF_SMTP_PASSWORD\s*[=:]\s*[^ \t\n]+'
-            - name: grafana-license
-              keywords:
-                - GF_ENTERPRISE_LICENSE_TEXT
-              regex:
-                license: 'GF_ENTERPRISE_LICENSE_TEXT\s*[=:]\s*[A-Za-z0-9+/=]{100,}'
+                - 'GRAFANA_SA_TOKEN=[A-Za-z0-9_]+'
           EOF
+          
+          echo "=== Custom detector config ==="
+          cat trufflehog-config.yml
+          echo "=============================="
 
       - name: Get changed files for PR
         id: changed-files
@@ -133,11 +123,31 @@ jobs:
 
             if [[ "${SCAN_TYPE}" == "commits" || "${SCAN_TYPE}" == "both" ]]; then
               echo "Scanning git commit history..."
+              echo "=== TruffleHog command ==="
+              echo "trufflehog git file://. --json --no-update --config=trufflehog-config.yml"
+              
+              # Test without custom detectors first
+              echo "=== Testing without custom detectors ==="
+              trufflehog git file://. \
+                --json \
+                --no-update \
+                > commit-results-basic.json || true
+              
+              echo "Basic scan results:"
+              wc -l commit-results-basic.json || echo "No basic results"
+              
+              # Test with custom detectors
+              echo "=== Testing with custom detectors ==="
               trufflehog git file://. \
                 --json \
                 --no-update \
                 --config=trufflehog-config.yml \
                 > commit-results.json || true
+                
+              echo "=== Raw results ==="
+              head -20 commit-results.json || echo "No results file"
+              echo "=== Results file size ==="
+              wc -l commit-results.json || echo "No results file"
             fi
 
             if [[ "${SCAN_TYPE}" == "filesystem" || "${SCAN_TYPE}" == "both" ]]; then
@@ -177,7 +187,7 @@ jobs:
           # Merge all results - TruffleHog outputs newline-delimited JSON (NDJSON)
           echo "Merging scan results..."
           > all-results.ndjson  # Create empty file
-          for f in commit-results.json fs-results.json changed-files-results.json; do
+          for f in commit-results-basic.json commit-results.json fs-results.json changed-files-results.json; do
             if [[ -s "${f}" ]]; then
               echo "Merging results from ${f}"
               cat "${f}" >> all-results.ndjson
