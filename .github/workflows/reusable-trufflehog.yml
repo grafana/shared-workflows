@@ -71,7 +71,7 @@ jobs:
       - name: Create custom detectors config
         run: |
           cat > trufflehog-config.yml <<'EOF'
-          # Custom detectors for Grafana secrets
+          # Custom detectors for Grafana secrets and service account tokens
           detectors:
             - name: "grafana-service-account"
               keywords:
