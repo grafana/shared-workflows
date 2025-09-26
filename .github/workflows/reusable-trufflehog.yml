@@ -220,49 +220,9 @@ jobs:
       - name: Hide any previous TruffleHog comments
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
-        env:
-          WORKFLOW_NAME: ${{ github.workflow }}
-          JOB_NAME: ${{ github.job }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: int128/hide-comment-action@a30d551065e4231e6d7a671bb5ce884f9ee6417b # v1.43.0
         with:
-          github-token: ${{ github.token }}
-          script: |
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-
-            try {
-              const { data: comments } = await github.rest.issues.listComments({
-                owner,
-                repo,
-                issue_number,
-              });
-
-              // Find and hide all comments that contain "TruffleHog Scan Results"
-              for (const comment of comments) {
-                if (comment.body.includes('TruffleHog Scan Results') ||
-                    comment.body.includes('trufflehog-scan-comment') ||
-                    comment.body.includes('**TruffleHog Scan Results**')) {
-                  console.log(`Hiding comment ${comment.id}`);
-
-                  // Update comment to be minimized/hidden by adding minimized markdown
-                  const hiddenBody = `<details>\n<summary>Previous TruffleHog scan results (click to expand)</summary>\n\n${comment.body}\n</details>`;
-
-                  await github.rest.issues.updateComment({
-                    owner,
-                    repo,
-                    comment_id: comment.id,
-                    body: hiddenBody
-                  });
-                }
-              }
-
-              // Set output for compatibility with int128/comment-action
-              core.setOutput('ends-with', `<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`);
-            } catch (error) {
-              console.log('Error hiding comments:', error.message);
-              // Set output anyway for compatibility
-              core.setOutput('ends-with', `<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`);
-            }
+          ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Generate TruffleHog comment body
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
