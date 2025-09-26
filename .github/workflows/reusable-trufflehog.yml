@@ -341,20 +341,27 @@ jobs:
             });
 
       - name: Create TruffleHog scan artifact
+        env:
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+          TOTAL_SECRETS: ${{ steps.scan.outputs.total }}
+          VERIFIED_SECRETS: ${{ steps.scan.outputs.verified }}
+          UNVERIFIED_SECRETS: ${{ steps.scan.outputs.unverified }}
         run: |
           # Create a comprehensive scan report
           {
             echo "TruffleHog Scan Report"
             echo "====================="
             echo "Scan Date: $(date)"
-            echo "Repository: ${{ github.repository }}"
-            echo "Branch: ${{ github.ref_name }}"
-            echo "Commit: ${{ github.sha }}"
+            echo "Repository: ${REPOSITORY}"
+            echo "Branch: ${BRANCH}"
+            echo "Commit: ${COMMIT}"
             echo ""
             echo "Summary:"
-            echo "- Total secrets found: ${{ steps.scan.outputs.total }}"
-            echo "- Verified secrets: ${{ steps.scan.outputs.verified }}"
-            echo "- Unverified secrets: ${{ steps.scan.outputs.unverified }}"
+            echo "- Total secrets found: ${TOTAL_SECRETS}"
+            echo "- Verified secrets: ${VERIFIED_SECRETS}"
+            echo "- Unverified secrets: ${UNVERIFIED_SECRETS}"
             echo ""
             echo "Detailed Results:"
             echo "=================="
