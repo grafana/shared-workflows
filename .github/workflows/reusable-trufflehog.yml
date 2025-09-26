@@ -220,6 +220,9 @@ jobs:
       - name: Hide any previous TruffleHog comments
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          JOB_NAME: ${{ github.job }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           github-token: ${{ github.token }}
@@ -254,11 +257,11 @@ jobs:
               }
 
               // Set output for compatibility with int128/comment-action
-              core.setOutput('ends-with', '<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->');
+              core.setOutput('ends-with', `<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`);
             } catch (error) {
               console.log('Error hiding comments:', error.message);
               // Set output anyway for compatibility
-              core.setOutput('ends-with', '<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->');
+              core.setOutput('ends-with', `<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`);
             }
 
       - name: Generate TruffleHog comment body
