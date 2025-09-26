@@ -247,15 +247,15 @@ jobs:
           No secrets detected in this PR.' >> "$GITHUB_OUTPUT"
           else
             # Generate findings list
-            FINDINGS=$(jq -r '.[] | 
-              "- " + 
-              (if .Verified then "**VERIFIED SECRET**" else "**Possible secret**" end) + 
-              " (" + .DetectorName + ") at `" + 
-              ((.SourceMetadata?.Data?.Filesystem?.file // .SourceMetadata?.Data?.Git?.file) // "unknown") + 
-              ":" + 
-              ((.SourceMetadata?.Data?.Filesystem?.line // .SourceMetadata?.Data?.Git?.line) | tostring) + 
-              "` → `" + 
-              (if (.Raw | length) > 8 then (.Raw[:4] + "***" + .Raw[-4:]) else "***" end) + 
+            FINDINGS=$(jq -r '.[] |
+              "- " +
+              (if .Verified then "**VERIFIED SECRET**" else "**Possible secret**" end) +
+              " (" + .DetectorName + ") at `" +
+              ((.SourceMetadata?.Data?.Filesystem?.file // .SourceMetadata?.Data?.Git?.file) // "unknown") +
+              ":" +
+              ((.SourceMetadata?.Data?.Filesystem?.line // .SourceMetadata?.Data?.Git?.line) | tostring) +
+              "` → `" +
+              (if (.Raw | length) > 8 then (.Raw[:4] + "***" + .Raw[-4:]) else "***" end) +
               "`"' all-results.json)
 
             SEVERITY=""
