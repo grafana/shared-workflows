@@ -220,61 +220,74 @@ jobs:
       - name: Hide any previous TruffleHog comments
         if: github.event_name == 'pull_request'
         id: hide-comments
-        env:
-          WORKFLOW_NAME: ${{ github.workflow }}
-          JOB_NAME: ${{ github.job }}
         uses: int128/hide-comment-action@a30d551065e4231e6d7a671bb5ce884f9ee6417b # v1.43.0
         with:
-          ends-with: "<!-- comment-action/${{ env.WORKFLOW_NAME }}/${{ env.JOB_NAME }} -->"
+          ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
+
+      - name: Generate TruffleHog comment body
+        if: github.event_name == 'pull_request'
+        id: comment-body
+        run: |
+          if [[ ! -f "all-results.json" || ! -s "all-results.json" ]]; then
+            echo "No results file found"
+            echo 'body=**TruffleHog Scan Results**
+
+          No secrets detected in this PR.' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Parse results
+          VERIFIED=$(jq '[.[] | select(.Verified==true)] | length' all-results.json)
+          UNVERIFIED=$(jq '[.[] | select(.Verified==false)] | length' all-results.json)
+          TOTAL=$((VERIFIED+UNVERIFIED))
+
+          if [[ $TOTAL -eq 0 ]]; then
+            echo 'body=**TruffleHog Scan Results**
+
+          No secrets detected in this PR.' >> "$GITHUB_OUTPUT"
+          else
+            # Generate findings list
+            FINDINGS=$(jq -r '.[] | 
+              "- " + 
+              (if .Verified then "**VERIFIED SECRET**" else "**Possible secret**" end) + 
+              " (" + .DetectorName + ") at `" + 
+              ((.SourceMetadata?.Data?.Filesystem?.file // .SourceMetadata?.Data?.Git?.file) // "unknown") + 
+              ":" + 
+              ((.SourceMetadata?.Data?.Filesystem?.line // .SourceMetadata?.Data?.Git?.line) | tostring) + 
+              "` → `" + 
+              (if (.Raw | length) > 8 then (.Raw[:4] + "***" + .Raw[-4:]) else "***" end) + 
+              "`"' all-results.json)
+
+            SEVERITY=""
+            if [[ $VERIFIED -gt 0 ]]; then
+              SEVERITY="**CRITICAL**"
+            else
+              SEVERITY="**WARNING**"
+            fi
+
+            ACTION_TEXT=""
+            if [[ $VERIFIED -gt 0 ]]; then
+              ACTION_TEXT="**ACTION REQUIRED:** Rotate verified credentials immediately."
+            else
+              ACTION_TEXT="**Review:** Check if unverified secrets are false positives."
+            fi
+
+            echo "body=${SEVERITY} **TruffleHog Scan Results**
+
+          **Summary:** Found ${TOTAL} potential secrets (${VERIFIED} verified, ${UNVERIFIED} unverified)
+
+          ${FINDINGS}
+
+          ${ACTION_TEXT}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        env:
-          WORKFLOW_NAME: ${{ github.workflow }}
-          JOB_NAME: ${{ github.job }}
+        uses: int128/comment-action@f4faf53666ef83da7d274fa2007e9212c4d719c3 # v1.39.0
         with:
-          github-token: ${{ github.token }}
-          script: |
-            const fs = require('fs');
-            let results = [];
-            try {
-              const data = fs.readFileSync('all-results.json', 'utf8');
-              results = JSON.parse(data);
-            } catch(e) {
-              console.log('No results file or parsing error:', e.message);
-            }
-
-            if (results.length === 0) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: `**TruffleHog Scan Results**\n\nNo secrets detected in this PR.\n\n<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`
-              });
-              return;
-            }
-
-            const findings = results.map(r => {
-              const file = r.SourceMetadata?.Data?.Filesystem?.file || r.SourceMetadata?.Data?.Git?.file || "unknown";
-              const line = r.SourceMetadata?.Data?.Filesystem?.line || r.SourceMetadata?.Data?.Git?.line || "?";
-              const detector = r.DetectorName || "unknown";
-              const raw = r.Raw || "";
-              const masked = raw.length > 8 ? raw.slice(0,4) + "***" + raw.slice(-4) : "***";
-              const status = r.Verified ? "**VERIFIED SECRET**" : "**Possible secret**";
-              return `- ${status} (${detector}) at \`${file}:${line}\` → \`${masked}\``;
-            }).join("\n");
-
-            const verified = results.filter(r => r.Verified).length;
-            const unverified = results.filter(r => !r.Verified).length;
-
-            const severity = verified > 0 ? "**CRITICAL**" : "**WARNING**";
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `${severity} **TruffleHog Scan Results**\n\n**Summary:** Found ${results.length} potential secrets (${verified} verified, ${unverified} unverified)\n\n${findings}\n\n${verified > 0 ? "**ACTION REQUIRED:** Rotate verified credentials immediately." : "**Review:** Check if unverified secrets are false positives."}\n\n<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`
-            });
+          post: |
+            ${{ steps.comment-body.outputs.body }}
+            ${{ steps.hide-comments.outputs.ends-with }}
 
       - name: Create Check Status
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
