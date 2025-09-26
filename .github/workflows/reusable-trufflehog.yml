@@ -70,28 +70,14 @@ jobs:
 
       - name: Create custom detectors config
         run: |
-          cat > trufflehog-config.yml <<'EOF'
-          # Custom detectors for Grafana secrets and service account tokens
-          detectors:
-            - name: "grafana-service-account"
-              keywords:
-                - "glsa_"
-              regex:
-                token: 'glsa_[A-Za-z0-9]{40,50}'
-            - name: "grafana-api-key"
-              keywords:
-                - "eyJrIjoi"
-              regex:
-                token: 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
-            - name: "grafana-sa-token-with-prefix"
-              keywords:
-                - "GRAFANA_SA_TOKEN"
-              regex:
-                token: 'GRAFANA_SA_TOKEN=glsa_[A-Za-z0-9]{40,50}'
-          EOF
+          # No custom detector config needed - using TruffleHog's built-in detectors
+          # Built-in detectors include:
+          # - Grafana: For Grafana API keys
+          # - GrafanaServiceAccount: For service account tokens (glsa_)
+          echo "Using TruffleHog's built-in Grafana detectors"
 
-          echo "=== Custom detector config ==="
-          cat trufflehog-config.yml
+          echo "=== Using built-in detectors ==="
+          echo "TruffleHog will use built-in Grafana and GrafanaServiceAccount detectors"
           echo "=============================="
 
       - name: Get changed files for PR
@@ -136,12 +122,11 @@ jobs:
               echo "Basic scan results:"
               wc -l commit-results-basic.json || echo "No basic results"
 
-              # Test with custom detectors
-              echo "=== Testing with custom detectors ==="
+              # Test with built-in detectors
+              echo "=== Testing with built-in detectors ==="
               trufflehog git file://. \
                 --json \
                 --no-update \
-                --config=trufflehog-config.yml \
                 > commit-results.json || true
 
               echo "=== Raw results ==="
@@ -155,7 +140,6 @@ jobs:
               trufflehog filesystem . \
                 --json \
                 --no-update \
-                --config=trufflehog-config.yml \
                 > fs-results.json || true
             fi
           fi
@@ -172,7 +156,6 @@ jobs:
                     if trufflehog filesystem "${file}" \
                         --json \
                         --no-update \
-                        --config=trufflehog-config.yml \
                         | jq -s 'add' changed-files-results.json - > tmp.json; then
                       mv tmp.json changed-files-results.json
                     fi
