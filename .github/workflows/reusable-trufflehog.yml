@@ -174,16 +174,22 @@ jobs:
             fi
           fi
 
-          # Merge all results
+          # Merge all results - TruffleHog outputs newline-delimited JSON (NDJSON)
           echo "Merging scan results..."
-          {
-            for f in commit-results.json fs-results.json changed-files-results.json; do
-              if [[ -s "${f}" ]]; then
-                echo "Merging results from ${f}"
-                jq -s 'add' all-results.json "${f}" > tmp.json && mv tmp.json all-results.json
-              fi
-            done
-          }
+          > all-results.ndjson  # Create empty file
+          for f in commit-results.json fs-results.json changed-files-results.json; do
+            if [[ -s "${f}" ]]; then
+              echo "Merging results from ${f}"
+              cat "${f}" >> all-results.ndjson
+            fi
+          done
+          
+          # Convert NDJSON to JSON array for processing
+          if [[ -s all-results.ndjson ]]; then
+            jq -s '.' all-results.ndjson > all-results.json
+          else
+            echo "[]" > all-results.json
+          fi
 
           # Count results
           VERIFIED=$(jq '[.[] | select(.Verified==true)] | length' all-results.json)
