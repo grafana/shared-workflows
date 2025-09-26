@@ -74,22 +74,19 @@ jobs:
           detectors:
             - name: grafana-api-key
               keywords:
-                - grafana
                 - eyJrIjoi
               regex:
-                key: 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
+                api_key: 'eyJrIjoi[A-Za-z0-9+/=]{40,}'
             - name: grafana-service-account
               keywords:
                 - glsa_
-                - grafana
               regex:
-                sa: 'glsa_[A-Za-z0-9]{32}_[A-Fa-f0-9]{8}'
+                service_account: 'glsa_[A-Za-z0-9]{32}_[a-fA-F0-9]{8}'
             - name: grafana-cloud-token
               keywords:
                 - glc_
-                - grafana
               regex:
-                cloud: 'glc_[A-Za-z0-9+/]{32,}={0,2}'
+                cloud_token: 'glc_[A-Za-z0-9+/]{32,}={0,2}'
             - name: grafana-admin-password
               keywords:
                 - GF_SECURITY_ADMIN_PASSWORD
