@@ -230,9 +230,13 @@ jobs:
         run: |
           if [[ ! -f "all-results.json" || ! -s "all-results.json" ]]; then
             echo "No results file found"
-            echo 'body=**TruffleHog Scan Results**
-
-          No secrets detected in this PR.' >> "$GITHUB_OUTPUT"
+            {
+              echo 'body<<EOF'
+              echo '**TruffleHog Scan Results**'
+              echo ''
+              echo 'No secrets detected in this PR.'
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -242,20 +246,24 @@ jobs:
           TOTAL=$((VERIFIED+UNVERIFIED))
 
           if [[ $TOTAL -eq 0 ]]; then
-            echo 'body=**TruffleHog Scan Results**
-
-          No secrets detected in this PR.' >> "$GITHUB_OUTPUT"
+            {
+              echo 'body<<EOF'
+              echo '**TruffleHog Scan Results**'
+              echo ''
+              echo 'No secrets detected in this PR.'
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
           else
             # Generate findings list
-            FINDINGS=$(jq -r '.[] |
-              "- " +
-              (if .Verified then "**VERIFIED SECRET**" else "**Possible secret**" end) +
-              " (" + .DetectorName + ") at `" +
-              ((.SourceMetadata?.Data?.Filesystem?.file // .SourceMetadata?.Data?.Git?.file) // "unknown") +
-              ":" +
-              ((.SourceMetadata?.Data?.Filesystem?.line // .SourceMetadata?.Data?.Git?.line) | tostring) +
-              "` → `" +
-              (if (.Raw | length) > 8 then (.Raw[:4] + "***" + .Raw[-4:]) else "***" end) +
+            FINDINGS=$(jq -r '.[] | 
+              "- " + 
+              (if .Verified then "**VERIFIED SECRET**" else "**Possible secret**" end) + 
+              " (" + .DetectorName + ") at `" + 
+              ((.SourceMetadata?.Data?.Filesystem?.file // .SourceMetadata?.Data?.Git?.file) // "unknown") + 
+              ":" + 
+              ((.SourceMetadata?.Data?.Filesystem?.line // .SourceMetadata?.Data?.Git?.line) | tostring) + 
+              "` → `" + 
+              (if (.Raw | length) > 8 then (.Raw[:4] + "***" + .Raw[-4:]) else "***" end) + 
               "`"' all-results.json)
 
             SEVERITY=""
@@ -272,13 +280,17 @@ jobs:
               ACTION_TEXT="**Review:** Check if unverified secrets are false positives."
             fi
 
-            echo "body=${SEVERITY} **TruffleHog Scan Results**
-
-          **Summary:** Found ${TOTAL} potential secrets (${VERIFIED} verified, ${UNVERIFIED} unverified)
-
-          ${FINDINGS}
-
-          ${ACTION_TEXT}" >> "$GITHUB_OUTPUT"
+            {
+              echo 'body<<EOF'
+              echo "${SEVERITY} **TruffleHog Scan Results**"
+              echo ''
+              echo "**Summary:** Found ${TOTAL} potential secrets (${VERIFIED} verified, ${UNVERIFIED} unverified)"
+              echo ''
+              echo "${FINDINGS}"
+              echo ''
+              echo "${ACTION_TEXT}"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Comment on PR
