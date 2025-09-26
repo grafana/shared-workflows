@@ -241,9 +241,8 @@ jobs:
 
             const verified = results.filter(r => r.Verified).length;
             const unverified = results.filter(r => !r.Verified).length;
-            
+
             const severity = verified > 0 ? "**CRITICAL**" : "**WARNING**";
-            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -301,15 +300,15 @@ jobs:
           FAIL_ON_UNVERIFIED: ${{ inputs.fail-on-unverified }}
         run: |
           SHOULD_FAIL=false
-          
+
           if [[ "${FAIL_ON_VERIFIED}" == "true" && "${VERIFIED_COUNT}" != "0" ]]; then
             SHOULD_FAIL=true
           fi
-          
+
           if [[ "${FAIL_ON_UNVERIFIED}" == "true" && "${UNVERIFIED_COUNT}" != "0" ]]; then
             SHOULD_FAIL=true
           fi
-          
+
           if [[ "${SHOULD_FAIL}" == "true" ]]; then
             echo "Workflow failed due to secrets found"
             echo "Verified secrets: ${VERIFIED_COUNT}"
