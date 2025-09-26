@@ -220,13 +220,19 @@ jobs:
       - name: Hide any previous TruffleHog comments
         if: github.event_name == 'pull_request'
         id: hide-comments
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          JOB_NAME: ${{ github.job }}
         uses: int128/hide-comment-action@a30d551065e4231e6d7a671bb5ce884f9ee6417b # v1.43.0
         with:
-          ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
+          ends-with: "<!-- comment-action/${{ env.WORKFLOW_NAME }}/${{ env.JOB_NAME }} -->"
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          JOB_NAME: ${{ github.job }}
         with:
           github-token: ${{ github.token }}
           script: |
@@ -244,7 +250,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: "**TruffleHog Scan Results**\n\nNo secrets detected in this PR.\n\n<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
+                body: `**TruffleHog Scan Results**\n\nNo secrets detected in this PR.\n\n<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`
               });
               return;
             }
@@ -267,7 +273,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `${severity} **TruffleHog Scan Results**\n\n**Summary:** Found ${results.length} potential secrets (${verified} verified, ${unverified} unverified)\n\n${findings}\n\n${verified > 0 ? "**ACTION REQUIRED:** Rotate verified credentials immediately." : "**Review:** Check if unverified secrets are false positives."}\n\n<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->`
+              body: `${severity} **TruffleHog Scan Results**\n\n**Summary:** Found ${results.length} potential secrets (${verified} verified, ${unverified} unverified)\n\n${findings}\n\n${verified > 0 ? "**ACTION REQUIRED:** Rotate verified credentials immediately." : "**Review:** Check if unverified secrets are false positives."}\n\n<!-- comment-action/${process.env.WORKFLOW_NAME}/${process.env.JOB_NAME} -->`
             });
 
       - name: Create Check Status
