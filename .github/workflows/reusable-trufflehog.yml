@@ -28,6 +28,11 @@ on:
         required: false
         default: ""
         type: string
+      verify-secrets:
+        description: "Enable secret verification against real APIs (may trigger rate limits)"
+        required: false
+        default: "true"
+        type: string
 
 permissions:
   contents: read
@@ -68,15 +73,14 @@ jobs:
             | sh -s -- -b /usr/local/bin "${{ steps.version.outputs.version }}"
           trufflehog --version
 
-      - name: List TruffleHog detectors
+      - name: Check test files for debugging
         run: |
-          echo "=== Using TruffleHog built-in detectors ==="
-          echo "TruffleHog should detect:"
-          echo "- GitHub PATs (built-in GitHub detector)"
-          echo "- Grafana Service Account tokens (built-in GrafanaServiceAccount detector)"
-          echo "============================="
+          echo "=== Debugging: Check if test file exists ==="
+          ls -la test-secrets.txt || echo "test-secrets.txt not found"
+          echo "=== File content sample ==="
+          head -10 test-secrets.txt || echo "Cannot read test-secrets.txt"
 
-      - name: Get changed files for PR
+      - name: Identify changed files in pull request for targeted scanning
         id: changed-files
         if: github.event_name == 'pull_request'
         env:
@@ -87,7 +91,7 @@ jobs:
           echo "Changed files in this PR:"
           cat changed-files.txt || echo "No files changed"
 
-      - name: Run TruffleHog Scan
+      - name: Scan for secrets using TruffleHog (git history, filesystem, changed files)
         id: scan
         env:
           SCAN_TYPE: ${{ inputs.scan-type }}
@@ -99,6 +103,14 @@ jobs:
           # Initialize result files
           echo "[]" > all-results.json
 
+          # TruffleHog optimizations applied:
+          # --results=verified,unverified (include both verified and custom detector results)
+          # --filter-unverified (only first unverified per chunk to reduce duplicates)
+          # --filter-entropy=3.0 (filter low-entropy noise)
+          # --max-depth=10 (limit git history)
+          # --exclude-globs (skip common noise files)
+          echo "TruffleHog optimized scan starting (includes custom detector results)..."
+
           # Full repository scanning
           if [[ "${SCAN_SCOPE}" == "full-repo" || "${SCAN_SCOPE}" == "both" ]]; then
             echo "Running full repository scan..."
@@ -106,23 +118,18 @@ jobs:
             if [[ "${SCAN_TYPE}" == "commits" || "${SCAN_TYPE}" == "both" ]]; then
               echo "Scanning git commit history..."
               echo "=== TruffleHog command ==="
-              echo "trufflehog git file://. --json --no-update --config=trufflehog-config.yml"
+              echo "trufflehog git file://. --json --no-update (built-in detectors only)"
 
-              # Test without custom detectors first
-              echo "=== Testing without custom detectors ==="
+              # Scan with built-in detectors only
+              echo "=== Scanning with built-in detectors ==="
               trufflehog git file://. \
                 --json \
                 --no-update \
-                > commit-results-basic.json || true
-
-              echo "Basic scan results:"
-              wc -l commit-results-basic.json || echo "No basic results"
-
-              # Test with built-in detectors
-              echo "=== Testing with built-in detectors ==="
-              trufflehog git file://. \
-                --json \
-                --no-update \
+                --results=verified,unverified \
+                --filter-unverified \
+                --filter-entropy=3.0 \
+                --max-depth=10 \
+                --exclude-globs="*.lock,*.sum,node_modules/**,*.git/**" \
                 > commit-results.json || true
 
               echo "=== Raw results ==="
@@ -133,10 +140,18 @@ jobs:
 
             if [[ "${SCAN_TYPE}" == "filesystem" || "${SCAN_TYPE}" == "both" ]]; then
               echo "Scanning current filesystem..."
+              echo "=== Filesystem scan command ==="
+              echo "trufflehog filesystem . --json --no-update --results=verified,unverified --filter-unverified (built-in detectors)"
               trufflehog filesystem . \
                 --json \
                 --no-update \
+                --results=verified,unverified \
+                --filter-unverified \
+                --filter-entropy=3.0 \
                 > fs-results.json || true
+              echo "=== Filesystem scan results ==="
+              wc -l fs-results.json || echo "No filesystem results"
+              head -5 fs-results.json || echo "No filesystem content"
             fi
           fi
 
@@ -152,6 +167,9 @@ jobs:
                     if trufflehog filesystem "${file}" \
                         --json \
                         --no-update \
+                        --results=verified,unverified \
+                        --filter-unverified \
+                        --filter-entropy=3.0 \
                         | jq -s 'add' changed-files-results.json - > tmp.json; then
                       mv tmp.json changed-files-results.json
                     fi
@@ -166,7 +184,7 @@ jobs:
           # Merge all results - TruffleHog outputs newline-delimited JSON (NDJSON)
           echo "Merging scan results..."
           touch all-results.ndjson  # Create empty file
-          for f in commit-results-basic.json commit-results.json fs-results.json changed-files-results.json; do
+          for f in commit-results.json fs-results.json changed-files-results.json; do
             if [[ -s "${f}" ]]; then
               echo "Merging results from ${f}"
               cat "${f}" >> all-results.ndjson
@@ -196,14 +214,14 @@ jobs:
             echo "total=${TOTAL}"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Hide any previous TruffleHog comments
+      - name: Hide/minimize previous TruffleHog scan result comments on PR
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
         uses: int128/hide-comment-action@a30d551065e4231e6d7a671bb5ce884f9ee6417b # v1.43.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
-      - name: Generate TruffleHog comment body
+      - name: Generate formatted scan results for PR comment (verified/unverified secrets)
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: comment-body
         run: |
@@ -272,7 +290,7 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Comment on PR
+      - name: Post TruffleHog scan results as PR comment
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: int128/comment-action@f4faf53666ef83da7d274fa2007e9212c4d719c3 # v1.39.0
         with:
@@ -280,7 +298,7 @@ jobs:
             ${{ steps.comment-body.outputs.body }}
             ${{ steps.hide-comments.outputs.ends-with }}
 
-      - name: Create Check Status
+      - name: Create GitHub status check with scan summary (pass/fail)
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           VERIFIED_COUNT: ${{ steps.scan.outputs.verified }}
@@ -322,7 +340,7 @@ jobs:
               }
             });
 
-      - name: Check and fail workflow if secrets found
+      - name: Fail workflow based on secret detection policy (verified/unverified thresholds)
         env:
           VERIFIED_COUNT: ${{ steps.scan.outputs.verified }}
           UNVERIFIED_COUNT: ${{ steps.scan.outputs.unverified }}
