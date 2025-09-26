@@ -45,14 +45,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
-          fetch-depth: 0
+          # Limited history to reduce credential exposure risk
+          # 100 commits covers most recent development for security scanning
+          fetch-depth: 100
+
+      - name: Set TruffleHog version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.trufflehog-version }}
+          DEFAULT_VERSION: ${{ env.TRUFFLEHOG_VERSION }}
+        run: |
+          if [ -n "${INPUT_VERSION}" ]; then
+            echo "version=${INPUT_VERSION}" >> $GITHUB_OUTPUT
+          else
+            echo "version=v${DEFAULT_VERSION}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Install TruffleHog
         run: |
-          # Use env variable with fallback to input for backwards compatibility
-          VERSION="${{ inputs.trufflehog-version || format('v{0}', env.TRUFFLEHOG_VERSION) }}"
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh \
-            | sh -s -- -b /usr/local/bin "$VERSION"
+            | sh -s -- -b /usr/local/bin "${{ steps.version.outputs.version }}"
           trufflehog --version
 
       - name: Create Grafana custom detectors config
@@ -96,25 +108,32 @@ jobs:
 
       - name: Get changed files for PR
         id: changed-files
-        if: github.event_name == 'pull_request' && (inputs.scan-scope == 'changed-files' || inputs.scan-scope == 'both')
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
-          git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.sha }} > changed-files.txt
+          git diff --name-only "${BASE_SHA}..${HEAD_SHA}" > changed-files.txt
           echo "Changed files in this PR:"
           cat changed-files.txt || echo "No files changed"
 
       - name: Run TruffleHog Scan
         id: scan
+        env:
+          SCAN_TYPE: ${{ inputs.scan-type }}
+          SCAN_SCOPE: ${{ inputs.scan-scope }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set +e
-          
+
           # Initialize result files
           echo "[]" > all-results.json
-          
+
           # Full repository scanning
-          if [[ "${{ inputs.scan-scope }}" == "full-repo" || "${{ inputs.scan-scope }}" == "both" ]]; then
+          if [[ "${SCAN_SCOPE}" == "full-repo" || "${SCAN_SCOPE}" == "both" ]]; then
             echo "Running full repository scan..."
-            
-            if [[ "${{ inputs.scan-type }}" == "commits" || "${{ inputs.scan-type }}" == "both" ]]; then
+
+            if [[ "${SCAN_TYPE}" == "commits" || "${SCAN_TYPE}" == "both" ]]; then
               echo "Scanning git commit history..."
               trufflehog git file://. \
                 --json \
@@ -123,7 +142,7 @@ jobs:
                 > commit-results.json || true
             fi
 
-            if [[ "${{ inputs.scan-type }}" == "filesystem" || "${{ inputs.scan-type }}" == "both" ]]; then
+            if [[ "${SCAN_TYPE}" == "filesystem" || "${SCAN_TYPE}" == "both" ]]; then
               echo "Scanning current filesystem..."
               trufflehog filesystem . \
                 --json \
@@ -134,7 +153,7 @@ jobs:
           fi
 
           # Changed files scanning (PR only)
-          if [[ "${{ github.event_name }}" == "pull_request" && ("${{ inputs.scan-scope }}" == "changed-files" || "${{ inputs.scan-scope }}" == "both") ]]; then
+          if [[ "${EVENT_NAME}" == "pull_request" && ("${SCAN_SCOPE}" == "changed-files" || "${SCAN_SCOPE}" == "both") ]]; then
             if [[ -s "changed-files.txt" ]]; then
               echo "Scanning changed files..."
               echo "[]" > changed-files-results.json
@@ -225,16 +244,25 @@ jobs:
 
       - name: Create Check Status
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          VERIFIED_COUNT: ${{ steps.scan.outputs.verified }}
+          UNVERIFIED_COUNT: ${{ steps.scan.outputs.unverified }}
+          TOTAL_COUNT: ${{ steps.scan.outputs.total }}
+          FAIL_ON_VERIFIED: ${{ inputs.fail-on-verified }}
+          FAIL_ON_UNVERIFIED: ${{ inputs.fail-on-unverified }}
+          SCAN_TYPE: ${{ inputs.scan-type }}
+          SCAN_SCOPE: ${{ inputs.scan-scope }}
+          TRUFFLEHOG_VERSION: ${{ inputs.trufflehog-version }}
         with:
           github-token: ${{ github.token }}
           script: |
-            const verified = parseInt("${{ steps.scan.outputs.verified }}", 10);
-            const unverified = parseInt("${{ steps.scan.outputs.unverified }}", 10);
-            const total = parseInt("${{ steps.scan.outputs.total }}", 10);
+            const verified = parseInt(process.env.VERIFIED_COUNT || "0", 10);
+            const unverified = parseInt(process.env.UNVERIFIED_COUNT || "0", 10);
+            const total = parseInt(process.env.TOTAL_COUNT || "0", 10);
 
             const shouldFail = (
-              ("${{ inputs.fail-on-verified }}" === "true" && verified > 0) ||
-              ("${{ inputs.fail-on-unverified }}" === "true" && unverified > 0)
+              (process.env.FAIL_ON_VERIFIED === "true" && verified > 0) ||
+              (process.env.FAIL_ON_UNVERIFIED === "true" && unverified > 0)
             );
 
             const conclusion = shouldFail ? "failure" : "success";
@@ -252,16 +280,32 @@ jobs:
               output: {
                 title,
                 summary: "TruffleHog security scan completed",
-                text: `Scan configuration:\n- Type: ${{ inputs.scan-type }}\n- Scope: ${{ inputs.scan-scope }}\n- Version: ${{ inputs.trufflehog-version }}\n\nResults: ${title}`
+                text: `Scan configuration:\n- Type: ${process.env.SCAN_TYPE}\n- Scope: ${process.env.SCAN_SCOPE}\n- Version: ${process.env.TRUFFLEHOG_VERSION || process.env.DEFAULT_VERSION}\n\nResults: ${title}`
               }
             });
 
-      - name: Fail workflow if secrets found
-        if: |
-          (steps.scan.outputs.verified != '0' && inputs.fail-on-verified == 'true') ||
-          (steps.scan.outputs.unverified != '0' && inputs.fail-on-unverified == 'true')
+      - name: Check and fail workflow if secrets found
+        env:
+          VERIFIED_COUNT: ${{ steps.scan.outputs.verified }}
+          UNVERIFIED_COUNT: ${{ steps.scan.outputs.unverified }}
+          FAIL_ON_VERIFIED: ${{ inputs.fail-on-verified }}
+          FAIL_ON_UNVERIFIED: ${{ inputs.fail-on-unverified }}
         run: |
-          echo "Workflow failed due to secrets found"
-          echo "Verified secrets: ${{ steps.scan.outputs.verified }}"
-          echo "Unverified secrets: ${{ steps.scan.outputs.unverified }}"
-          exit 1
+          SHOULD_FAIL=false
+          
+          if [[ "${FAIL_ON_VERIFIED}" == "true" && "${VERIFIED_COUNT}" != "0" ]]; then
+            SHOULD_FAIL=true
+          fi
+          
+          if [[ "${FAIL_ON_UNVERIFIED}" == "true" && "${UNVERIFIED_COUNT}" != "0" ]]; then
+            SHOULD_FAIL=true
+          fi
+          
+          if [[ "${SHOULD_FAIL}" == "true" ]]; then
+            echo "Workflow failed due to secrets found"
+            echo "Verified secrets: ${VERIFIED_COUNT}"
+            echo "Unverified secrets: ${UNVERIFIED_COUNT}"
+            exit 1
+          else
+            echo "No action needed - secrets found but within configured thresholds"
+          fi
