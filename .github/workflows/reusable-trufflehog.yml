@@ -48,6 +48,7 @@ jobs:
           # Limited history to reduce credential exposure risk
           # 100 commits covers most recent development for security scanning
           fetch-depth: 100
+          persist-credentials: false
 
       - name: Set TruffleHog version
         id: version
