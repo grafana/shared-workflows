@@ -456,7 +456,7 @@ jobs:
 
       - name: Comment with zizmor results
         if: steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@f4faf53666ef83da7d274fa2007e9212c4d719c3 # v1.39.0
+        uses: int128/comment-action@b2bcb6693040ee191f8e643d247faf3e22e4b2f1 # v1.40.0
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
