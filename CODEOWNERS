@@ -19,3 +19,6 @@
 
 # Platform Infrasec
 /actions/create-github-app-token @grafana/platform-infrasec
+
+# Mimir
+actions/go-flaky-tests/cmd/go-flaky-tests @grafana/mimir-maintainers

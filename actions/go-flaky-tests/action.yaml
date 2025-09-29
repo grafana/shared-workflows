@@ -23,6 +23,14 @@ inputs:
     description: "Relative path to the directory with a git repository"
     required: false
     default: ${{ github.workspace }}
+  github-token:
+    description: "GitHub token for repository access"
+    required: false
+    default: ${{ github.token }}
+  skip-posting-issues:
+    description: "Skip creating/updating GitHub issues (dry-run mode)"
+    required: false
+    default: "true"
   top-k:
     description: "Include only the top K flaky tests by distinct branches count in analysis"
     required: false
@@ -36,6 +44,13 @@ runs:
       with:
         go-version: "1.25"
 
+    - name: Setup GitHub CLI
+      run: |
+        # GitHub CLI is pre-installed on GitHub Actions runners
+        # Just verify it's available and authenticated
+        gh --version
+      shell: bash
+
     - name: Build and run analyzer
       shell: bash
       run: |
@@ -48,5 +63,7 @@ runs:
         LOKI_PASSWORD: ${{ inputs.loki-password }}
         REPOSITORY: ${{ inputs.repository }}
         TIME_RANGE: ${{ inputs.time-range }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
         REPOSITORY_DIRECTORY: ${{ inputs.repository-directory }}
+        SKIP_POSTING_ISSUES: ${{ inputs.skip-posting-issues }}
         TOP_K: ${{ inputs.top-k }}

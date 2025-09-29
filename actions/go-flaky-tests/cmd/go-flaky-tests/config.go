@@ -12,6 +12,7 @@ type Config struct {
 	Repository          string
 	TimeRange           string
 	RepositoryDirectory string
+	SkipPostingIssues   bool
 	TopK                int
 }
 
@@ -23,6 +24,7 @@ func getConfigFromEnv() Config {
 		Repository:          os.Getenv("REPOSITORY"),
 		TimeRange:           getEnvWithDefault("TIME_RANGE", "24h"),
 		RepositoryDirectory: getEnvWithDefault("REPOSITORY_DIRECTORY", "."),
+		SkipPostingIssues:   getBoolEnvWithDefault("SKIP_POSTING_ISSUES", true),
 		TopK:                getIntEnvWithDefault("TOP_K", 3),
 	}
 }
@@ -30,6 +32,13 @@ func getConfigFromEnv() Config {
 func getEnvWithDefault(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getBoolEnvWithDefault(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		return value == "true" || value == "1"
 	}
 	return defaultValue
 }

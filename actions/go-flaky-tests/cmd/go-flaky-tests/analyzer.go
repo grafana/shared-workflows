@@ -19,10 +19,19 @@ type GitClient interface {
 	TestCommits(filePath, testName string) ([]CommitInfo, error)
 }
 
+type GitHubClient interface {
+	GetUsernameForCommit(commitHash string) (string, error)
+	CreateOrUpdateIssue(test FlakyTest) error
+	SearchForExistingIssue(issueTitle string) (string, error)
+	AddCommentToIssue(issueURL string, test FlakyTest) error
+	ReopenIssue(issueURL string) error
+}
+
 type TestFailureAnalyzer struct {
-	lokiClient LokiClient
-	gitClient  GitClient
-	fileSystem FileSystem
+	lokiClient   LokiClient
+	gitClient    GitClient
+	githubClient GitHubClient
+	fileSystem   FileSystem
 }
 
 type CommitInfo struct {
@@ -74,20 +83,22 @@ func (fs *DefaultFileSystem) WriteFile(filename string, data []byte, perm os.Fil
 	return os.WriteFile(filename, data, perm)
 }
 
-func NewTestFailureAnalyzer(loki LokiClient, git GitClient, fs FileSystem) *TestFailureAnalyzer {
+func NewTestFailureAnalyzer(loki LokiClient, git GitClient, github GitHubClient, fs FileSystem) *TestFailureAnalyzer {
 	return &TestFailureAnalyzer{
-		lokiClient: loki,
-		gitClient:  git,
-		fileSystem: fs,
+		lokiClient:   loki,
+		gitClient:    git,
+		githubClient: github,
+		fileSystem:   fs,
 	}
 }
 
 func NewDefaultTestFailureAnalyzer(config Config) *TestFailureAnalyzer {
 	lokiClient := NewDefaultLokiClient(config)
 	gitClient := NewDefaultGitClient(config)
+	githubClient := NewDefaultGitHubClient(config)
 	fileSystem := &DefaultFileSystem{}
 
-	return NewTestFailureAnalyzer(lokiClient, gitClient, fileSystem)
+	return NewTestFailureAnalyzer(lokiClient, gitClient, githubClient, fileSystem)
 }
 
 func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, error) {
@@ -165,8 +176,26 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 }
 
 func (t *TestFailureAnalyzer) ActionReport(report *FailuresReport, config Config) error {
-	log.Printf("📝 Report generated successfully - no additional actions in this version")
-	log.Printf("✅ Analysis complete!")
+	if report == nil || len(report.FlakyTests) == 0 {
+		log.Printf("📝 No flaky tests to enact - skipping GitHub issue creation")
+		return nil
+	}
+
+	if config.SkipPostingIssues {
+		log.Printf("🔍 Dry run mode: Generating issue previews...")
+		err := t.previewIssuesForFlakyTests(report.FlakyTests, config)
+		if err != nil {
+			return fmt.Errorf("failed to preview GitHub issues: %w", err)
+		}
+	} else {
+		log.Printf("📝 Creating GitHub issues for flaky tests...")
+		err := t.createIssuesForFlakyTests(report.FlakyTests)
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub issues: %w", err)
+		}
+	}
+
+	log.Printf("✅ Report enactment complete!")
 	return nil
 }
 
@@ -222,13 +251,71 @@ func (t *TestFailureAnalyzer) findTestAuthors(flakyTests []FlakyTest) error {
 		}
 		flakyTests[i].RecentCommits = commits
 
-		if len(commits) > 0 {
-			var authors []string
-			for _, commit := range commits {
-				authors = append(authors, commit.Author)
+		var authors []string
+		for commitIdx, commit := range commits {
+			authors = append(authors, commit.Author)
+			commits[commitIdx].Author, err = t.githubClient.GetUsernameForCommit(commit.Hash)
+			if err != nil {
+				return fmt.Errorf("failed to get author for test %s in %s: %w", test.TestName, test.FilePath, err)
 			}
 		}
 	}
+	return nil
+}
+
+func (t *TestFailureAnalyzer) createIssuesForFlakyTests(flakyTests []FlakyTest) error {
+	for _, test := range flakyTests {
+		err := t.githubClient.CreateOrUpdateIssue(test)
+		if err != nil {
+			log.Printf("Warning: failed to create issue for test %s: %v", test.TestName, err)
+		}
+	}
+	return nil
+}
+
+func (t *TestFailureAnalyzer) previewIssuesForFlakyTests(flakyTests []FlakyTest, config Config) error {
+	for _, test := range flakyTests {
+		err := previewIssueForTest(test, config)
+		if err != nil {
+			log.Printf("Warning: failed to preview issue for test %s: %v", test.TestName, err)
+		}
+	}
+	return nil
+}
+
+func previewIssueForTest(test FlakyTest, config Config) error {
+	issueTitle := fmt.Sprintf("Flaky %s", test.TestName)
+
+	log.Printf("📄 Would create issue for %s:", test.TestName)
+	log.Printf("Title: %s", issueTitle)
+	log.Printf("Labels: flaky-test")
+	log.Printf("")
+
+	// Generate the actual markdown content that would be used
+	issueBody, err := generateInitialIssueBody(test)
+	if err != nil {
+		log.Printf("Warning: failed to generate issue body preview: %v", err)
+		return nil
+	}
+
+	commentBody, err := generateCommentBody(test, config)
+	if err != nil {
+		log.Printf("Warning: failed to generate comment body preview: %v", err)
+		return nil
+	}
+
+	log.Printf("Initial Issue Body Markdown:")
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("%s", issueBody)
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("")
+
+	log.Printf("Comment Body Markdown:")
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("%s", commentBody)
+	log.Printf("────────────────────────────────────────────────────────────────────────")
+	log.Printf("")
+
 	return nil
 }
 
