@@ -60,7 +60,7 @@ func getStringSliceFromEnv(key string) []string {
 	if value == "" {
 		return []string{}
 	}
-	
+
 	var result []string
 	for _, item := range strings.Split(value, ",") {
 		trimmed := strings.TrimSpace(item)
