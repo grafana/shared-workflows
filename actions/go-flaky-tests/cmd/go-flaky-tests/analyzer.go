@@ -118,6 +118,27 @@ func (t *TestFailureAnalyzer) AnalyzeFailures(config Config) (*FailuresReport, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse test failures: %w", err)
 	}
+
+	// Filter out ignored tests
+	if len(config.IgnoredTests) > 0 {
+		log.Printf("🚫 Filtering out %d ignored tests: %v", len(config.IgnoredTests), config.IgnoredTests)
+		var filteredTests []FlakyTest
+		for _, test := range flakyTests {
+			ignored := false
+			for _, ignoredTest := range config.IgnoredTests {
+				if test.TestName == ignoredTest {
+					ignored = true
+					break
+				}
+			}
+			if !ignored {
+				filteredTests = append(filteredTests, test)
+			}
+		}
+		log.Printf("📊 Filtered tests: %d -> %d (removed %d ignored tests)", len(flakyTests), len(filteredTests), len(flakyTests)-len(filteredTests))
+		flakyTests = filteredTests
+	}
+
 	if len(flakyTests) > config.TopK {
 		flakyTests = flakyTests[:config.TopK]
 	}
