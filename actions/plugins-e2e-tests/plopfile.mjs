@@ -11,33 +11,41 @@ const DATASOURCES_YAML_FILE = path.join(
   process.cwd(),
   "./provisioning/datasources/default.yaml",
 );
-// TODO check how to get the uid from the provisioning api or call /api/datasources instead
+
+const gcloudDSPattern = /grafanacloud-(\w+)-([a-z-]+)/;
+
+/**
+ * getProvisionedDSType returns the provisioned datasource type and returns an empty string if it doesn't match the pattern and the slug.
+ * @param datasourceName The full name of the datasource (e.g., "grafanacloud-my-slug-traces").
+ * @param slug The expected slug (e.g., "my-slug").
+ * @returns The datasource type (e.g., "traces"), or an empty string if criteria are not met.
+ */
+function getProvisionedDSType(datasourceName, slug) {
+  const match = gcloudDSPattern.exec(datasourceName);
+  if (match && match.length >= 3 && match[1] === slug) {
+    return match[2];
+  }
+  return '';
+}
+
+/**
+ * Creates a predictable UID for Grafana Cloud datasources.
+ * If the datasource matches the pattern (e.g., grafanacloud-<slug>-<type>), the UID is simplified to "grafanacloud-<type>"; otherwise, it uses the full name.
+ * @param dataSource The dataSource provisioned object
+ * @param stackSlug The expected slug (e.g., "staging").
+ * @returns A UID string, guaranteed to be 40 characters or less.
+ */
 function getUid(dataSource, stackSlug) {
-  let uid = "";
-  switch (dataSource.type) {
-    case "prometheus":
-      if (dataSource.name === `grafanacloud-${stackSlug}-prom`) {
-        uid = "grafanacloud-prom";
-      }
-      break;
+  const datasourceName = dataSource.name;
+  let uid = datasourceName;
 
-    case "loki":
-      if (dataSource.name === `grafanacloud-${stackSlug}-logs`) {
-        uid = "grafanacloud-logs";
-      }
-      break;
-
-    case "tempo":
-      if (dataSource.name === `grafanacloud-${stackSlug}-traces`) {
-        uid = "grafanacloud-traces";
-      }
-      break;
-
-    case "alertmanager":
-      if (dataSource.name === `grafanacloud-${stackSlug}-ngalertmanager`) {
-        uid = "grafanacloud-ngalertmanager";
-      }
-      break;
+  const provisionedDSType = getProvisionedDSType(datasourceName, stackSlug);
+  if (provisionedDSType !== '') {
+    uid = 'grafanacloud-' + provisionedDSType;
+  }
+  const maxLength = 40;
+  if (uid.length > maxLength) {
+    uid = uid.slice(uid.length - maxLength);
   }
   return uid;
 }
