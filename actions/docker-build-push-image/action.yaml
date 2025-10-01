@@ -175,6 +175,11 @@ runs:
       env:
         REGISTRIES: ${{ inputs.registries }}
       run: |
+        #############################################################
+        # This splits REGISTRIES on commas, and then exports
+        # include-<registry>=true for each registry in the list
+        #############################################################
+
         for r in ${REGISTRIES//,/ }; do
           echo "include-${r}=true" | tee -a "${GITHUB_OUTPUT}"
         done
@@ -212,6 +217,16 @@ runs:
         DOCKERHUB_IMAGE: ${{ steps.setup-dockerhub-vars.outputs.image }}
         PUSH: ${{ inputs.push }}
       run: |
+        #############################################################
+        # This constructs as CSV list of images from the previous
+        # setup steps, and outputs that list
+        #
+        # If there are no images then we set images="dry-run-image"
+        # and log a warning that no images were configured
+        #
+        # If push is not true, then we log a warning that no images will be pushed
+        #############################################################
+
         images=""
         for image in "${GAR_IMAGE}" "${DOCKERHUB_IMAGE}"
         do
@@ -261,10 +276,12 @@ runs:
         DEFAULT_BUILDKITD_CONFIG: /etc/buildkitd.toml
         RUNNER_ENVIRONMENT: ${{ runner.environment }}
       run: |
+        #############################################################
         # This step does the following:
         # if buildkitd-config-inline != "", use that
         # elif buildkitd-config != "", use that
         # else, use buildkitd-config default config if on self hosted runners
+        #############################################################
 
         buildkitd_config=""
         buildkitd_config_inline=""
