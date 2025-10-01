@@ -2,6 +2,36 @@ import fs from "fs";
 import yaml from "js-yaml";
 import * as path from "path";
 
+function isError(response) {
+  if (!response || typeof response !== "object") {
+    return false;
+  }
+  const keys = Object.keys(response);
+  return keys.includes("code") || keys.includes("message");
+}
+
+/**
+ * Checks if a value is null, undefined, an empty array, or an object with no enumerable properties.
+ * @param {any} value The value to check.
+ * @returns {boolean} True if the value is empty, otherwise false.
+ */
+function isEmpty(value) {
+  // console.log('Check is empty for: ', JSON.stringify(value));
+  if (value === null || typeof value === "undefined") {
+    return true;
+  }
+  if (Array.isArray(value)) {
+    return value.length === 0;
+  }
+  if (typeof value === "string") {
+    return value.length === 0;
+  }
+  if (typeof value === "object") {
+    return Object.keys(value).length === 0;
+  }
+  return false;
+}
+
 const HG_TOKEN = process.env.HG_TOKEN;
 const APPS_YAML_FILE = path.join(
   process.cwd(),
@@ -11,6 +41,14 @@ const DATASOURCES_YAML_FILE = path.join(
   process.cwd(),
   "./provisioning/datasources/default.yaml",
 );
+const HG_REGION_SUFFIX_MAP = {
+  "prod-us-east": "prod-us-east-0",
+  "prod-eu-west": "prod-eu-west-0",
+  prod: "prod-us-central-0",
+  ops: "ops-eu-south-0",
+  "dev-east": "dev-us-east-0",
+  "dev-central": "dev-us-central-0",
+};
 
 const gcloudDSPattern = /grafanacloud-(\w+)-([a-z-]+)/;
 
@@ -25,7 +63,7 @@ function getProvisionedDSType(datasourceName, slug) {
   if (match && match.length >= 3 && match[1] === slug) {
     return match[2];
   }
-  return '';
+  return "";
 }
 
 /**
@@ -40,8 +78,8 @@ function getUid(dataSource, stackSlug) {
   let uid = datasourceName;
 
   const provisionedDSType = getProvisionedDSType(datasourceName, stackSlug);
-  if (provisionedDSType !== '') {
-    uid = 'grafanacloud-' + provisionedDSType;
+  if (provisionedDSType !== "") {
+    uid = "grafanacloud-" + provisionedDSType;
   }
   const maxLength = 40;
   if (uid.length > maxLength) {
@@ -75,6 +113,9 @@ function formatDataSource(dataSource, stackSlug) {
 }
 
 function removeEmptyProperties(obj) {
+  if (!obj || isEmpty(obj)) {
+    return obj;
+  }
   // Check if the input is an object or an array
   if (Array.isArray(obj)) {
     // If it's an array, recursively clean each element
@@ -115,20 +156,26 @@ function removeEmptyProperties(obj) {
   return obj;
 }
 
+function isProdEnvironment(env) {
+  const envType = env.split("-")[0];
+  return envType === "prod";
+}
+
+/**
+ * Dynamically generates the HG base API URL based on the region selected.
+ * @param {string} env The environment region (e.g., "prod-us-east", "dev-central").
+ * @returns {string} The constructed base API URL.
+ */
 function getBaseUrlByEnv(env) {
-  switch (env) {
-    case "prod-us-east":
-      return "https://hg-api-prod-us-east-0.grafana.net";
-    case "prod":
-      return "https://hg-api-prod-us-central-0.grafana.net";
-    case "ops":
-      return "https://hg-api-ops-eu-south-0.grafana-ops.net";
-    case "dev-east":
-      return "https://hg-api-dev-us-east-0.grafana-dev.net";
-    case "dev-central":
-    default:
-      return "https://hg-api-dev-us-central-0.grafana-dev.net";
+  const envType = env.split("-")[0];
+
+  let domainSuffix = "grafana";
+  if (["dev", "ops"].includes(envType)) {
+    domainSuffix = `grafana-${envType}`;
   }
+  const regionSuffix =
+    HG_REGION_SUFFIX_MAP[env] || HG_REGION_SUFFIX_MAP["dev-central"];
+  return `https://hg-api-${regionSuffix}.${domainSuffix}.net`;
 }
 
 async function fetchMultipleAppConfigs(stackSlug, env, pluginIds) {
@@ -291,11 +338,36 @@ function writeAppsYamlFile(yamlData) {
 }
 
 async function fillAnswers(answers) {
+  if (isProdEnvironment(answers.ENV)) {
+    console.error(
+      "For security reason, you are not allowed to provision plugins locally on production environment.",
+    );
+    process.exit(1);
+  }
+  if (!answers.PLUGIN_IDS || answers.PLUGIN_IDS.length === 0) {
+    console.error(
+      `No plugin was selected for the stack ${answers.STACK_SLUG} on environment ${answers.ENV}.`,
+    );
+    process.exit(1);
+  }
+  if (!answers.DATASOURCE_IDS || answers.DATASOURCE_IDS.length === 0) {
+    console.error(
+      `No data source selected for the stack ${answers.STACK_SLUG} on environment ${answers.ENV}.`,
+    );
+    process.exit(1);
+  }
+
   const appConfigs = await fetchMultipleAppConfigs(
     answers.STACK_SLUG,
     answers.ENV,
     answers.PLUGIN_IDS,
   );
+  if (isError(appConfigs) || isEmpty(appConfigs)) {
+    console.error(
+      `No app config found for the stack ${answers.STACK_SLUG} on environment ${answers.ENV}.`,
+    );
+    process.exit(1);
+  }
   const yamlAppsData = createAppsYamlFile();
   addAppConfigs(yamlAppsData, appConfigs);
   writeAppsYamlFile(yamlAppsData);
@@ -305,6 +377,12 @@ async function fillAnswers(answers) {
     answers.ENV,
     answers.DATASOURCE_IDS,
   );
+  if (isError(dataSourceConfigs) || isEmpty(dataSourceConfigs)) {
+    console.error(
+      `The data sources ${answers.DATASOURCE_IDS} cannot be loaded from the stack ${answers.STACK_SLUG} on environment ${answers.ENV}.`,
+    );
+    process.exit(1);
+  }
   const yamlDataSourcesData = createDataSourcesYamlFile();
   addDataSourceConfigs(yamlDataSourcesData, dataSourceConfigs);
   writeDataSourcesYamlFile(yamlDataSourcesData);
@@ -314,6 +392,12 @@ async function fillAnswers(answers) {
     answers.ENV,
     answers.GF_PLUGIN_ID,
   );
+  if (isError(grafanaConfig) || isEmpty(grafanaConfig)) {
+    console.error(
+      `No grafana config found for plugin ${answers.GF_PLUGIN_ID} on the stack ${answers.STACK_SLUG} and environment ${answers.ENV}.`,
+    );
+    process.exit(1);
+  }
   answers.GF_GRAFANA_COM_SSO_API_TOKEN =
     grafanaConfig.hosted_grafana.hg_auth_token;
 
@@ -353,6 +437,10 @@ export default function (plop) {
             process.exit(1);
           }
           answers.STACK_SLUG = process.env.E2E_STACK_SLUG;
+
+          if (isProdEnvironment(process.env.E2E_ENV)) {
+            throw "For security reason, you are not allowed to provision locally production environment.";
+          }
           answers.ENV = process.env.E2E_ENV;
 
           answers.GF_PLUGIN_ID = process.env.E2E_PLUGIN_ID;
@@ -371,7 +459,7 @@ export default function (plop) {
           return "Remote Provisioning data loaded successfully for e2e tests.";
         } catch (error) {
           console.error("Failed to load Remote Provisioning:", error.message);
-          return "Failed to load Remote Provisioning data";
+          throw error;
         }
       },
       {
