@@ -237,7 +237,9 @@ jobs:
 
           PS=$PLATFORMS
           while read -r ARCH PLATFORM; do PS=${PS//$PLATFORM/$ARCH}; done < <(echo "$ARCH_TO_PLATFORM_MAP" | jq -r 'to_entries[] | "\(.key) \(.value)"')
-          MATRIX=$(echo "$PS" | jq -R 'split(",")')
+
+          # Convert to single-line JSON array
+          MATRIX=$(echo "$PS" | jq -R -c 'split(",")')
 
           # Export as GitHub Action output
           echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
