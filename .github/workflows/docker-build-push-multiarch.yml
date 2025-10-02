@@ -208,6 +208,9 @@ on:
         description: "The list of OS used to build images (for mapping to self hosted runners)"
         value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
 
+env:
+  ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
+
 jobs:
   prepare-matrix:
     runs-on: ubuntu-arm64-small
@@ -218,24 +221,23 @@ jobs:
         shell: bash
         env:
           PLATFORMS: ${{ inputs.platforms }}
-          ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}' # TODO: Document this somewhere
-
         run: |
           #############################################################
-          # 1. Take the ARCH_TO_PLATFORM_MAP string
-          # 2.
-          # 2. Remove spaces and split on commas -> one platform per line.
-          #    Example: "linux/arm64,linux/amd64" ->
-          #             linux/arm64
-          #             linux/amd64
-          # 3. For each platform line, use jq to:
-          #      - Iterate over ARCH_TO_PLATFORM_MAP
-          #      - Find the entry where .value == platform string
-          #      - Extract the .key (runner arch)
-          # 4. Wrap results in a JSON array.
+          # This step converts an incoming list of docker platforms
+          # into a list of architectures that match Grafana's hosted
+          # runner labels. It's returned in the form of a JSON object
+          # so it can be passed directly into a matrix strategy.
+          #
+          # Ex: If PLATFORMS=linux/arm64,linux/amd64
+          #     then MATRIX=[ "arm64","x64" ]
           #############################################################
 
+          # Create a copy so we don't override our input
           PS=$PLATFORMS
+
+          # The second half of this command converts $ARCH_TO_PLATFORM_MAP into string pairs of ARCH and PLATFORM
+          # The first half of this command loops over those items and string replaces PLATFORM with ARCH
+          # In the above example, the end result of this will be: PS=arm64,x64
           while read -r ARCH PLATFORM; do PS=${PS//$PLATFORM/$ARCH}; done < <(echo "$ARCH_TO_PLATFORM_MAP" | jq -r 'to_entries[] | "\(.key) \(.value)"')
 
           # Convert to single-line JSON array
@@ -251,8 +253,6 @@ jobs:
       matrix:
         arch: ${{ fromJson(needs.prepare-matrix.outputs.runner_arches) }}
     runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
-    env:
-      ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}' # TODO: Document this somewhere
     outputs:
       annotations: ${{ steps.build.outputs.annotations }}
       digest: ${{ steps.build.outputs.digest }}
