@@ -215,6 +215,7 @@ jobs:
       runner_arches: ${{ steps.matrix.outputs.runner_arches }}
     steps:
       - id: matrix
+        shell: bash
         env:
           PLATFORMS: ${{ inputs.platforms }}
           ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}' # TODO: Document this somewhere
