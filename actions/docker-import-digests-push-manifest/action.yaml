@@ -51,9 +51,6 @@ runs:
     - name: Login to GAR
       if: ${{ inputs.push == 'true' }}
       uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/login-to-gar
-      with:
-        environment: ${{ inputs.gar-environment }}
-        delete_credentials_file: false
 
     - name: Login to DockerHub
       if: ${{ inputs.push == 'true' }}
