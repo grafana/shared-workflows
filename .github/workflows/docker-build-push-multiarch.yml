@@ -215,17 +215,33 @@ jobs:
       runner_arches: ${{ steps.matrix.outputs.runner_arches }}
     steps:
       - id: matrix
-        run: |
-          # This converts the potential list of `linux/arm64,linux/amd64` into a matrix of `arm64,x64`
-          # to match our hosted runner labels
-          MATRIX=$(echo "$PLATFORMS" | tr -d ' ' | tr ',' '\n' \
-            | jq -R 'if .=="linux/amd64" then "x64" elif .=="linux/arm64" then "arm64" else . end' \
-            | jq -s -c .)
-
-          # Set output
-          echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
         env:
           PLATFORMS: ${{ inputs.platforms }}
+          ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}' # TODO: Document this somewhere
+
+        run: |
+          #############################################################
+          # 1. Take the PLATFORMS string (comma-separated list), ex: PLATFORMS=`linux/arm64,linux/amd64`
+          # 2. Remove spaces and split on commas -> one platform per line.
+          #    Example: "linux/arm64,linux/amd64" ->
+          #             linux/arm64
+          #             linux/amd64
+          # 3. For each platform line, use jq to:
+          #      - Iterate over ARCH_TO_PLATFORM_MAP
+          #      - Find the entry where .value == platform string
+          #      - Extract the .key (runner arch)
+          # 4. Wrap results in a JSON array.
+          #############################################################
+          MATRIX=$(echo "$PLATFORMS" \
+            | tr -d ' ' | tr ',' '\n' \
+            | jq -R --argjson map "$ARCH_TO_PLATFORM_MAP" '
+                [ . as $p
+                  | $map | to_entries[]
+                  | select(.value==$p)
+                  | .key ]')
+
+          # Output the result so it can be consumed by later jobs/steps
+          echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
 
   build-and-push:
     needs: prepare-matrix
@@ -253,11 +269,18 @@ jobs:
     steps:
       - name: Prepare
         run: |
-          PLATFORM=$(echo "$ARCH_TO_PLATFORM_MAP" | jq -r --arg arch "${MATRIX_ARCH}" '.[$arch]')
+          #############################################################
+          # Take incoming arch and lookup the matching docker style platform
+          # Then create a unique platform pair, to use for our digests later
+          #
+          # Ex: if arch=x64 then PLATFORM=linux/amd64 and PLATFORM_PAIR=linux-amd64
+          #############################################################
+
+          PLATFORM=$(echo "$ARCH_TO_PLATFORM_MAP" | jq -r --arg arch "${ARCH}" '.[$arch]')
           echo "PLATFORM=${PLATFORM}" | tee -a "${GITHUB_ENV}"
           echo "PLATFORM_PAIR=${PLATFORM//\//-}" | tee -a "${GITHUB_ENV}"
         env:
-          MATRIX_ARCH: ${{ matrix.arch }}
+          ARCH: ${{ matrix.arch }}
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
