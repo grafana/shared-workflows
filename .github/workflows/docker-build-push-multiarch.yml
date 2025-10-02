@@ -234,15 +234,19 @@ jobs:
           # 4. Wrap results in a JSON array.
           #############################################################
 
-          MATRIX=$(echo "$PLATFORMS_LIST" \
-            | jq -R --argjson map "$ARCH_TO_PLATFORM_MAP" '
-                [ inputs
-                  | ($map | to_entries[] | select(.value==.))
-                  | .key
-                ]'
-            )
 
-          # Output the result for downstream jobs
+          # Split PLATFORMS string into lines
+          echo "$PLATFORMS" | tr -d ' ' | tr ',' '\n' \
+            | jq -R --argjson map "$ARCH_TO_PLATFORM_MAP" '
+                # For each line, find the key in the map whose value matches
+                map($map | to_entries[] | select(.value==.) | .key)
+              ' \
+            > matrix.json
+
+          # Read the final JSON array into a variable
+          MATRIX=$(cat matrix.json)
+
+          # Export as GitHub Action output
           echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
 
   build-and-push:
