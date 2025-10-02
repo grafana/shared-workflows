@@ -41,7 +41,7 @@ jobs:
           include-tags-in-push: false
           outputs: "type=image,push-by-digest=true,name-canonical=true,push=true"
       - name: Export and upload digest
-        uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-builds
+        uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-builds # TODO: Fix version once released
         with:
           digest: ${{ steps.build.outputs.digest }}
           platform: linux/arm64

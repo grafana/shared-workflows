@@ -24,6 +24,17 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Checkout shared-workflows
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _shared-workflows-docker-import-digests-push-manifest
+        persist-credentials: false
+
     - name: Download digests
       uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
       with:
@@ -39,14 +50,14 @@ runs:
 
     - name: Login to GAR
       if: ${{ inputs.push == 'true' }}
-      uses: grafana/shared-workflows/actions/login-to-gar@rwhitaker/multi-arch-builds
+      uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/login-to-gar
       with:
         environment: ${{ inputs.gar-environment }}
         delete_credentials_file: false
 
     - name: Login to DockerHub
       if: ${{ inputs.push == 'true' }}
-      uses: grafana/shared-workflows/actions/dockerhub-login@rwhitaker/multi-arch-builds
+      uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/dockerhub-login
 
     - name: Create manifest list and push
       working-directory: ${{ runner.temp }}/digests
