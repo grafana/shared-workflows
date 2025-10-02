@@ -218,7 +218,7 @@ runs:
         PUSH: ${{ inputs.push }}
       run: |
         #############################################################
-        # This constructs as CSV list of images from the previous
+        # This constructs a CSV list of images from the previous
         # setup steps, and outputs that list
         #
         # If there are no images then we set images="dry-run-image"
@@ -276,13 +276,6 @@ runs:
         DEFAULT_BUILDKITD_CONFIG: /etc/buildkitd.toml
         RUNNER_ENVIRONMENT: ${{ runner.environment }}
       run: |
-        #############################################################
-        # This step does the following:
-        # if buildkitd-config-inline != "", use that
-        # elif buildkitd-config != "", use that
-        # else, use buildkitd-config default config if on self hosted runners
-        #############################################################
-
         buildkitd_config=""
         buildkitd_config_inline=""
 
@@ -361,7 +354,7 @@ runs:
         rm -rf _shared-workflows-docker-build-push-image
 
     - name: Delete Google Application Credentials file
-      if: ${{ inputs.gar-delete-credentials-file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
+      if: ${{ always() && inputs.gar-delete-credentials-file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
       shell: sh
       run: |
         if [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
