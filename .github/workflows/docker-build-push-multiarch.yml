@@ -233,13 +233,17 @@ jobs:
           #      - Extract the .key (runner arch)
           # 4. Wrap results in a JSON array.
           #############################################################
+
+          # Split PLATFORMS by comma, trim spaces
+          # For each platform, look up the corresponding arch
+          # Collect all arches into a single array
           MATRIX=$(echo "$PLATFORMS" \
             | tr -d ' ' | tr ',' '\n' \
             | jq -R --argjson map "$ARCH_TO_PLATFORM_MAP" '
-                [ foreach inputs as $p ([];
-                    . + ([$map | to_entries[] | select(.value==$p) | .key])
-                  ) ]')
+                map(. as $p | $map | to_entries[] | select(.value==$p) | .key)
+              ')
 
+          # Set output for downstream jobs
           echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
 
   build-and-push:
