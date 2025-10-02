@@ -48,12 +48,54 @@ runs:
         driver: docker-container
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
 
-    - name: Login to GAR
+    - name: Prepare vars
+      id: prepare-vars
       if: ${{ inputs.push == 'true' }}
+      env:
+        IMAGES: ${{ inputs.images }}
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        DOCKERHUB_IMAGE=false
+        GAR_IMAGE=false
+
+        IFS=',' read -ra IMAGE_LIST <<< "${IMAGES}"
+
+        for image in "${IMAGE_LIST[@]}"; do
+          image="$(echo "$image" | xargs)"  # trim spaces
+          registry="${image%%/*}"  # everything before first slash
+          echo "Verifying image: $image"
+          echo "Verifying registry: $registry"
+
+          # Default if there's no dot or colon (Docker Hub shorthand)
+          if [[ "$registry" != *.* && "$registry" != *:* ]]; then
+            DOCKERHUB_IMAGE=true
+          fi
+
+          if [[ "$registry" == *".pkg.dev" ]] || [[ "$registry" == *"gcr.io" ]]; then
+            echo "$image → Google Artifact Registry"
+            GAR_IMAGE=true
+          elif [[ "$registry" == "docker.io" ]] || [[ "$registry" == "index.docker.io" ]]; then
+            echo "$image → DockerHub"
+            DOCKERHUB_IMAGE=true
+          else
+            echo "$image → Other registry ($registry)"
+          fi
+        done
+
+        if [[ "$DOCKERHUB_IMAGE" == "true" ]]; then
+          echo "include-dockerhub=true" | tee -a "${GITHUB_OUTPUT}"
+        elif [[ "$GAR_IMAGE" == "true" ]]; then
+          echo "include-gar=true" | tee -a "${GITHUB_OUTPUT}"
+        fi
+
+    - name: Login to GAR
+      if: ${{ steps.prepare-vars.outputs.include-gar == 'true' }}
       uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/login-to-gar
 
     - name: Login to DockerHub
-      if: ${{ inputs.push == 'true' }}
+      if: ${{ steps.prepare-vars.outputs.include-dockerhub == 'true' }}
       uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/dockerhub-login
 
     - name: Create manifest list and push

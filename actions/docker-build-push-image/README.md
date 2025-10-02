@@ -36,7 +36,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: grafana/shared-workflows/actions/docker-build-push-image@main # TODO: Fix version once released
+      - uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.0.0
         with:
           platforms: linux/arm64,linux/amd64
           tags: |
@@ -108,8 +108,6 @@ The full DockerHub image is constructed as follows:
 "${{ inputs.dockerhub-registry }}/${{ inputs.dockerhub-repository }}"
 
 ## Adding New Registries
-
-This is currently configured to push to:
 
 Each registry is setup as follows:
 
