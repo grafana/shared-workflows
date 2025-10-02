@@ -235,12 +235,10 @@ jobs:
           MATRIX=$(echo "$PLATFORMS" \
             | tr -d ' ' | tr ',' '\n' \
             | jq -R --argjson map "$ARCH_TO_PLATFORM_MAP" '
-                [ . as $p
-                  | $map | to_entries[]
-                  | select(.value==$p)
-                  | .key ]')
+                [ foreach inputs as $p ([];
+                    . + ([$map | to_entries[] | select(.value==$p) | .key])
+                  ) ]')
 
-          # Output the result so it can be consumed by later jobs/steps
           echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
 
   build-and-push:
