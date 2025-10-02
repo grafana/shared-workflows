@@ -222,7 +222,8 @@ jobs:
 
         run: |
           #############################################################
-          # 1. Take the PLATFORMS string (comma-separated list), ex: PLATFORMS=`linux/arm64,linux/amd64`
+          # 1. Take the ARCH_TO_PLATFORM_MAP string
+          # 2.
           # 2. Remove spaces and split on commas -> one platform per line.
           #    Example: "linux/arm64,linux/amd64" ->
           #             linux/arm64
@@ -234,17 +235,9 @@ jobs:
           # 4. Wrap results in a JSON array.
           #############################################################
 
-
-          # Split PLATFORMS string into lines
-          echo "$PLATFORMS" | tr -d ' ' | tr ',' '\n' \
-            | jq -R --argjson map "$ARCH_TO_PLATFORM_MAP" '
-                # For each line, find the key in the map whose value matches
-                map($map | to_entries[] | select(.value==.) | .key)
-              ' \
-            > matrix.json
-
-          # Read the final JSON array into a variable
-          MATRIX=$(cat matrix.json)
+          PS=$PLATFORMS
+          while read -r ARCH PLATFORM; do PS=${PS//$PLATFORM/$ARCH}; done < <(echo "$ARCH_TO_PLATFORM_MAP" | jq -r 'to_entries[] | "\(.key) \(.value)"')
+          MATRIX=$(echo "$PS" | jq -R 'split(",")')
 
           # Export as GitHub Action output
           echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
