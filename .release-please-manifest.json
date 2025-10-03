@@ -4,7 +4,7 @@
     "actions/dockerhub-login": "1.0.2",
     "actions/send-slack-message": "2.0.3",
     "actions/push-to-gar-docker": "0.5.2",
-    "actions/aws-auth": "1.0.2",
+    "actions/aws-auth": "1.0.3",
     "actions/build-push-to-dockerhub": "0.2.0",
     "actions/login-to-gar": "1.0.0",
     "actions/login-to-gcs": "0.2.1",
