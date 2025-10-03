@@ -73,11 +73,11 @@ runs:
         done
     - name: Delete branches (dry run)
       shell: bash
-      if: ${{ inputs.dry-run == "true" }}
+      if: ${{ inputs.dry-run == 'true' }}
       run: |
         cat branches.txt | xargs -I {} echo git push origin --delete "{}"
     - name: Delete branches
       shell: bash
-      if: ${{ inputs.dry-run != "true" }}
+      if: ${{ inputs.dry-run != 'true' }}
       run: |
         cat branches.txt | xargs -I {} git push origin --delete "{}"
