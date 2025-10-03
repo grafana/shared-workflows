@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.5.2...push-to-gar-docker/v0.6.0) (2025-10-03)
+
+
+### 🎉 Features
+
+* support load parameter in push-to-gar-docker ([#1190](https://github.com/grafana/shared-workflows/issues/1190)) ([bc06cdd](https://github.com/grafana/shared-workflows/commit/bc06cdd4721071acd1beb13f34a737801e52357f))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v4.3.0 ([#1221](https://github.com/grafana/shared-workflows/issues/1221)) ([17ab531](https://github.com/grafana/shared-workflows/commit/17ab531bf2c16c79af38988e7caf7a3d8a37634b))
+* **deps:** update actions/checkout action to v5 ([#1227](https://github.com/grafana/shared-workflows/issues/1227)) ([fd79c02](https://github.com/grafana/shared-workflows/commit/fd79c02730e0629f728e2f5c3d614545269208a9))
+* **deps:** update docker/metadata-action action to v5.8.0 ([#1182](https://github.com/grafana/shared-workflows/issues/1182)) ([315e38a](https://github.com/grafana/shared-workflows/commit/315e38a03f442c39bd82e902b88d8ba6ff8879b7))
+
 ## [0.5.2](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.5.1...push-to-gar-docker/v0.5.2) (2025-07-23)
 
 
