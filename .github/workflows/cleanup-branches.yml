@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-arm64-small
     steps:
       - name: Cleanup (Dry Run)
-        uses: grafana/shared-workflows/actions/cleanup-branches@c2f9db75c7b3e0eb497f985f937a90c751041193
+        uses: grafana/shared-workflows/actions/cleanup-branches@rwhitaker/implement-branch-cleanup
         with:
           dry-run: "true"
           max-date: "1 month ago"
