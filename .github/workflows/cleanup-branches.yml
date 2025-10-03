@@ -16,6 +16,7 @@ jobs:
     name: Cleanup git Branches
     runs-on: ubuntu-arm64-small
     steps:
+      - uses: actions/checkout@v5
       - name: Cleanup (Dry Run)
         uses: grafana/shared-workflows/actions/cleanup-branches@rwhitaker/implement-branch-cleanup
         with:
