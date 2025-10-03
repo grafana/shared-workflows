@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub/v0.2.0...build-push-to-dockerhub/v0.3.0) (2025-10-03)
+
+
+### 🎉 Features
+
+* **build-push-to-dockerhub:** support load parameter ([#1193](https://github.com/grafana/shared-workflows/issues/1193)) ([58d9866](https://github.com/grafana/shared-workflows/commit/58d9866681bf38ddb7567d1283659c60149b4c99))
+
+
+### 🐛 Bug Fixes
+
+* remediate latest zizmor findings, fix supplying zizmor config ([#1101](https://github.com/grafana/shared-workflows/issues/1101)) ([712c599](https://github.com/grafana/shared-workflows/commit/712c59975bc0de22124b866153826f04023f18fd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v4.3.0 ([#1221](https://github.com/grafana/shared-workflows/issues/1221)) ([17ab531](https://github.com/grafana/shared-workflows/commit/17ab531bf2c16c79af38988e7caf7a3d8a37634b))
+* **deps:** update actions/checkout action to v5 ([#1227](https://github.com/grafana/shared-workflows/issues/1227)) ([fd79c02](https://github.com/grafana/shared-workflows/commit/fd79c02730e0629f728e2f5c3d614545269208a9))
+* **deps:** update docker/build-push-action action to v6.18.0 ([#1065](https://github.com/grafana/shared-workflows/issues/1065)) ([5b5ee4c](https://github.com/grafana/shared-workflows/commit/5b5ee4cf0a527daf5e32b7f968637b8a8ed7efcb))
+* **deps:** update docker/metadata-action action to v5.8.0 ([#1182](https://github.com/grafana/shared-workflows/issues/1182)) ([315e38a](https://github.com/grafana/shared-workflows/commit/315e38a03f442c39bd82e902b88d8ba6ff8879b7))
+* **deps:** update docker/setup-buildx-action action to v3.11.1 ([#1068](https://github.com/grafana/shared-workflows/issues/1068)) ([5233cbc](https://github.com/grafana/shared-workflows/commit/5233cbc5d62242fb17b2259c2c4bd2a628af5528))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub-v0.1.1...build-push-to-dockerhub/v0.2.0) (2025-06-04)
 
 
