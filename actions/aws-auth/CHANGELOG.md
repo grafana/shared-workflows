@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/aws-auth/v1.0.2...aws-auth/v1.0.3) (2025-10-03)
+
+
+### 🐛 Bug Fixes
+
+* **aws-auth:** fix reference to the action's own path ([#1032](https://github.com/grafana/shared-workflows/issues/1032)) ([8499a7f](https://github.com/grafana/shared-workflows/commit/8499a7f3c5f5b4ddc4bc57b8cd8b56dba41114af))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/aws-auth-v1.0.1...aws-auth/v1.0.2) (2025-06-04)
 
 
