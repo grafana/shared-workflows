@@ -13,7 +13,7 @@
     "actions/setup-argo": "1.0.2",
     "actions/generate-openapi-clients": "1.0.2",
     "actions/push-to-gcs": "0.2.1",
-    "actions/techdocs-rewrite-relative-links": "1.0.2",
+    "actions/techdocs-rewrite-relative-links": "1.0.3",
     "actions/validate-policy-bot-config": "1.1.1",
     "actions/trigger-argo-workflow": "1.2.0",
     "actions/setup-jrsonnet": "1.0.1",
