@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.2.1...push-to-gcs/v0.3.0) (2025-10-03)
+
+
+### 🎉 Features
+
+* **push-to-gcs:** add `gzip` input ([#1138](https://github.com/grafana/shared-workflows/issues/1138)) ([589381a](https://github.com/grafana/shared-workflows/commit/589381ac26c629055574bff68951d452231cdc22))
+* wif authentication for google buckets ([#1254](https://github.com/grafana/shared-workflows/issues/1254)) ([bc6c0a6](https://github.com/grafana/shared-workflows/commit/bc6c0a6a58fbf19ad50267cf39e53c9ad4ce7430))
+
+
+### 🐛 Bug Fixes
+
+* remediate latest zizmor findings, fix supplying zizmor config ([#1101](https://github.com/grafana/shared-workflows/issues/1101)) ([712c599](https://github.com/grafana/shared-workflows/commit/712c59975bc0de22124b866153826f04023f18fd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v4.3.0 ([#1221](https://github.com/grafana/shared-workflows/issues/1221)) ([17ab531](https://github.com/grafana/shared-workflows/commit/17ab531bf2c16c79af38988e7caf7a3d8a37634b))
+* **deps:** update actions/checkout action to v5 ([#1227](https://github.com/grafana/shared-workflows/issues/1227)) ([fd79c02](https://github.com/grafana/shared-workflows/commit/fd79c02730e0629f728e2f5c3d614545269208a9))
+* **deps:** update google-github-actions/upload-cloud-storage action to v2.2.3 ([#1153](https://github.com/grafana/shared-workflows/issues/1153)) ([346eeb2](https://github.com/grafana/shared-workflows/commit/346eeb2f8f5db9a0b7c563c41f7211c46850627e))
+* **deps:** update google-github-actions/upload-cloud-storage action to v3 ([#1293](https://github.com/grafana/shared-workflows/issues/1293)) ([d5d1ccc](https://github.com/grafana/shared-workflows/commit/d5d1ccc3c947cfb3e1a6327e9ef6a8c8780e5a6a))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/push-to-gcs-v0.2.0...push-to-gcs/v0.2.1) (2025-06-04)
 
 
