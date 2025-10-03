@@ -22,7 +22,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs/v0.2.1
+      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs/v0.3.0
         id: login-to-gcs
 ```
 

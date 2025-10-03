@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/login-to-gcs/v0.2.1...login-to-gcs/v0.3.0) (2025-10-03)
+
+
+### 🎉 Features
+
+* wif authentication for google buckets ([#1254](https://github.com/grafana/shared-workflows/issues/1254)) ([bc6c0a6](https://github.com/grafana/shared-workflows/commit/bc6c0a6a58fbf19ad50267cf39e53c9ad4ce7430))
+
+
+### 🐛 Bug Fixes
+
+* remediate latest zizmor findings, fix supplying zizmor config ([#1101](https://github.com/grafana/shared-workflows/issues/1101)) ([712c599](https://github.com/grafana/shared-workflows/commit/712c59975bc0de22124b866153826f04023f18fd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update google-github-actions/auth action to v2.1.11 ([#1150](https://github.com/grafana/shared-workflows/issues/1150)) ([895722b](https://github.com/grafana/shared-workflows/commit/895722b12337ee97909efa8a78886ee69297ed50))
+* **deps:** update google-github-actions/auth action to v2.1.12 ([#1184](https://github.com/grafana/shared-workflows/issues/1184)) ([ee464c5](https://github.com/grafana/shared-workflows/commit/ee464c522eba7d1a22b82d27739f4bf789102900))
+* **deps:** update google-github-actions/auth action to v3 ([#1285](https://github.com/grafana/shared-workflows/issues/1285)) ([9f0b61a](https://github.com/grafana/shared-workflows/commit/9f0b61a459b2106ee915a3c482e493c7f659312f))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/login-to-gcs-v0.2.0...login-to-gcs/v0.2.1) (2025-06-04)
 
 
