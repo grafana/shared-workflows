@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.0...azure-trusted-signing/v1.0.1) (2025-10-03)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-dotnet action to v5 ([#1303](https://github.com/grafana/shared-workflows/issues/1303)) ([e2b2855](https://github.com/grafana/shared-workflows/commit/e2b2855c2f7e5dfb9cfe551773495cce69c5dd42))
+* **deps:** update dependency dotnet-sdk to v8.0.414 ([#1323](https://github.com/grafana/shared-workflows/issues/1323)) ([d2db509](https://github.com/grafana/shared-workflows/commit/d2db509c45f0d0e75e26fe03c276225d6bbc3e0d))
+
 ## 1.0.0 (2025-09-04)
 
 
