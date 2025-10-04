@@ -1,0 +1,27 @@
+name: Scan Image
+description: Composite action to check an image for vulnerabilities
+
+inputs:
+  image_name:
+    description: "The name of the image to scan"
+    required: true
+  fail_on:
+    description: "Whether to fail the workflow if vulnerabilities are found"
+    type: choice
+    options:
+      - critical
+      - high
+      - medium
+      - low
+  fail_on_threshold:
+    description: "The threshold of vulnerabilities to fail the workflow on"
+    type: integer
+    default: 1
+
+outputs: []
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout shared workflows
+      env: []
