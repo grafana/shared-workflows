@@ -18,5 +18,5 @@ inputs:
 
 runs:
   using: "node20"
-  main: "main.js"
-  post: "main.js"
+  main: "main.mjs"
+  post: "main.mjs"
