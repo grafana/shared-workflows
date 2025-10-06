@@ -3,6 +3,7 @@ import eslintPluginJest from "eslint-plugin-jest";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
+import globals from "globals";
 
 export default tseslint.config(
   js.configs.recommended,
@@ -30,6 +31,9 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: true,
+      },
+      globals: {
+        ...globals.node,
       },
     },
   },

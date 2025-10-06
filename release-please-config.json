@@ -159,6 +159,10 @@
       "package-name": "validate-renovate-config",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/with-post-step": {
+      "package-name": "with-post-step",
+      "extra-files": ["README.md"]
     }
   },
   "release-type": "simple",
