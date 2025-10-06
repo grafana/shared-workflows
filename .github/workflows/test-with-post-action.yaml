@@ -1,0 +1,45 @@
+name: Test With Post Step Action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/with-post-action/**"
+      - ".github/workflows/test-with-post-action.yaml"
+
+  pull_request:
+    paths:
+      - "actions/with-post-action/**"
+      - ".github/workflows/test-with-post-action.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Run Create GitHub App Token action
+        id: command
+        uses: ./actions/create-github-app-token
+        run: |
+          echo "running command"
+          echo "test_output=test_output_content" >> "${GITHUB_OUTPUT}"
+
+      - name: Skip invalid instance
+        uses: ./actions/with-post-step
+        run:
+          echo ${{ steps.command.outputs.test_output }}
