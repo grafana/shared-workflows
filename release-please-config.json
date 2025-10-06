@@ -154,6 +154,11 @@
     "actions/create-github-app-token": {
       "package-name": "create-github-app-token",
       "extra-files": ["README.md"]
+    },
+    "actions/validate-renovate-config": {
+      "package-name": "validate-renovate-config",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",

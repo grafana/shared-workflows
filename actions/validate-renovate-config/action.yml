@@ -1,0 +1,20 @@
+name: Validate Renovate Config
+description: Validates Renovate configuration files using renovate-config-validator
+
+inputs:
+  path:
+    description: Path to the Renovate config file to validate (e.g., 'renovate.json')
+    required: false
+    default: renovate.json
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      with:
+        node-version: '20'
+
+    - name: Validate Renovate config
+      shell: bash
+      run: npx --yes --package renovate -- renovate-config-validator "${{ inputs.path }}"
