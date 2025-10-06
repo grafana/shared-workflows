@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.6.0...push-to-gar-docker/v0.6.1) (2025-10-06)
+
+
+### 🐛 Bug Fixes
+
+* push-to-gar-docker pin buildx to 0.28.0 ([#1378](https://github.com/grafana/shared-workflows/issues/1378)) ([60eb720](https://github.com/grafana/shared-workflows/commit/60eb7207fa9ce578ff6e52c68f9e13542499f41b))
+
 ## [0.6.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.5.2...push-to-gar-docker/v0.6.0) (2025-10-03)
 
 
