@@ -14,12 +14,12 @@ name: Validate Renovate Config
 on:
   pull_request:
     paths:
-      - 'renovate.json'
+      - "renovate.json"
   push:
     branches:
       - main
     paths:
-      - 'renovate.json'
+      - "renovate.json"
 
 jobs:
   validate:
