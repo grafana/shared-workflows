@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "actions/with-post-action/**"
+      - "actions/with-post-step/**"
       - ".github/workflows/test-with-post-step.yaml"
 
   pull_request:
     paths:
-      - "actions/with-post-action/**"
+      - "actions/with-post-step/**"
       - ".github/workflows/test-with-post-step.yaml"
     types:
       - edited
