@@ -38,7 +38,7 @@ jobs:
           echo "running command"
           echo "test_output=test_output_content" >> "${GITHUB_OUTPUT}"
 
-      - name: Skip invalid instance
+      - name: With post step run
         uses: ./actions/with-post-step
         with:
           main: echo "with-post-step run"
