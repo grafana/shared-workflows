@@ -175,7 +175,7 @@ runs:
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
       with:
         driver: ${{ inputs.docker-buildx-driver }}
-        version: 0.28.0 # Latest is 0.29.1 which has an issue with pushing to some registrys https://github.com/docker/buildx/issues/3446
+        version: v0.28.0 # Latest is 0.29.1 which has an issue with pushing to some registrys https://github.com/docker/buildx/issues/3446
         buildkitd-config: ${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
 
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
