@@ -1,5 +1,5 @@
 // Reference: https://github.com/pyTooling/Actions/blob/main/with-post-step/main.js
-import spawn from "child_process";
+import { spawn } from "node:child_process";
 import { appendFileSync } from "fs";
 import EOL from "os";
 
