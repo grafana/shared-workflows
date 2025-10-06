@@ -6,12 +6,12 @@ on:
       - main
     paths:
       - "actions/with-post-action/**"
-      - ".github/workflows/test-with-post-action.yaml"
+      - ".github/workflows/test-with-post-step.yaml"
 
   pull_request:
     paths:
       - "actions/with-post-action/**"
-      - ".github/workflows/test-with-post-action.yaml"
+      - ".github/workflows/test-with-post-step.yaml"
     types:
       - edited
       - opened
@@ -34,12 +34,12 @@ jobs:
 
       - name: Run Create GitHub App Token action
         id: command
-        uses: ./actions/create-github-app-token
         run: |
           echo "running command"
           echo "test_output=test_output_content" >> "${GITHUB_OUTPUT}"
 
       - name: Skip invalid instance
         uses: ./actions/with-post-step
-        run:
-          echo ${{ steps.command.outputs.test_output }}
+        with:
+          main: echo "with-post-step run"
+          post: echo ${{ steps.command.outputs.test_output }}
