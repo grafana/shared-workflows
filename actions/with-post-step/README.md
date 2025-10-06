@@ -25,14 +25,15 @@ jobs:
 
       - name: Run Create GitHub App Token action
         id: command
-        uses: ./actions/create-github-app-token
         run: |
           echo "running command"
           echo "test_output=test_output_content" >> "${GITHUB_OUTPUT}"
 
       - name: Skip invalid instance
         uses: ./actions/with-post-step
-        run: echo ${{ steps.command.outputs.test_output }}
+        with:
+          main: echo "with-post-step run"
+          post: echo ${{ steps.command.outputs.test_output }}
 ```
 
 <!-- x-release-please-end-version -->
