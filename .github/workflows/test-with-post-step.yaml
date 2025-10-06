@@ -32,14 +32,20 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run Create GitHub App Token action
+      - name: Run first command
         id: command
         run: |
-          echo "running command"
+          echo "running firts command"
           echo "test_output=test_output_content" >> "${GITHUB_OUTPUT}"
 
       - name: With post step run
         uses: ./actions/with-post-step
         with:
           main: echo "with-post-step run"
-          post: echo ${{ steps.command.outputs.test_output }}
+          post: |
+            echo ${{ steps.command.outputs.test_output }}
+
+      - name: Run second command
+        id: second-command
+        run: |
+          echo "running second command"
