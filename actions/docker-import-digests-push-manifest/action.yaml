@@ -86,7 +86,8 @@ runs:
 
         if [[ "$DOCKERHUB_IMAGE" == "true" ]]; then
           echo "include-dockerhub=true" | tee -a "${GITHUB_OUTPUT}"
-        elif [[ "$GAR_IMAGE" == "true" ]]; then
+        fi
+        if [[ "$GAR_IMAGE" == "true" ]]; then
           echo "include-gar=true" | tee -a "${GITHUB_OUTPUT}"
         fi
 
