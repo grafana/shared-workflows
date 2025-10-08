@@ -21,8 +21,8 @@ inputs:
       Whether to push the manifest to the configured registries.
     default: "false"
   tags:
-    description: | # TODO fill this in and update README
-      tagsum ipsum
+    description: |
+      List of Docker tags to be pushed.
     required: true
 
 runs:
@@ -59,6 +59,12 @@ runs:
         IMAGES: ${{ inputs.images }}
       shell: bash
       run: |
+        ##################################################################
+        # This step parses the input image list to determine if
+        # docker images or gar images have been passed in... so we
+        # can determine which systems to login to.
+        ##################################################################
+
         set -euo pipefail
 
         DOCKERHUB_IMAGE=false

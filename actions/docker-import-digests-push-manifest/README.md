@@ -46,3 +46,4 @@ jobs:
 | `gar-environment`      | String  | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project to either `grafanalabs-dev` or `grafanalabs-global`.                       |
 | `images`               | String  | CSV of Docker images to push. These images should not include tags. Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image |
 | `push`                 | Boolean | Whether to push the manifest to the configured registries.                                                                                                          |
+| `tags`                 | String  | List of Docker tags to be pushed.                                                                                                                                   |
