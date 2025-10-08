@@ -237,12 +237,6 @@ func (w *ReusableWorkflow) convertToCompositeAction() (ca *CompositeAction, err 
 	return ca, nil
 }
 
-// helper: safely extract the string value from a yaml.Node
-func nodeString(n yaml.Node) string {
-	// If the node is a zero-value, n.Value is empty string — that's fine.
-	return n.Value
-}
-
 func guessType(io ActionIO) string {
 	lower := strings.ToLower(nodeString(io.Default))
 	if lower == "true" || lower == "false" {
