@@ -20,6 +20,10 @@ inputs:
     description: |
       Whether to push the manifest to the configured registries.
     default: "false"
+  tags:
+    description: | # TODO fill this in and update README
+      tagsum ipsum
+    required: true
 
 runs:
   using: composite
@@ -99,12 +103,18 @@ runs:
       if: ${{ steps.prepare-vars.outputs.include-dockerhub == 'true' }}
       uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/dockerhub-login
 
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+      with:
+        images: ${{ inputs.images }}
+        tags: ${{ inputs.tags }}
+
     - name: Create manifest list and push
       working-directory: ${{ runner.temp }}/digests
       shell: bash
       env:
         IMAGES: ${{ inputs.images }}
-        DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata-json }}
         PUSH: ${{ inputs.push }}
       run: |
         set -euo pipefail
@@ -136,8 +146,6 @@ runs:
     - name: Inspect image
       shell: bash
       if: ${{ inputs.push == 'true' }}
-      env:
-        DOCKER_METADATA_OUTPUT_JSON: ${{ inputs.docker-metadata-json }}
       run: |
         for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
           echo ""
