@@ -195,9 +195,6 @@ on:
       metadata:
         description: "Build result metadata (from docker/build-push-action)"
         value: ${{ jobs.build-and-push.outputs.metadata }}
-      metadatajson:
-        description: "Metadata JSON (from docker/metadata)"
-        value: ${{ jobs.build-and-push.outputs.json }}
       tags:
         description: "Generated Docker tags (from docker/metadata-action)"
         value: ${{ jobs.build-and-push.outputs.tags }}
@@ -261,7 +258,6 @@ jobs:
       json: ${{ steps.build.outputs.json }}
       labels: ${{ steps.build.outputs.labels }}
       metadata: ${{ steps.build.outputs.metadata }}
-      metadatajson: ${{ steps.build.outputs.metadatajson }}
       tags: ${{ steps.build.outputs.tags }}
       version: ${{ steps.build.outputs.version }}
     permissions:
@@ -364,5 +360,5 @@ jobs:
         with:
           images: ${{ needs.build-and-push.outputs.images }}
           gar-environment: ${{ inputs.gar-environment }}
-          docker-metadata-json: ${{ needs.build-and-push.outputs.metadatajson }}
           push: ${{ inputs.push }}
+          tags: ${{ inputs.tags }}
