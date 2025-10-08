@@ -2,11 +2,11 @@ name: "Cleanup Git Branches"
 
 on:
   push:
+    branches:
+      - rwhitaker/implement-branch-cleanup
 #  schedule:
 #    - cron: "21 5 * * 3"
-
-  # To trigger a CodeQL analysis manually
-#  workflow_dispatch:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,9 +16,9 @@ jobs:
     name: Cleanup git Branches
     runs-on: ubuntu-arm64-small
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Cleanup (Dry Run)
-        uses: grafana/shared-workflows/actions/cleanup-branches@rwhitaker/implement-branch-cleanup
+        uses: grafana/shared-workflows/actions/cleanup-branches@6fd77df7e851357156425bfd79b08b537f9aeba7 # main
         with:
           dry-run: "true"
           max-date: "1 month ago"
