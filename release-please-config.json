@@ -159,6 +159,11 @@
       "package-name": "validate-renovate-config",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/cleanup-branches": {
+      "package-name": "cleanup-branches",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
