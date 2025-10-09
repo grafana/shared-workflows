@@ -23,14 +23,14 @@ on:
     - cron: "0 9 * * 1"
 
 jobs:
-  cleanup-branches::
+  cleanup-branches:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: read
     steps:
       - uses: actions/checkout@v5
-      - uses: grafana/shared-workflows/actions/cleanup-branches@cleanup-branches/v1.0.0
+      - uses: grafana/shared-workflows/actions/cleanup-branches@cleanup-branches/v0.0.0
         with:
           dry-run: false
 ```
