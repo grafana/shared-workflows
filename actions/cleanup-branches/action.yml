@@ -4,16 +4,13 @@ description: |
   Protected branches are excluded as well.
 inputs:
   dry-run:
-    default: "true"
-    required: true
+    default: "false"
     description: "If 'true', then the action will print branches to be deleted, but will not delete them"
   token:
     default: ${{ github.token }}
-    required: true
     description: "GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (contents: write) and pull requests (pull_requests: read)"
   max-date:
-    default: "2 weeks ago"
-    required: false
+    default: "1 month ago"
     description: |
       Value provided to `date -d={}. From `man date`: "The --date=STRING is a mostly free format human readable date string such as "Sun, 29 Feb 2004 16:21:42 -0800" or "2004-02-29 16:21:42" or even "next Thursday".  A date string may
        contain items indicating calendar date, time of day, time zone, day of week, relative time, relative date, and numbers.  An empty string indicates the beginning of the day.  The
@@ -73,7 +70,7 @@ runs:
         done
     - name: Delete branches (dry run)
       shell: bash
-      if: ${{ inputs.dry-run != 'false' }}
+      if: ${{ inputs.dry-run == 'true' }}
       run: |
         if [[ ! -s branches.txt ]]; then
           echo "🟢 No branches marked for deletion."
