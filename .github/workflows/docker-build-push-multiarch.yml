@@ -229,6 +229,8 @@ jobs:
           #############################################################
 
           # Create a copy so we don't override our input
+          # This runs afoul of spell check, which thinks PLATFORMS should be PLATFORM
+          # shellcheck disable=SC2153
           PS=$PLATFORMS
 
           # The second half of this command converts $ARCH_TO_PLATFORM_MAP into string pairs of ARCH and PLATFORM
