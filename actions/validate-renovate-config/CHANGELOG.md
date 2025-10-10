@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0](https://github.com/grafana/shared-workflows/compare/validate-renovate-config/v0.1.0...validate-renovate-config/v0.2.0) (2025-10-10)
+## [0.1.0](https://github.com/grafana/shared-workflows/compare/validate-renovate-config/v0.1.0...validate-renovate-config/v0.1.0) (2025-10-10)
 
 
 ### 🎉 Features
