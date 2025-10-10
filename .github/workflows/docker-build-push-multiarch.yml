@@ -1,5 +1,4 @@
-name: Push to artifact registry MultiArch
-# description: Resuable workflow to push to Google Artifact Registry using runners of different architectures.
+name: Build and Push Docker MultiArch Images
 
 on:
   workflow_call:
@@ -292,13 +291,14 @@ jobs:
             chmod +x "$PRE_BUILD_SCRIPT_PATH"
             "$PRE_BUILD_SCRIPT_PATH"
           else
-            echo "No script found at $PRE_BUILD_SCRIPT_PATH, skipping."
+            echo "::error::No script found at $PRE_BUILD_SCRIPT_PATH."
+            exit 1
           fi
         env:
           PRE_BUILD_SCRIPT_PATH: ${{ inputs.pre-build-script }}
       - name: Build Docker Image
         id: build
-        uses: grafana/shared-workflows/actions/docker-build-push-image@rwhitaker/multi-arch-composite-actions
+        uses: ./actions/docker-build-push-image
         with:
           # from inputs
           build-args: ${{ inputs.build-args }}
@@ -338,12 +338,13 @@ jobs:
             chmod +x "$POST_BUILD_SCRIPT_PATH"
             "$POST_BUILD_SCRIPT_PATH"
           else
-            echo "No script found at $POST_BUILD_SCRIPT_PATH, skipping."
+            echo "::error::No script found at $POST_BUILD_SCRIPT_PATH."
+            exit 1
           fi
         env:
           $POST_BUILD_SCRIPT_PATH: ${{ inputs.post-build-script }}
       - name: Export and upload digest
-        uses: grafana/shared-workflows/actions/docker-export-digest@rwhitaker/multi-arch-composite-actions
+        uses: ./actions/docker-export-digest
         with:
           digest: ${{ steps.build.outputs.digest }}
           platform: ${{ env.PLATFORM }}
@@ -356,7 +357,7 @@ jobs:
       id-token: write
     steps:
       - name: Download Multi-Arch Digests, Construct and Upload Manifest
-        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@rwhitaker/multi-arch-composite-actions
+        uses: ./actions/docker-import-digests-push-manifest
         with:
           images: ${{ needs.build-and-push.outputs.images }}
           gar-environment: ${{ inputs.gar-environment }}
