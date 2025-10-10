@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.1.0...cleanup-branches/v0.2.0) (2025-10-10)
+
+
+### 🎉 Features
+
+* **cleanup-branches:** input logic and error handling improvements ([#1395](https://github.com/grafana/shared-workflows/issues/1395)) ([2003063](https://github.com/grafana/shared-workflows/commit/200306370ccdfff1d006e43c395eee051dd18012))
+* **cleanup-branches:** update input requirements ([#1398](https://github.com/grafana/shared-workflows/issues/1398)) ([5f23dd6](https://github.com/grafana/shared-workflows/commit/5f23dd66337cd96184b6bedb374cb53bd0d695a6))
+
 ## 0.1.0 (2025-10-09)
 
 
