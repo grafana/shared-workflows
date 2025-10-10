@@ -17,8 +17,8 @@ And supports building the following image types:
 
 This generates a matrix based off of the `platforms` input, then creates a job per platform that runs the composite
 actions [docker-build-push-image] and [docker-export-digest] to build and push docker images, and capture their digests.
-There is a then a final job that runs the composite action [docker-import-digests-push-manifest] to push the final
-docker manifest.
+There is then a final job that runs the composite action [docker-import-digests-push-manifest] to push the docker
+manifest.
 
 [docker/build-push-action]: https://github.com/docker/build-push-action
 [docker-build-push-image]: ../../docker-build-push-image/README.md
