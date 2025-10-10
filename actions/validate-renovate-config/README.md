@@ -8,6 +8,8 @@ Validates Renovate configuration files using [renovate-config-validator](https:/
 
 ## Example workflow
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Validate Renovate Config
 
@@ -48,3 +50,5 @@ To validate multiple config files, call the action multiple times:
   with:
     path: presets/default.json
 ```
+
+<!-- x-release-please-end-version -->
