@@ -9,7 +9,7 @@ native multi-arch Docker images.
 [docker/build-push-action]: https://github.com/docker/build-push-action
 [docker-build-push-image]: ../docker-build-push-image/README.md
 [docker-export-digest]: ../docker-export-digest/README.md
-[docker-import-digests-push-manifest]: ../docker-import-digests-push-manifest/README.md
+[docker-import-digests-push-manifests]: /README.md
 
 <!-- x-release-please-start-version -->
 
@@ -28,7 +28,7 @@ jobs:
       id-token: write
     steps:
       - name: Download Multi-Arch Digests, Construct and Upload Manifest
-        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@docker-import-digests-push-manifest/v0.0.0
+        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifests@docker-import-digests-push-manifest/v0.0.0
         with:
           docker-metadata-json: ${{ needs.docker-build-push-image.outputs.metadatajson }}
           gar-environment: "dev"

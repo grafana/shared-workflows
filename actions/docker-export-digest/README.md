@@ -2,13 +2,13 @@
 
 This is a composite GitHub Action used to export a docker digest as a workflow artifact.
 
-This can be used in conjunction with [docker-build-push-image] and [docker-import-digests-push-manifest] to build
+This can be used in conjunction with [docker-build-push-image] and [docker-import-digests-push-manifests] to build
 native multi-arch Docker images.
 
 [docker/build-push-action]: https://github.com/docker/build-push-action
 [docker-build-push-image]: ../docker-build-push-image/README.md
 [docker-export-digest]: ../docker-export-digest/README.md
-[docker-import-digests-push-manifest]: ../docker-import-digests-push-manifest/README.md
+[docker-import-digests-push-manifests]: ../docker-import-digests-push-manifests/README.md
 
 <!-- x-release-please-start-version -->
 

@@ -7,7 +7,7 @@ uses [docker/build-push-action] to build and push the image(s).
 This action can work 1 of 2 ways:
 
 1. It can be run on a single runner, and if multiple `platforms` are configured then buildx/QEMU emulation is used.
-2. It can be used in conjunction with [docker-export-digest] and [docker-import-digests-push-manifest] to push untagged
+2. It can be used in conjunction with [docker-export-digest] and [docker-import-digests-push-manifests] to push untagged
    images whose digests are later exported and merged into a tagged docker manifest. For true multi-arch builds.
 
 This can push to the following registries:
@@ -18,7 +18,7 @@ This can push to the following registries:
 [docker/build-push-action]: https://github.com/docker/build-push-action
 [docker-build-push-image]: ../docker-build-push-image/README.md
 [docker-export-digest]: ../docker-export-digest/README.md
-[docker-import-digests-push-manifest]: ../docker-import-digests-push-manifest/README.md
+[docker-import-digests-push-manifests]: ../docker-import-digests-push-manifests/README.md
 
 <!-- x-release-please-start-version -->
 

@@ -1,5 +1,5 @@
-name: Download and Merge Docker Digests into Manifest
-description: Composite action to export and upload a docker manifest
+name: Download and Merge Docker Digests into Manifest(s)
+description: Composite action to export and upload docker manifest(s)
 
 inputs:
   docker-metadata-json:
@@ -36,7 +36,7 @@ runs:
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
-        path: _shared-workflows-docker-import-digests-push-manifest
+        path: _shared-workflows-docker-import-digests-push-manifests
         persist-credentials: false
 
     - name: Download digests
@@ -103,11 +103,11 @@ runs:
 
     - name: Login to GAR
       if: ${{ steps.prepare-vars.outputs.include-gar == 'true' }}
-      uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/login-to-gar
+      uses: ./_shared-workflows-docker-import-digests-push-manifests/actions/login-to-gar
 
     - name: Login to DockerHub
       if: ${{ steps.prepare-vars.outputs.include-dockerhub == 'true' }}
-      uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/dockerhub-login
+      uses: ./_shared-workflows-docker-import-digests-push-manifests/actions/dockerhub-login
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
