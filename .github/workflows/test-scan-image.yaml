@@ -1,0 +1,60 @@
+name: Test scan-image action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/scan-image/**"
+      - ".github/workflows/test-scan-image.yaml"
+
+  pull_request:
+    paths:
+      - "actions/scan-image/**"
+      - ".github/workflows/test-scan-image.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: (Test 1) Scan public image without vulnerabilities
+        id: scan-image-1
+        uses: Lantero/shared-workflows/actions/scan-image@1c42928e7de3547403e934df7fa59a3e59865a75 # scan-action/v0.1.0
+        with:
+          image_name: docker.io/hello-world
+          image_source: public
+
+      - name: (Test 2) Scan public image with some vulnerabilities (Pinned Trivy and Grype)
+        id: scan-image-2
+        uses: Lantero/shared-workflows/actions/scan-image@1c42928e7de3547403e934df7fa59a3e59865a75 # scan-action/v0.1.0
+        with:
+          image_name: docker.io/redis:7.4.0-alpine
+          image_source: public
+          trivy_version: v0.66.0
+          grype_version: v0.98.0
+
+      - name: (Test 3) Scan private DockerHub image for vulnerabilities
+        id: scan-image-3
+        uses: Lantero/shared-workflows/actions/scan-image@1c42928e7de3547403e934df7fa59a3e59865a75 # scan-action/v0.1.0
+        with:
+          image_name: ${{ github.repository }}@${{ steps.build.outputs.digest }}
+          image_source: private_dockerhub
+
+      - name: (Test 4) Scan private GAR image for vulnerabilities
+        id: scan-image-4
+        uses: Lantero/shared-workflows/actions/scan-image@1c42928e7de3547403e934df7fa59a3e59865a75 # scan-action/v0.1.0
+        with:
+          image_name: us-docker.pkg.dev/grafanalabs-global/docker-deployment-tools-prod/terraform-team:1.7.5-16-0-amd64
+          image_source: private_gar
