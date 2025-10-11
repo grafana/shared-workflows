@@ -164,6 +164,21 @@
       "package-name": "cleanup-branches",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/docker-build-push-image": {
+      "package-name": "docker-build-push-image",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/docker-export-digest": {
+      "package-name": "docker-export-digest",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/docker-import-digests-push-manifest": {
+      "package-name": "docker-import-digests-push-manifest",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
