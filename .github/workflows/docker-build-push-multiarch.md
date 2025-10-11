@@ -43,48 +43,49 @@ jobs:
       push: true
       registries: "gar,dockerhub"
       pre-build-script: scripts/ci-build.sh
-
 ```
 
 <!-- x-release-please-end-version -->
 
 ## Inputs
 
-| Name                      | Type    | Description                                                                                                                                                                                                            |
-|---------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `build-args`              | String  | List of arguments necessary for the Docker image to be built.                                                                                                                                                          |
-| `build-contexts`          | String  | List of additional build contexts (e.g., name=path)                                                                                                                                                                    |
-| `buildkitd-config`        | String  | Configum buildkitium descriptium                                                                                                                                                                                       |
-| `buildkitd-config-inline` | String  | Inliumium configutorium buildkitium descriptium                                                                                                                                                                        |
-| `cache-from`              | String  | Where cache should be fetched from                                                                                                                                                                                     |
-| `cache-to`                | String  | Where cache should be stored to                                                                                                                                                                                        |
-| `context`                 | String  | Path to the Docker build context.                                                                                                                                                                                      |
-| `delete-credentials-file` | Boolean | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false.                                                                                |
-| `docker-buildx-driver`    | String  | The driver to use for Docker Buildx                                                                                                                                                                                    |
-| `dockerhub-repository`    | String  | Ipsum dockerhubium                                                                                                                                                                                                     |
-| `file`                    | String  | The dockerfile to use.                                                                                                                                                                                                 |
-| `gar-environment`         | String  | Environment for pushing artifacts (can be either dev or prod).                                                                                                                                                         |
-| `gar-image`               | String  | Name of the image to build. Default: `${GitHub Repo Name}`                                                                                                                                                             |
-| `gar-registry`            | String  | Google Artifact Registry to store docker images in.                                                                                                                                                                    |
-| `gar-repository`          | String  | Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name. Default: `docker-${GitHub Repo Name}-${gar-environment}` |
-| `labels`                  | String  | List of custom labels to add to the image as metadata.                                                                                                                                                                 |
-| `load`                    | Boolean | Whether to load the built image into the local docker daemon.                                                                                                                                                          |
-| `outputs`                 | String  | Ipsum factum explainum.                                                                                                                                                                                                |
-| `platforms`               | String  | List of platforms to build the image for                                                                                                                                                                               |
-| `post-build-script`       | String  | A script to run after docker build                                                                                                                                                                                     |
-| `pre-build-script`        | String  | A script to run before docker build                                                                                                                                                                                    |
-| `push`                    | String  | Whether to push the image to the configured registries.                                                                                                                                                                |
-| `registries`              | String  | List of registries to build images for.                                                                                                                                                                                |
-| `secrets`                 | String  | Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.                                                                      |
-| `server-size`             | String  | Size of the hosted runner                                                                                                                                                                                              |
-| `ssh`                     | String  | List of SSH agent socket or keys to expose to the build                                                                                                                                                                |
-| `tags`                    | String  | List of Docker tags to be pushed.                                                                                                                                                                                      |
-| `target`                  | String  | Sets the target stage to build                                                                                                                                                                                         |
+| Name                          | Type   | Description                                                                                                                                                                                                            |
+| ----------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `build-args`                  | string | List of arguments necessary for the Docker image to be built. Passed to `docker/build-push-action`.                                                                                                                    |
+| `build-contexts`              | string | List of additional build contexts (e.g., name=path). Passed to `docker/build-push-action`.                                                                                                                             |
+| `buildkitd-config`            | string | The buildkitd config file to use. Defaults to `/etc/buildkitd.toml` if you're using Grafana's self-hosted runners. Passed to `docker/setup-buildx-action`.                                                             |
+| `buildkitd-config-inline`     | string | The buildkitd inline config to use. Passed to `docker/setup-buildx-action`.                                                                                                                                            |
+| `cache-from`                  | string | Where cache should be fetched from. Passed to `docker/build-push-action`.                                                                                                                                              |
+| `cache-to`                    | string | Where cache should be stored to. Passed to `docker/build-push-action`.                                                                                                                                                 |
+| `context`                     | string | Path to the Docker build context. Passed to `docker/build-push-action`.                                                                                                                                                |
+| `docker-buildx-driver`        | string | The driver to use for Docker Buildx. Passed to `docker/setup-buildx-action`.                                                                                                                                           |
+| `dockerhub-registry`          | string | DockerHub Registry to store docker images in.                                                                                                                                                                          |
+| `dockerhub-repository`        | string | DockerHub Repository to store docker images in. Default: github.repository                                                                                                                                             |
+| `file`                        | string | The dockerfile to use. Passed to `docker/build-push-action`.                                                                                                                                                           |
+| `gar-delete-credentials-file` | string | Delete the Google credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false.                                                                         |
+| `gar-environment`             | string | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project (gar-project) to either `grafanalabs-dev` or `grafanalabs-global`.                                                            |
+| `gar-image`                   | string | Name of the image to build. Default: `${GitHub Repo Name}`.                                                                                                                                                            |
+| `gar-registry`                | string | Google Artifact Registry to store docker images in.                                                                                                                                                                    |
+| `gar-repository`              | string | Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name. Default: `docker-${GitHub Repo Name}-${gar-environment}` |
+| `include-tags-in-push`        | string | Disables the pushing of tags, and instead includes just a list of images as docker tags. Used when pushing docker digests instead of docker tags.                                                                      |
+| `labels`                      | string | List of custom labels to add to the image as metadata (passed to `docker/build-push-action`). Passed to `docker/build-push-action`.                                                                                    |
+| `load`                        | string | Whether to load the built image into the local docker daemon (passed to `docker/build-push-action`). Passed to `docker/build-push-action`.                                                                             |
+| `outputs`                     | string | List of docker output destinations. Passed to `docker/build-push-action`.                                                                                                                                              |
+| `platforms`                   | string | List of platforms to build the image for. Passed to `docker/build-push-action`.                                                                                                                                        |
+| `post-build-script`           | string | A script to run after `docker build`                                                                                                                                                                                   |
+| `pre-build-script`            | string | A script to run before `docker build`                                                                                                                                                                                  |
+| `push`                        | string | Whether to push the image to the configured registries. Passed to `docker/build-push-action`.                                                                                                                          |
+| `registries`                  | string | CSV list of registries to build images for. Accepted registries are "gar" and "dockerhub".                                                                                                                             |
+| `secrets`                     | string | Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built. Passed to `docker/build-push-action`.                                |
+| `server-size`                 | string | Size of the Grafana self-hosted runner                                                                                                                                                                                 |
+| `ssh`                         | string | List of SSH agent socket or keys to expose to the build Passed to `docker/build-push-action`.                                                                                                                          |
+| `tags`                        | string | List of Docker tags to be pushed. Passed to `docker/build-push-action`.                                                                                                                                                |
+| `target`                      | string | Sets the target stage to build. Passed to `docker/build-push-action`.                                                                                                                                                  |
 
 ## Outputs
 
 | Name            | Type   | Description                                                              |
-|-----------------|--------|--------------------------------------------------------------------------|
+| --------------- | ------ | ------------------------------------------------------------------------ |
 | `annotations`   | String | Generated annotations (from docker/metadata-action)                      |
 | `digest`        | String | Image digest (from docker/build-push-action)                             |
 | `imageid`       | String | Image ID (from docker/build-push-action)                                 |
@@ -92,7 +93,6 @@ jobs:
 | `json`          | String | JSON output of tags and labels (from docker/metadata-action)             |
 | `labels`        | String | Generated Docker labels (from docker/metadata-action)                    |
 | `metadata`      | String | Build result metadata (from docker/build-push-action)                    |
-| `metadatajson`  | String | Metadata JSON (from docker/metadata)                                     |
 | `runner_arches` | String | The list of OS used to build images (for mapping to self hosted runners) |
 | `tags`          | String | Generated Docker tags (from docker/metadata-action)                      |
 | `version`       | String | Generated Docker image version (from docker/metadata-action)             |
