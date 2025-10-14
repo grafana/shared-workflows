@@ -44,8 +44,7 @@ jobs:
           bun-version-file: .bun-version
 
       - name: Install lint-pr-title dependencies
-        run:
-          bun install --frozen-lockfile --linker hoisted --filter lint-pr-title
+        run: bun install --frozen-lockfile --linker hoisted --filter lint-pr-title
 
       - name: Lint
         run: bun run eslint actions/lint-pr-title
