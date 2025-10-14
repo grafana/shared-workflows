@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Go Flaky Tests
-        uses: grafana/shared-workflows/actions/go-flaky-tests@go-flaky-tests/v0.1.0
+        uses: grafana/shared-workflows/actions/go-flaky-tests@go-flaky-tests/v0.0.0
         with:
           loki-url: ${{ secrets.LOKI_URL }}
           loki-username: ${{ secrets.LOKI_USERNAME }}
