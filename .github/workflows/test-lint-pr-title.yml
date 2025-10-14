@@ -44,10 +44,11 @@ jobs:
           bun-version-file: .bun-version
 
       - name: Install lint-pr-title dependencies
-        run: bun install --frozen-lockfile --filter lint-pr-title
+        run:
+          bun install --frozen-lockfile
 
       - name: Lint
-        run: bun run node_modules/.bin/eslint actions/lint-pr-title
+        run: bun run eslint actions/lint-pr-title
 
       - name: Test
         run: bun run --filter lint-pr-title test
