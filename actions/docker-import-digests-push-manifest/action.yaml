@@ -2,10 +2,6 @@ name: Download and Merge Docker Digests into Manifest
 description: Composite action to export and upload a docker manifest
 
 inputs:
-  docker-metadata-json:
-    description: |
-      Docker metadata JSON, from `docker-build-push-image` or `docker/build-push-action`.
-    default: ""
   gar-environment:
     description: |
       Environment for pushing artifacts (can be either dev or prod).
