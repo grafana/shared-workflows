@@ -1,7 +1,7 @@
 # This file must be built from the root of the repository.
 # Example: docker build . -f actions/lint-pr-title/Dockerfile
 
-FROM oven/bun:1.2.23@sha256:6ebf306367da43ad75c4d5119563e24de9b66372929ad4fa31546be053a16f74 AS base
+FROM oven/bun:1.3.0@sha256:00cccad6e9c66bbacc250851f689168606aaea551ac473e908bbcf00a5645025 AS base
 
 WORKDIR /usr/src/app
 
