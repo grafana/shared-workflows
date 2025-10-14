@@ -164,6 +164,11 @@
       "package-name": "cleanup-branches",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/go-flaky-tests": {
+      "package-name": "go-flaky-tests",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
