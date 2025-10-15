@@ -26,7 +26,6 @@ While Dependabot can update references to these actions, Renovate can't do it ou
       "commitMessageAction": "update",
       "commitMessageTopic": "{{depName}}/{{ lookup (split newVersion \"/\") 0 }} action",
       "commitMessageExtra": "to {{ lookup (split newVersion \"/\") 1 }}",
-
     },
   ],
 }
