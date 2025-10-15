@@ -17,7 +17,7 @@ While Dependabot can update references to these actions, Renovate can't do it ou
 
 ```json
 {
-  packageRules: [
+  "packageRules": [
     {
       "matchPackageNames": ["grafana/shared-workflows"],
       "versioning": "regex:^(?<compatibility>.*)[-/]v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$",
