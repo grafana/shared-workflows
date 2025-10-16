@@ -21,4 +21,4 @@ jobs:
         uses: grafana/shared-workflows/actions/cleanup-branches@b0a85c9abc496153b15bc21ba811ede0248d4e8e # cleanup-branches/v0.2.0
         with:
           dry-run: "true"
-          max-date: "1 month ago"
+          max-date: "3 months ago"
