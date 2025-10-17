@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.0...run-capslock/v0.2.1) (2025-10-17)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v4.3.0 ([#1346](https://github.com/grafana/shared-workflows/issues/1346)) ([bcfe5a0](https://github.com/grafana/shared-workflows/commit/bcfe5a09ced411b395d8601ea24d64266ba8188c))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.1.0...run-capslock/v0.2.0) (2025-09-09)
 
 
