@@ -1,0 +1,209 @@
+name: Scan Image
+description: Composite action to check an image for vulnerabilities
+
+inputs:
+  image_name:
+    description: "The name of the image to scan, including the registry e.g. docker.io/hello-world"
+    required: true
+  image_source:
+    description: "The source of the image to scan"
+    type: choice
+    options:
+      - public
+      - private_dockerhub
+      - private_gar
+    default: public
+  fail_on:
+    description: "Whether to fail the workflow if vulnerabilities are found"
+    type: choice
+    options:
+      - critical
+      - high
+      - medium
+      - low
+    default: critical
+  fail_on_threshold:
+    description: "The threshold of vulnerabilities to fail the workflow on"
+    type: integer
+    default: 1
+  trivy_version:
+    description: "The version of Trivy to use (The latest will be used if not provided)"
+    type: string
+  grype_version:
+    description: "The version of Grype to use (The latest will be used if not provided)"
+    type: string
+
+outputs: {}
+
+runs:
+  using: composite
+  steps:
+
+    - name: Login to DockerHub
+      id: login-to-dockerhub
+      if: inputs.image_source == 'private_dockerhub'
+      uses: grafana/shared-workflows/actions/dockerhub-login@dockerhub-login-v1.0.1
+
+    - name: Extract GAR registry
+      id: extract-gar-registry
+      if: inputs.image_source == 'private_gar'
+      shell: bash
+      run: |
+        IMAGE_NAME="${{ inputs.image_name }}"
+        REGISTRY="${IMAGE_NAME%%/*}"
+        echo "registry=${REGISTRY}" >> $GITHUB_OUTPUT
+
+    - name: Login to GAR
+      id: login-to-gar
+      if: inputs.image_source == 'private_gar'
+      uses: grafana/shared-workflows/actions/login-to-gar@login-to-gar/v1.0.0
+      with:
+        registry: ${{ steps.extract-gar-registry.outputs.registry }}
+
+    - name: Setup Trivy (Latest)
+      id: setup-trivy-latest
+      if: inputs.trivy_version == ''
+      uses: aquasecurity/setup-trivy@v0.2.3
+
+    - name: Setup Trivy (Pinned)
+      id: setup-trivy-pinned
+      if: inputs.trivy_version != ''
+      uses: aquasecurity/setup-trivy@v0.2.3
+      with:
+        version: ${{ inputs.trivy_version }}
+
+    - name: Run Trivy
+      id: run-trivy
+      shell: bash
+      run: |
+        trivy image ${{ inputs.image_name }} -f json -o trivy.json
+        trivy convert --format cyclonedx --output trivy-cdx.json trivy.json
+
+    - name: Setup Grype (Latest)
+      id: setup-grype-latest
+      if: inputs.grype_version == ''
+      uses: anchore/scan-action/download-grype@v7
+      with:
+        grype-version: 
+
+    - name: Setup Grype (Pinned)
+      id: setup-grype-pinned
+      if: inputs.grype_version != ''
+      uses: anchore/scan-action/download-grype@v7
+      with:
+        grype-version: ${{ inputs.grype_version }}
+
+    - name: Run Grype
+      id: run-grype
+      shell: bash
+      run: |
+        ${{ inputs.grype_version == '' && steps.setup-grype-latest.outputs.cmd || steps.setup-grype-pinned.outputs.cmd }} ${{ inputs.image_name }} -o cyclonedx-json > grype-cdx.json
+
+    - name: Merge reports
+      id: merge-reports
+      shell: bash
+      run: |
+        jq -s '
+          (.[0].vulnerabilities // []) + (.[1].vulnerabilities // [])
+          | map({
+              "id": .id,
+              "url": ("https://www.cve.org/CVERecord?id=" + .id),
+              "severity": ([.ratings[].severity] | map(select(. != null)) | .[0] // "N/A")
+          })
+          | map(select(.id | startswith("CVE")))
+          | reduce .[] as $item ({}; 
+              .[$item.id] = {
+                  "url": $item.url, 
+                  "severity": $item.severity
+              }
+          )
+        ' trivy-cdx.json grype-cdx.json > result.json
+        cat result.json
+
+    - name: Markdown summary
+      id: markdown-summary
+      shell: bash
+      run: |
+        # Check if result.json is empty or has no entries
+        if [[ $(jq '. | length' result.json) -eq 0 ]]; then
+          ## No CVEs found
+          echo "# CVE Report (${{ inputs.image_name }}) :white_check_mark:
+
+        No CVEs found!" >> "$GITHUB_STEP_SUMMARY"
+        else
+          ## CVEs found, create table
+          MARKDOWN_CONTENT="
+          ## CVE Report (${{ inputs.image_name }}) :warning:
+
+          | CVE | Severity |
+          | :--- | :--- |
+          "
+          # Use 'jq' to process the JSON file.
+          # The output is formatted as tab-separated values (TSV) for easy reading into bash variables.
+          # .key is the CVE ID, .value.severity is the severity string, and .value.url is the URL.
+          while IFS=$'\t' read -r cve_id severity url; do
+              # Append a row to the markdown content
+              # The CVE ID is formatted as a link: [CVE-ID](URL)
+              # The Severity is kept as plain text.
+              MARKDOWN_CONTENT+="| **[$cve_id]($url)** | $severity |
+          "
+          done < <(jq -r '. | to_entries[] | "\(.key)\t\(.value.severity)\t\(.value.url)"' result.json)
+          echo "$MARKDOWN_CONTENT" >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+    - name: Fail condition
+      id: fail-condition
+      shell: bash
+      run: |
+        if [[ ${{ inputs.fail_on_threshold }} -lt 1 ]]; then
+          echo "fail_on_threshold is less than 1, skipping fail condition check"
+          exit 0
+        fi
+
+        declare -A severity_levels=(
+          ["low"]=1
+          ["medium"]=2
+          ["high"]=3
+          ["critical"]=4
+        )
+
+        echo "Checking for vulnerabilities with severity >= ${{ inputs.fail_on }} (level ${{ inputs.fail_on_threshold }})"
+        echo "Threshold: ${{ inputs.fail_on_threshold }} vulnerabilities"
+
+        vulnerability_count=0
+
+        if [[ ! -f "result.json" ]] || [[ $(jq '. | length' result.json) -eq 0 ]]; then
+          echo "No vulnerabilities found in scan results"
+          exit 0
+        fi
+
+        # Count vulnerabilities at or above the specified severity level
+        while IFS=$'\t' read -r cve_id severity url; do
+          # Convert severity to lowercase for comparison
+          severity_lower=$(echo "$severity" | tr '[:upper:]' '[:lower:]')
+          
+          # Skip if severity is not in our defined levels (e.g., "N/A")
+          if [[ -z "${severity_levels[$severity_lower]}" ]]; then
+            echo "Skipping $cve_id with unknown severity: $severity"
+            continue
+          fi
+
+          current_level=${severity_levels[$severity_lower]}
+          
+          if [[ $current_level -ge $${{ inputs.fail_on }} ]]; then
+            echo "Found vulnerability: $cve_id (severity: $severity, level: $current_level)"
+            ((vulnerability_count++))
+          fi
+        done < <(jq -r '. | to_entries[] | "\(.key)\t\(.value.severity)\t\(.value.url)"' result.json)
+
+        echo "Found $vulnerability_count vulnerabilities at or above ${{ inputs.fail_on }} severity level"
+        
+        # Fail if vulnerability count meets or exceeds threshold
+        if [[ $vulnerability_count -ge ${{ inputs.fail_on_threshold }} ]]; then
+          echo "❌ FAIL: Found $vulnerability_count vulnerabilities (threshold: ${{ inputs.fail_on_threshold }})"
+          echo "Vulnerabilities at or above '${{ inputs.fail_on }}' severity level exceed the specified threshold."
+          exit 1
+        else
+          echo "✅ PASS: Found $vulnerability_count vulnerabilities (threshold: ${{ inputs.fail_on_threshold }})"
+          exit 0
+        fi
