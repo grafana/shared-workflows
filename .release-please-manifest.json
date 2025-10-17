@@ -16,7 +16,7 @@
     "actions/techdocs-rewrite-relative-links": "1.0.2",
     "actions/validate-policy-bot-config": "1.1.1",
     "actions/trigger-argo-workflow": "1.2.0",
-    "actions/setup-jrsonnet": "1.0.1",
+    "actions/setup-jrsonnet": "1.0.2",
     "actions/find-pr-for-commit": "1.0.1",
     "actions/remove-checkout-credentials": "0.1.0",
     "actions/dependabot-auto-triage": "1.1.0",
