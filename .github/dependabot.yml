@@ -7,7 +7,7 @@ updates:
       default-days: 5
       semver-major-days: 14
       semver-minor-days: 5
-      semver-patch-days: 0
+      semver-patch-days: 1
     directory: "/actions/trigger-argo-workflow"
     schedule:
       interval: "weekly"
@@ -22,7 +22,7 @@ updates:
       default-days: 5
       semver-major-days: 14
       semver-minor-days: 5
-      semver-patch-days: 0
+      semver-patch-days: 1
     directory: "/actions/techdocs-rewrite-relative-links"
     schedule:
       interval: "weekly"
