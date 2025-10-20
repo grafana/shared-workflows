@@ -165,6 +165,11 @@
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
     },
+    "actions/go-flaky-tests": {
+      "package-name": "go-flaky-tests",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/docker-build-push-image": {
       "package-name": "docker-build-push-image",
       "extra-files": ["README.md"],

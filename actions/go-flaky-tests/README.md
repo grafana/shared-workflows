@@ -12,6 +12,8 @@ A GitHub Action that detects and analyzes flaky Go tests by fetching logs from L
 
 ## Usage
 
+<!-- x-release-please-start-version -->
+
 ```yaml
 name: Go Flaky Tests
 on:
@@ -26,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Go Flaky Tests
-        uses: grafana/shared-workflows/actions/go-flaky-tests@main
+        uses: grafana/shared-workflows/actions/go-flaky-tests@go-flaky-tests/v0.0.0
         with:
           loki-url: ${{ secrets.LOKI_URL }}
           loki-username: ${{ secrets.LOKI_USERNAME }}
@@ -36,6 +38,8 @@ jobs:
           skip-posting-issues: "false"
           top-k: "5"
 ```
+
+<!-- x-release-please-end-version -->
 
 ## Inputs
 
