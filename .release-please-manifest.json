@@ -25,5 +25,8 @@
     "actions/run-capslock": "0.2.0",
     "actions/azure-trusted-signing": "1.0.0",
     "actions/validate-renovate-config": "0.1.0",
-    "actions/cleanup-branches": "0.2.0"
+    "actions/cleanup-branches": "0.2.1",
+    "actions/docker-build-push-image": "0.1.0",
+    "actions/docker-export-digest": "0.1.0",
+    "actions/docker-import-digests-push-manifest": "0.1.0"
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.2.0...cleanup-branches/v0.2.1) (2025-10-17)
+
+
+### 🔧 Miscellaneous Chores
+
+* **cleanup-branches:** modify default max-date to match GitHub's definition of stale ([#1428](https://github.com/grafana/shared-workflows/issues/1428)) ([dc0390c](https://github.com/grafana/shared-workflows/commit/dc0390cca99489fb813e30f49ceb12b4daa71211))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.1.0...cleanup-branches/v0.2.0) (2025-10-10)
 
 

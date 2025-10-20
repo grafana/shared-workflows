@@ -84,7 +84,7 @@ jobs:
 
       - id: setup-node
         name: Setup node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: "22.x"
 
@@ -242,7 +242,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.14.2
+      ZIZMOR_VERSION: 1.15.2
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -361,7 +361,7 @@ jobs:
           fi
 
       - name: Setup UV
-        uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
+        uses: astral-sh/setup-uv@3259c6206f993105e3a61b142c2d97bf4b9ef83d # v7.1.0
         with:
           enable-cache: true
           activate-environment: true
@@ -450,13 +450,13 @@ jobs:
       - name: Hide any previous comments
         if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
-        uses: int128/hide-comment-action@9803637eab610cca14ac6f64c42c0d7ffe9327e0 # v1.44.0
+        uses: int128/hide-comment-action@bddc4e774ea6f0b45b9621c3a689db72b9a3cec5 # v1.46.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
         if: steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@9f4454aaf9f89305ca1eaa76342f6d2850df0d37 # v1.41.0
+        uses: int128/comment-action@8edfd09c8c0c5549d23971fd055c6537a237f0ae # v1.42.0
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.

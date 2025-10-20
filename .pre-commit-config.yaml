@@ -16,7 +16,7 @@ repos:
         args:
           - run
           - eslint
-        entry: oven/bun:1.2.17@sha256:2cd6a1d9e3d505725243c9564cca08465fc6ffb12c065a09261992e650995ee6
+        entry: oven/bun:1.3.0@sha256:00cccad6e9c66bbacc250851f689168606aaea551ac473e908bbcf00a5645025
         files: \.[jt]s$
         exclude: "create_github_token.js"
         language: docker_image
@@ -28,7 +28,7 @@ repos:
           - prettier
           - --ignore-unknown
           - --check
-        entry: oven/bun:1.2.17@sha256:2cd6a1d9e3d505725243c9564cca08465fc6ffb12c065a09261992e650995ee6
+        entry: oven/bun:1.3.0@sha256:00cccad6e9c66bbacc250851f689168606aaea551ac473e908bbcf00a5645025
         language: docker_image
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
