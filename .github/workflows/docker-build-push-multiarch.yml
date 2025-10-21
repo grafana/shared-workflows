@@ -1,0 +1,327 @@
+name: Build and Push Docker MultiArch Images
+
+on:
+  workflow_call:
+    inputs:
+      # THE FOLLOWING INPUTS ARE UNIQUE TO THIS WORKFLOW
+      # MULTIARCH CONFIGS
+      server-size:
+        description: "Size of the Grafana self-hosted runner"
+        required: false
+        default: "small"
+        type: string
+
+      # The following inputs are identical to the inputs
+      # found in `shared-workflows/actions/docker-build-push-image`
+      # INHERITED CONFIGS
+      build-args:
+        description: |
+          List of arguments necessary for the Docker image to be built.
+          Passed to `docker/build-push-action`.
+        type: string
+      build-contexts:
+        description: |
+          List of additional build contexts (e.g., name=path).
+          Passed to `docker/build-push-action`.
+        type: string
+      buildkitd-config:
+        description: |
+          The buildkitd config file to use. Defaults to `/etc/buildkitd.toml` if you're using
+          Grafana's self-hosted runners.
+          Passed to `docker/setup-buildx-action`.
+        type: string
+      buildkitd-config-inline:
+        description: |
+          The buildkitd inline config to use.
+          Passed to `docker/setup-buildx-action`.
+        type: string
+      cache-from:
+        description: |
+          Where cache should be fetched from.
+          Passed to `docker/build-push-action`.
+        default: "type=gha"
+        type: string
+      cache-to:
+        description: |
+          Where cache should be stored to.
+          Passed to `docker/build-push-action`.
+        default: "type=gha,mode=max"
+        type: string
+      context:
+        description: |
+          Path to the Docker build context.
+          Passed to `docker/build-push-action`.
+        default: "."
+        type: string
+      docker-buildx-driver:
+        description: |
+          The driver to use for Docker Buildx.
+          Passed to `docker/setup-buildx-action`.
+        default: "docker-container"
+        type: string
+      dockerhub-registry:
+        description: |
+          DockerHub Registry to store docker images in.
+        default: "docker.io"
+        type: string
+      dockerhub-repository:
+        description: |
+          DockerHub Repository to store docker images in.
+          Default: github.repository
+        default: "${{ github.repository }}"
+        type: string
+      file:
+        description: |
+          The dockerfile to use.
+          Passed to `docker/build-push-action`.
+        type: string
+      gar-delete-credentials-file:
+        description: |
+          Delete the Google credentials file after the action is finished.
+          If you want to keep the credentials file for a later step, set this to false.
+        default: "true"
+        type: string
+      gar-environment:
+        description: |
+          Environment for pushing artifacts (can be either dev or prod).
+          This sets the GAR Project (gar-project) to either `grafanalabs-dev` or `grafanalabs-global`.
+        default: dev
+        type: string
+      gar-image:
+        description: |
+          Name of the image to build.
+          Default: `${GitHub Repo Name}`.
+        type: string
+      gar-registry:
+        description: |
+          Google Artifact Registry to store docker images in.
+        default: "us-docker.pkg.dev"
+        type: string
+      gar-repository:
+        description: |
+          Override the 'repo_name' used to construct the GAR repository name.
+          Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
+          Default: `docker-${GitHub Repo Name}-${gar-environment}`
+        type: string
+      include-tags-in-push:
+        description: |
+          Disables the pushing of tags, and instead includes just a list of images as docker tags.
+          Used when pushing docker digests instead of docker tags.
+        default: "true"
+        type: string
+      labels:
+        description: |
+          List of custom labels to add to the image as metadata (passed to `docker/build-push-action`).
+          Passed to `docker/build-push-action`.
+        type: string
+      load:
+        description: |
+          Whether to load the built image into the local docker daemon (passed to `docker/build-push-action`).
+          Passed to `docker/build-push-action`.
+        default: "false"
+        type: string
+      outputs:
+        description: |
+          List of docker output destinations.
+          Passed to `docker/build-push-action`.
+        type: string
+      platforms:
+        description: |
+          List of platforms to build the image for.
+          Passed to `docker/build-push-action`.
+        type: string
+      push:
+        description: |
+          Whether to push the image to the configured registries.
+          Passed to `docker/build-push-action`.
+        type: string
+      registries:
+        description: |
+          CSV list of registries to build images for.
+          Accepted registries are "gar" and "dockerhub".
+        type: string
+      secrets:
+        description: |
+          Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
+          Passed to `docker/build-push-action`.
+        type: string
+      ssh:
+        description: |
+          List of SSH agent socket or keys to expose to the build
+          Passed to `docker/build-push-action`.
+        type: string
+      tags:
+        description: |
+          List of Docker tags to be pushed.
+          Passed to `docker/build-push-action`.
+        required: true
+        type: string
+      target:
+        description: |
+          Sets the target stage to build.
+          Passed to `docker/build-push-action`.
+        type: string
+      # /INHERITED CONFIGS
+    outputs:
+      annotations:
+        description: "Generated annotations (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.annotations }}
+      digest:
+        description: "Image digest (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.digest }}
+      imageid:
+        description: "Image ID (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.imageid }}
+      images:
+        description: "Comma separated list of the images that were built"
+        value: ${{ jobs.build-and-push.outputs.images }}
+      json:
+        description: "JSON output of tags and labels (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.json }}
+      labels:
+        description: "Generated Docker labels (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.labels }}
+      metadata:
+        description: "Build result metadata (from docker/build-push-action)"
+        value: ${{ jobs.build-and-push.outputs.metadata }}
+      tags:
+        description: "Generated Docker tags (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.tags }}
+      version:
+        description: "Generated Docker image version (from docker/metadata-action)"
+        value: ${{ jobs.build-and-push.outputs.version }}
+      runner_arches:
+        description: "The list of OS used to build images (for mapping to self hosted runners)"
+        value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
+
+env:
+  ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
+
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-arm64-small
+    outputs:
+      runner_arches: ${{ steps.matrix.outputs.runner_arches }}
+    steps:
+      - id: matrix
+        shell: bash
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          #############################################################
+          # This step converts an incoming list of docker platforms
+          # into a list of architectures that match Grafana's hosted
+          # runner labels. It's returned in the form of a JSON object
+          # so it can be passed directly into a matrix strategy.
+          #
+          # Ex: If PLATFORMS=linux/arm64,linux/amd64
+          #     then MATRIX=[ "arm64","x64" ]
+          #############################################################
+
+          # Create a copy so we don't override our input
+          # This runs afoul of spell check, which thinks PLATFORMS should be PLATFORM
+          # shellcheck disable=SC2153
+          PS=$PLATFORMS
+
+          # The second half of this command converts $ARCH_TO_PLATFORM_MAP into string pairs of ARCH and PLATFORM
+          # The first half of this command loops over those items and string replaces PLATFORM with ARCH
+          # In the above example, the end result of this will be: PS=arm64,x64
+          while read -r ARCH PLATFORM; do PS=${PS//$PLATFORM/$ARCH}; done < <(echo "$ARCH_TO_PLATFORM_MAP" | jq -r 'to_entries[] | "\(.key) \(.value)"')
+
+          # Convert to single-line JSON array
+          MATRIX=$(echo "$PS" | jq -R -c 'split(",")')
+
+          # Export as GitHub Action output
+          echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
+
+  build-and-push:
+    needs: prepare-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJson(needs.prepare-matrix.outputs.runner_arches) }}
+    runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
+    outputs:
+      annotations: ${{ steps.build.outputs.annotations }}
+      digest: ${{ steps.build.outputs.digest }}
+      imageid: ${{ steps.build.outputs.imageid }}
+      images: ${{ steps.build.outputs.images }}
+      json: ${{ steps.build.outputs.json }}
+      labels: ${{ steps.build.outputs.labels }}
+      metadata: ${{ steps.build.outputs.metadata }}
+      tags: ${{ steps.build.outputs.tags }}
+      version: ${{ steps.build.outputs.version }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Prepare
+        run: |
+          #############################################################
+          # Take incoming arch and lookup the matching docker style platform
+          # Then create a unique platform pair, to use for our digests later
+          #
+          # Ex: if arch=x64 then PLATFORM=linux/amd64 and PLATFORM_PAIR=linux-amd64
+          #############################################################
+
+          PLATFORM=$(echo "$ARCH_TO_PLATFORM_MAP" | jq -r --arg arch "${ARCH}" '.[$arch]')
+          echo "PLATFORM=${PLATFORM}" | tee -a "${GITHUB_ENV}"
+          echo "PLATFORM_PAIR=${PLATFORM//\//-}" | tee -a "${GITHUB_ENV}"
+        env:
+          ARCH: ${{ matrix.arch }}
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Build Docker Image
+        id: build
+        uses: grafana/shared-workflows/actions/docker-build-push-image@c658f0fe8393e31c39d266684ef273c6538ed0e1 # docker-build-push-image/v0.1.0
+        with:
+          # from inputs
+          build-args: ${{ inputs.build-args }}
+          build-contexts: ${{ inputs.build-contexts }}
+          buildkitd-config: ${{ inputs.buildkitd-config }}
+          buildkitd-config-inline: ${{ inputs.buildkitd-config-inline }}
+          cache-from: ${{ inputs.cache-from }}
+          cache-to: ${{ inputs.cache-to }}
+          context: ${{ inputs.context }}
+          dockerhub-repository: ${{ inputs.dockerhub-repository }}
+          docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
+          file: ${{ inputs.file }}
+          gar-registry: ${{ inputs.gar-registry }}
+          gar-repository: ${{ inputs.gar-repository }}
+          gar-environment: ${{ inputs.gar-environment }}
+          gar-image: ${{ inputs.gar-image }}
+          labels: ${{ inputs.labels }}
+          registries: ${{ inputs.registries }}
+          secrets: ${{ inputs.secrets }}
+          ssh: ${{ inputs.ssh }}
+          tags: ${{ inputs.tags }}
+          target: ${{ inputs.target }}
+          include-tags-in-push: false
+
+          # special cases
+          platforms: ${{ env.PLATFORM }}
+          outputs: "type=image,push-by-digest=true,name-canonical=true,push=${{ inputs.push == 'true' && 'true' || 'false' }}"
+          load: ${{ inputs.load == 'true' }}
+          push: ${{ inputs.push == 'true' }}
+      - name: Export and upload digest
+        uses: grafana/shared-workflows/actions/docker-export-digest@9901fa1e9c9cd7e78bb556c0ff4339932837082e # docker-export-digest/v0.1.0
+        with:
+          digest: ${{ steps.build.outputs.digest }}
+          platform: ${{ env.PLATFORM }}
+
+  merge-digest:
+    runs-on: ubuntu-arm64-small
+    needs: build-and-push
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download Multi-Arch Digests, Construct and Upload Manifest
+        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@cd422befbbda65e0612a63627e8c8820d86bc2a6 # docker-import-digests-push-manifest/v0.1.0
+        with:
+          images: ${{ needs.build-and-push.outputs.images }}
+          gar-environment: ${{ inputs.gar-environment }}
+          push: ${{ inputs.push }}
+          tags: ${{ inputs.tags }}
