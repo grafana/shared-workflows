@@ -14,9 +14,7 @@
     },
     {
       customType: "regex",
-      managerFilePatterns: [
-        "/(?:^|/)actions/.+/action\\.ya?ml$/",
-      ],
+      managerFilePatterns: ["/(?:^|/)actions/.+/action\\.ya?ml$/"],
       matchStrings: [
         "RENOVATE_VERSION:\\s*(?<depName>renovate)@(?<currentValue>[^\\s]+)",
       ],
