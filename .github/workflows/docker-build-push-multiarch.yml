@@ -207,9 +207,9 @@ on:
       version:
         description: "Generated Docker image version (from docker/metadata-action)"
         value: ${{ jobs.build-and-push.outputs.version }}
-      runner_arches:
+      runner-arches:
         description: "The list of OS used to build images (for mapping to self hosted runners)"
-        value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
+        value: ${{ jobs.prepare-matrix.outputs.runner-arches }}
 
 env:
   ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
@@ -218,7 +218,7 @@ jobs:
   prepare-matrix:
     runs-on: ${{ inputs.runner-type == 'self-hosted' && 'ubuntu-x64-small' || 'ubuntu-latest' }}
     outputs:
-      runner_arches: ${{ steps.matrix.outputs.runner_arches }}
+      runner-arches: ${{ steps.matrix.outputs.runner-arches }}
       runner-type-x64: ${{ steps.runners.outputs.runner-type-x64 }}
       runner-type-arm64: ${{ steps.runners.outputs.runner-type-arm64 }}
       runner-type-manifest: ${{ steps.runners.outputs.runner-type-manifest }}
@@ -252,7 +252,7 @@ jobs:
           MATRIX=$(echo "$PS" | jq -R -c 'split(",")')
 
           # Export as GitHub Action output
-          echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
+          echo "runner-arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
       - id: runners
         shell: bash
         env:
@@ -298,7 +298,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ fromJson(needs.prepare-matrix.outputs.runner_arches) }}
+        arch: ${{ fromJson(needs.prepare-matrix.outputs.runner-arches) }}
     runs-on: ${{ matrix.arch == 'x64' && needs.prepare-matrix.outputs.runner-type-x64 || needs.prepare-matrix.outputs.runner-type-arm64 }}
     outputs:
       annotations: ${{ steps.build.outputs.annotations }}
