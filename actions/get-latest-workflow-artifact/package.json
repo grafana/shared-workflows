@@ -8,7 +8,7 @@
   },
   "main": "dist/main.js",
   "dependencies": {
-    "@actions/artifact": "2.3.2",
+    "@actions/artifact": "4.0.0",
     "@actions/core": "1.11.1",
     "@actions/github": "6.0.1",
     "@js-temporal/polyfill": "0.5.1"
