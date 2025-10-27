@@ -11,7 +11,7 @@ require (
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.11.1
 	github.com/teekennedy/goldmark-markdown v0.5.1
-	github.com/urfave/cli/v3 v3.4.1
+	github.com/urfave/cli/v3 v3.5.0
 	github.com/willabides/actionslog v0.5.1
 	github.com/yuin/goldmark v1.7.13
 	go.yaml.in/yaml/v3 v3.0.4
