@@ -372,7 +372,7 @@ jobs:
 
   merge-digest:
     runs-on: ${{ needs.prepare-matrix.outputs.runner-type-manifest }}
-    needs: [ prepare-matrix, build-and-push ]
+    needs: [prepare-matrix, build-and-push]
     permissions:
       contents: read
       id-token: write
