@@ -5,10 +5,27 @@ on:
     inputs:
       # THE FOLLOWING INPUTS ARE UNIQUE TO THIS WORKFLOW
       # MULTIARCH CONFIGS
-      server-size:
-        description: "Size of the Grafana self-hosted runner"
+      runner-type:
+        description: |
+          Setting this flag will dictate the default instance types to use.
+          Allowed values are 'self-hosted' or 'github'.
         required: false
-        default: "small"
+        default: "self-hosted"
+        type: string
+      runner-type-arm64:
+        description: |
+          The instance type to use for arm64 builds.
+        required: false
+        type: string
+      runner-type-manifest:
+        description: |
+          The instance type to use when building and pushing the manifest.
+        required: false
+        type: string
+      runner-type-x64:
+        description: |
+          The instance type to use for x64 builds.
+        required: false
         type: string
 
       # The following inputs are identical to the inputs
@@ -190,18 +207,21 @@ on:
       version:
         description: "Generated Docker image version (from docker/metadata-action)"
         value: ${{ jobs.build-and-push.outputs.version }}
-      runner_arches:
+      runner-arches:
         description: "The list of OS used to build images (for mapping to self hosted runners)"
-        value: ${{ jobs.prepare-matrix.outputs.runner_arches }}
+        value: ${{ jobs.prepare-matrix.outputs.runner-arches }}
 
 env:
   ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
 
 jobs:
   prepare-matrix:
-    runs-on: ubuntu-arm64-small
+    runs-on: ${{ inputs.runner-type == 'self-hosted' && 'ubuntu-x64-small' || 'ubuntu-latest' }}
     outputs:
-      runner_arches: ${{ steps.matrix.outputs.runner_arches }}
+      runner-arches: ${{ steps.matrix.outputs.runner-arches }}
+      runner-type-x64: ${{ steps.runners.outputs.runner-type-x64 }}
+      runner-type-arm64: ${{ steps.runners.outputs.runner-type-arm64 }}
+      runner-type-manifest: ${{ steps.runners.outputs.runner-type-manifest }}
     steps:
       - id: matrix
         shell: bash
@@ -232,15 +252,54 @@ jobs:
           MATRIX=$(echo "$PS" | jq -R -c 'split(",")')
 
           # Export as GitHub Action output
-          echo "runner_arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
+          echo "runner-arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
+      - id: runners
+        shell: bash
+        env:
+          RUNNER_TYPE: ${{ inputs.runner-type }}
+          X64_TYPE: ${{ inputs.runner-type-x64 }}
+          ARM64_TYPE: ${{ inputs.runner-type-arm64 }}
+          MANIFEST_TYPE: ${{ inputs.runner-type-manifest }}
+        run: |
+          #############################################################
+          # This step sets up the runner types for the remaining jobs
+          #############################################################
+
+          # Set default runner types based on RUNNER_TYPE
+          case "$RUNNER_TYPE" in
+            self-hosted)
+              DEFAULT_X64="ubuntu-x64-small"
+              DEFAULT_ARM64="ubuntu-arm64-small"
+              DEFAULT_MANIFEST="ubuntu-arm64-small"
+              ;;
+            github)
+              DEFAULT_X64="ubuntu-24.04"
+              DEFAULT_ARM64="ubuntu-24.04-arm"
+              DEFAULT_MANIFEST="ubuntu-24.04-arm"
+              ;;
+            *)
+              echo "Unknown RUNNER_TYPE: $RUNNER_TYPE" >&2
+              exit 1
+              ;;
+          esac
+
+          # Use user-provided overrides if they exist, otherwise use defaults
+          X64_OUT="${X64_TYPE:-$DEFAULT_X64}"
+          ARM64_OUT="${ARM64_TYPE:-$DEFAULT_ARM64}"
+          MANIFEST_OUT="${MANIFEST_TYPE:-$DEFAULT_MANIFEST}"
+
+          # Export to GitHub Actions outputs
+          echo "runner-type-x64=$X64_OUT" | tee -a "${GITHUB_OUTPUT}"
+          echo "runner-type-arm64=$ARM64_OUT" | tee -a "${GITHUB_OUTPUT}"
+          echo "runner-type-manifest=$MANIFEST_OUT" | tee -a "${GITHUB_OUTPUT}"
 
   build-and-push:
     needs: prepare-matrix
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ fromJson(needs.prepare-matrix.outputs.runner_arches) }}
-    runs-on: ubuntu-${{ matrix.arch }}-${{ inputs.server-size }}
+        arch: ${{ fromJson(needs.prepare-matrix.outputs.runner-arches) }}
+    runs-on: ${{ matrix.arch == 'x64' && needs.prepare-matrix.outputs.runner-type-x64 || needs.prepare-matrix.outputs.runner-type-arm64 }}
     outputs:
       annotations: ${{ steps.build.outputs.annotations }}
       digest: ${{ steps.build.outputs.digest }}
@@ -312,8 +371,8 @@ jobs:
           platform: ${{ env.PLATFORM }}
 
   merge-digest:
-    runs-on: ubuntu-arm64-small
-    needs: build-and-push
+    runs-on: ${{ needs.prepare-matrix.outputs.runner-type-manifest }}
+    needs: [prepare-matrix, build-and-push]
     permissions:
       contents: read
       id-token: write
