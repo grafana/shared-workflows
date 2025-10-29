@@ -25,8 +25,6 @@ manifest.
 [docker-export-digest]: ../../docker-export-digest/README.md
 [docker-import-digests-push-manifest]: ../../docker-import-digests-push-manifest/README.md
 
-<!-- x-release-please-start-version -->
-
 ```yaml
 name: Build and Push and Push MultiArch
 
@@ -34,18 +32,15 @@ on: push
 
 jobs:
   build-push-multiarch:
-    uses: grafana/shared-workflows/.github/workflows/build-and-push-docker-multiarch.yml@rwhitaker/multi-arch-builds # TODO: Pin to version
+    uses: grafana/shared-workflows/.github/workflows/docker-build-push-multiarch@6b59374893555bf476179dfeb96013b80406102f # main
     with:
       platforms: linux/arm64,linux/amd64
       tags: |
         ${{ github.sha }}
-        rickytest
+        latest
       push: true
       registries: "gar,dockerhub"
-      pre-build-script: scripts/ci-build.sh
 ```
-
-<!-- x-release-please-end-version -->
 
 ## Inputs
 
