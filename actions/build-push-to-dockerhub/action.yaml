@@ -12,7 +12,6 @@ inputs:
   labels:
     description: |
       List of custom labels
-    required: true
   context:
     description: |
       Path to the Docker build context.
