@@ -11,7 +11,8 @@ inputs:
     required: true
   labels:
     description: |
-      List of custom labels
+      List of custom labels to be added to the image.
+    required: false
   context:
     description: |
       Path to the Docker build context.
