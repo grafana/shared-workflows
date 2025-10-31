@@ -9,6 +9,10 @@ inputs:
     description: |
       List of Docker images to be pushed.
     required: true
+  labels:
+    description: |
+      List of custom labels to be added to the image.
+    required: false
   context:
     description: |
       Path to the Docker build context.
@@ -106,6 +110,7 @@ runs:
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
         images: ${{ inputs.repository }}
+        labels: ${{ inputs.labels }}
         tags: ${{ inputs.tags }}
 
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
