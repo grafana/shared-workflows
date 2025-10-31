@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.0...docker-import-digests-push-manifest/v0.1.1) (2025-10-31)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update github artifact actions ([ebaf11d](https://github.com/grafana/shared-workflows/commit/ebaf11d9a28ba8617d6c1db41ca7ecb97005e4b4))
+* **deps:** update github artifact actions (major) ([#1463](https://github.com/grafana/shared-workflows/issues/1463)) ([ebaf11d](https://github.com/grafana/shared-workflows/commit/ebaf11d9a28ba8617d6c1db41ca7ecb97005e4b4))
+
 ## 0.1.0 (2025-10-15)
 
 
