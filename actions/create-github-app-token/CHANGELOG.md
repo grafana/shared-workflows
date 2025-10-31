@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.0...create-github-app-token/v0.2.1) (2025-10-31)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** use temporary file w/ trap for token response ([#1474](https://github.com/grafana/shared-workflows/issues/1474)) ([47da0d2](https://github.com/grafana/shared-workflows/commit/47da0d2eed9947d70b296109aa3ff93af31ca738))
+* use temporary file w/ trap for token response ([47da0d2](https://github.com/grafana/shared-workflows/commit/47da0d2eed9947d70b296109aa3ff93af31ca738))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.1.0...create-github-app-token/v0.2.0) (2025-09-16)
 
 
