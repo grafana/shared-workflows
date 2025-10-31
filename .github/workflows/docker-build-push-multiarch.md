@@ -1,4 +1,4 @@
-# docker-build-push-multiaarch
+# docker-build-push-multiarch
 
 This is a reusable workflow that uses Grafana's hosted runners to natively build and push multi-architecture docker
 images.
