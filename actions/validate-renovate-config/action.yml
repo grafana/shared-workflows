@@ -20,4 +20,4 @@ runs:
       run: npx --yes --package ${RENOVATE_VERSION} -- renovate-config-validator "${CONFIG_PATH}"
       env:
         CONFIG_PATH: ${{ inputs.path }}
-        RENOVATE_VERSION: renovate@41.163
+        RENOVATE_VERSION: renovate@41.168
