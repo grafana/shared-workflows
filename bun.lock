@@ -23,7 +23,7 @@
       "dependencies": {
         "@octokit/graphql": "9.0.3",
         "@octokit/request-error": "7.0.2",
-        "@octokit/rest": "22.0.0",
+        "@octokit/rest": "22.0.1",
         "minimatch": "10.0.3",
       },
       "devDependencies": {
@@ -210,11 +210,11 @@
 
     "@octokit/openapi-types": ["@octokit/openapi-types@26.0.0", "", {}, "sha512-7AtcfKtpo77j7Ts73b4OWhOZHTKo/gGY8bB3bNBQz4H+GRSWqx2yvj8TXRsbdTE0eRmYmXOEY66jM7mJ7LzfsA=="],
 
-    "@octokit/plugin-paginate-rest": ["@octokit/plugin-paginate-rest@13.1.1", "", { "dependencies": { "@octokit/types": "^14.1.0" }, "peerDependencies": { "@octokit/core": ">=6" } }, "sha512-q9iQGlZlxAVNRN2jDNskJW/Cafy7/XE52wjZ5TTvyhyOD904Cvx//DNyoO3J/MXJ0ve3rPoNWKEg5iZrisQSuw=="],
+    "@octokit/plugin-paginate-rest": ["@octokit/plugin-paginate-rest@14.0.0", "", { "dependencies": { "@octokit/types": "^16.0.0" }, "peerDependencies": { "@octokit/core": ">=6" } }, "sha512-fNVRE7ufJiAA3XUrha2omTA39M6IXIc6GIZLvlbsm8QOQCYvpq/LkMNGyFlB1d8hTDzsAXa3OKtybdMAYsV/fw=="],
 
     "@octokit/plugin-request-log": ["@octokit/plugin-request-log@6.0.0", "", { "peerDependencies": { "@octokit/core": ">=6" } }, "sha512-UkOzeEN3W91/eBq9sPZNQ7sUBvYCqYbrrD8gTbBuGtHEuycE4/awMXcYvx6sVYo7LypPhmQwwpUe4Yyu4QZN5Q=="],
 
-    "@octokit/plugin-rest-endpoint-methods": ["@octokit/plugin-rest-endpoint-methods@16.0.0", "", { "dependencies": { "@octokit/types": "^14.1.0" }, "peerDependencies": { "@octokit/core": ">=6" } }, "sha512-kJVUQk6/dx/gRNLWUnAWKFs1kVPn5O5CYZyssyEoNYaFedqZxsfYs7DwI3d67hGz4qOwaJ1dpm07hOAD1BXx6g=="],
+    "@octokit/plugin-rest-endpoint-methods": ["@octokit/plugin-rest-endpoint-methods@17.0.0", "", { "dependencies": { "@octokit/types": "^16.0.0" }, "peerDependencies": { "@octokit/core": ">=6" } }, "sha512-B5yCyIlOJFPqUUeiD0cnBJwWJO8lkJs5d8+ze9QDP6SvfiXSz1BF+91+0MeI1d2yxgOhU/O+CvtiZ9jSkHhFAw=="],
 
     "@octokit/plugin-retry": ["@octokit/plugin-retry@3.0.9", "", { "dependencies": { "@octokit/types": "^6.0.3", "bottleneck": "^2.15.3" } }, "sha512-r+fArdP5+TG6l1Rv/C9hVoty6tldw6cE2pRHNGmFPdyfrc696R6JjrQ3d7HdVqGwuzfyrcaLAKD7K8TX8aehUQ=="],
 
@@ -222,7 +222,7 @@
 
     "@octokit/request-error": ["@octokit/request-error@7.0.2", "", { "dependencies": { "@octokit/types": "^16.0.0" } }, "sha512-U8piOROoQQUyExw5c6dTkU3GKxts5/ERRThIauNL7yaRoeXW0q/5bgHWT7JfWBw1UyrbK8ERId2wVkcB32n0uQ=="],
 
-    "@octokit/rest": ["@octokit/rest@22.0.0", "", { "dependencies": { "@octokit/core": "^7.0.2", "@octokit/plugin-paginate-rest": "^13.0.1", "@octokit/plugin-request-log": "^6.0.0", "@octokit/plugin-rest-endpoint-methods": "^16.0.0" } }, "sha512-z6tmTu9BTnw51jYGulxrlernpsQYXpui1RK21vmXn8yF5bp6iX16yfTtJYGK5Mh1qDkvDOmp2n8sRMcQmR8jiA=="],
+    "@octokit/rest": ["@octokit/rest@22.0.1", "", { "dependencies": { "@octokit/core": "^7.0.6", "@octokit/plugin-paginate-rest": "^14.0.0", "@octokit/plugin-request-log": "^6.0.0", "@octokit/plugin-rest-endpoint-methods": "^17.0.0" } }, "sha512-Jzbhzl3CEexhnivb1iQ0KJ7s5vvjMWcmRtq5aUsKmKDrRW6z3r84ngmiFKFvpZjpiU/9/S6ITPFRpn5s/3uQJw=="],
 
     "@octokit/types": ["@octokit/types@15.0.2", "", { "dependencies": { "@octokit/openapi-types": "^26.0.0" } }, "sha512-rR+5VRjhYSer7sC51krfCctQhVTmjyUMAaShfPB8mscVa8tSoLyon3coxQmXu0ahJoLVWl8dSGD/3OGZlFV44Q=="],
 
@@ -834,17 +834,15 @@
 
     "@octokit/graphql/@octokit/types": ["@octokit/types@16.0.0", "", { "dependencies": { "@octokit/openapi-types": "^27.0.0" } }, "sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg=="],
 
-    "@octokit/plugin-paginate-rest/@octokit/types": ["@octokit/types@14.1.0", "", { "dependencies": { "@octokit/openapi-types": "^25.1.0" } }, "sha512-1y6DgTy8Jomcpu33N+p5w58l6xyt55Ar2I91RPiIA0xCJBXyUAhXCcmZaDWSANiha7R9a6qJJ2CRomGPZ6f46g=="],
+    "@octokit/plugin-paginate-rest/@octokit/types": ["@octokit/types@16.0.0", "", { "dependencies": { "@octokit/openapi-types": "^27.0.0" } }, "sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg=="],
 
-    "@octokit/plugin-rest-endpoint-methods/@octokit/types": ["@octokit/types@14.1.0", "", { "dependencies": { "@octokit/openapi-types": "^25.1.0" } }, "sha512-1y6DgTy8Jomcpu33N+p5w58l6xyt55Ar2I91RPiIA0xCJBXyUAhXCcmZaDWSANiha7R9a6qJJ2CRomGPZ6f46g=="],
+    "@octokit/plugin-rest-endpoint-methods/@octokit/types": ["@octokit/types@16.0.0", "", { "dependencies": { "@octokit/openapi-types": "^27.0.0" } }, "sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg=="],
 
     "@octokit/plugin-retry/@octokit/types": ["@octokit/types@6.41.0", "", { "dependencies": { "@octokit/openapi-types": "^12.11.0" } }, "sha512-eJ2jbzjdijiL3B4PrSQaSjuF2sPEQPVCPzBvTHJD9Nz+9dw2SGH4K4xeQJ77YfTq5bRQ+bD8wT11JbeDPmxmGg=="],
 
     "@octokit/request/@octokit/types": ["@octokit/types@16.0.0", "", { "dependencies": { "@octokit/openapi-types": "^27.0.0" } }, "sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg=="],
 
     "@octokit/request-error/@octokit/types": ["@octokit/types@16.0.0", "", { "dependencies": { "@octokit/openapi-types": "^27.0.0" } }, "sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg=="],
-
-    "@octokit/rest/@octokit/core": ["@octokit/core@7.0.2", "", { "dependencies": { "@octokit/auth-token": "^6.0.0", "@octokit/graphql": "^9.0.1", "@octokit/request": "^10.0.2", "@octokit/request-error": "^7.0.0", "@octokit/types": "^14.0.0", "before-after-hook": "^4.0.0", "universal-user-agent": "^7.0.0" } }, "sha512-ODsoD39Lq6vR6aBgvjTnA3nZGliknKboc9Gtxr7E4WDNqY24MxANKcuDQSF0jzapvGb3KWOEDrKfve4HoWGK+g=="],
 
     "@protobuf-ts/plugin/typescript": ["typescript@3.9.10", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q=="],
 
@@ -960,23 +958,15 @@
 
     "@octokit/graphql/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@27.0.0", "", {}, "sha512-whrdktVs1h6gtR+09+QsNk2+FO+49j6ga1c55YZudfEG+oKJVvJLQi3zkOm5JjiUXAagWK2tI2kTGKJ2Ys7MGA=="],
 
-    "@octokit/plugin-paginate-rest/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@25.1.0", "", {}, "sha512-idsIggNXUKkk0+BExUn1dQ92sfysJrje03Q0bv0e+KPLrvyqZF8MnBpFz8UNfYDwB3Ie7Z0TByjWfzxt7vseaA=="],
+    "@octokit/plugin-paginate-rest/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@27.0.0", "", {}, "sha512-whrdktVs1h6gtR+09+QsNk2+FO+49j6ga1c55YZudfEG+oKJVvJLQi3zkOm5JjiUXAagWK2tI2kTGKJ2Ys7MGA=="],
 
-    "@octokit/plugin-rest-endpoint-methods/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@25.1.0", "", {}, "sha512-idsIggNXUKkk0+BExUn1dQ92sfysJrje03Q0bv0e+KPLrvyqZF8MnBpFz8UNfYDwB3Ie7Z0TByjWfzxt7vseaA=="],
+    "@octokit/plugin-rest-endpoint-methods/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@27.0.0", "", {}, "sha512-whrdktVs1h6gtR+09+QsNk2+FO+49j6ga1c55YZudfEG+oKJVvJLQi3zkOm5JjiUXAagWK2tI2kTGKJ2Ys7MGA=="],
 
     "@octokit/plugin-retry/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@12.11.0", "", {}, "sha512-VsXyi8peyRq9PqIz/tpqiL2w3w80OgVMwBHltTml3LmVvXiphgeqmY9mvBw9Wu7e0QWk/fqD37ux8yP5uVekyQ=="],
 
     "@octokit/request-error/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@27.0.0", "", {}, "sha512-whrdktVs1h6gtR+09+QsNk2+FO+49j6ga1c55YZudfEG+oKJVvJLQi3zkOm5JjiUXAagWK2tI2kTGKJ2Ys7MGA=="],
 
     "@octokit/request/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@27.0.0", "", {}, "sha512-whrdktVs1h6gtR+09+QsNk2+FO+49j6ga1c55YZudfEG+oKJVvJLQi3zkOm5JjiUXAagWK2tI2kTGKJ2Ys7MGA=="],
-
-    "@octokit/rest/@octokit/core/@octokit/graphql": ["@octokit/graphql@9.0.1", "", { "dependencies": { "@octokit/request": "^10.0.2", "@octokit/types": "^14.0.0", "universal-user-agent": "^7.0.0" } }, "sha512-j1nQNU1ZxNFx2ZtKmL4sMrs4egy5h65OMDmSbVyuCzjOcwsHq6EaYjOTGXPQxgfiN8dJ4CriYHk6zF050WEULg=="],
-
-    "@octokit/rest/@octokit/core/@octokit/request": ["@octokit/request@10.0.3", "", { "dependencies": { "@octokit/endpoint": "^11.0.0", "@octokit/request-error": "^7.0.0", "@octokit/types": "^14.0.0", "fast-content-type-parse": "^3.0.0", "universal-user-agent": "^7.0.2" } }, "sha512-V6jhKokg35vk098iBqp2FBKunk3kMTXlmq+PtbV9Gl3TfskWlebSofU9uunVKhUN7xl+0+i5vt0TGTG8/p/7HA=="],
-
-    "@octokit/rest/@octokit/core/@octokit/request-error": ["@octokit/request-error@7.0.0", "", { "dependencies": { "@octokit/types": "^14.0.0" } }, "sha512-KRA7VTGdVyJlh0cP5Tf94hTiYVVqmt2f3I6mnimmaVz4UG3gQV/k4mDJlJv3X67iX6rmN7gSHCF8ssqeMnmhZg=="],
-
-    "@octokit/rest/@octokit/core/@octokit/types": ["@octokit/types@14.1.0", "", { "dependencies": { "@octokit/openapi-types": "^25.1.0" } }, "sha512-1y6DgTy8Jomcpu33N+p5w58l6xyt55Ar2I91RPiIA0xCJBXyUAhXCcmZaDWSANiha7R9a6qJJ2CRomGPZ6f46g=="],
 
     "@types/conventional-commits-parser/@types/node/undici-types": ["undici-types@7.8.0", "", {}, "sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw=="],
 
@@ -1037,10 +1027,6 @@
     "@actions/github/@octokit/request-error/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@24.2.0", "", {}, "sha512-9sIH3nSUttelJSXUrmGzl7QUBFul0/mB8HRYl3fOlgHbIWG+WnYDXU3v/2zMtAvuzZ/ed00Ei6on975FhBfzrg=="],
 
     "@actions/github/@octokit/request/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@24.2.0", "", {}, "sha512-9sIH3nSUttelJSXUrmGzl7QUBFul0/mB8HRYl3fOlgHbIWG+WnYDXU3v/2zMtAvuzZ/ed00Ei6on975FhBfzrg=="],
-
-    "@octokit/rest/@octokit/core/@octokit/request/@octokit/endpoint": ["@octokit/endpoint@11.0.0", "", { "dependencies": { "@octokit/types": "^14.0.0", "universal-user-agent": "^7.0.2" } }, "sha512-hoYicJZaqISMAI3JfaDr1qMNi48OctWuOih1m80bkYow/ayPw6Jj52tqWJ6GEoFTk1gBqfanSoI1iY99Z5+ekQ=="],
-
-    "@octokit/rest/@octokit/core/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@25.1.0", "", {}, "sha512-idsIggNXUKkk0+BExUn1dQ92sfysJrje03Q0bv0e+KPLrvyqZF8MnBpFz8UNfYDwB3Ie7Z0TByjWfzxt7vseaA=="],
 
     "@typescript-eslint/type-utils/@typescript-eslint/typescript-estree/minimatch/brace-expansion": ["brace-expansion@2.0.2", "", { "dependencies": { "balanced-match": "^1.0.0" } }, "sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ=="],
 
