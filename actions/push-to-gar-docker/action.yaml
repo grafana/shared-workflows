@@ -41,13 +41,17 @@ inputs:
     required: false
   cache-from:
     description: |
-      Where cache should be fetched from ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))
-    required: false
+      Where cache should be fetched from.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
+
+      [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)
     default: "type=gha"
   cache-to:
     description: |
-      Where cache should be stored to ([more about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/))
-    required: false
+      Where cache should be stored to.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
+
+      [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)
     default: "type=gha,mode=max"
   ssh:
     description: |
