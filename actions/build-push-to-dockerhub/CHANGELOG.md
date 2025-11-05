@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub/v0.3.0...build-push-to-dockerhub/v0.4.0) (2025-11-05)
+
+
+### 🎉 Features
+
+* **build-push-to-dockerhub:** add labels input ([#1471](https://github.com/grafana/shared-workflows/issues/1471)) ([988bd06](https://github.com/grafana/shared-workflows/commit/988bd0607526b247249f48d9d0f20ce16cefcee9))
+
 ## [0.3.0](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub/v0.2.0...build-push-to-dockerhub/v0.3.0) (2025-10-03)
 
 
