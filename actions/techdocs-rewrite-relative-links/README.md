@@ -28,10 +28,10 @@ Then this link inside the file will be changed to ...
 ```yaml
 - id: checkout-shared-workflows
   name: Checkout shared workflows
-  uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v1.0.2
+  uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v1.0.3
   with:
     repository: grafana/shared-workflows
-    ref: techdocs-rewrite-relative-links-v1.0.2
+    ref: techdocs-rewrite-relative-links-v1.0.3
     path: _shared-workflows
     persist-credentials: false
 
