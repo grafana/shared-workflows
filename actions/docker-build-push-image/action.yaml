@@ -265,6 +265,7 @@ runs:
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
         images: ${{ steps.setup-vars.outputs.images }}
+        labels: ${{ inputs.labels }}
         tags: ${{ inputs.tags }}
 
     - name: Setup buildkitd-config
@@ -331,7 +332,7 @@ runs:
         cache-to: ${{ inputs.cache-to }}
         context: ${{ inputs.context }}
         file: ${{ inputs.file }}
-        labels: ${{ inputs.labels }}
+        labels: ${{ steps.meta.outputs.labels }}
         load: ${{ inputs.load == 'true' }}
         platforms: ${{ inputs.platforms }}
         outputs: ${{ inputs.outputs }}
