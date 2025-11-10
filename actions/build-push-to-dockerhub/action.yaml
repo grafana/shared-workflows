@@ -4,10 +4,10 @@ description: Build and publish docker images to DockerHub
 inputs:
   repository:
     description: |
-      The caller workflow's repository
+      Docker repository name (**required**)
   tags:
     description: |
-      List of Docker images to be pushed.
+      Tags that should be used for the image (see the [metadata-action][mda] for details)
     required: true
   labels:
     description: |
@@ -19,15 +19,15 @@ inputs:
     default: "."
   platforms:
     description: |
-      List of platforms to build the image for
+      List of platforms the image should be built for (e.g. `linux/amd64,linux/arm64`)
     required: false
   push:
     description: |
-      Also push the generated images to DockerHub
+      Push the generated image
     default: "false"
   file:
     description: |
-      The dockerfile to use.
+      Path and filename of the dockerfile to build from. (Default: `{context}/Dockerfile`)
     required: false
   build-args:
     description: |
@@ -36,26 +36,30 @@ inputs:
     default: ""
   target:
     description: |
-      Target stage to build
+      Sets the target stage to build
     required: false
   cache-from:
     description: |
-      Where cache should be fetched from
-    required: false
+      Where cache should be fetched from.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
+
+      [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)
     default: "type=gha"
   cache-to:
     description: |
-      Where cache should be stored to
-    required: false
+      Where cache should be stored to.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
+
+      [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)
     default: "type=gha,mode=max"
   docker-buildx-driver:
     description: |
-      The driver to use for Docker Buildx
+      The [driver](https://github.com/docker/setup-buildx-action/tree/v3/?tab=readme-ov-file#customizing) to use for Docker Buildx
     required: false
     default: "docker-container"
   secrets:
     description: |
-      Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
+      Secrets to [expose to the build](https://github.com/docker/build-push-action). Only needed when authenticating to private repositories outside the repository in which the image is being built.
     required: false
   load:
     description: |

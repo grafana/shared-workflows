@@ -9,39 +9,43 @@ inputs:
   build-args:
     description: |
       List of arguments necessary for the Docker image to be built.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   build-contexts:
     description: |
       List of additional build contexts (e.g., name=path).
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   buildkitd-config:
     description: |
       The buildkitd config file to use. Defaults to `/etc/buildkitd.toml` if you're using
       Grafana's self-hosted runners.
-      Passed to `docker/setup-buildx-action`.
+      Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).
   buildkitd-config-inline:
     description: |
       The buildkitd inline config to use.
-      Passed to `docker/setup-buildx-action`.
+      Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).
   cache-from:
     description: |
       Where cache should be fetched from.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
+
+      [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)
     default: type=gha
   cache-to:
     description: |
       Where cache should be stored to.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
+
+      [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)
     default: type=gha,mode=max
   context:
     description: |
       Path to the Docker build context.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
     default: .
   docker-buildx-driver:
     description: |
       The driver to use for Docker Buildx.
-      Passed to `docker/setup-buildx-action`.
+      Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).
     default: docker-container
   dockerhub-registry:
     description: |
@@ -55,7 +59,7 @@ inputs:
   file:
     description: |
       The dockerfile to use.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   gar-delete-credentials-file:
     description: |
       Delete the Google credentials file after the action is finished.
@@ -86,25 +90,25 @@ inputs:
     default: "true"
   labels:
     description: |
-      List of custom labels to add to the image as metadata (passed to `docker/build-push-action`).
-      Passed to `docker/build-push-action`.
+      List of custom labels to add to the image as metadata (Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)).
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   load:
     description: |
-      Whether to load the built image into the local docker daemon (passed to `docker/build-push-action`).
-      Passed to `docker/build-push-action`.
+      Whether to load the built image into the local docker daemon (Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)).
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
     default: "false"
   outputs:
     description: |
       List of docker output destinations.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   platforms:
     description: |
       List of platforms to build the image for.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   push:
     description: |
       Whether to push the image to the configured registries.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   registries:
     description: |
       CSV list of registries to build images for.
@@ -112,20 +116,20 @@ inputs:
   secrets:
     description: |
       Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   ssh:
     description: |
       List of SSH agent socket or keys to expose to the build
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
   tags:
     description: |
       List of Docker tags to be pushed.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
     required: true
   target:
     description: |
       Sets the target stage to build.
-      Passed to `docker/build-push-action`.
+      Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).
 
 outputs:
   annotations:
