@@ -67,7 +67,8 @@ inputs:
     default: "docker-container"
   repository_name:
     description: |
-      Override the 'repo_name' which is included as part of the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.    required: false
+      Override the 'repo_name' which is included as part of the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name.
+    required: false
   labels:
     description: |
       List of custom labels to add to the image as metadata (see the [metadata-action](https://github.com/docker/metadata-action?tab=readme-ov-file#inputs)) for details
