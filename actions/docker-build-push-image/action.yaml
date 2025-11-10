@@ -2,6 +2,10 @@ name: Build and Push Docker Image
 description: Composite action to push a docker image to GAR or DockerHub
 
 inputs:
+  annotations:
+    description: |
+      List of custom annotations to add to the image as metadata (passed to `docker/build-push-action`).
+      Passed to `docker/build-push-action`.
   build-args:
     description: |
       List of arguments necessary for the Docker image to be built.
@@ -264,6 +268,7 @@ runs:
       id: meta
       uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
       with:
+        annotations: ${{ inputs.annotations }}
         images: ${{ steps.setup-vars.outputs.images }}
         labels: ${{ inputs.labels }}
         tags: ${{ inputs.tags }}
@@ -326,6 +331,7 @@ runs:
       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
       id: build
       with:
+        annotations: ${{ steps.meta.outputs.annotations }}
         build-args: ${{ inputs.build-args }}
         build-contexts: ${{ inputs.build-contexts }}
         cache-from: ${{ inputs.cache-from }}

@@ -52,6 +52,7 @@ jobs:
 
 | Name                          | Type    | Description                                                                                                                                                                                                            |
 | ----------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations`                 | String  | List of custom annotations to add to the image as metadata. Passed to `docker/build-push-action`.                                                                                                                      |
 | `build-args`                  | String  | List of arguments necessary for the Docker image to be built. Passed to `docker/build-push-action`.                                                                                                                    |
 | `build-contexts`              | String  | List of additional build contexts (e.g., name=path). Passed to `docker/build-push-action`.                                                                                                                             |
 | `buildkitd-config`            | String  | The buildkitd config file to use. Defaults to `/etc/buildkitd.toml` if you're using Grafana's self-hosted runners. Passed to `docker/setup-buildx-action`.                                                             |
