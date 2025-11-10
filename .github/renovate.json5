@@ -14,6 +14,13 @@
     },
     {
       customType: "regex",
+      managerFilePatterns: [
+        "/(?:^|/)\\.github/workflows/docker-build-push-multiarch.yml",
+      ],
+      datasourceTemplate: "github-actions",
+    },
+    {
+      customType: "regex",
       managerFilePatterns: ["/(?:^|/)actions/.+/action\\.ya?ml$/"],
       matchStrings: [
         "RENOVATE_VERSION:\\s*(?<depName>renovate)@(?<currentValue>[^\\s]+)",
