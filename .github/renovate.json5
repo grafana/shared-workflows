@@ -14,16 +14,6 @@
     },
     {
       customType: "regex",
-      managerFilePatterns: [
-        "/(?:^|/)\\.github/workflows/docker-build-push-multiarch.yml",
-      ],
-      matchStrings: [
-        "uses:\\s*(?<depName>[a-zA-Z0-9_.\\-/]+)@(?<currentValue>[^\\s]+)",
-      ],
-      datasourceTemplate: "github-actions",
-    },
-    {
-      customType: "regex",
       managerFilePatterns: ["/(?:^|/)actions/.+/action\\.ya?ml$/"],
       matchStrings: [
         "RENOVATE_VERSION:\\s*(?<depName>renovate)@(?<currentValue>[^\\s]+)",
@@ -40,6 +30,9 @@
     "npm",
   ],
   forkProcessing: "enabled",
+  "github-actions": {
+    "managerFilePatterns": [".github/workflows/docker-build-push-multiarch.yml"]
+  },
   globalExtends: [":pinDependencies", "config:best-practices"],
   onboarding: false,
   osvVulnerabilityAlerts: true,
