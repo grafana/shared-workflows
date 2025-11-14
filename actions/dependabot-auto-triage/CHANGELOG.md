@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.1...dependabot-auto-triage/v1.1.2) (2025-11-14)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency eslint-plugin-jest to v29.1.0 ([#1530](https://github.com/grafana/shared-workflows/issues/1530)) ([cacf689](https://github.com/grafana/shared-workflows/commit/cacf68955667cbdc1da18b1b96e25a524b6512ad))
+* **deps:** update dependency typescript-eslint to v8.46.4 ([#1529](https://github.com/grafana/shared-workflows/issues/1529)) ([6829790](https://github.com/grafana/shared-workflows/commit/682979042d7b756583863955d8f6286f8b37f126))
+
 ## [1.1.1](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.0...dependabot-auto-triage/v1.1.1) (2025-11-11)
 
 
