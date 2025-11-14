@@ -360,7 +360,7 @@ runs:
 
 
     - name: Push untagged images
-      uses: bash
+      shell: bash
       env:
         DIGEST: ${{ steps.build.outputs.digest }}
         GAR_IMAGE: ${{ steps.setup-gar-vars.outputs.image }}
