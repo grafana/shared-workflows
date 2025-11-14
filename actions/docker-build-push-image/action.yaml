@@ -338,6 +338,7 @@ runs:
         DOCKER_BUILDKIT: 1
         BUILDKIT_PROGRESS: plain
         BUILDKIT_DEBUG: 1
+        DOCKER_METADATA_OUTPUT_JSON: ""
       with:
 #        annotations: ${{ steps.meta.outputs.annotations }}
         build-args: ${{ inputs.build-args }}
