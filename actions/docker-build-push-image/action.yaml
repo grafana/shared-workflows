@@ -349,9 +349,9 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.file }}
 #        labels: ${{ steps.meta.outputs.labels }}
-        load: ${{ inputs.load == 'true' }}
+        load: ${{ 'true' == 'true' }}
         platforms: ${{ inputs.platforms }}
-        outputs: type=registry
+#        outputs: type=registry
         push: ${{ inputs.push == 'asldfkal' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
