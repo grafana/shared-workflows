@@ -339,7 +339,7 @@ runs:
         BUILDKIT_PROGRESS: plain
         BUILDKIT_DEBUG: 1
       with:
-        annotations: ${{ steps.meta.outputs.annotations }}
+#        annotations: ${{ steps.meta.outputs.annotations }}
         build-args: ${{ inputs.build-args }}
         build-contexts: ${{ inputs.build-contexts }}
         builder: ${{ steps.setup-buildx.outputs.name }}
@@ -347,7 +347,7 @@ runs:
 #        cache-to: ${{ inputs.cache-to }}
         context: ${{ inputs.context }}
         file: ${{ inputs.file }}
-        labels: ${{ steps.meta.outputs.labels }}
+#        labels: ${{ steps.meta.outputs.labels }}
         load: ${{ inputs.load == 'true' }}
         platforms: ${{ inputs.platforms }}
         outputs: ${{ inputs.outputs }}
