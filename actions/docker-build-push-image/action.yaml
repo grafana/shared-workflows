@@ -351,12 +351,25 @@ runs:
 #        labels: ${{ steps.meta.outputs.labels }}
         load: ${{ inputs.load == 'true' }}
         platforms: ${{ inputs.platforms }}
-        outputs: ${{ inputs.outputs }}
+        outputs: type=registry
         push: ${{ inputs.push == 'true' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
         tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || steps.setup-vars.outputs.images }}
         target: ${{ inputs.target }}
+
+
+    - name: Push untagged images
+      uses: bash
+      env:
+        DIGEST: ${{ steps.build.outputs.digest }}
+        GAR_IMAGE: ${{ steps.setup-gar-vars.outputs.image }}
+        TAGS: ${{ steps.meta.outputs.tags }}
+      run: |
+        # Example: Push by digest using Buildx imagetools
+        docker buildx imagetools create \
+          -t $TAGS \
+          $GAR_IMAGE@$DIGEST
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
