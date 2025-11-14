@@ -343,8 +343,8 @@ runs:
         build-args: ${{ inputs.build-args }}
         build-contexts: ${{ inputs.build-contexts }}
         builder: ${{ steps.setup-buildx.outputs.name }}
-        cache-from: ${{ inputs.cache-from }}
-        cache-to: ${{ inputs.cache-to }}
+#        cache-from: ${{ inputs.cache-from }}
+#        cache-to: ${{ inputs.cache-to }}
         context: ${{ inputs.context }}
         file: ${{ inputs.file }}
         labels: ${{ steps.meta.outputs.labels }}
