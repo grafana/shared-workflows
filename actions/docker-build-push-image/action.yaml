@@ -352,7 +352,7 @@ runs:
         load: ${{ inputs.load == 'true' }}
         platforms: ${{ inputs.platforms }}
         outputs: type=registry
-        push: ${{ inputs.push == 'true' }}
+        push: ${{ inputs.push == 'asldfkal' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
         tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || steps.setup-vars.outputs.images }}
