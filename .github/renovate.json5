@@ -31,7 +31,7 @@
   ],
   forkProcessing: "enabled",
   "github-actions": {
-    "managerFilePatterns": [".github/workflows/docker-build-push-multiarch.yml"]
+    managerFilePatterns: [".github/workflows/docker-build-push-multiarch.yml"],
   },
   globalExtends: [":pinDependencies", "config:best-practices"],
   onboarding: false,
