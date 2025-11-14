@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.7.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.6.1...push-to-gar-docker/v0.7.0) (2025-11-14)
+
+
+### 🎉 Features
+
+* **push-to-gar-docker:** parse registry as input in login-to-gar ([#1492](https://github.com/grafana/shared-workflows/issues/1492)) ([b545d8a](https://github.com/grafana/shared-workflows/commit/b545d8afe61d00248004bf0f5fe076d31037290e))
+
+
+### 📝 Documentation
+
+* improve docker build action docs ([#1486](https://github.com/grafana/shared-workflows/issues/1486)) ([2dd0b03](https://github.com/grafana/shared-workflows/commit/2dd0b0349e130ca5ccf86b3a61250589a840bdb2))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/metadata-action action to v5.9.0 ([#1501](https://github.com/grafana/shared-workflows/issues/1501)) ([2d5a067](https://github.com/grafana/shared-workflows/commit/2d5a0678eb32b0fd6655b4f7a3a7ec72eaf530ca))
+
 ## [0.6.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.6.0...push-to-gar-docker/v0.6.1) (2025-10-06)
 
 
