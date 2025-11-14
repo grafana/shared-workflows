@@ -268,15 +268,6 @@ runs:
       if: ${{ inputs.push == 'true' && steps.registries.outputs.include-dockerhub == 'true' }}
       uses: ./_shared-workflows-docker-build-push-image/actions/dockerhub-login
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
-      with:
-        annotations: ${{ inputs.annotations }}
-        images: ${{ steps.setup-vars.outputs.images }}
-        labels: ${{ inputs.labels }}
-        tags: ${{ inputs.tags }}
-
     - name: Setup buildkitd-config
       id: buildkitd-config
       shell: bash
@@ -323,6 +314,15 @@ runs:
         buildkitd-config: ${{ steps.buildkitd-config.outputs.buildkitd-config }}
         buildkitd-config-inline: ${{ steps.buildkitd-config.outputs.buildkitd-config-inline }}
 
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
+      with:
+        annotations: ${{ inputs.annotations }}
+        images: ${{ steps.setup-vars.outputs.images }}
+        labels: ${{ inputs.labels }}
+        tags: ${{ inputs.tags }}
+
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
     # the upstream action the user's input to the input ends up in an output,
     # and so if it's not handled properly, it could lead to a template injection
@@ -348,21 +348,14 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.file }}
         labels: ${{ steps.meta.outputs.labels }}
-        load: ${{ 'true' == 'true' }}
+        load: ${{ inputs.load == 'true' }}
         platforms: ${{ inputs.platforms }}
         outputs: ${{ inputs.outputs }}
-        push: ${{ 'false' == 'true' }}
+        push: ${{ inputs.push == 'true' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
         tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || steps.setup-vars.outputs.images }}
         target: ${{ inputs.target }}
-
-    - name: check image size
-      shell: bash
-      env:
-        IMAGE: ${{ steps.meta.outputs.tags }}
-      run: |
-        docker buildx imagetools inspect $IMAGE --raw
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
