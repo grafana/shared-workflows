@@ -311,17 +311,42 @@ runs:
       with:
         driver: docker
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
-        buildkitd-config: ${{ steps.buildkitd-config.outputs.buildkitd-config }}
-        buildkitd-config-inline: ${{ steps.buildkitd-config.outputs.buildkitd-config-inline }}
+#        buildkitd-config: ${{ steps.buildkitd-config.outputs.buildkitd-config }}
+#        buildkitd-config-inline: ${{ steps.buildkitd-config.outputs.buildkitd-config-inline }}
+        buildkitd-flags: --debug
 
-#    - name: Extract metadata (tags, labels) for Docker
-#      id: meta
-#      uses: docker/metadata-action@v5.8.0
-#      with:
-#        annotations: ${{ inputs.annotations }}
-#        images: ${{ steps.setup-vars.outputs.images }}
-#        labels: ${{ inputs.labels }}
-#        tags: ${{ inputs.tags }}
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v5.8.0
+      with:
+        annotations: ${{ inputs.annotations }}
+        images: ${{ steps.setup-vars.outputs.images }}
+        labels: ${{ inputs.labels }}
+        tags: ${{ inputs.tags }}
+
+    - name: Set up containerd
+      uses: crazy-max/ghaction-setup-containerd@v2
+    - name: Build Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        tags: "us-docker.pkg.dev/grafanalabs-dev/docker-github-action-required-reviews-dev/test:rickytest"
+        outputs: type=oci,dest=/tmp/image.tar
+    - name: Import image in containerd
+      shell: bash
+      run: |
+        sudo ctr i import --base-name docker.io/user/app --digests --all-platforms /tmp/image.tar
+    - name: Push image with containerd
+      shell: bash
+      run: |
+        # Authenticate and get token
+        TOKEN=$(gcloud auth print-access-token)
+
+        # Push image using ctr
+        sudo ctr --debug i push \
+        --user "oauth2accesstoken:${TOKEN}" \
+        us-docker.pkg.dev/grafanalabs-dev/docker-github-action-required-reviews-dev/test:rickytest
 
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
     # the upstream action the user's input to the input ends up in an output,
