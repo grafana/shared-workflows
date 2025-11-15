@@ -314,14 +314,14 @@ runs:
         buildkitd-config: ${{ steps.buildkitd-config.outputs.buildkitd-config }}
         buildkitd-config-inline: ${{ steps.buildkitd-config.outputs.buildkitd-config-inline }}
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@v5.8.0
-      with:
-        annotations: ${{ inputs.annotations }}
-        images: ${{ steps.setup-vars.outputs.images }}
-        labels: ${{ inputs.labels }}
-        tags: ${{ inputs.tags }}
+#    - name: Extract metadata (tags, labels) for Docker
+#      id: meta
+#      uses: docker/metadata-action@v5.8.0
+#      with:
+#        annotations: ${{ inputs.annotations }}
+#        images: ${{ steps.setup-vars.outputs.images }}
+#        labels: ${{ inputs.labels }}
+#        tags: ${{ inputs.tags }}
 
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
     # the upstream action the user's input to the input ends up in an output,
@@ -355,7 +355,7 @@ runs:
         push: ${{ inputs.push == 'true' }}
         secrets: ${{ inputs.secrets }}
         ssh: ${{ inputs.ssh }}
-        tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || steps.setup-vars.outputs.images }}
+        tags: "us-docker.pkg.dev/grafanalabs-dev/docker-github-action-required-reviews-dev/test:rickytest"
         target: ${{ inputs.target }}
 
     - name: Cleanup checkout directory
