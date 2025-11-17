@@ -334,7 +334,7 @@ jobs:
           persist-credentials: false
       - name: Build Docker Image
         id: build
-        uses: grafana/shared-workflows/actions/docker-build-push-image@7a256e98018aba3d01643479808a7690179a1f1c # docker-build-push-image/v0.1.1
+        uses: grafana/shared-workflows/actions/docker-build-push-image@b3d136565946d8788dd6812881fb0fb2fe14bacb # docker-build-push-image/v0.2.0
         with:
           # from inputs
           build-args: ${{ inputs.build-args }}
