@@ -21,6 +21,18 @@ inputs:
     description: The commit message to use when committing the changes
     required: false
     default: "Update clients and publish"
+  commit-author:
+    description: Specify the author for the commit
+    required: false
+    default: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+  commit-user-name:
+    description: Use a different username for the commit
+    required: false
+    default: github-actions[bot]
+  commit-user-email:
+    description: Use a different email address for the commit
+    required: false
+    default: 41898282+github-actions[bot]@users.noreply.github.com
   package-name:
     description: The name of the package to generate
     required: true
@@ -96,3 +108,6 @@ runs:
       if: ${{ inputs.commit-changes == 'true' }}
       with:
         commit_message: ${{ inputs.commit-message }}
+        commit_author: ${{ inputs.commit-author}}
+        commit_user_name: ${{ inputs.commit-user-name}}
+        commit_user_email: ${{ inputs.commit-email }}
