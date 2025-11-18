@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@octokit/graphql": "9.0.3",
-    "@octokit/request-error": "7.0.2",
+    "@octokit/request-error": "7.1.0",
     "@octokit/rest": "22.0.1",
     "minimatch": "10.1.1"
   },
