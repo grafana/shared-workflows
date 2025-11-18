@@ -6,8 +6,8 @@ _Note: For now, it only generates Go code. But it's structured in a way that any
 
 ## Inputs
 
-| Name               | Type    | Description                                                                                   | Default Value                | Required |
-| ------------------ | ------- | --------------------------------------------------------------------------------------------- | ---------------------------- | -------- |
+| Name               | Type    | Description                                                                                   | Default Value                                                                 | Required |
+| ------------------ | ------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
 | generator-version  | string  | The version of the OpenAPI generator to use                                                   | "7.7.0"                                                                       | false    |
 | spec-path          | string  | The path to the OpenAPI spec to generate the client from. Supports JSON or YAML               | N/A                                                                           | true     |
 | output-dir         | string  | The directory to output the generated client to                                               | "."                                                                           | false    |
