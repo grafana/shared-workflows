@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.2.1](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.2.0...trigger-argo-workflow/v1.2.1) (2025-11-20)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update module github.com/stretchr/testify to v1.11.0 ([#1263](https://github.com/grafana/shared-workflows/issues/1263)) ([92d0612](https://github.com/grafana/shared-workflows/commit/92d06123e73d57688a53671d0239197efb06cc60))
+* **deps:** update module github.com/stretchr/testify to v1.11.1 ([#1279](https://github.com/grafana/shared-workflows/issues/1279)) ([6901f03](https://github.com/grafana/shared-workflows/commit/6901f036a3aa16cfaaba7020f3515c31eaa2f999))
+* **deps:** update module golang.org/x/term to v0.35.0 ([#1315](https://github.com/grafana/shared-workflows/issues/1315)) ([1d21079](https://github.com/grafana/shared-workflows/commit/1d2107999865cd5fd0962e1622d323dc7748bc30))
+* **deps:** update module golang.org/x/term to v0.36.0 ([#1406](https://github.com/grafana/shared-workflows/issues/1406)) ([b352727](https://github.com/grafana/shared-workflows/commit/b3527272a14bf8e321593849c836fa72e1f95b08))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump github.com/urfave/cli/v3 ([d6a4764](https://github.com/grafana/shared-workflows/commit/d6a47644f63f9583bcf051afb34f745c7eb4d79b))
+* **deps:** bump github.com/urfave/cli/v3 ([2a42482](https://github.com/grafana/shared-workflows/commit/2a424823891a40ca1e5eaa8a8d64f0b9179da363))
+* **deps:** bump github.com/urfave/cli/v3 from 3.5.0 to 3.6.0 in trigger-argo-workflow ([#1508](https://github.com/grafana/shared-workflows/issues/1508)) ([d6a4764](https://github.com/grafana/shared-workflows/commit/d6a47644f63f9583bcf051afb34f745c7eb4d79b))
+* **deps:** bump github.com/urfave/cli/v3 to 3.5.0 in /actions/trigger-argo-workflow ([#1458](https://github.com/grafana/shared-workflows/issues/1458)) ([2a42482](https://github.com/grafana/shared-workflows/commit/2a424823891a40ca1e5eaa8a8d64f0b9179da363))
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/setup-go action to v6 ([#1297](https://github.com/grafana/shared-workflows/issues/1297)) ([9e05f00](https://github.com/grafana/shared-workflows/commit/9e05f0033a0bfa5582aa8f31842ad7eb49a376da))
+* **deps:** update actions/setup-go action to v6 ([#1299](https://github.com/grafana/shared-workflows/issues/1299)) ([6262c5e](https://github.com/grafana/shared-workflows/commit/6262c5e47024d01fd9a114356509ceb9872072b4))
+
 ## [1.2.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.1.2...trigger-argo-workflow/v1.2.0) (2025-08-18)
 
 
