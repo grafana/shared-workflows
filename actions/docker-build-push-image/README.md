@@ -15,6 +15,14 @@ This can push to the following registries:
 1. Google Artifact Registry
 2. DockerHub
 
+
+> [!WARNING]
+> There is a bug with Google Artifact Registry that prevents docker images from pushing successfully if the
+> branch name is too long. This is due a max length with Workload Identity Federation claims on Google's side.
+>
+> Should you use this action and get a `400` error when pushing the image... try shortening the branch name.
+
+
 [docker/build-push-action]: https://github.com/docker/build-push-action
 [docker-build-push-image]: ../docker-build-push-image/README.md
 [docker-export-digest]: ../docker-export-digest/README.md
