@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.2](https://github.com/grafana/shared-workflows/compare/lint-pr-title/v1.2.1...lint-pr-title/v1.2.2) (2025-11-21)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update dependency @types/bun to v1.3.2 ([#1519](https://github.com/grafana/shared-workflows/issues/1519)) ([2d464ab](https://github.com/grafana/shared-workflows/commit/2d464abe3f47661ee0f1b0551c90173fb243a411))
+* **deps:** update dependency eslint-plugin-jest to v29.1.0 ([#1530](https://github.com/grafana/shared-workflows/issues/1530)) ([cacf689](https://github.com/grafana/shared-workflows/commit/cacf68955667cbdc1da18b1b96e25a524b6512ad))
+* **deps:** update dependency typescript-eslint to v8.46.4 ([#1529](https://github.com/grafana/shared-workflows/issues/1529)) ([6829790](https://github.com/grafana/shared-workflows/commit/682979042d7b756583863955d8f6286f8b37f126))
+* **deps:** update dependency typescript-eslint to v8.47.0 ([#1554](https://github.com/grafana/shared-workflows/issues/1554)) ([8c7b10b](https://github.com/grafana/shared-workflows/commit/8c7b10b1b2fb4ad04a00b9f8d5133e7933cda52c))
+* **deps:** update octokit monorepo ([6469a52](https://github.com/grafana/shared-workflows/commit/6469a5278fdedca811e1fc31528e2d4608c6debb))
+* **deps:** update octokit monorepo (major) ([#1483](https://github.com/grafana/shared-workflows/issues/1483)) ([6469a52](https://github.com/grafana/shared-workflows/commit/6469a5278fdedca811e1fc31528e2d4608c6debb))
+
 ## [1.2.1](https://github.com/grafana/shared-workflows/compare/lint-pr-title/v1.2.0...lint-pr-title/v1.2.1) (2025-11-05)
 
 
