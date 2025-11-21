@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.5](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.4...send-slack-message/v2.0.5) (2025-11-21)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+
 ## [2.0.4](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.3...send-slack-message/v2.0.4) (2025-10-03)
 
 
