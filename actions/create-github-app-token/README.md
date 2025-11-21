@@ -75,7 +75,7 @@ jobs:
         uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.2
         with:
           github_app: github-app-name
-          permissions_set: read-only-on-foo-repository
+          permission_set: read-only-on-foo-repository
 
       # Use the secrets
       - name: list issues assignees
@@ -90,7 +90,7 @@ jobs:
         uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.2
         with:
           github_app: github-app-name
-          permissions_set: write-on-bar-repository
+          permission_set: write-on-bar-repository
 
       # Use the secrets
       - name: create a pull request
