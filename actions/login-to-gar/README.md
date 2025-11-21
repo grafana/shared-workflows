@@ -4,6 +4,12 @@ This is a composite GitHub Action, used to login to Google Artifact Registry
 (GAR). It uses [OIDC authentication], which means that only workflows which get
 triggered based on certain rules can trigger these composite workflows.
 
+> [!WARNING]
+> There is a [bug with Workload Identity Federation](https://issuetracker.google.com/issues/390719013?pli=1) that prevents docker images from pushing successfully if the
+> branch name is too long. This is due a max length with Workload Identity Federation claims on Google's side.
+>
+> Should you use this action and get a `400` error when pushing the image... try shortening the branch name.
+
 <!-- x-release-please-start-version -->
 
 ```yaml
