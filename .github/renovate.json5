@@ -19,6 +19,8 @@
         "RENOVATE_VERSION:\\s*(?<depName>renovate)@(?<currentValue>[^\\s]+)",
       ],
       datasourceTemplate: "npm",
+      // Run the custom matcher on early Monday mornings (UTC)
+      schedule: "* 0-4 * * 1",
     },
   ],
   dependencyDashboard: false,
