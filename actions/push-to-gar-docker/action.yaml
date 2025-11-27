@@ -197,11 +197,14 @@ runs:
       id: resolve-builder
       shell: bash
       run: |
-        if [ -n "${{ inputs.builder }}" ]; then
-          echo "name=${{ inputs.builder }}" >> "${GITHUB_OUTPUT}"
+        if [ -n "${INPUT_BUILDER}" ]; then
+          echo "name=${INPUT_BUILDER}" >> "${GITHUB_OUTPUT}"
         else
-          echo "name=${{ steps.buildx.outputs.name }}" >> "${GITHUB_OUTPUT}"
+          echo "name=${BUILDX_NAME}" >> "${GITHUB_OUTPUT}"
         fi
+      env:
+        INPUT_BUILDER: ${{ inputs.builder }}
+        BUILDX_NAME: ${{ steps.buildx.outputs.name }}
 
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
     # the upstream action the user's input to the input ends up in an output,
