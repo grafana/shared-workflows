@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.2](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.1...dependabot-auto-triage/v1.1.2) (2025-11-28)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @octokit/request-error to v7.1.0 ([#1539](https://github.com/grafana/shared-workflows/issues/1539)) ([9d49abe](https://github.com/grafana/shared-workflows/commit/9d49abed0c85b524b7c019797bdabb4b6caf28c4))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @types/bun to v1.3.3 ([#1571](https://github.com/grafana/shared-workflows/issues/1571)) ([f7987ba](https://github.com/grafana/shared-workflows/commit/f7987ba378e8968ad5796f1dd473e2e5b14de2b0))
+* **deps:** update dependency eslint-plugin-jest to v29.1.0 ([#1530](https://github.com/grafana/shared-workflows/issues/1530)) ([cacf689](https://github.com/grafana/shared-workflows/commit/cacf68955667cbdc1da18b1b96e25a524b6512ad))
+* **deps:** update dependency eslint-plugin-jest to v29.2.0 ([#1566](https://github.com/grafana/shared-workflows/issues/1566)) ([485d19c](https://github.com/grafana/shared-workflows/commit/485d19c356ff9633a37332933be79cbb26744575))
+* **deps:** update dependency eslint-plugin-jest to v29.2.1 ([#1574](https://github.com/grafana/shared-workflows/issues/1574)) ([b055806](https://github.com/grafana/shared-workflows/commit/b055806fd663fd698094c1477d00fb45942597f6))
+* **deps:** update dependency typescript-eslint to v8.46.4 ([#1529](https://github.com/grafana/shared-workflows/issues/1529)) ([6829790](https://github.com/grafana/shared-workflows/commit/682979042d7b756583863955d8f6286f8b37f126))
+* **deps:** update dependency typescript-eslint to v8.47.0 ([#1554](https://github.com/grafana/shared-workflows/issues/1554)) ([8c7b10b](https://github.com/grafana/shared-workflows/commit/8c7b10b1b2fb4ad04a00b9f8d5133e7933cda52c))
+* **deps:** update dependency typescript-eslint to v8.48.0 ([#1578](https://github.com/grafana/shared-workflows/issues/1578)) ([fb10504](https://github.com/grafana/shared-workflows/commit/fb10504c7d07de7e9dba6b2ea6e5f0e50e7f59c4))
+
 ## [1.1.1](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.0...dependabot-auto-triage/v1.1.1) (2025-11-11)
 
 
