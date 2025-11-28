@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.2.0...docker-build-push-image/v0.2.1) (2025-11-28)
+
+
+### 📝 Documentation
+
+* **multiple:** add warning about push to GAR failure ([#1555](https://github.com/grafana/shared-workflows/issues/1555)) ([eb33f84](https://github.com/grafana/shared-workflows/commit/eb33f84481d38701f4d2c587a4817ce332784f5f))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.1.1...docker-build-push-image/v0.2.0) (2025-11-11)
 
 
