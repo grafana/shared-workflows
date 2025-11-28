@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.1...docker-import-digests-push-manifest/v0.1.2) (2025-11-28)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.0...docker-import-digests-push-manifest/v0.1.1) (2025-11-12)
 
 
