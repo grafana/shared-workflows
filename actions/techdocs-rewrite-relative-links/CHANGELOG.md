@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.3...techdocs-rewrite-relative-links/v1.0.4) (2025-11-28)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump github.com/urfave/cli/v3 ([80f9be5](https://github.com/grafana/shared-workflows/commit/80f9be521dccb52127d4c8412da7d48a8302231f))
+* **deps:** bump github.com/urfave/cli/v3 to 3.6.0 in techdocs-rewrite-relative-links ([#1507](https://github.com/grafana/shared-workflows/issues/1507)) ([80f9be5](https://github.com/grafana/shared-workflows/commit/80f9be521dccb52127d4c8412da7d48a8302231f))
+* **deps:** bump the go group ([c988ac9](https://github.com/grafana/shared-workflows/commit/c988ac9e58a85221c27e9466b58bc97598095fcc))
+* **deps:** bump the go group in /actions/techdocs-rewrite-relative-links with 2 updates ([#1561](https://github.com/grafana/shared-workflows/issues/1561)) ([c988ac9](https://github.com/grafana/shared-workflows/commit/c988ac9e58a85221c27e9466b58bc97598095fcc))
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+* **deps:** update actions/setup-go action to v6.1.0 ([#1565](https://github.com/grafana/shared-workflows/issues/1565)) ([cfddbee](https://github.com/grafana/shared-workflows/commit/cfddbeede13168d5c0d75c201fd298363a647e27))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.2...techdocs-rewrite-relative-links/v1.0.3) (2025-11-06)
 
 
