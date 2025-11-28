@@ -63,6 +63,7 @@ input.
 | ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
 | `build-args`              | String  | List of arguments necessary for the Docker image to be built.                                                                                                                                                                                                              |                                    |
 | `build-contexts`          | String  | List of additional [build contexts](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs) (e.g., `name=path`)                                                                                                                                             |                                    |
+| `builder`                 | String  | Name of the buildx builder to use. If not specified, a new builder will be created. This is useful when you need to reuse a builder, for example with buildkit-cache-dance.                                                                                                |                                    |
 | `cache-from`              | String  | Where cache should be fetched from. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/) | type=gha                           |
 | `cache-to`                | String  | Where cache should be stored to. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)    | type=gha,mode=max                  |
 | `context`                 | String  | Path to the Docker build context.                                                                                                                                                                                                                                          | .                                  |
@@ -87,6 +88,7 @@ input.
 | Name          | Type   | Description                                                  |
 | ------------- | ------ | ------------------------------------------------------------ |
 | `annotations` | String | Generated annotations (from docker/metadata-action)          |
+| `builder`     | String | Name of the buildx builder used                              |
 | `digest`      | String | Image digest (from docker/build-push-action)                 |
 | `imageid`     | String | Image ID (from docker/build-push-action)                     |
 | `json`        | String | JSON output of tags and labels (from docker/metadata-action) |
