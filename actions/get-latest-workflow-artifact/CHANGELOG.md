@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.2.0...get-latest-workflow-artifact/v0.2.1) (2025-11-28)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @actions/artifact to v4 ([#1462](https://github.com/grafana/shared-workflows/issues/1462)) ([cbb5c3f](https://github.com/grafana/shared-workflows/commit/cbb5c3f16e9be56e14f5f094978420b09444b414))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @types/node to v24.10.0 ([#1494](https://github.com/grafana/shared-workflows/issues/1494)) ([baefcd3](https://github.com/grafana/shared-workflows/commit/baefcd38d64334bd29d861fe618b157cd7dc8bc7))
+* **deps:** update dependency @types/node to v24.10.1 ([#1535](https://github.com/grafana/shared-workflows/issues/1535)) ([9cf4dd8](https://github.com/grafana/shared-workflows/commit/9cf4dd82e5a9c2dfe11e3ac9a9ce39c91a8fa606))
+* **deps:** update dependency @types/node to v24.3.1 ([#1302](https://github.com/grafana/shared-workflows/issues/1302)) ([40b2880](https://github.com/grafana/shared-workflows/commit/40b2880fef77d21f21a98d2e87ffd90304f3149f))
+* **deps:** update dependency @types/node to v24.3.2 ([#1327](https://github.com/grafana/shared-workflows/issues/1327)) ([17b13df](https://github.com/grafana/shared-workflows/commit/17b13df62095ee8732dd0e98bee8cb673f54b137))
+* **deps:** update dependency @types/node to v24.4.0 ([17b13df](https://github.com/grafana/shared-workflows/commit/17b13df62095ee8732dd0e98bee8cb673f54b137))
+* **deps:** update dependency @types/node to v24.5.0 ([#1332](https://github.com/grafana/shared-workflows/issues/1332)) ([c194c0f](https://github.com/grafana/shared-workflows/commit/c194c0fe7ed8bb7024fa119d88c5feaedfbce0a1))
+* **deps:** update dependency @types/node to v24.5.1 ([c194c0f](https://github.com/grafana/shared-workflows/commit/c194c0fe7ed8bb7024fa119d88c5feaedfbce0a1))
+* **deps:** update dependency @types/node to v24.5.2 ([#1338](https://github.com/grafana/shared-workflows/issues/1338)) ([cbb74e4](https://github.com/grafana/shared-workflows/commit/cbb74e4e19d86e9e5e79f2b3df9fbf763fec28cd))
+* **deps:** update dependency @types/node to v24.6.0 ([#1363](https://github.com/grafana/shared-workflows/issues/1363)) ([d1ba50e](https://github.com/grafana/shared-workflows/commit/d1ba50ef6f0d20b3113ca57c8a971fb1c4e1c1fc))
+* **deps:** update dependency @types/node to v24.6.1 ([d1ba50e](https://github.com/grafana/shared-workflows/commit/d1ba50ef6f0d20b3113ca57c8a971fb1c4e1c1fc))
+* **deps:** update dependency @types/node to v24.6.2 ([#1370](https://github.com/grafana/shared-workflows/issues/1370)) ([989e33b](https://github.com/grafana/shared-workflows/commit/989e33b31de43c00ebe6ed5228e083486169e6d7))
+* **deps:** update dependency @types/node to v24.7.0 ([#1377](https://github.com/grafana/shared-workflows/issues/1377)) ([c725acc](https://github.com/grafana/shared-workflows/commit/c725acc831755683822e647db0f7184639e1b908))
+* **deps:** update dependency @types/node to v24.7.1 ([#1407](https://github.com/grafana/shared-workflows/issues/1407)) ([ddccb86](https://github.com/grafana/shared-workflows/commit/ddccb863ff3686d8320c01b92ecce001a3783dde))
+* **deps:** update dependency @types/node to v24.7.2 ([#1417](https://github.com/grafana/shared-workflows/issues/1417)) ([ff24372](https://github.com/grafana/shared-workflows/commit/ff24372f9988cf5965be25feebeb61e938e2ff6e))
+* **deps:** update dependency @types/node to v24.8.0 ([#1438](https://github.com/grafana/shared-workflows/issues/1438)) ([24ff0a0](https://github.com/grafana/shared-workflows/commit/24ff0a03861ea36e7843d6b72adddb3f83f87ad2))
+* **deps:** update dependency @types/node to v24.8.1 ([#1439](https://github.com/grafana/shared-workflows/issues/1439)) ([501429f](https://github.com/grafana/shared-workflows/commit/501429f025eafa143625c21370da95eb20bc6490))
+* **deps:** update dependency @types/node to v24.9.1 ([#1451](https://github.com/grafana/shared-workflows/issues/1451)) ([bca48b6](https://github.com/grafana/shared-workflows/commit/bca48b60029f80d2ea7c1a6bd1a49ffa7915a9e3))
+* **deps:** update dependency @types/node to v24.9.2 ([#1473](https://github.com/grafana/shared-workflows/issues/1473)) ([d38db1d](https://github.com/grafana/shared-workflows/commit/d38db1d025cb6f99bb21e420fa89dff42350c1c7))
+* **deps:** update octokit monorepo ([6469a52](https://github.com/grafana/shared-workflows/commit/6469a5278fdedca811e1fc31528e2d4608c6debb))
+* **deps:** update octokit monorepo ([b626a0d](https://github.com/grafana/shared-workflows/commit/b626a0d8ce99cc0e88a250c3ccebf19e12184df3))
+* **deps:** update octokit monorepo (major) ([#1336](https://github.com/grafana/shared-workflows/issues/1336)) ([b626a0d](https://github.com/grafana/shared-workflows/commit/b626a0d8ce99cc0e88a250c3ccebf19e12184df3))
+* **deps:** update octokit monorepo (major) ([#1483](https://github.com/grafana/shared-workflows/issues/1483)) ([6469a52](https://github.com/grafana/shared-workflows/commit/6469a5278fdedca811e1fc31528e2d4608c6debb))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.1.0...get-latest-workflow-artifact/v0.2.0) (2025-08-27)
 
 
