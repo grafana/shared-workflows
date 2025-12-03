@@ -91,6 +91,11 @@ inputs:
       Whether to load the built image into the local docker daemon.
     required: false
     default: "false"
+  builder:
+    description: |
+      Name of the buildx builder to use. If not specified, a new builder will be created.
+      This is useful when you need to reuse a builder, for example with buildkit-cache-dance.
+    required: false
 
 outputs:
   version:
@@ -117,6 +122,9 @@ outputs:
   metadata:
     description: "Build result metadata (from docker/build-push-action)"
     value: ${{ steps.build.outputs.metadata }}
+  builder:
+    description: "Name of the buildx builder used"
+    value: ${{ steps.resolve-builder.outputs.name }}
 
 runs:
   using: composite
@@ -178,10 +186,25 @@ runs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      id: buildx
+      if: ${{ inputs.builder == '' }}
       with:
         driver: ${{ inputs.docker-buildx-driver }}
         version: v0.28.0 # Latest is 0.29.1 which has an issue with pushing to some registries https://github.com/docker/buildx/issues/3446
         buildkitd-config: ${{ runner.environment == 'self-hosted' && '/etc/buildkitd.toml' || '' }}
+
+    - name: Resolve builder name
+      id: resolve-builder
+      shell: bash
+      run: |
+        if [ -n "${INPUT_BUILDER}" ]; then
+          echo "name=${INPUT_BUILDER}" >> "${GITHUB_OUTPUT}"
+        else
+          echo "name=${BUILDX_NAME}" >> "${GITHUB_OUTPUT}"
+        fi
+      env:
+        INPUT_BUILDER: ${{ inputs.builder }}
+        BUILDX_NAME: ${{ steps.buildx.outputs.name }}
 
     # The `context` input is flagged by Zizmor as a [sink]. This means that with
     # the upstream action the user's input to the input ends up in an output,
@@ -209,6 +232,7 @@ runs:
         build-contexts: ${{ inputs.build-contexts }}
         secrets: ${{ inputs.secrets }}
         load: ${{ inputs.load == 'true' }}
+        builder: ${{ steps.resolve-builder.outputs.name }}
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
