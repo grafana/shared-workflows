@@ -224,6 +224,7 @@ jobs:
       runner-type-manifest: ${{ steps.runners.outputs.runner-type-manifest }}
     steps:
       - id: matrix
+        name: Convert platforms to runner arches
         shell: bash
         env:
           PLATFORMS: ${{ inputs.platforms }}
@@ -254,6 +255,7 @@ jobs:
           # Export as GitHub Action output
           echo "runner-arches=$MATRIX" | tee -a "${GITHUB_OUTPUT}"
       - id: runners
+        name: Set runner types
         shell: bash
         env:
           RUNNER_TYPE: ${{ inputs.runner-type }}
