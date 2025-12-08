@@ -22,16 +22,16 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/github": "6.0.1",
-    "@commitlint/config-conventional": "20.0.0",
-    "@commitlint/format": "20.0.0",
-    "@commitlint/lint": "20.0.0",
-    "@commitlint/load": "20.1.0",
+    "@commitlint/config-conventional": "20.2.0",
+    "@commitlint/format": "20.2.0",
+    "@commitlint/lint": "20.2.0",
+    "@commitlint/load": "20.2.0",
     "@octokit/core": "7.0.6",
     "@octokit/graphql": "9.0.3",
     "tmp": "0.2.5"
   },
   "devDependencies": {
-    "@commitlint/types": "20.0.0",
+    "@commitlint/types": "20.2.0",
     "@eslint/js": "9.39.1",
     "@octokit/types": "16.0.0",
     "@octokit/webhooks-types": "7.6.1",
