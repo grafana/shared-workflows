@@ -1,5 +1,9 @@
 # build-push-to-dockerhub
 
+> [!WARNING]
+> This GitHub Action is deprecated and will be removed from main after Jan 31, 2026.
+> Please migrate to [docker-build-push-image](https://github.com/grafana/shared-workflows/tree/main/actions/docker-build-push-image#migrating).
+
 > [!NOTE]
 > If you are at Grafana Labs:
 >

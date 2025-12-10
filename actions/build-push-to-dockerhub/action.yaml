@@ -70,6 +70,11 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Deprecation Warning
+      shell: sh
+      run: |
+        echo "::warning::This GitHub Action is deprecated and will be removed from main after Jan 31, 2026. Please migrate to [docker-build-push-image](https://github.com/grafana/shared-workflows/tree/main/actions/docker-build-push-image#migrating)."
+
     # See this conversation for more context as to why we don't want to allow pushes on pull requests
     # https://github.com/grafana/shared-workflows/pull/143#discussion_r1628314620
     - name: Check if push is allowed

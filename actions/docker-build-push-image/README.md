@@ -144,3 +144,75 @@ So then the full checklist of work to do to implement a new registry is:
       on `${{ inputs.push == 'true' && steps.registries.outputs.include-<yourRegistry> == 'true' }}`, where yourRegistry is
       the value that will be passed into the `registries` input. Again, use existing repos as examples.
 - [ ] Celebrate
+
+## Migrating
+
+This action is intended to replace `build-push-to-dockerhub` and `build-push-to-dockerhub`.
+
+### Migrating from `build-push-to-dockerhub`
+
+1. Use the new action
+2. Rename dockerhub specific settings
+3. Add `registries: dockerhub`
+
+```bash
+# old
+  - id: push-to-dockerhub
+    uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub/v0.4.0
+    with:
+      repository: ${{ github.repository }} # or any other dockerhub repository
+      context: .
+      tags: |-
+        "2024-04-01-abcd1234"
+        "latest"
+
+# new
+  - id: push-to-dockerhub
+    # CHANGE: use the new action
+    uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.1.0
+    with:
+      # CHANGE: dockerhub ` specific configs
+      dockerhub-repository: ${{ github.repository }} # or any other dockerhub repository
+      context: .
+      tags: |-
+        "2024-04-01-abcd1234"
+        "latest"
+      # ADD: registry
+      registries: dockerhub
+```
+
+### Migrating from `push-to-gar-docker`
+
+1. Use the new action
+2. Rename gar specific settings
+3. Add `registries: gar`
+
+```bash
+# old
+  - id: push-to-gar
+    uses: grafana/shared-workflows/actions/push-to-gar-docker@push-to-gar-docker/v0.6.1
+    with:
+      registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
+      image_name: "backstage" # name of the image to be published, required
+      environment: "dev" # can be either dev/prod
+      tags: |-
+        "<IMAGE_TAG>"
+        "latest"
+      context: "<YOUR_CONTEXT>" # e.g. "." - where the Dockerfile is
+
+# new
+  - id: push-to-gar
+    # CHANGE: use the new action
+    uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.1.0
+    with:
+      # CHANGE: gar specific configs
+      gar-registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
+      gar-image: "backstage" # name of the image to be published, required
+      gar-environment: "dev" # can be either dev/prod
+      tags: |-
+        "<IMAGE_TAG>"
+        "latest"
+      context: "<YOUR_CONTEXT>" # e.g. "." - where the Dockerfile is
+      # ADD: registry
+      registries: gar
+```
