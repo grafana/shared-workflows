@@ -2,34 +2,34 @@ name: Export SPDX SBOM from Socket.dev API
 description: Export SPDX SBOM from Socket.dev API for a given repository.
 
 inputs:
-    socket_api_token:
-        description: "Socket API token for authentication"
-        required: true
-    output_file:
-        description: "Output file path for the SBOM"
-        required: false
+  socket_api_token:
+    description: "Socket API token for authentication"
+    required: true
+  output_file:
+    description: "Output file path for the SBOM"
+    required: false
 
 runs:
-    using: "composite"
-    steps:
-        - name: Setup Go
-          uses: actions/setup-go@v5
-          with:
-              go-version: "1.25.4"
+  using: "composite"
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.25.4"
 
-        - name: Extract repository name
-          id: repo-name
-          shell: bash
-          run: |
-              REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-              echo "name=$REPO_NAME" >> $GITHUB_OUTPUT
+    - name: Extract repository name
+      id: repo-name
+      shell: bash
+      run: |
+        REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+        echo "name=$REPO_NAME" >> $GITHUB_OUTPUT
 
-        - name: Export SPDX SBOM from Socket.dev
-          shell: sh
-          working-directory: ./socket-sbom
-          env:
-              SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
-              REPO_NAME: ${{ steps.repo-name.outputs.name }}
-              OUTPUT_FILE: ${{ inputs.output_file }}
-          run: |
-              go run main.go $REPO_NAME $OUTPUT_FILE
+    - name: Export SPDX SBOM from Socket.dev
+      shell: sh
+      working-directory: ./socket-sbom
+      env:
+        SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
+        REPO_NAME: ${{ steps.repo-name.outputs.name }}
+        OUTPUT_FILE: ${{ inputs.output_file }}
+      run: |
+        go run main.go $REPO_NAME $OUTPUT_FILE

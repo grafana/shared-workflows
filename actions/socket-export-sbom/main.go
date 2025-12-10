@@ -103,7 +103,7 @@ func (c *Client) ExportSBOM(scanID, filepath string) error {
 
 func main() {
 	Usage := `
-    Usage: socket-sbom-export <repo name> <output filepath> 
+    Usage: socket-sbom-export <repo name> <output filepath>
     `
 	key := os.Getenv("SOCKET_API_TOKEN")
 	if key == "" {
