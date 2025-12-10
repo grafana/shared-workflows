@@ -103,7 +103,7 @@ func (c *Client) ExportSBOM(scanID, filepath string) error {
 
 func main() {
 	Usage := `
-    Usage: socket-sbom-export <repo name> <output filepath>
+    Usage: main.go <repo name> <output filepath>
     `
 	key := os.Getenv("SOCKET_API_TOKEN")
 	if key == "" {
@@ -119,6 +119,12 @@ func main() {
 	id, err := client.GetRepoLastScanID(repo)
 	if err != nil {
 		log.Printf("ERROR: could not get scan id for %s: %s", repo, err)
+		os.Exit(1)
+	}
+	if id == "" {
+		log.Printf("ERROR: no valid scan found for repo: %s", repo)
+		os.Exit(1)
+
 	}
 	log.Printf("Last scan id for %s is %s", repo, id)
 	log.Printf("exporting sbom to %s", output)
