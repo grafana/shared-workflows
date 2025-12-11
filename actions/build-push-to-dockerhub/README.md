@@ -37,7 +37,7 @@ jobs:
           persist-credentials: false
 
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub/v0.4.0
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub/v0.4.1
         with:
           repository: ${{ github.repository }} # or any other dockerhub repository
           context: .
