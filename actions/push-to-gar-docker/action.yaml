@@ -129,6 +129,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Deprecation Warning
+      shell: sh
+      run: |
+        echo "::warning::This GitHub Action is deprecated and will be removed from main after Jan 31, 2026. Please migrate to [docker-build-push-image](https://github.com/grafana/shared-workflows/tree/main/actions/docker-build-push-image#migrating)."
+
     - name: Checkout
       env:
         action_repo: ${{ github.action_repository }}
