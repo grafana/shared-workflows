@@ -10,18 +10,18 @@ import (
 	"os"
 )
 
-const BaseURL = "https://api.socket.dev/v0"
-
 type Client struct {
 	APIKey     string
 	BaseURL    string
+	Org        string
 	HTTPClient *http.Client
 }
 
-func NewClient(apiKey string) *Client {
+func NewClient(apiKey, org, baseURL string) *Client {
 	return &Client{
 		APIKey:     apiKey,
-		BaseURL:    "api.socket.dev/v0",
+		BaseURL:    baseURL,
+		Org:        org,
 		HTTPClient: http.DefaultClient,
 	}
 }
@@ -34,15 +34,15 @@ type Repo struct {
 // doRequest handles the common HTTP request logic: building URL, creating request,
 // adding auth header, executing request, and reading response body.
 // Returns the response body bytes, status code, and error.
-func (c *Client) doRequest(method, path string) ([]byte, int, error) {
-	URL := fmt.Sprintf("%s%s", BaseURL, path)
-	authHeaderValue := fmt.Sprintf("Bearer %s", c.APIKey)
+func (client *Client) doRequest(method, path string) ([]byte, int, error) {
+	URL := fmt.Sprintf("%s%s", client.BaseURL, path)
+	authHeaderValue := fmt.Sprintf("Bearer %s", client.APIKey)
 	req, err := http.NewRequestWithContext(context.Background(), method, URL, nil)
 	if err != nil {
 		return nil, 0, err
 	}
 	req.Header.Add("Authorization", authHeaderValue)
-	resp, err := c.HTTPClient.Do(req)
+	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -56,7 +56,7 @@ func (c *Client) doRequest(method, path string) ([]byte, int, error) {
 }
 
 func (client *Client) GetRepoLastScanID(name string) (string, error) {
-	path := fmt.Sprintf("/orgs/grafana/repos/%s", name)
+	path := fmt.Sprintf("/orgs/%s/repos/%s", client.Org, name)
 	data, statusCode, err := client.doRequest("GET", path)
 	if err != nil {
 		return "", err
@@ -82,10 +82,10 @@ func saveDataToFile(data []byte, filepath string) error {
 	return nil
 }
 
-func (c *Client) ExportSBOM(scanID, filepath string) error {
-	path := fmt.Sprintf("/orgs/grafana/export/spdx/%s", scanID)
+func (client *Client) ExportSBOM(scanID, filepath string) error {
+	path := fmt.Sprintf("/orgs/%s/export/spdx/%s", client.Org, scanID)
 
-	data, statusCode, err := c.doRequest("GET", path)
+	data, statusCode, err := client.doRequest("GET", path)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (c *Client) ExportSBOM(scanID, filepath string) error {
 
 	err = saveDataToFile(data, filepath)
 	if err != nil {
-		return  err
+		return err
 	}
 	return nil
 }
@@ -110,11 +110,21 @@ func main() {
 		log.Fatal("SOCKET_API_TOKEN not provided")
 		os.Exit(1)
 	}
+	baseURL := os.Getenv("SOCKET_BASE_URL")
+	if baseURL == "" {
+		log.Fatal("Please specify socket base url, e.g. 'api.socket.dev/v0'")
+		os.Exit(1)
+	}
+	org := os.Getenv("SOCKET_ORG")
+	if org == "" {
+		log.Fatal("Please specify socket org name, e.g. 'grafana'")
+		os.Exit(1)
+	}
 	if len(os.Args) < 3 {
 		log.Println(Usage)
 		os.Exit(0)
 	}
-	client := NewClient(key)
+	client := NewClient(key, org, baseURL)
 	repo, output := os.Args[1], os.Args[2]
 	id, err := client.GetRepoLastScanID(repo)
 	if err != nil {

@@ -5,6 +5,14 @@ inputs:
   socket_api_token:
     description: "Socket API token for authentication"
     required: true
+  socket_base_url:
+    description: "Socket base url"
+    required: true
+    default: "api.socket.dev/v0"
+  socket_org:
+    description: "Socket org name"
+    required: true
+    default: "grafana"
   output_file:
     description: "Output file path for the SBOM"
     required: false
@@ -29,6 +37,8 @@ runs:
       working-directory: ./socket-sbom
       env:
         SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
+        SOCKET_BASE_URL: ${{ inputs.socket_base_url }}
+        SOCKET_ORG: ${{ inputs.socket_org }}
         REPO_NAME: ${{ steps.repo-name.outputs.name }}
         OUTPUT_FILE: ${{ inputs.output_file }}
       run: |
