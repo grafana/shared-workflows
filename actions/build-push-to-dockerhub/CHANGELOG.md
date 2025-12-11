@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.1](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub/v0.4.0...build-push-to-dockerhub/v0.4.1) (2025-12-11)
+
+
+### 📝 Documentation
+
+* improve docker build action docs ([#1486](https://github.com/grafana/shared-workflows/issues/1486)) ([2dd0b03](https://github.com/grafana/shared-workflows/commit/2dd0b0349e130ca5ccf86b3a61250589a840bdb2))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+* **deps:** update actions/checkout action to v6.0.1 ([#1590](https://github.com/grafana/shared-workflows/issues/1590)) ([2425a5f](https://github.com/grafana/shared-workflows/commit/2425a5fe46fb39d1d282caad59150165323e29a6))
+* **deps:** update docker/metadata-action action to v5.10.0 ([#1582](https://github.com/grafana/shared-workflows/issues/1582)) ([d80ddba](https://github.com/grafana/shared-workflows/commit/d80ddba3b588ad911410ce91c599bbbe513196b0))
+* **deps:** update docker/metadata-action action to v5.9.0 ([#1501](https://github.com/grafana/shared-workflows/issues/1501)) ([2d5a067](https://github.com/grafana/shared-workflows/commit/2d5a0678eb32b0fd6655b4f7a3a7ec72eaf530ca))
+* **deps:** update docker/setup-qemu-action action to v3.7.0 ([#1505](https://github.com/grafana/shared-workflows/issues/1505)) ([559f4cd](https://github.com/grafana/shared-workflows/commit/559f4cd66a01e0ebe256defa20964721f25bad1f))
+* **multiple:** deprecate old docker actions and add migration guide ([#1606](https://github.com/grafana/shared-workflows/issues/1606)) ([b6c252d](https://github.com/grafana/shared-workflows/commit/b6c252dc86cb65eaf2d8344d6d51ca07436214a2))
+
 ## [0.4.0](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub/v0.3.0...build-push-to-dockerhub/v0.4.0) (2025-11-05)
 
 
