@@ -49,16 +49,17 @@ jobs:
           export_env: false
 
       - name: Export SBOM from Socket
-        uses: ./socket-sbom
+        id: export-sbom
+        uses: grafana/shared-workflows/actions/socket-export-sbom@socket-export-sbom/v0.1.0
         with:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           output_file: ${{ inputs.output_file }}
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: "sbom"
-          path: socket-sbom/${{ inputs.output_file }}
+          path: ${{ steps.export-sbom.outputs.path }}
           retention-days: 30
 ```
 

@@ -17,6 +17,11 @@ inputs:
     description: "Name of the file to save the sbom"
     required: false
 
+outputs:
+  path:
+    description: "Path to the exported sbom file"
+    value: ${{ steps.export-sbom.outputs.path }}
+
 runs:
   using: "composite"
   steps:
@@ -33,6 +38,7 @@ runs:
         echo "name=$REPO_NAME" >> $GITHUB_OUTPUT
 
     - name: Export SPDX SBOM from Socket.dev
+      id: export-sbom
       shell: bash
       env:
         SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
@@ -47,4 +53,4 @@ runs:
           OUTPUT_FILE=$(basename "$OUTPUT_FILE")
         fi
         go run main.go $REPO_NAME $OUTPUT_FILE
-        echo "ACTION_PATH/$OUTPUT_FILE" >> $GITHUB_OUTPUT
+        echo "path=ACTION_PATH/$OUTPUT_FILE" >> $GITHUB_OUTPUT
