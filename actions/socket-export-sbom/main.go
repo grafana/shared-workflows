@@ -138,5 +138,9 @@ func main() {
 	}
 	log.Printf("Last scan id for %s is %s", repo, id)
 	log.Printf("exporting sbom to %s", output)
-	client.ExportSBOM(id, output)
+	err = client.ExportSBOM(id, output)
+	if err != nil {
+		log.Printf("ERROR: failed to export SBOM: %s\n", err)
+		os.Exit(1)
+	}
 }
