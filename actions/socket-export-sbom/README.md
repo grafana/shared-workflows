@@ -6,10 +6,12 @@ A good use case is including this sbom as part of a public repo's release artifa
 
 ## Inputs
 
-| Name               | Type     | Description                                                                                                                                                                        | Default Value | Required |
-| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
-| `socket_api_token` | `string` | GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (`contents: write`) and pull requests (`pull_requests: read`) | `none`        | true     |
-| `output_file`      | `string` | Name of the file to save the socket sbom on the runner.                                                                                                                            | `"spdx.json"` | false    |
+| Name               | Type     | Description                                                                                                                                                                        | Default Value         | Required |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | -------- |
+| `socket_api_token` | `string` | GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (`contents: write`) and pull requests (`pull_requests: read`) | `none`                | true     |
+| `socket_base_url`  | `string` | Base URL of the socket api endpoint.                                                                                                                                               | `"api.socket.dev/v0"` | true     |
+| `socket_org_name`  | `string` | Name of the socket org.                                                                                                                                                            | `"grafana"`           | true     |
+| `output_file`      | `string` | Name of the file to save the socket sbom on the runner.                                                                                                                            | `"spdx.json"`         | false    |
 
 ## Examples
 

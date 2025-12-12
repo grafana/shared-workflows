@@ -14,14 +14,14 @@ inputs:
     required: true
     default: "grafana"
   output_file:
-    description: "Output file path for the SBOM"
+    description: "Name of the file to save the sbom"
     required: false
 
 runs:
   using: "composite"
   steps:
     - name: Setup Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
       with:
         go-version: "1.25.4"
 
@@ -33,13 +33,18 @@ runs:
         echo "name=$REPO_NAME" >> $GITHUB_OUTPUT
 
     - name: Export SPDX SBOM from Socket.dev
-      shell: sh
-      working-directory: ./socket-sbom
+      shell: bash
       env:
         SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
         SOCKET_BASE_URL: ${{ inputs.socket_base_url }}
         SOCKET_ORG: ${{ inputs.socket_org }}
         REPO_NAME: ${{ steps.repo-name.outputs.name }}
         OUTPUT_FILE: ${{ inputs.output_file }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
+        # Extract basename if output_file is provided (handles both filenames and paths)
+        if [[ -n "$OUTPUT_FILE" ]]; then
+          OUTPUT_FILE=$(basename "$OUTPUT_FILE")
+        fi
         go run main.go $REPO_NAME $OUTPUT_FILE
+        echo "ACTION_PATH/$OUTPUT_FILE" >> $GITHUB_OUTPUT
