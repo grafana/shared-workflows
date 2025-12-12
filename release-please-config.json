@@ -180,6 +180,11 @@
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
     },
+    "actions/socket-export-sbom": {
+      "package-name": "socket-export-sbom",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/docker-import-digests-push-manifest": {
       "package-name": "docker-import-digests-push-manifest",
       "extra-files": ["README.md"],
