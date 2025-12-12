@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.3.0...push-to-gcs/v0.3.1) (2025-12-12)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+* **deps:** update actions/checkout action to v6.0.1 ([#1590](https://github.com/grafana/shared-workflows/issues/1590)) ([2425a5f](https://github.com/grafana/shared-workflows/commit/2425a5fe46fb39d1d282caad59150165323e29a6))
+
 ## [0.3.0](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.2.1...push-to-gcs/v0.3.0) (2025-10-03)
 
 
