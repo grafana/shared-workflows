@@ -53,7 +53,7 @@ jobs:
 
     steps:
       - name: Get secrets for Azure Trusted Signing
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.3.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.0.1
         id: get-signing-secrets
         with:
           export_env: false
@@ -63,7 +63,7 @@ jobs:
             tenant-id=azure-trusted-signing:tenant-id
 
       - name: Sign artifacts
-        uses: grafana/shared-workflows/actions/azure-trusted-signing@azure-trusted-signing/v1.0.0
+        uses: grafana/shared-workflows/actions/azure-trusted-signing@azure-trusted-signing/v1.0.1
         id: sign-artifacts
         with:
           application-description: "My Awesome application"
