@@ -52,5 +52,5 @@ runs:
         if [[ -n "$OUTPUT_FILE" ]]; then
           OUTPUT_FILE=$(basename "$OUTPUT_FILE")
         fi
-        go run main.go $REPO_NAME $OUTPUT_FILE
-        echo "path=ACTION_PATH/$OUTPUT_FILE" >> $GITHUB_OUTPUT
+        go run $ACTION_PATH/main.go $REPO_NAME $OUTPUT_FILE
+        echo "path=$ACTION_PATH/$OUTPUT_FILE" >> $GITHUB_OUTPUT
