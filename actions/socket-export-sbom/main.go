@@ -112,7 +112,7 @@ func main() {
 	}
 	baseURL := os.Getenv("SOCKET_BASE_URL")
 	if baseURL == "" {
-		log.Fatal("Please specify socket base url, e.g. 'api.socket.dev/v0'")
+		log.Fatal("Please specify socket base url, e.g. 'https://api.socket.dev/v0'")
 		os.Exit(1)
 	}
 	org := os.Getenv("SOCKET_ORG")
