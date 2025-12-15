@@ -200,3 +200,4 @@ When deprecating a shared-workflow, follow this procedure:
 1. Post a deprecation notice and warning in the affected action. Also provide a migration guide. Use [this commit](https://github.com/grafana/shared-workflows/commit/b6c252dc86cb65eaf2d8344d6d51ca07436214a2) as an example.
 2. Once you've merged the changes from step 1, release the affected action so that the latest version includes the deprecation notice. Renovate will automatically start to roll this version out.
 3. On the agreed upon date, delete the action from `main`.
+
