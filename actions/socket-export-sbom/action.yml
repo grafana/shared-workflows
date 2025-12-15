@@ -8,7 +8,7 @@ inputs:
   socket_base_url:
     description: "Socket base url"
     required: true
-    default: "api.socket.dev/v0"
+    default: "https://api.socket.dev/v0"
   socket_org:
     description: "Socket org name"
     required: true
