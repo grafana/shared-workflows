@@ -20,7 +20,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@actions/core": "1.11.1",
+    "@actions/core": "2.0.1",
     "@actions/github": "6.0.1",
     "@commitlint/config-conventional": "20.2.0",
     "@commitlint/format": "20.2.0",
