@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: mikefarah/yq:4.49.2@sha256:224eec1bdaf4903221117d65dd95a0f4f4a6d4e46c88e2c81e09398d1f2753a1
+      image: mikefarah/yq:4.50.1@sha256:4facc66fdcc785ec961ef7f2185f53f862f462eefe1d50c2eb311c2bb26823e3
       # https://github.com/actions/checkout/issues/956
       options: --user root
 
