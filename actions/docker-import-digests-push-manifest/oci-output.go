@@ -7,13 +7,30 @@ import (
 	"strings"
 )
 
+type Base struct {
+	Name      string `json:"name"`
+	MediaType string `json:"mediaType"`
+}
+
+type Tag struct {
+	Base
+	Digest    string     `json:"digest"`
+	Manifests []Manifest `json:"manifests"`
+}
+
 type Manifest struct {
-	Platform string `json:"platform"`
-	Digest   string `json:"digest"`
+	Base
+	Platform    string       `json:"platform"`
+	Annotations []Annotation `json:"annotations"`
+}
+
+type Annotation struct {
+	annotation       string `json:"key"`
+	annotation_value string `json:"value"`
 }
 
 type Output struct {
-	IndexDigest string     `json:"index_digest"`
+	IndexDigest string     `json:"indexDigest"`
 	Manifests   []Manifest `json:"manifests"`
 }
 

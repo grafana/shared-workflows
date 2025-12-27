@@ -172,24 +172,6 @@ runs:
         for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
           echo "Inspecting $tag"
 
-          report="$(
-            docker buildx imagetools inspect "$tag" \
-              | go run _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest/oci-output.go
-          )"
+          docker buildx imagetools inspect "$tag" --raw
 
-          index_digest="$(jq -r '.index_digest' <<< "$report")"
-          manifest_count="$(jq '.manifests | length' <<< "$report")"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "#### \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Index digest: \`$index_digest\`" >> "$GITHUB_STEP_SUMMARY"
-
-          if [ "$manifest_count" -eq 0 ]; then
-            echo "- Architecture: single-arch" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "- Architecture: multi-arch" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Manifests:" >> "$GITHUB_STEP_SUMMARY"
-            jq -r '.manifests[] | "  - \(.platform): `\(.digest)`"' \
-              <<< "$report" >> "$GITHUB_STEP_SUMMARY"
-          fi
         done
