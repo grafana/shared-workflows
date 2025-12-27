@@ -174,8 +174,10 @@ runs:
           if [[ "$media_type" == "application/vnd.oci.image.index.v1+json" ]] || \
              [[ "$media_type" == "application/vnd.docker.distribution.manifest.list.v2+json" ]]; then
 
-            index_digest="$(docker buildx imagetools inspect "$tag" \
-              | awk '/Digest:/ { print $2; exit }')"
+            index_digest="$(
+              docker buildx imagetools inspect "$tag" \
+              | awk '/^Digest:/ { print $2; exit }'
+              )"
 
             jq -n \
               --arg tag "$tag" \
