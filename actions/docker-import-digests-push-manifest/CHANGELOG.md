@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.1...docker-import-digests-push-manifest/v0.1.2) (2025-12-26)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+* **deps:** update actions/checkout action to v6.0.1 ([#1590](https://github.com/grafana/shared-workflows/issues/1590)) ([2425a5f](https://github.com/grafana/shared-workflows/commit/2425a5fe46fb39d1d282caad59150165323e29a6))
+* **deps:** update docker/metadata-action action to v5.10.0 ([#1582](https://github.com/grafana/shared-workflows/issues/1582)) ([d80ddba](https://github.com/grafana/shared-workflows/commit/d80ddba3b588ad911410ce91c599bbbe513196b0))
+* **deps:** update github artifact actions ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+* **deps:** update github artifact actions (major) ([#1629](https://github.com/grafana/shared-workflows/issues/1629)) ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.0...docker-import-digests-push-manifest/v0.1.1) (2025-11-12)
 
 
