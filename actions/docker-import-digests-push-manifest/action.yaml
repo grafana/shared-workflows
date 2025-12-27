@@ -154,3 +154,54 @@ runs:
           echo "Inspecting $tag"
           docker buildx imagetools inspect "$tag"
         done
+
+    - name: Report pushed OCI manifests
+      shell: bash
+      if: ${{ inputs.push == 'true' }}
+      run: |
+        set -euo pipefail
+
+        echo "### OCI manifest report" >> "$GITHUB_STEP_SUMMARY"
+
+        for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+          echo ""
+          echo "Inspecting $tag" >&2
+
+          raw="$(docker buildx imagetools inspect --raw "$tag")"
+
+          media_type="$(jq -r '.mediaType' <<< "$raw")"
+
+          if [[ "$media_type" == "application/vnd.oci.image.index.v1+json" ]] || \
+             [[ "$media_type" == "application/vnd.docker.distribution.manifest.list.v2+json" ]]; then
+
+            index_digest="$(docker buildx imagetools inspect "$tag" \
+              | awk '/Digest:/ { print $2; exit }')"
+
+            jq -n \
+              --arg tag "$tag" \
+              --arg index_digest "$index_digest" \
+              --argjson manifests "$(jq '.manifests' <<< "$raw")" \
+              '{
+                tag: $tag,
+                index_digest: $index_digest,
+                manifests: $manifests | map({
+                  digest: .digest,
+                  platform: .platform
+                })
+              }'
+
+            {
+              echo "**Tag:** \`$tag\`"
+              echo ""
+              echo "**Index digest:** \`$index_digest\`"
+              echo ""
+              echo "**Manifests:**"
+              jq -r '.manifests[] | "- `\(.digest)` (\(.platform.os)/\(.platform.architecture))"' <<< "$raw"
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+
+          else
+            echo "Warning: $tag is not a manifest list (mediaType=$media_type)" >&2
+          fi
+        done
+
