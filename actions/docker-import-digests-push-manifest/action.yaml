@@ -155,55 +155,41 @@ runs:
           docker buildx imagetools inspect "$tag"
         done
 
-    - name: Report pushed OCI manifests
-      shell: bash
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+        cache: true
+
+    - name: Report image manifests
       if: ${{ inputs.push == 'true' }}
+      shell: bash
       run: |
         set -euo pipefail
 
-        echo "### OCI manifest report" >> "$GITHUB_STEP_SUMMARY"
+        echo "### Image manifest report" >> "$GITHUB_STEP_SUMMARY"
 
         for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
-          echo ""
-          echo "Inspecting $tag" >&2
+          echo "Inspecting $tag"
 
-          raw="$(docker buildx imagetools inspect --raw "$tag")"
+          report="$(
+            docker buildx imagetools inspect "$tag" \
+              | go run ./cmd/parse-manifests
+          )"
 
-          media_type="$(jq -r '.mediaType' <<< "$raw")"
+          index_digest="$(jq -r '.index_digest' <<< "$report")"
+          manifest_count="$(jq '.manifests | length' <<< "$report")"
 
-          if [[ "$media_type" == "application/vnd.oci.image.index.v1+json" ]] || \
-             [[ "$media_type" == "application/vnd.docker.distribution.manifest.list.v2+json" ]]; then
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "#### \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Index digest: \`$index_digest\`" >> "$GITHUB_STEP_SUMMARY"
 
-            index_digest="$(
-              docker buildx imagetools inspect "$tag" \
-              | awk '/^Digest:/ { print $2; exit }'
-              )"
-
-            jq -n \
-              --arg tag "$tag" \
-              --arg index_digest "$index_digest" \
-              --argjson manifests "$(jq '.manifests' <<< "$raw")" \
-              '{
-                tag: $tag,
-                index_digest: $index_digest,
-                manifests: $manifests | map({
-                  digest: .digest,
-                  platform: .platform
-                })
-              }'
-
-            {
-              echo "**Tag:** \`$tag\`"
-              echo ""
-              echo "**Index digest:** \`$index_digest\`"
-              echo ""
-              echo "**Manifests:**"
-              jq -r '.manifests[] | "- `\(.digest)` (\(.platform.os)/\(.platform.architecture))"' <<< "$raw"
-              echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
-
+          if [ "$manifest_count" -eq 0 ]; then
+            echo "- Architecture: single-arch" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Warning: $tag is not a manifest list (mediaType=$media_type)" >&2
+            echo "- Architecture: multi-arch" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Manifests:" >> "$GITHUB_STEP_SUMMARY"
+            jq -r '.manifests[] | "  - \(.platform): `\(.digest)`"' \
+              <<< "$report" >> "$GITHUB_STEP_SUMMARY"
           fi
         done
-
