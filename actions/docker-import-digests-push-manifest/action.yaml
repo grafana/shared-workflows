@@ -174,7 +174,7 @@ runs:
 
           report="$(
             docker buildx imagetools inspect "$tag" \
-              | go run ./cmd/parse-manifests
+              | go run _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest/oci-output.go
           )"
 
           index_digest="$(jq -r '.index_digest' <<< "$report")"
