@@ -204,3 +204,10 @@ runs:
               end
           )
         ' <<< "$REPORT_JSON" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Print report json
+      shell: bash
+      env:
+        rj: ${{ env.REPORT_JSON }}
+      run: |
+        echo $rj
