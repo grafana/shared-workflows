@@ -145,33 +145,52 @@ runs:
           echo "::warning::No images to push, skipping imagetools creation"
         fi
 
-    - name: Inspect image
-      shell: bash
-      if: ${{ inputs.push == 'true' }}
-      run: |
-        for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
-          echo ""
-          echo "Inspecting $tag"
-          docker buildx imagetools inspect "$tag"
-        done
-
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.25'
         cache: true
 
-    - name: Report image manifests
+    - name: Inspect images
       if: ${{ inputs.push == 'true' }}
       shell: bash
       run: |
         set -euo pipefail
 
-        echo "### Image manifest report" >> "$GITHUB_STEP_SUMMARY"
+        mapfile -t TAGS < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
 
-        for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
-          echo "Inspecting $tag"
+        # Run your Go tool once
+        REPORT_JSON="$(go run _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-export-manifest/. "${TAGS[@]}")"
 
-          docker buildx imagetools inspect "$tag" --raw
+        echo "### 🐳 Image manifest report" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
 
-        done
+        jq -r '
+          .[] |
+          "#### `" + .tag + "`\n" +
+          "- **Index digest:** `" + .indexDigest + "`\n\n" +
+
+          (
+            .manifests
+            | map(select(.kind == "image"))
+            | if length > 0 then
+                "**Images:**\n" +
+                (map("• `" + .platform + "` → `" + .digest + "`") | join("\n")) + "\n\n"
+              else
+                "**Images:** _(none)_\n\n"
+              end
+          ) +
+
+          (
+            .manifests
+            | map(select(.kind == "attestation"))
+            | if length > 0 then
+                "**Attestations:**\n" +
+                (map(
+                  "• `" + .digest + "`\n  ↳ refers to `" + .refersTo + "`"
+                ) | join("\n")) + "\n"
+              else
+                "**Attestations:** _(none)_\n"
+              end
+          )
+        ' <<< "$REPORT_JSON" >> "$GITHUB_STEP_SUMMARY"

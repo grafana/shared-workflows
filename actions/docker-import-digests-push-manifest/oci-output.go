@@ -1,65 +1,73 @@
 package main
 
 import (
-	"bufio"
+	"context"
 	"encoding/json"
+	"flag"
+	"fmt"
 	"os"
-	"strings"
+	"os/exec"
+	"time"
+
+	"github.com/grafana/shared-workflows/actions/docker-import-digests-push-manifest/oci-output/internal/parser"
 )
 
-type Base struct {
-	Name      string `json:"name"`
-	MediaType string `json:"mediaType"`
-}
+func runInspect(ctx context.Context, tag string) ([]byte, error) {
+	cctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
-type Tag struct {
-	Base
-	Digest    string     `json:"digest"`
-	Manifests []Manifest `json:"manifests"`
-}
-
-type Manifest struct {
-	Base
-	Platform    string       `json:"platform"`
-	Annotations []Annotation `json:"annotations"`
-}
-
-type Annotation struct {
-	annotation       string `json:"key"`
-	annotation_value string `json:"value"`
-}
-
-type Output struct {
-	IndexDigest string     `json:"indexDigest"`
-	Manifests   []Manifest `json:"manifests"`
+	cmd := exec.CommandContext(cctx, "docker", "buildx", "imagetools", "inspect", tag)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("inspect failed for %s: %w\n%s", tag, err, string(out))
+	}
+	return out, nil
 }
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
+	var (
+		fromFile = flag.String("from-file", "", "read imagetools output from file")
+		stdin    = flag.Bool("stdin", false, "read imagetools output from stdin")
+	)
+	flag.Parse()
 
-	var out Output
-	var currentPlatform string
+	ctx := context.Background()
 
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	var reports []parser.Report
 
-		switch {
-		case strings.HasPrefix(line, "Digest:") && out.IndexDigest == "":
-			out.IndexDigest = strings.TrimSpace(strings.TrimPrefix(line, "Digest:"))
+	switch {
+	case *fromFile != "":
+		data, err := os.ReadFile(*fromFile)
+		if err != nil {
+			panic(err)
+		}
+		reports = append(reports, parser.ParseInspectOutput(data))
 
-		case strings.HasPrefix(line, "Platform:"):
-			currentPlatform = strings.TrimSpace(strings.TrimPrefix(line, "Platform:"))
+	case *stdin:
+		data, err := os.ReadFile(os.Stdin.Name())
+		if err != nil {
+			panic(err)
+		}
+		reports = append(reports, parser.ParseInspectOutput(data))
 
-		case strings.HasPrefix(line, "Digest:") && currentPlatform != "":
-			out.Manifests = append(out.Manifests, Manifest{
-				Platform: currentPlatform,
-				Digest:   strings.TrimSpace(strings.TrimPrefix(line, "Digest:")),
-			})
-			currentPlatform = ""
+	default:
+		tags := flag.Args()
+		if len(tags) == 0 {
+			fmt.Fprintln(os.Stderr, "usage: manifest-report [--from-file file] [--stdin] <tag...>")
+			os.Exit(2)
+		}
+		for _, tag := range tags {
+			raw, err := runInspect(ctx, tag)
+			if err != nil {
+				panic(err)
+			}
+			r := parser.ParseInspectOutput(raw)
+			r.Tag = tag
+			reports = append(reports, r)
 		}
 	}
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
-	_ = enc.Encode(out)
+	_ = enc.Encode(reports)
 }
