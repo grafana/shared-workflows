@@ -24,6 +24,10 @@ inputs:
     description: |
       List of Docker tags to be pushed.
     required: true
+outputs:
+  image-digests:
+    description: CSV list of image digests.
+    value: ${{ steps.summary.outputs.image-digests }}
 
 runs:
   using: composite
@@ -167,6 +171,7 @@ runs:
         cache: true
 
     - name: Generate manifest summary
+      id: summary
       if: ${{ inputs.generate-summary == 'true' }}
       shell: bash
       run: |
@@ -227,4 +232,19 @@ runs:
           )
           | join("")
         ' <<< "$OCI_MANIFEST_OUTPUT_JSON" >> "$GITHUB_STEP_SUMMARY"
+
+        TAG_SHA_LIST="$(
+          jq -r '
+            .[] as $img
+            | $img.manifests[]
+            | select(.kind == "image")
+            | "\($img.tag)@\(.digest)"
+          ' <<< "$OCI_MANIFEST_OUTPUT_JSON"
+        )"
+
+        {
+          echo "image-digests<<EOF"
+          echo "$TAG_SHA_LIST"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
 
