@@ -151,63 +151,64 @@ runs:
         go-version: '1.25'
         cache: true
 
-    - name: Inspect images
-      if: ${{ inputs.push == 'true' }}
+    - name: Generate manifest summary
       shell: bash
       run: |
         set -euo pipefail
+
         cd _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest
 
         mapfile -t TAGS < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
 
         # Run your Go tool once
-        REPORT_JSON="$(
+        OCI_MANIFEST_OUTPUT_JSON="$(
           go run . "${TAGS[@]}"
         )"
         # Persist for future steps (multiline-safe)
         {
-          echo "REPORT_JSON<<EOF"
-          echo "$REPORT_JSON"
+          echo "OCI_MANIFEST_OUTPUT_JSON<<EOF"
+          echo "$OCI_MANIFEST_OUTPUT_JSON"
           echo "EOF"
         } >> "$GITHUB_ENV"
-
-        # Create the report
-        echo "### 🐳 Image manifest report" >> "$GITHUB_STEP_SUMMARY"
+        echo $OCI_MANIFEST_OUTPUT_JSON
+    
+        echo "## Docker Image summary" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-
+        echo "This job produced the following OCI image manifests and attestations." >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+    
+        # Per-tag section
         jq -r '
-          .[] |
-          "#### `" + .tag + "`\n" +
-          "- **Index digest:** `" + .indexDigest + "`\n\n" +
+          map(
+            "### `" + .tag + "`\n" +
+            "**Index digest:** `" + .indexDigest + "`\n\n" +
 
-          (
-            .manifests
-            | map(select(.kind == "image"))
-            | if length > 0 then
-                "**Images:**\n" +
-                (map("• `" + .platform + "` → `" + .digest + "`") | join("\n")) + "\n\n"
-              else
-                "**Images:** _(none)_\n\n"
-              end
-          ) +
+            (
+              .manifests
+              | map(select(.kind == "image"))
+              | if length > 0 then
+                  "| Platform | Digest |\n|---|---|\n" +
+                  (map("| `" + .platform + "` | `" + .digest + "` |") | join("\n")) +
+                  "\n\n"
+                else
+                  "_No image manifests_\n\n"
+                end
+            ) +
 
-          (
-            .manifests
-            | map(select(.kind == "attestation"))
-            | if length > 0 then
-                "**Attestations:**\n" +
-                (map(
-                  "• `" + .digest + "`\n  ↳ refers to `" + .refersTo + "`"
-                ) | join("\n")) + "\n"
-              else
-                "**Attestations:** _(none)_\n"
-              end
+            (
+              .manifests
+              | map(select(.kind == "attestation"))
+              | if length > 0 then
+                  "<details><summary>Attestations</summary>\n\n" +
+                  "| Digest | Refers to |\n|---|---|\n" +
+                  (map("| `" + .digest + "` | `" + .refersTo + "` |") | join("\n")) +
+                  "\n\n</details>\n"
+                else
+                  ""
+                end
+            ) +
+            "\n---\n\n"
           )
-        ' <<< "$REPORT_JSON" >> "$GITHUB_STEP_SUMMARY"
+          | join("")
+        ' <<< "$OCI_MANIFEST_OUTPUT_JSON" >> "$GITHUB_STEP_SUMMARY"
 
-    - name: Print report json
-      shell: bash
-      env:
-        rj: ${{ env.REPORT_JSON }}
-      run: |
-        echo $rj
