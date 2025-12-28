@@ -12,6 +12,10 @@ inputs:
       CSV of Docker images to push. These images should not include tags.
       Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image
     required: true
+  generate-summary:
+    description: |
+      Generates both a markdown summary and outputs the env variable OCI_MANIFEST_OUTPUT_JSON.
+    default: "true"
   push:
     description: |
       Whether to push the manifest to the configured registries.
@@ -145,13 +149,25 @@ runs:
           echo "::warning::No images to push, skipping imagetools creation"
         fi
 
+    - name: Inspect image
+      shell: bash
+      if: ${{ inputs.push == 'true' }}
+      run: |
+        for tag in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+          echo ""
+          echo "Inspecting $tag"
+          docker buildx imagetools inspect "$tag"
+        done
+
     - name: Set up Go
+      if: ${{ inputs.generate-summary == 'true' }}
       uses: actions/setup-go@v5
       with:
         go-version: '1.25'
         cache: true
 
     - name: Generate manifest summary
+      if: ${{ inputs.generate-summary == 'true' }}
       shell: bash
       run: |
         set -euo pipefail
@@ -172,7 +188,7 @@ runs:
         } >> "$GITHUB_ENV"
         echo $OCI_MANIFEST_OUTPUT_JSON
     
-        echo "## Docker Image summary" >> "$GITHUB_STEP_SUMMARY"
+        echo "## Manifest summary" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "This job produced the following OCI image manifests and attestations." >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
