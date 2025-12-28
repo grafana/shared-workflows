@@ -233,18 +233,17 @@ runs:
           | join("")
         ' <<< "$OCI_MANIFEST_OUTPUT_JSON" >> "$GITHUB_STEP_SUMMARY"
 
-        TAG_SHA_LIST="$(
-          jq -r '
-            .[] as $img
-            | $img.manifests[]
-            | select(.kind == "image")
-            | "\($img.tag)@\(.digest)"
-          ' <<< "$OCI_MANIFEST_OUTPUT_JSON"
+        TAG_DIGESTS="$(
+          jq -r '.[] | "\(.tag)@\(.indexDigest)"' <<< "$OCI_MANIFEST_LIST_JSON"
         )"
 
+        # Print for visibility (optional)
+        echo "Published image digests:"
+        echo "$TAG_DIGESTS"
+
+        # Export as multiline step output
         {
           echo "image-digests<<EOF"
-          echo "$TAG_SHA_LIST"
+          echo "$TAG_DIGESTS"
           echo "EOF"
         } >> "$GITHUB_OUTPUT"
-
