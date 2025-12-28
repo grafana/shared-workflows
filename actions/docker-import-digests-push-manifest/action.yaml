@@ -234,7 +234,7 @@ runs:
         ' <<< "$OCI_MANIFEST_OUTPUT_JSON" >> "$GITHUB_STEP_SUMMARY"
 
         TAG_DIGESTS="$(
-          jq -r '.[] | "\(.tag)@\(.indexDigest)"' <<< "$OCI_MANIFEST_LIST_JSON"
+          jq -r '.[] | "\(.tag)@\(.indexDigest)"' <<< "$OCI_MANIFEST_OUTPUT_JSON"
         )"
 
         # Print for visibility (optional)
