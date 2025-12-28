@@ -164,6 +164,14 @@ runs:
         REPORT_JSON="$(
           go run . "${TAGS[@]}"
         )"
+        # Persist for future steps (multiline-safe)
+        {
+          echo "REPORT_JSON<<EOF"
+          echo "$REPORT_JSON"
+          echo "EOF"
+        } >> "$GITHUB_ENV"
+
+        # Create the report
         echo "### 🐳 Image manifest report" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
 
