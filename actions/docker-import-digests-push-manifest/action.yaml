@@ -156,13 +156,13 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
+        cd _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-export-manifest
 
         mapfile -t TAGS < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
 
         # Run your Go tool once
         REPORT_JSON="$(
-          go run ./_shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-export-manifest \
-            "${TAGS[@]}"
+          go run . "${TAGS[@]}"
         )"
         echo "### 🐳 Image manifest report" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
