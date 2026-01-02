@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.0...docker-build-push-image/v0.3.1) (2026-01-02)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/setup-buildx-action action to v3.12.0 ([#1633](https://github.com/grafana/shared-workflows/issues/1633)) ([9c7001f](https://github.com/grafana/shared-workflows/commit/9c7001fb8ab6048113c07b6454aea78589e0e6b9))
+
 ## [0.3.0](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.2.0...docker-build-push-image/v0.3.0) (2025-12-11)
 
 
