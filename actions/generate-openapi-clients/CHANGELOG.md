@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients/v1.0.3...generate-openapi-clients/v1.1.0) (2026-01-02)
+
+
+### 🎉 Features
+
+* add committer info to openapi clients ([#1547](https://github.com/grafana/shared-workflows/issues/1547)) ([0c35ca9](https://github.com/grafana/shared-workflows/commit/0c35ca9c1d8794ccf9cfcfdcdd6b02261c7d0183))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients/v1.0.2...generate-openapi-clients/v1.0.3) (2025-11-10)
 
 
