@@ -1,0 +1,24 @@
+{
+  "id": "5bef7df8-c4e4-468b-90db-1fa05e419452",
+  "created_at": "2025-11-19T17:22:23.063Z",
+  "updated_at": "2026-01-02T12:51:50.106Z",
+  "slug": "loki",
+  "head_full_scan_id": "0aa47a52-6fcd-4676-a92d-eabe4e75c819",
+  "integration_meta": {
+    "type": "github",
+    "value": {
+      "installation_id": "77442621",
+      "installation_login": "grafana",
+      "repo_name": "loki",
+      "repo_id": "161556233"
+    }
+  },
+  "name": "loki",
+  "description": null,
+  "homepage": "https://github.com/grafana/loki",
+  "visibility": "public",
+  "archived": false,
+  "default_branch": "main",
+  "workspace": "",
+  "slig": "loki"
+}
