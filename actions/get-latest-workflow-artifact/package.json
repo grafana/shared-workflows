@@ -9,7 +9,7 @@
   "main": "dist/main.js",
   "dependencies": {
     "@actions/artifact": "4.0.0",
-    "@actions/core": "2.0.1",
+    "@actions/core": "2.0.2",
     "@actions/github": "7.0.0",
     "@js-temporal/polyfill": "0.5.1"
   },
