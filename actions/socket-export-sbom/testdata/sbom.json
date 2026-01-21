@@ -1,0 +1,41 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "github.com/grafana/loki/cmd/chunks-inspect",
+  "documentNamespace": "http://spdx.org/spdxdocs/github.com%2Fgrafana%2Floki%2Fcmd%2Fchunks-inspect-5ecf2cf3-25a7-41fe-8805-1a010802ff9f",
+  "creationInfo": {
+    "created": "2026-01-03T21:18:34Z",
+    "creators": ["Tool: @cyclonedx/cdxgen-11.2.5"]
+  },
+  "documentDescribes": [
+    "SPDXRef-Package-github.com.grafana.loki.cmd.chunks-inspect"
+  ],
+  "packages": [
+    {
+      "name": "github.com/grafana/loki/cmd/chunks-inspect",
+      "SPDXID": "SPDXRef-Package-github.com.grafana.loki.cmd.chunks-inspect",
+      "versionInfo": "",
+      "packageFileName": "",
+      "primaryPackagePurpose": "APPLICATION",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "homepage": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:golang/github.com/grafana/loki/cmd/chunks-inspect"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-github.com.grafana.loki.cmd.chunks-inspect"
+    }
+  ]
+}
