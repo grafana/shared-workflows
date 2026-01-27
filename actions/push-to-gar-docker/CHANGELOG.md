@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.7.0...push-to-gar-docker/v0.7.1) (2026-01-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v6.0.2 ([#1672](https://github.com/grafana/shared-workflows/issues/1672)) ([3105e25](https://github.com/grafana/shared-workflows/commit/3105e251e687194e9b2b4b456cb2846a761e0df0))
+* **deps:** update docker/setup-buildx-action action to v3.12.0 ([#1633](https://github.com/grafana/shared-workflows/issues/1633)) ([9c7001f](https://github.com/grafana/shared-workflows/commit/9c7001fb8ab6048113c07b6454aea78589e0e6b9))
+
 ## [0.7.0](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.6.1...push-to-gar-docker/v0.7.0) (2025-12-11)
 
 
