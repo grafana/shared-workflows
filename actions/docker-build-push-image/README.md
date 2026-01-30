@@ -42,7 +42,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.3.0
+      - uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.3.1
         with:
           platforms: linux/arm64,linux/amd64
           tags: |
