@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v1.0.3...dockerhub-login/v1.0.4) (2026-01-30)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v6.0.2 ([#1672](https://github.com/grafana/shared-workflows/issues/1672)) ([3105e25](https://github.com/grafana/shared-workflows/commit/3105e251e687194e9b2b4b456cb2846a761e0df0))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v1.0.2...dockerhub-login/v1.0.3) (2025-12-08)
 
 
