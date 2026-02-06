@@ -1,0 +1,130 @@
+name: Component Change Detection
+description: Detects which components changed based on component dependencies configuration
+author: Grafana Labs
+
+inputs:
+  config-file:
+    description: 'Path to component dependencies YAML file'
+    required: true
+  previous-tags-source:
+    description: 'Workflow name to get previous tags from'
+    required: true
+  target-ref:
+    description: 'Git ref to compare against'
+    required: false
+    default: 'HEAD'
+  force-rebuild-all:
+    description: 'Force rebuild all components'
+    required: false
+    default: 'false'
+  force-components:
+    description: 'Force rebuild specific components (comma-separated)'
+    required: false
+    default: ''
+
+outputs:
+  # Generic outputs for any component set
+  changes_json:
+    description: 'All component changes as JSON object (e.g., {"apiserver": true, "controller": false})'
+    value: ${{ steps.detect.outputs.changes_json }}
+  components_json:
+    description: 'List of all components as JSON array (e.g., ["apiserver", "controller"])'
+    value: ${{ steps.extract-components.outputs.components_json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Extract component list from config
+      id: extract-components
+      shell: bash
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+      run: |
+        # Extract component names from config file
+        COMPONENTS=$(yq eval '.components | keys | join(",")' "$CONFIG_FILE")
+        echo "components=$COMPONENTS" >> $GITHUB_OUTPUT
+        echo "Detected components: $COMPONENTS"
+        
+        # Create JSON array for easier processing (ensure it's on one line)
+        COMPONENTS_JSON=$(yq eval '.components | keys' "$CONFIG_FILE" -o json -I=0)
+        echo "components_json=$COMPONENTS_JSON" >> $GITHUB_OUTPUT
+
+    # Download previous component tags from the source workflow
+    - name: Download previous component tags
+      uses: dawidd6/action-download-artifact@5c98f0b039f36ef966fdb7dfa9779262785ecb05 # v14
+      with:
+        workflow: ${{ inputs.previous-tags-source }}
+        branch: main
+        name: component-tags
+        path: .
+        if_no_artifact_found: ignore
+      continue-on-error: true
+    
+    - name: Check if artifact was found
+      id: check-tags-artifact
+      shell: bash
+      run: |
+        if [ -f component-tags.json ]; then
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "Found component-tags.json"
+        else
+          echo "found=false" >> $GITHUB_OUTPUT
+          echo "Artifact download failed or not found - will mark all components as changed"
+        fi
+
+    - name: Prepare previous SHAs for comparison
+      shell: bash
+      run: |
+        # If artifact was downloaded, extract SHAs from component-tags.json
+        if [ -f component-tags.json ]; then
+          echo "Found previous build state from artifact"
+          
+          # Expect new format: {"component": {"commitSHA": "...", "digest": "..."}}
+          FIRST_VALUE=$(jq -r 'to_entries | .[0].value | type' component-tags.json 2>/dev/null || echo "null")
+          
+          if [ "$FIRST_VALUE" = "object" ]; then
+            echo "New format detected - extracting SHAs"
+            jq 'to_entries | map({(.key): .value.commitSHA}) | add' component-tags.json > component-tags-previous.json
+          else
+            # Old/invalid format - treat as first run to rebuild everything
+            echo "Unsupported format - treating as first run"
+            COMPONENTS='${{ steps.extract-components.outputs.components_json }}'
+            echo "$COMPONENTS" | jq -r 'map({(.): "none"}) | add' > component-tags-previous.json
+          fi
+        else
+          echo "No previous build state found - first run will mark all components as changed"
+          
+          # Dynamically create initial state from component list
+          COMPONENTS='${{ steps.extract-components.outputs.components_json }}'
+          echo "$COMPONENTS" | jq -r 'map({(.): "none"}) | add' > component-tags-previous.json
+        fi
+        echo "Previous SHAs for change detection:"
+        jq . component-tags-previous.json
+
+    - name: Setup Go
+      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+      with:
+        go-version-file: '${{ github.action_path }}/go.mod'
+        cache-dependency-path: '${{ github.action_path }}/go.sum'
+
+    - name: Build change detector
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        echo "Building change detector..."
+        go build -o changed-components ./cmd/changed-components
+        chmod +x changed-components
+
+    - name: Detect changes
+      id: detect
+      shell: bash
+      env:
+        FORCE_REBUILD_ALL: ${{ inputs.force-rebuild-all }}
+        FORCE_COMPONENTS: ${{ inputs.force-components }}
+        COMPONENTS_JSON: ${{ steps.extract-components.outputs.components_json }}
+        TARGET_REF: ${{ inputs.target-ref }}
+        # Use actual PR commit SHA, not the temporary merge commit
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        REPO_ROOT: ${{ github.workspace }}
+        BINARY_PATH: ${{ github.action_path }}/changed-components
+      run: ${{ github.action_path }}/scripts/detect-changes --github-output
