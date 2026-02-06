@@ -87,7 +87,7 @@ runs:
       shell: pwsh
       env:
         # renovate: datasource=nuget depName=sign
-        DOTNET_SIGN_VERSION: "0.9.1-beta.25379.1"
+        DOTNET_SIGN_VERSION: "0.9.1-beta.26102.1"
       run: |
         $toolPath = Join-Path -Path ${env:RUNNER_TEMP} -ChildPath (New-Guid).ToString()
         New-Item -ItemType Directory -Path $toolPath | Out-Null
