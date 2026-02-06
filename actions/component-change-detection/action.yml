@@ -39,15 +39,7 @@ runs:
       shell: bash
       env:
         CONFIG_FILE: ${{ inputs.config-file }}
-      run: |
-        # Extract component names from config file
-        COMPONENTS=$(yq eval '.components | keys | join(",")' "$CONFIG_FILE")
-        echo "components=$COMPONENTS" >> $GITHUB_OUTPUT
-        echo "Detected components: $COMPONENTS"
-        
-        # Create JSON array for easier processing (ensure it's on one line)
-        COMPONENTS_JSON=$(yq eval '.components | keys' "$CONFIG_FILE" -o json -I=0)
-        echo "components_json=$COMPONENTS_JSON" >> $GITHUB_OUTPUT
+      run: ${{ github.action_path }}/scripts/extract-components.sh
 
     # Download previous component tags from the source workflow
     - name: Download previous component tags
@@ -63,43 +55,13 @@ runs:
     - name: Check if artifact was found
       id: check-tags-artifact
       shell: bash
-      run: |
-        if [ -f component-tags.json ]; then
-          echo "found=true" >> $GITHUB_OUTPUT
-          echo "Found component-tags.json"
-        else
-          echo "found=false" >> $GITHUB_OUTPUT
-          echo "Artifact download failed or not found - will mark all components as changed"
-        fi
+      run: ${{ github.action_path }}/scripts/check-artifact.sh
 
     - name: Prepare previous SHAs for comparison
       shell: bash
-      run: |
-        # If artifact was downloaded, extract SHAs from component-tags.json
-        if [ -f component-tags.json ]; then
-          echo "Found previous build state from artifact"
-          
-          # Expect new format: {"component": {"commitSHA": "...", "digest": "..."}}
-          FIRST_VALUE=$(jq -r 'to_entries | .[0].value | type' component-tags.json 2>/dev/null || echo "null")
-          
-          if [ "$FIRST_VALUE" = "object" ]; then
-            echo "New format detected - extracting SHAs"
-            jq 'to_entries | map({(.key): .value.commitSHA}) | add' component-tags.json > component-tags-previous.json
-          else
-            # Old/invalid format - treat as first run to rebuild everything
-            echo "Unsupported format - treating as first run"
-            COMPONENTS='${{ steps.extract-components.outputs.components_json }}'
-            echo "$COMPONENTS" | jq -r 'map({(.): "none"}) | add' > component-tags-previous.json
-          fi
-        else
-          echo "No previous build state found - first run will mark all components as changed"
-          
-          # Dynamically create initial state from component list
-          COMPONENTS='${{ steps.extract-components.outputs.components_json }}'
-          echo "$COMPONENTS" | jq -r 'map({(.): "none"}) | add' > component-tags-previous.json
-        fi
-        echo "Previous SHAs for change detection:"
-        jq . component-tags-previous.json
+      env:
+        COMPONENTS_JSON: ${{ steps.extract-components.outputs.components_json }}
+      run: ${{ github.action_path }}/scripts/prepare-previous-tags.sh
 
     - name: Setup Go
       uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
@@ -110,10 +72,7 @@ runs:
     - name: Build change detector
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: |
-        echo "Building change detector..."
-        go build -o changed-components ./cmd/changed-components
-        chmod +x changed-components
+      run: ${{ github.action_path }}/scripts/build-detector.sh
 
     - name: Detect changes
       id: detect

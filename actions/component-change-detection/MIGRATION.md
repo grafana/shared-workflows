@@ -29,7 +29,7 @@ Replace the local action with the shared action:
 ```yaml
 - name: Detect changed components
   id: detect-changes
-  uses: grafana/shared-workflows/actions/component-change-detection@main
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
@@ -42,7 +42,7 @@ Same change as above:
 ```yaml
 - name: Detect changed components
   id: detect-changes
-  uses: grafana/shared-workflows/actions/component-change-detection@main
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
@@ -113,13 +113,13 @@ jobs:
     outputs:
       changes_json: ${{ steps.detect.outputs.changes_json }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 100
 
       - name: Detect changes
         id: detect
-        uses: grafana/shared-workflows/actions/component-change-detection@main
+        uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
         with:
           config-file: '.component-deps.yaml'
           previous-tags-source: 'deploy.yml'  # Your deployment workflow
@@ -155,7 +155,7 @@ jobs:
           EOF
       
       - name: Upload component tags
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: component-tags
           path: component-tags.json

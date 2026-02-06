@@ -76,7 +76,7 @@ module github.com/grafana/shared-workflows/actions/component-change-detection
 ```yaml
 - name: Detect changed components
   id: detect
-  uses: grafana/shared-workflows/actions/component-change-detection@main
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'

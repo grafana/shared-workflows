@@ -13,6 +13,25 @@ This action enables **selective deployment** by comparing the current commit aga
 - ✅ Automatic transitive dependency handling
 - ✅ Configurable via YAML (no code changes needed)
 
+## Usage
+
+<!-- x-release-please-start-version -->
+
+```yaml
+- name: Detect changed components
+  id: detect
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
+  with:
+    config-file: '.component-deps.yaml'
+    previous-tags-source: 'deploy-prod.yml'
+
+- name: Build component if changed
+  if: fromJSON(steps.detect.outputs.changes_json).apiserver == true
+  run: make build-apiserver
+```
+
+<!-- x-release-please-end-version -->
+
 ## Quick Start
 
 ### 1. Create Configuration File
@@ -46,13 +65,13 @@ components:
 
 ```yaml
 - name: Checkout with history
-  uses: actions/checkout@v4
+  uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
   with:
     fetch-depth: 100  # Fetch recent history for comparison
 
 - name: Detect changed components
   id: detect
-  uses: grafana/shared-workflows/actions/component-change-detection@main
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'  # Workflow that uploads component-tags
@@ -73,7 +92,7 @@ Your deployment workflow needs to upload the `component-tags` artifact:
 ```yaml
 # In your deploy workflow
 - name: Upload component tags
-  uses: actions/upload-artifact@v4
+  uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
   with:
     name: component-tags
     path: component-tags.json
@@ -214,7 +233,7 @@ admin_ui → changed (depends on apiserver)
 
 ```yaml
 - name: Detect changes
-  uses: grafana/shared-workflows/actions/component-change-detection@main
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
@@ -225,7 +244,7 @@ admin_ui → changed (depends on apiserver)
 
 ```yaml
 - name: Detect changes
-  uses: grafana/shared-workflows/actions/component-change-detection@main
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
@@ -236,7 +255,7 @@ admin_ui → changed (depends on apiserver)
 
 ```yaml
 - name: Detect changes since v1.0.0
-  uses: grafana/shared-workflows/actions/component-change-detection@main
+  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
@@ -245,10 +264,43 @@ admin_ui → changed (depends on apiserver)
 
 ## Requirements
 
+### Dependencies
+
 - **Git history**: Checkout with `fetch-depth: 100` (or more) to ensure commits are available
 - **Deployment workflow**: Must upload `component-tags` artifact
 - **yq**: Pre-installed on GitHub-hosted runners
 - **jq**: Pre-installed on GitHub-hosted runners
+- **Go**: Automatically installed by the action via `actions/setup-go`
+
+### Permissions
+
+This action requires the following GitHub token permissions:
+
+```yaml
+permissions:
+  actions: read  # Required to download artifacts from previous workflow runs
+  contents: read # Required to checkout code and read git history
+```
+
+**Minimal Example:**
+
+```yaml
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 100
+      
+      - uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
+        with:
+          config-file: '.component-deps.yaml'
+          previous-tags-source: 'deploy-prod.yml'
+```
 
 ## Troubleshooting
 
