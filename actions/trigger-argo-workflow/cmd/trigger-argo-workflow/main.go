@@ -80,6 +80,9 @@ func runMain(args []string, writer io.Writer, errWriter io.Writer) {
 	app.Writer = writer
 	app.ErrWriter = errWriter
 	app.Name = "Runs the Argo CLI"
+	// Do not split comma separated values for string slices,
+	// we want to allow users to pass parameters with commas in them
+	app.DisableSliceFlagSeparator = true
 
 	app.Action = func(ctx context.Context, c *cli.Command) error {
 		return fmt.Errorf("please specify a command")

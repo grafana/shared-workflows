@@ -49,6 +49,39 @@ func TestMainConfiguration(t *testing.T) {
 				require.Equal(t, "my-token", cfg.ArgoToken)
 			},
 		},
+		"parameter-with-commas": {
+			env: map[string]string{
+				"ARGO_TOKEN": "my-token",
+			},
+			args: []string{
+				"root",
+				"--print-config",
+				"--namespace", "my-namespace",
+				"--instance", "ops",
+				"--parameter", "environments=dev,ops",
+				"submit",
+			},
+			check: func(t *testing.T, cfg FullConfig) {
+				require.Equal(t, []string{"--parameter", "environments=dev,ops"}, cfg.ExtraArgs)
+			},
+		},
+		"parameter-json": {
+			env: map[string]string{
+				"ARGO_TOKEN": "my-token",
+			},
+			args: []string{
+				"root",
+				"--print-config",
+				"--namespace", "my-namespace",
+				"--instance", "ops",
+				"--parameter", `environments={"a":0, "b":1}`,
+				"--parameter", `key=value`,
+				"submit",
+			},
+			check: func(t *testing.T, cfg FullConfig) {
+				require.Equal(t, []string{"--parameter", `environments={"a":0, "b":1}`, "--parameter", `key=value`}, cfg.ExtraArgs)
+			},
+		},
 	}
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
