@@ -236,7 +236,7 @@ func (d *Detector) logChangeExample(componentName string, reason *ChangeReason) 
 		if len(firstCommit) > 8 {
 			shortCommit = firstCommit[:8]
 		}
-		fmt.Fprintf(os.Stderr, "%s: %s (%s)\n", componentName, firstFile, shortCommit)
+		_, _ = fmt.Fprintf(os.Stderr, "%s: %s (%s)\n", componentName, firstFile, shortCommit)
 	}
 }
 
