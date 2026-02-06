@@ -49,6 +49,56 @@ func TestMainConfiguration(t *testing.T) {
 				require.Equal(t, "my-token", cfg.ArgoToken)
 			},
 		},
+		"parameter-with-commas": {
+			env: map[string]string{
+				"ARGO_TOKEN": "my-token",
+			},
+			args: []string{
+				"root",
+				"--print-config",
+				"--namespace", "my-namespace",
+				"--instance", "ops",
+				"--parameter", "environments=dev,ops",
+				"submit",
+			},
+			check: func(t *testing.T, cfg FullConfig) {
+				require.Equal(t, []string{"--parameter", "environments=dev,ops"}, cfg.ExtraArgs)
+			},
+		},
+		"json-parameter": {
+			env: map[string]string{
+				"ARGO_TOKEN": "my-token",
+			},
+			args: []string{
+				"root",
+				"--print-config",
+				"--namespace", "my-namespace",
+				"--instance", "ops",
+				"--parameter", `data={"a": 0, "b": 1}`,
+				"submit",
+			},
+			check: func(t *testing.T, cfg FullConfig) {
+				require.Equal(t, []string{"--parameter", `data={"a": 0, "b": 1}`}, cfg.ExtraArgs)
+			},
+		},
+		"multiple-parameters": {
+			env: map[string]string{
+				"ARGO_TOKEN": "my-token",
+			},
+			args: []string{
+				"root",
+				"--print-config",
+				"--namespace", "my-namespace",
+				"--instance", "ops",
+				"--parameter", `one=1`,
+				"--parameter", `two=2`,
+				"--parameter", `other=foo, bar,baz {""}`,
+				"submit",
+			},
+			check: func(t *testing.T, cfg FullConfig) {
+				require.Equal(t, []string{"--parameter", `one=1`, "--parameter", `two=2`, "--parameter", `other=foo, bar,baz {""}`}, cfg.ExtraArgs)
+			},
+		},
 	}
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
