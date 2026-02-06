@@ -65,7 +65,7 @@ func TestMainConfiguration(t *testing.T) {
 				require.Equal(t, []string{"--parameter", "environments=dev,ops"}, cfg.ExtraArgs)
 			},
 		},
-		"parameter-json": {
+		"json-parameter": {
 			env: map[string]string{
 				"ARGO_TOKEN": "my-token",
 			},
@@ -74,12 +74,29 @@ func TestMainConfiguration(t *testing.T) {
 				"--print-config",
 				"--namespace", "my-namespace",
 				"--instance", "ops",
-				"--parameter", `environments={"a":0, "b":1}`,
-				"--parameter", `key=value`,
+				"--parameter", `data={"a": 0, "b": 1}`,
 				"submit",
 			},
 			check: func(t *testing.T, cfg FullConfig) {
-				require.Equal(t, []string{"--parameter", `environments={"a":0, "b":1}`, "--parameter", `key=value`}, cfg.ExtraArgs)
+				require.Equal(t, []string{"--parameter", `data={"a": 0, "b": 1}`}, cfg.ExtraArgs)
+			},
+		},
+		"multiple-parameters": {
+			env: map[string]string{
+				"ARGO_TOKEN": "my-token",
+			},
+			args: []string{
+				"root",
+				"--print-config",
+				"--namespace", "my-namespace",
+				"--instance", "ops",
+				"--parameter", `one=1`,
+				"--parameter", `two=2`,
+				"--parameter", `other=foo, bar,baz {""}`,
+				"submit",
+			},
+			check: func(t *testing.T, cfg FullConfig) {
+				require.Equal(t, []string{"--parameter", `one=1`, "--parameter", `two=2`, "--parameter", `other=foo, bar,baz {""}`}, cfg.ExtraArgs)
 			},
 		},
 	}
