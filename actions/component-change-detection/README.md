@@ -1,40 +1,64 @@
-# Component Change Detection Action
+# component-change-detection
 
-A reusable GitHub Action that determines which components need rebuilding by analyzing git history, dependency relationships, and file changes.
-
-## Overview
-
-This action enables **selective deployment** by comparing the current commit against a previous deployment to determine which components need to be rebuilt/redeployed.
-
-**Benefits:**
-- ✅ Skip deployments when only docs/tests changed
-- ✅ Reuse unchanged component images (faster deployments)
-- ✅ Reduce cloud costs (fewer builds)
-- ✅ Automatic transitive dependency handling
-- ✅ Configurable via YAML (no code changes needed)
-
-## Usage
+This is a composite GitHub Action that determines which components need rebuilding by analyzing git history, dependency relationships, and file changes. It enables selective deployment by comparing the current commit against a previous deployment.
 
 <!-- x-release-please-start-version -->
 
 ```yaml
-- name: Detect changed components
-  id: detect
-  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
-  with:
-    config-file: '.component-deps.yaml'
-    previous-tags-source: 'deploy-prod.yml'
+name: Build with selective deployment
+on:
+  push:
+    branches:
+      - main
 
-- name: Build component if changed
-  if: fromJSON(steps.detect.outputs.changes_json).apiserver == true
-  run: make build-apiserver
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout with history
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 100
+
+      - name: Detect changed components
+        id: detect
+        uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
+        with:
+          config-file: '.component-deps.yaml'
+          previous-tags-source: 'deploy-prod.yml'
+
+      - name: Build apiserver (if changed)
+        if: fromJSON(steps.detect.outputs.changes_json).apiserver == true
+        run: make build-apiserver
+
+      - name: Build controller (if changed)
+        if: fromJSON(steps.detect.outputs.changes_json).controller == true
+        run: make build-controller
 ```
 
 <!-- x-release-please-end-version -->
 
-## Quick Start
+## Inputs
 
-### 1. Create Configuration File
+| Name                     | Type    | Description                                                   | Default |
+| ------------------------ | ------- | ------------------------------------------------------------- | ------- |
+| `config-file`            | String  | Path to component dependencies YAML file                      |         |
+| `previous-tags-source`   | String  | Workflow name to download previous component-tags artifact from |         |
+| `target-ref`             | String  | Git ref to compare against                                    | `HEAD`  |
+| `force-rebuild-all`      | Boolean | Force rebuild all components                                  | `false` |
+| `force-components`       | String  | Force rebuild specific components (comma-separated)           |         |
+
+## Outputs
+
+| Name              | Type   | Description                                                     |
+| ----------------- | ------ | --------------------------------------------------------------- |
+| `changes_json`    | String | All component changes as JSON object (e.g., `{"apiserver": true, "controller": false}`) |
+| `components_json` | String | List of all components as JSON array (e.g., `["apiserver", "controller"]`) |
+
+## Configuration File
 
 Create a `.component-deps.yaml` file in your repository root:
 
@@ -61,33 +85,39 @@ components:
       - migrator  # If migrator changes, apiserver rebuilds too
 ```
 
-### 2. Use the Action in Your Workflow
+### Path Patterns
+
+Supports glob patterns with `**` for recursive matching:
 
 ```yaml
-- name: Checkout with history
-  uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-  with:
-    fetch-depth: 100  # Fetch recent history for comparison
-
-- name: Detect changed components
-  id: detect
-  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
-  with:
-    config-file: '.component-deps.yaml'
-    previous-tags-source: 'deploy-prod.yml'  # Workflow that uploads component-tags
-
-- name: Build apiserver (if changed)
-  if: fromJSON(steps.detect.outputs.changes_json).apiserver == true
-  run: make build-apiserver
-
-- name: Build controller (if changed)
-  if: fromJSON(steps.detect.outputs.changes_json).controller == true
-  run: make build-controller
+paths:
+  - '**/*.go'          # All Go files
+  - 'cmd/apiserver/**' # Everything under cmd/apiserver
+  - 'go.mod'           # Specific files
+  - '**'               # Watch everything (use with excludes)
 ```
 
-### 3. Upload Component Tags After Deployment
+### Dependencies
 
-Your deployment workflow needs to upload the `component-tags` artifact:
+When a component changes, all components that depend on it are automatically marked as changed:
+
+```yaml
+components:
+  shared_lib:
+    paths:
+      - 'lib/**'
+    dependencies: []
+
+  apiserver:
+    paths:
+      - 'cmd/apiserver/**'
+    dependencies:
+      - shared_lib  # Rebuilds when shared_lib changes
+```
+
+## Component Tags Artifact
+
+Your deployment workflow must upload a `component-tags` artifact after successful deployment:
 
 ```yaml
 # In your deploy workflow
@@ -114,137 +144,32 @@ The `component-tags.json` format:
 }
 ```
 
-## Inputs
-
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `config-file` | Path to component dependencies YAML file | Yes | - |
-| `previous-tags-source` | Workflow name to get previous tags from | Yes | - |
-| `target-ref` | Git ref to compare against | No | `HEAD` |
-| `force-rebuild-all` | Force rebuild all components | No | `false` |
-| `force-components` | Force rebuild specific components (comma-separated) | No | `''` |
-
-## Outputs
-
-| Output | Description | Example |
-|--------|-------------|---------|
-| `changes_json` | All component changes as JSON object | `{"apiserver": true, "controller": false}` |
-| `components_json` | List of all components as JSON array | `["apiserver", "controller"]` |
-
-## Configuration File Format
-
-### Basic Structure
-
-```yaml
-global_excludes:
-  - 'pattern1'
-  - 'pattern2'
-
-components:
-  component_name:
-    paths:
-      - 'path/to/watch/**'
-    excludes:
-      - 'path/to/ignore/**'
-    dependencies:
-      - 'other_component'
-```
-
-### Path Patterns
-
-Supports **glob patterns** with `**` for recursive matching:
-
-```yaml
-paths:
-  - '**/*.go'          # All Go files
-  - 'cmd/apiserver/**' # Everything under cmd/apiserver
-  - 'go.mod'           # Specific files
-  - '**'               # Watch everything (use with excludes)
-```
-
-### Exclusions
-
-**Global exclusions** apply to all components:
-
-```yaml
-global_excludes:
-  - '**/*.test.go'
-  - 'docs/**'
-  - '**/*.md'
-  - 'scripts/**'
-```
-
-**Component-specific exclusions** apply only to that component:
-
-```yaml
-components:
-  apiserver:
-    paths:
-      - '**'
-    excludes:
-      - 'database/migrations/**'  # Don't trigger on migrations
-```
-
-### Dependencies
-
-When a component changes, **all components that depend on it** are automatically marked as changed:
-
-```yaml
-components:
-  shared_lib:
-    paths:
-      - 'lib/**'
-    dependencies: []
-
-  apiserver:
-    paths:
-      - 'cmd/apiserver/**'
-    dependencies:
-      - shared_lib  # Rebuilds when shared_lib changes
-```
-
-**Dependency chain example:**
-
-```
-lib/utils.go changes
-  ↓
-shared_lib → changed (direct file match)
-  ↓
-apiserver → changed (depends on shared_lib)
-  ↓
-admin_ui → changed (depends on apiserver)
-```
-
 ## How It Works
 
-1. **Download Previous Tags**: Gets `component-tags.json` from last successful deployment
-2. **Extract Components**: Reads component list from `.component-deps.yaml`
-3. **Build Change Detector**: Compiles the Go-based change detection tool
-4. **Detect Changes**: 
-   - Compares each component's paths against git diff
-   - Applies exclusion patterns
-   - Builds dependency graph
-   - Propagates changes through dependencies
-5. **Output Results**: Sets GitHub Actions outputs for each component
+1. Downloads `component-tags.json` from the last successful deployment via the `previous-tags-source` workflow
+2. Extracts component list from `.component-deps.yaml`
+3. Compiles the Go-based change detection tool
+4. Compares each component's paths against git diff between current commit and previous deployment
+5. Applies exclusion patterns (global and component-specific)
+6. Builds dependency graph and propagates changes through dependencies
+7. Sets GitHub Actions outputs for each component
 
-## Advanced Usage
+## Advanced Examples
 
 ### Force Rebuild Specific Components
 
 ```yaml
-- name: Detect changes
-  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
+- uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
-    force-components: 'apiserver,controller'  # Force these to rebuild
+    force-components: 'apiserver,controller'
 ```
 
 ### Force Rebuild All
 
 ```yaml
-- name: Detect changes
-  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
+- uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
@@ -254,8 +179,7 @@ admin_ui → changed (depends on apiserver)
 ### Compare Against Specific Ref
 
 ```yaml
-- name: Detect changes since v1.0.0
-  uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
+- uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
   with:
     config-file: '.component-deps.yaml'
     previous-tags-source: 'deploy-prod.yml'
@@ -264,78 +188,27 @@ admin_ui → changed (depends on apiserver)
 
 ## Requirements
 
-### Dependencies
-
-- **Git history**: Checkout with `fetch-depth: 100` (or more) to ensure commits are available
-- **Deployment workflow**: Must upload `component-tags` artifact
+- **Git history**: Checkout with `fetch-depth: 100` or more to ensure commits are available for comparison
+- **Deployment workflow**: Must upload `component-tags` artifact after deployment
 - **yq**: Pre-installed on GitHub-hosted runners
 - **jq**: Pre-installed on GitHub-hosted runners
 - **Go**: Automatically installed by the action via `actions/setup-go`
 
-### Permissions
+## Permissions
 
 This action requires the following GitHub token permissions:
 
 ```yaml
 permissions:
-  actions: read  # Required to download artifacts from previous workflow runs
-  contents: read # Required to checkout code and read git history
-```
-
-**Minimal Example:**
-
-```yaml
-jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          fetch-depth: 100
-      
-      - uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
-        with:
-          config-file: '.component-deps.yaml'
-          previous-tags-source: 'deploy-prod.yml'
+  actions: read  # Download artifacts from previous workflow runs
+  contents: read # Checkout code and read git history
 ```
 
 ## Troubleshooting
 
-### "No previous build state found"
-
-**Cause**: First deployment or artifact expired.
-**Solution**: All components will be marked as changed (safe default).
-
-### Components always marked as changed
-
-**Cause**: Previous tags not being saved/uploaded correctly.
-**Solution**: Ensure deployment workflow uploads `component-tags` artifact with correct format.
-
-### "Git operation failed"
-
-**Cause**: Not enough git history fetched.
-**Solution**: Increase `fetch-depth` in checkout step (e.g., `fetch-depth: 200`).
-
-### Circular dependency detected
-
-**Cause**: Component A depends on B, and B depends on A.
-**Solution**: Remove circular dependency in `.component-deps.yaml`.
-
-## Examples
-
-See the [grafana-com repository](https://github.com/grafana/grafana-com) for a complete working example:
-
-- [.component-deps.yaml](https://github.com/grafana/grafana-com/blob/main/.component-deps.yaml)
-- [build.yml workflow](https://github.com/grafana/grafana-com/blob/main/.github/workflows/build.yml)
-- [deploy-prod.yml workflow](https://github.com/grafana/grafana-com/blob/main/.github/workflows/deploy-prod.yml)
-
-## License
-
-Same as parent repository.
-
-## Support
-
-For issues or questions, please file an issue in the [shared-workflows repository](https://github.com/grafana/shared-workflows/issues).
+| Issue | Cause | Solution |
+| ----- | ----- | -------- |
+| "No previous build state found" | First deployment or artifact expired | All components will be marked as changed (safe default) |
+| Components always marked as changed | Previous tags not being saved/uploaded correctly | Ensure deployment workflow uploads `component-tags` artifact with correct format |
+| "Git operation failed" | Not enough git history fetched | Increase `fetch-depth` in checkout step (e.g., `fetch-depth: 200`) |
+| Circular dependency detected | Component A depends on B, and B depends on A | Remove circular dependency in `.component-deps.yaml` |
