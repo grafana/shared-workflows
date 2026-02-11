@@ -5,15 +5,7 @@ set -euo pipefail
 # Prepare previous tags for comparison
 # Converts component-tags.json to component-tags-previous.json format
 
-# Validate required environment variables
 COMPONENTS_JSON="${COMPONENTS_JSON:?COMPONENTS_JSON environment variable is required}"
-readonly COMPONENTS_JSON
-
-# Validate JSON format of COMPONENTS_JSON
-if ! echo "$COMPONENTS_JSON" | jq empty 2>/dev/null; then
-  echo "Error: COMPONENTS_JSON is not valid JSON" >&2
-  exit 1
-fi
 
 # If artifact was downloaded, extract SHAs from component-tags.json
 if [ -f component-tags.json ]; then
