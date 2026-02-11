@@ -159,7 +159,7 @@ if [ -n "$COMMIT_SHA" ]; then
   printf "==========================================\n"
   printf "Component Tags (previous → new):\n"
   printf "==========================================\n"
-  
+
   # Use jq to process both files in a single pass instead of spawning N processes
   jq -r --arg commit "$COMMIT_SHA" --slurpfile prev "$TAGS_FILE" '
     to_entries[] |
@@ -169,7 +169,7 @@ if [ -n "$COMMIT_SHA" ]; then
     (if $changed then $commit else $prev_tag end) as $new_tag |
     "\($comp): \($prev_tag) → \($new_tag)"
   ' "$OUTPUT_FILE"
-  
+
   printf "==========================================\n"
   printf "\n"
 else
@@ -182,23 +182,23 @@ if [ "$GITHUB_OUTPUT_MODE" = "true" ]; then
     printf "Error: --github-output specified but GITHUB_OUTPUT env var not set\n" >&2
     exit 1
   fi
-  
+
   if [ -z "${COMPONENTS_JSON:-}" ]; then
     printf "Error: --github-output specified but COMPONENTS_JSON env var not set\n" >&2
     exit 1
   fi
-  
+
   printf "Writing outputs to GitHub Actions...\n"
-  
+
   # Dynamically generate outputs for each component
   echo "$COMPONENTS_JSON" | jq -r '.[]' | while read -r comp; do
     value=$(jq -r ".$comp" "$OUTPUT_FILE")
     echo "$comp=$value" >> "$GITHUB_OUTPUT"
   done
-  
+
   # Also store as JSON for easier downstream consumption
   echo "changes_json=$(jq -c . "$OUTPUT_FILE")" >> "$GITHUB_OUTPUT"
-  
+
   printf "GitHub Actions outputs written\n"
 fi
 
