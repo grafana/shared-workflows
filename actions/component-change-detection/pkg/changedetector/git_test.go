@@ -47,10 +47,9 @@ func TestRefExists_ErrorHandling(t *testing.T) {
 		// Both are acceptable
 		return
 	}
-	
+
 	// If no error, should return false
 	if exists {
 		t.Error("RefExists() should return false for invalid ref")
 	}
 }
-

@@ -224,22 +224,22 @@ func TestMatchPaths_EdgeCases(t *testing.T) {
 
 		// Very long paths
 		{
-			name: "long path under 4096 chars",
-			file: "pkg/" + strings.Repeat("a/", 500) + "file.go", // ~1500 chars
+			name:     "long path under 4096 chars",
+			file:     "pkg/" + strings.Repeat("a/", 500) + "file.go", // ~1500 chars
 			includes: []string{"pkg/**"},
 			excludes: []string{},
 			want:     true,
 		},
 		{
-			name: "very long filename",
-			file: "pkg/" + strings.Repeat("a", 255) + ".go",
+			name:     "very long filename",
+			file:     "pkg/" + strings.Repeat("a", 255) + ".go",
 			includes: []string{"pkg/**"},
 			excludes: []string{},
 			want:     true,
 		},
 		{
-			name: "exclude pattern with very long path",
-			file: "test/" + strings.Repeat("nested/", 100) + "file.go",
+			name:     "exclude pattern with very long path",
+			file:     "test/" + strings.Repeat("nested/", 100) + "file.go",
 			includes: []string{"**"},
 			excludes: []string{"test/**"},
 			want:     false,
@@ -363,10 +363,10 @@ func TestMatchPaths_EdgeCases(t *testing.T) {
 func TestMatchPaths_ConcurrentAccess(t *testing.T) {
 	// Test that multiple goroutines can safely call MatchPaths simultaneously
 	// This is important in CI/CD where parallel builds might occur
-	
+
 	includes := []string{"pkg/**", "cmd/**", "internal/**"}
 	excludes := []string{"**/*_test.go", "**/testdata/**"}
-	
+
 	testFiles := []string{
 		"pkg/app/main.go",
 		"pkg/app/main_test.go",
@@ -419,7 +419,7 @@ type testError struct {
 }
 
 func (e *testError) Error() string {
-	return "concurrent test failed for " + e.file + ": got " + 
+	return "concurrent test failed for " + e.file + ": got " +
 		boolToString(e.got) + ", want " + boolToString(e.expected)
 }
 
@@ -534,4 +534,3 @@ func TestMatchPaths_SymlinkPaths(t *testing.T) {
 		})
 	}
 }
-

@@ -4,23 +4,23 @@ author: Grafana Labs
 
 inputs:
   config-file:
-    description: 'Path to component dependencies YAML file'
+    description: "Path to component dependencies YAML file"
     required: true
   previous-tags-source:
-    description: 'Workflow name to get previous tags from'
+    description: "Workflow name to get previous tags from"
     required: true
   target-ref:
-    description: 'Git ref to compare against'
+    description: "Git ref to compare against"
     required: false
-    default: 'HEAD'
+    default: "HEAD"
   force-rebuild-all:
-    description: 'Force rebuild all components'
+    description: "Force rebuild all components"
     required: false
-    default: 'false'
+    default: "false"
   force-components:
-    description: 'Force rebuild specific components (comma-separated)'
+    description: "Force rebuild specific components (comma-separated)"
     required: false
-    default: ''
+    default: ""
 
 outputs:
   # Generic outputs for any component set
@@ -51,7 +51,7 @@ runs:
         path: .
         if_no_artifact_found: ignore
       continue-on-error: true
-    
+
     - name: Check if artifact was found
       id: check-tags-artifact
       shell: bash
@@ -66,8 +66,8 @@ runs:
     - name: Setup Go
       uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
       with:
-        go-version-file: '${{ github.action_path }}/go.mod'
-        cache-dependency-path: '${{ github.action_path }}/go.sum'
+        go-version-file: "${{ github.action_path }}/go.mod"
+        cache-dependency-path: "${{ github.action_path }}/go.sum"
 
     - name: Build change detector
       shell: bash

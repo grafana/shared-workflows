@@ -87,8 +87,8 @@ components:
 			errMsg:  "parsing YAML",
 		},
 		{
-			name: "malformed YAML",
-			yaml: `{{{not valid yaml}}}`,
+			name:    "malformed YAML",
+			yaml:    `{{{not valid yaml}}}`,
 			wantErr: true,
 			errMsg:  "parsing YAML",
 		},
@@ -99,7 +99,7 @@ components:
 			// Create temp file
 			tmpDir := t.TempDir()
 			configPath := filepath.Join(tmpDir, "config.yaml")
-			
+
 			if err := os.WriteFile(configPath, []byte(tt.yaml), 0644); err != nil {
 				t.Fatalf("Failed to write temp config: %v", err)
 			}
@@ -180,7 +180,7 @@ components:
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			configPath := filepath.Join(tmpDir, "config.yaml")
-			
+
 			if err := os.WriteFile(configPath, []byte(tt.yaml), 0644); err != nil {
 				t.Fatalf("Failed to write temp config: %v", err)
 			}
@@ -217,10 +217,10 @@ func TestGlobalExcludes_Integration(t *testing.T) {
 			},
 			GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
 				return []string{
-					"pkg/app/main.go",         // Should match
-					"pkg/app/main_test.go",    // Excluded by global
-					"docs/README.md",          // Excluded by global
-					"pkg/vendor/lib.go",       // Excluded by component
+					"pkg/app/main.go",      // Should match
+					"pkg/app/main_test.go", // Excluded by global
+					"docs/README.md",       // Excluded by global
+					"pkg/vendor/lib.go",    // Excluded by component
 				}, nil
 			},
 		},
@@ -285,8 +285,8 @@ func TestGlobalExcludes(t *testing.T) {
 				},
 				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
 					return []string{
-						"docs/api.md",    // Excluded by global
-						"README.md",      // Excluded by global
+						"docs/api.md", // Excluded by global
+						"README.md",   // Excluded by global
 					}, nil
 				},
 			},
@@ -311,7 +311,7 @@ func TestGlobalExcludes(t *testing.T) {
 				},
 				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
 					return []string{
-						"pkg/app/main.go",      // Should match
+						"pkg/app/main.go", // Should match
 					}, nil
 				},
 			},
@@ -359,10 +359,10 @@ func TestGlobalExcludes(t *testing.T) {
 				},
 				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
 					return []string{
-						"pkg/app/main_test.go",  // Excluded
-						"docs/guide.md",         // Excluded
-						"scripts/deploy.sh",     // Excluded
-						"CHANGELOG.md",          // Excluded
+						"pkg/app/main_test.go", // Excluded
+						"docs/guide.md",        // Excluded
+						"scripts/deploy.sh",    // Excluded
+						"CHANGELOG.md",         // Excluded
 					}, nil
 				},
 			},
@@ -384,8 +384,8 @@ func TestGlobalExcludes(t *testing.T) {
 				},
 				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
 					return []string{
-						"pkg/app/main_test.go",  // Excluded
-						"pkg/app/main.go",       // Should match
+						"pkg/app/main_test.go", // Excluded
+						"pkg/app/main.go",      // Should match
 					}, nil
 				},
 			},

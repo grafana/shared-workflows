@@ -15,13 +15,13 @@ import (
 // getRepoRootPath finds the repository root by looking for .git directory
 func getRepoRootPath(t *testing.T) string {
 	t.Helper()
-	
+
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	output, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("Failed to find git repository root: %v", err)
 	}
-	
+
 	return strings.TrimSpace(string(output))
 }
 
