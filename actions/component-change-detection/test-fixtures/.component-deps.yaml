@@ -1,0 +1,31 @@
+# Test component dependency configuration for testing the change detection action
+global_excludes:
+  - "**/*_test.go"
+  - "docs/**"
+  - "**/*.md"
+
+components:
+  # Core Go module with no dependencies
+  detector:
+    paths:
+      - "pkg/changedetector/**"
+      - "go.mod"
+      - "go.sum"
+    excludes: []
+    dependencies: []
+
+  # CLI tool that depends on detector
+  cli:
+    paths:
+      - "cmd/changed-components/**"
+    excludes: []
+    dependencies:
+      - detector
+
+  # Action scripts
+  action:
+    paths:
+      - "scripts/**"
+      - "action.yml"
+    excludes: []
+    dependencies: []

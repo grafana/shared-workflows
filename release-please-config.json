@@ -189,6 +189,11 @@
       "package-name": "docker-import-digests-push-manifest",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/component-change-detection": {
+      "package-name": "component-change-detection",
+      "extra-files": ["README.md"],
+      "initial-version": "1.0.0"
     }
   },
   "release-type": "simple",

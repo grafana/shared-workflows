@@ -1,0 +1,57 @@
+name: Test Component Change Detection
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/component-change-detection/**
+      - .github/workflows/test-component-change-detection.yml
+
+  pull_request:
+    paths:
+      - actions/component-change-detection/**
+      - .github/workflows/test-component-change-detection.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Test Component Change Detection
+        id: test
+        uses: ./actions/component-change-detection
+        with:
+          config-file: actions/component-change-detection/test-fixtures/.component-deps.yaml
+          previous-tags-source: test-workflow-nonexistent.yml
+          target-ref: HEAD
+
+      - name: Validate outputs
+        env:
+          CHANGES_JSON: ${{ steps.test.outputs.changes_json }}
+          COMPONENTS_JSON: ${{ steps.test.outputs.components_json }}
+        run: ./actions/component-change-detection/scripts/validate-outputs.sh

@@ -1,0 +1,89 @@
+name: Component Change Detection
+description: Detects which components changed based on component dependencies configuration
+author: Grafana Labs
+
+inputs:
+  config-file:
+    description: "Path to component dependencies YAML file"
+    required: true
+  previous-tags-source:
+    description: "Workflow name to get previous tags from"
+    required: true
+  target-ref:
+    description: "Git ref to compare against"
+    required: false
+    default: "HEAD"
+  force-rebuild-all:
+    description: "Force rebuild all components"
+    required: false
+    default: "false"
+  force-components:
+    description: "Force rebuild specific components (comma-separated)"
+    required: false
+    default: ""
+
+outputs:
+  # Generic outputs for any component set
+  changes_json:
+    description: 'All component changes as JSON object (e.g., {"apiserver": true, "controller": false})'
+    value: ${{ steps.detect.outputs.changes_json }}
+  components_json:
+    description: 'List of all components as JSON array (e.g., ["apiserver", "controller"])'
+    value: ${{ steps.extract-components.outputs.components_json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Extract component list from config
+      id: extract-components
+      shell: bash
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+      run: ${{ github.action_path }}/scripts/extract-components.sh
+
+    # Download previous component tags from the source workflow
+    - name: Download previous component tags
+      uses: dawidd6/action-download-artifact@5c98f0b039f36ef966fdb7dfa9779262785ecb05 # v14
+      with:
+        workflow: ${{ inputs.previous-tags-source }}
+        branch: main
+        name: component-tags
+        path: .
+        if_no_artifact_found: ignore
+      continue-on-error: true
+
+    - name: Check if artifact was found
+      id: check-tags-artifact
+      shell: bash
+      run: ${{ github.action_path }}/scripts/check-artifact.sh
+
+    - name: Prepare previous SHAs for comparison
+      shell: bash
+      env:
+        COMPONENTS_JSON: ${{ steps.extract-components.outputs.components_json }}
+      run: ${{ github.action_path }}/scripts/prepare-previous-tags.sh
+
+    - name: Setup Go
+      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+      with:
+        go-version-file: "${{ github.action_path }}/go.mod"
+        cache-dependency-path: "${{ github.action_path }}/go.sum"
+
+    - name: Build change detector
+      shell: bash
+      run: ${{ github.action_path }}/scripts/build-detector.sh
+
+    - name: Detect changes
+      id: detect
+      shell: bash
+      env:
+        FORCE_REBUILD_ALL: ${{ inputs.force-rebuild-all }}
+        FORCE_COMPONENTS: ${{ inputs.force-components }}
+        COMPONENTS_JSON: ${{ steps.extract-components.outputs.components_json }}
+        TARGET_REF: ${{ inputs.target-ref }}
+        CONFIG_FILE: ${{ inputs.config-file }}
+        # Use actual PR commit SHA, not the temporary merge commit
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        REPO_ROOT: ${{ github.workspace }}
+        BINARY_PATH: ${{ github.action_path }}/changed-components
+      run: ${{ github.action_path }}/scripts/detect-changes --github-output
