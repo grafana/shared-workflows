@@ -81,7 +81,7 @@ jobs:
 | `load`                        | Boolean | Whether to load the built image into the local docker daemon (passed to `docker/build-push-action`). Passed to `docker/build-push-action`.                                                                             |
 | `outputs`                     | String  | List of docker output destinations. Passed to `docker/build-push-action`.                                                                                                                                              |
 | `platforms`                   | String  | List of platforms to build the image for. Passed to `docker/build-push-action`.                                                                                                                                        |
-| `push`                        | String  | Whether to push the image to the configured registries. Passed to `docker/build-push-action`.                                                                                                                          |
+| `push`                        | String  | Whether to push the image to the configured registries. **Defaults to `false`** (matching Docker's official action). Set to `true` to push images. Passed to `docker/build-push-action`.                               |
 | `registries`                  | String  | CSV list of registries to build images for. Accepted registries are "gar" and "dockerhub".                                                                                                                             |
 | `secrets`                     | String  | Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built. Passed to `docker/build-push-action`.                                |
 | `ssh`                         | String  | List of SSH agent socket or keys to expose to the build Passed to `docker/build-push-action`.                                                                                                                          |
@@ -151,9 +151,14 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
 
 ### Migrating from `build-push-to-dockerhub`
 
+> [!IMPORTANT]
+> **Breaking Change:** The `push` input now defaults to `false` (matching Docker's official `build-push-action`).
+> You must explicitly add `push: true` to maintain the previous behavior of pushing images to the registry.
+
 1. Use the new action
 2. Rename dockerhub specific settings
 3. Add `registries: dockerhub`
+4. **Add `push: true`** to maintain previous behavior
 
 ```bash
 # old
@@ -171,7 +176,7 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
     # CHANGE: use the new action
     uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.1.0
     with:
-      # CHANGE: dockerhub ` specific configs
+      # CHANGE: dockerhub specific configs
       dockerhub-repository: ${{ github.repository }} # or any other dockerhub repository
       context: .
       tags: |-
@@ -179,13 +184,20 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
         "latest"
       # ADD: registry
       registries: dockerhub
+      # ADD: push (was implicit before, now explicit)
+      push: true
 ```
 
 ### Migrating from `push-to-gar-docker`
 
+> [!IMPORTANT]
+> **Breaking Change:** The `push` input now defaults to `false` (matching Docker's official `build-push-action`).
+> The old `push-to-gar-docker` action defaulted to `push: true`. You must explicitly add `push: true` to maintain the previous behavior.
+
 1. Use the new action
 2. Rename gar specific settings
 3. Add `registries: gar`
+4. **Add `push: true`** to maintain previous behavior
 
 ```bash
 # old
@@ -215,4 +227,6 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
       context: "<YOUR_CONTEXT>" # e.g. "." - where the Dockerfile is
       # ADD: registry
       registries: gar
+      # ADD: push (old action defaulted to true)
+      push: true
 ```
