@@ -54,12 +54,4 @@ jobs:
         env:
           CHANGES_JSON: ${{ steps.test.outputs.changes_json }}
           COMPONENTS_JSON: ${{ steps.test.outputs.components_json }}
-        run: |
-          # Validate outputs are not empty and are valid JSON
-          echo "${CHANGES_JSON}" | jq . || exit 1
-          echo "${COMPONENTS_JSON}" | jq . || exit 1
-          
-          # Validate we have expected components
-          echo "${COMPONENTS_JSON}" | jq -e '. | index("detector")' || exit 1
-          echo "${COMPONENTS_JSON}" | jq -e '. | index("cli")' || exit 1
-          echo "${COMPONENTS_JSON}" | jq -e '. | index("action")' || exit 1
+        run: ./actions/component-change-detection/scripts/validate-outputs.sh
