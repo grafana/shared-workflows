@@ -29,9 +29,9 @@ ENVIRONMENT VARIABLES:
   FORCE_COMPONENTS     Comma-separated list of components to force rebuild
   COMPONENTS_JSON      JSON array of component names (required for --github-output)
   TARGET_REF           Git ref to compare against (default: HEAD)
+  CONFIG_FILE          Path to .component-deps.yaml (default: ./.component-deps.yaml)
 
 REQUIRED FILES:
-  .component-deps.yaml              Component dependency configuration
   component-tags-previous.json      Previous build state
   ./bin/changed-components          Change detection binary
 
@@ -81,7 +81,10 @@ done
 
 # Get absolute paths for files (they might be in current directory or elsewhere)
 TAGS_FILE="$(pwd)/component-tags-previous.json"
-CONFIG_FILE="$(pwd)/.component-deps.yaml"
+# Allow CONFIG_FILE to be overridden via env var
+if [ -z "${CONFIG_FILE:-}" ]; then
+  CONFIG_FILE="$(pwd)/.component-deps.yaml"
+fi
 OUTPUT_FILE="$(pwd)/changes.json"
 
 # Validate required files exist

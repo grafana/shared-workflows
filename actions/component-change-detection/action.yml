@@ -82,6 +82,7 @@ runs:
         FORCE_COMPONENTS: ${{ inputs.force-components }}
         COMPONENTS_JSON: ${{ steps.extract-components.outputs.components_json }}
         TARGET_REF: ${{ inputs.target-ref }}
+        CONFIG_FILE: ${{ inputs.config-file }}
         # Use actual PR commit SHA, not the temporary merge commit
         COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         REPO_ROOT: ${{ github.workspace }}
