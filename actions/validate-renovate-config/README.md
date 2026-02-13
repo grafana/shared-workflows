@@ -32,7 +32,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate Renovate Config
-        uses: grafana/shared-workflows/actions/validate-renovate-config@validate-renovate-config/v0.1.1
+        uses: grafana/shared-workflows/actions/validate-renovate-config@validate-renovate-config/v0.1.2
 ```
 
 ## Validating multiple files
@@ -41,12 +41,12 @@ To validate multiple config files, call the action multiple times:
 
 ```yaml
 - name: Validate main config
-  uses: grafana/shared-workflows/actions/validate-renovate-config@validate-renovate-config/v0.1.1
+  uses: grafana/shared-workflows/actions/validate-renovate-config@validate-renovate-config/v0.1.2
   with:
     path: renovate.json
 
 - name: Validate preset
-  uses: grafana/shared-workflows/actions/validate-renovate-config@validate-renovate-config/v0.1.1
+  uses: grafana/shared-workflows/actions/validate-renovate-config@validate-renovate-config/v0.1.2
   with:
     path: presets/default.json
 ```
