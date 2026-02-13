@@ -1,5 +1,5 @@
 # Binaries
-changed-components
+/changed-components
 bin/
 
 # Test artifacts
