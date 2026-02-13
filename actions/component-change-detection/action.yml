@@ -71,7 +71,6 @@ runs:
 
     - name: Build change detector
       shell: bash
-      working-directory: ${{ github.action_path }}
       run: ${{ github.action_path }}/scripts/build-detector.sh
 
     - name: Detect changes
