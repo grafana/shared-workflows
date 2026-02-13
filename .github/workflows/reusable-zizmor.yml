@@ -450,7 +450,7 @@ jobs:
       - name: Hide any previous comments
         if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
-        uses: int128/hide-comment-action@8c6427e31be2be266b336298ad0ae2355d91ccf7 # v1.51.0
+        uses: int128/hide-comment-action@3d2609ba272116ebbf0d268a8d406e8719967721 # v1.52.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
