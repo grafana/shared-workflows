@@ -18,16 +18,16 @@ type GitOperations interface {
 	GetFilesChangedInCommit(commit string) ([]string, error)
 }
 
-// GitOps implements GitOperations using the git CLI
-type GitOps struct{}
+// DefaultGitOps implements GitOperations using the git CLI
+type DefaultGitOps struct{}
 
-// NewGitOps creates a new GitOps instance
-func NewGitOps() *GitOps {
-	return &GitOps{}
+// NewGitOps creates a new DefaultGitOps instance
+func NewGitOps() *DefaultGitOps {
+	return &DefaultGitOps{}
 }
 
 // GetChangedFiles returns files changed between two git refs
-func (g *GitOps) GetChangedFiles(from, to string) ([]string, error) {
+func (g *DefaultGitOps) GetChangedFiles(from, to string) ([]string, error) {
 	// Use -z for null-terminated output to handle filenames with spaces/newlines
 	cmd := exec.Command("git", "diff", "--name-only", "-z", from, to)
 	output, err := cmd.Output()
@@ -48,7 +48,7 @@ func (g *GitOps) GetChangedFiles(from, to string) ([]string, error) {
 }
 
 // RefExists checks if a git ref (commit, tag, branch) exists
-func (g *GitOps) RefExists(ref string) (bool, error) {
+func (g *DefaultGitOps) RefExists(ref string) (bool, error) {
 	cmd := exec.Command("git", "rev-parse", "--verify", ref)
 	err := cmd.Run()
 	if err != nil {
@@ -66,7 +66,7 @@ func (g *GitOps) RefExists(ref string) (bool, error) {
 
 // GetCommitsBetween returns the list of commits between two refs (from..to)
 // Returns commits in chronological order (oldest first)
-func (g *GitOps) GetCommitsBetween(from, to string) ([]string, error) {
+func (g *DefaultGitOps) GetCommitsBetween(from, to string) ([]string, error) {
 	// Use git rev-list to get commits between from and to
 	// The syntax "from..to" means "commits reachable from 'to' but not from 'from'"
 	// --reverse returns commits in chronological order (oldest first)
@@ -85,7 +85,7 @@ func (g *GitOps) GetCommitsBetween(from, to string) ([]string, error) {
 }
 
 // GetFilesChangedInCommit returns the files changed in a specific commit
-func (g *GitOps) GetFilesChangedInCommit(commit string) ([]string, error) {
+func (g *DefaultGitOps) GetFilesChangedInCommit(commit string) ([]string, error) {
 	// Use git diff-tree to get files changed in this commit
 	// --no-commit-id: suppress commit ID output
 	// --name-only: show only file names

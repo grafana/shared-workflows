@@ -6,29 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/go-kit/log"
 )
-
-// MockGitOps is a mock implementation of GitOperations for testing
-type MockGitOps struct {
-	GetChangedFilesFunc func(fromRef, toRef string) ([]string, error)
-	RefExistsFunc       func(ref string) (bool, error)
-}
-
-func (m *MockGitOps) GetChangedFiles(fromRef, toRef string) ([]string, error) {
-	if m.GetChangedFilesFunc != nil {
-		return m.GetChangedFilesFunc(fromRef, toRef)
-	}
-	return []string{}, nil
-}
-
-func (m *MockGitOps) RefExists(ref string) (bool, error) {
-	if m.RefExistsFunc != nil {
-		return m.RefExistsFunc(ref)
-	}
-	return true, nil
-}
 
 func TestLoadTags_Errors(t *testing.T) {
 	tests := []struct {
@@ -161,8 +139,8 @@ func TestDetector_WithMockGit(t *testing.T) {
 			},
 			tags: Tags{"comp1": "nonexistent-tag"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return false, nil
+				ExistingRefs: map[string]bool{
+					"nonexistent-tag": false,
 				},
 			},
 			wantErr:    false,
@@ -177,9 +155,7 @@ func TestDetector_WithMockGit(t *testing.T) {
 			},
 			tags: Tags{"comp1": "b893b86"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return false, fmt.Errorf("git error")
-				},
+				RefExistsErr: fmt.Errorf("git error"),
 			},
 			wantErr: true,
 		},
@@ -192,12 +168,10 @@ func TestDetector_WithMockGit(t *testing.T) {
 			},
 			tags: Tags{"comp1": "b893b86"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"b893b86": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return nil, fmt.Errorf("diff failed")
-				},
+				GetCommitsBetweenErr: fmt.Errorf("diff failed"),
 			},
 			wantErr:    false,
 			wantChange: true,
@@ -211,11 +185,16 @@ func TestDetector_WithMockGit(t *testing.T) {
 			},
 			tags: Tags{"comp1": "b893b86"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"b893b86": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{"pkg/app/main.go"}, nil
+				CommitsBetween: map[string]map[string][]string{
+					"b893b86": {
+						"HEAD": []string{"abc123"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"abc123": []string{"pkg/app/main.go"},
 				},
 			},
 			wantErr:    false,
@@ -230,11 +209,16 @@ func TestDetector_WithMockGit(t *testing.T) {
 			},
 			tags: Tags{"comp1": "b893b86"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"b893b86": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{"docs/README.md"}, nil
+				CommitsBetween: map[string]map[string][]string{
+					"b893b86": {
+						"HEAD": []string{"abc123"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"abc123": []string{"docs/README.md"},
 				},
 			},
 			wantErr:    false,
@@ -249,11 +233,16 @@ func TestDetector_WithMockGit(t *testing.T) {
 			},
 			tags: Tags{"comp1": "b893b86"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"b893b86": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{"pkg/app/main.go"}, nil
+				CommitsBetween: map[string]map[string][]string{
+					"b893b86": {
+						"HEAD": []string{"abc123"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"abc123": []string{"pkg/app/main.go"},
 				},
 			},
 			wantErr: true,
@@ -265,14 +254,10 @@ func TestDetector_WithMockGit(t *testing.T) {
 					"comp1": {Paths: []string{"pkg/**"}},
 				},
 			},
-			tags: Tags{},
-			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
-				},
-			},
-			wantErr:    false,
-			wantChange: true,
+			tags:        Tags{},
+			mockGit:     &MockGitOps{},
+			wantErr:     false,
+			wantChange:  true,
 		},
 		{
 			name: "empty tag defaults to changed",
@@ -281,14 +266,10 @@ func TestDetector_WithMockGit(t *testing.T) {
 					"comp1": {Paths: []string{"pkg/**"}},
 				},
 			},
-			tags: Tags{"comp1": ""},
-			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
-				},
-			},
-			wantErr:    false,
-			wantChange: true,
+			tags:        Tags{"comp1": ""},
+			mockGit:     &MockGitOps{},
+			wantErr:     false,
+			wantChange:  true,
 		},
 		{
 			name: "none tag defaults to changed",
@@ -297,14 +278,10 @@ func TestDetector_WithMockGit(t *testing.T) {
 					"comp1": {Paths: []string{"pkg/**"}},
 				},
 			},
-			tags: Tags{"comp1": "none"},
-			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
-				},
-			},
-			wantErr:    false,
-			wantChange: true,
+			tags:        Tags{"comp1": "none"},
+			mockGit:     &MockGitOps{},
+			wantErr:     false,
+			wantChange:  true,
 		},
 	}
 
@@ -315,7 +292,6 @@ func TestDetector_WithMockGit(t *testing.T) {
 				git:    tt.mockGit,
 				tags:   tt.tags,
 				target: "HEAD",
-				logger: log.NewNopLogger(),
 			}
 
 			changes, err := detector.DetectChanges()

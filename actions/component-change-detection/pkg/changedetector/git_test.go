@@ -12,11 +12,6 @@ func TestNewGitOps(t *testing.T) {
 	if ops == nil {
 		t.Error("NewGitOps() returned nil")
 	}
-
-	// Verify it returns DefaultGitOps
-	if _, ok := ops.(*DefaultGitOps); !ok {
-		t.Error("NewGitOps() did not return *DefaultGitOps")
-	}
 }
 
 func TestGitOperations_Interface(t *testing.T) {

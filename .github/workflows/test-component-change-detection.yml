@@ -1,0 +1,192 @@
+name: Test Component Change Detection
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/component-change-detection/**
+      - .github/workflows/test-component-change-detection.yml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/component-change-detection/**
+      - .github/workflows/test-component-change-detection.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          # Fetch full history for accurate change detection
+          fetch-depth: 0
+
+      - name: Run component change detection
+        id: detect
+        uses: ./actions/component-change-detection
+        with:
+          config-file: actions/component-change-detection/test-fixtures/.component-deps.yaml
+          # Use a test workflow that doesn't exist - this will trigger rebuild for all components
+          previous-tags-source: test-workflow-that-does-not-exist.yml
+          target-ref: HEAD
+        continue-on-error: true
+
+      - name: Validate outputs exist
+        env:
+          CHANGES_JSON: ${{ steps.detect.outputs.changes_json }}
+          COMPONENTS_JSON: ${{ steps.detect.outputs.components_json }}
+        run: |
+          set -x
+
+          echo "Changes JSON: ${CHANGES_JSON}"
+          echo "Components JSON: ${COMPONENTS_JSON}"
+
+          # Check that outputs are not empty
+          if [ -z "${CHANGES_JSON}" ]; then
+            echo "❌ Error: changes_json output is empty"
+            exit 1
+          fi
+
+          if [ -z "${COMPONENTS_JSON}" ]; then
+            echo "❌ Error: components_json output is empty"
+            exit 1
+          fi
+
+          echo "✅ Outputs validated successfully"
+
+      - name: Validate JSON format
+        env:
+          CHANGES_JSON: ${{ steps.detect.outputs.changes_json }}
+          COMPONENTS_JSON: ${{ steps.detect.outputs.components_json }}
+        run: |
+          set -x
+
+          # Validate changes_json is valid JSON
+          echo "${CHANGES_JSON}" | jq . > /dev/null || {
+            echo "❌ Error: changes_json is not valid JSON"
+            exit 1
+          }
+
+          # Validate components_json is valid JSON array
+          echo "${COMPONENTS_JSON}" | jq -e 'if type == "array" then true else false end' > /dev/null || {
+            echo "❌ Error: components_json is not a valid JSON array"
+            exit 1
+          }
+
+          echo "✅ JSON format validated successfully"
+
+      - name: Validate components list
+        env:
+          COMPONENTS_JSON: ${{ steps.detect.outputs.components_json }}
+        run: |
+          set -x
+
+          # Check that we have the expected components
+          EXPECTED_COMPONENTS=("detector" "cli" "action")
+
+          for component in "${EXPECTED_COMPONENTS[@]}"; do
+            if ! echo "${COMPONENTS_JSON}" | jq -e --arg comp "$component" '. | index($comp)' > /dev/null; then
+              echo "❌ Error: Component '$component' not found in components list"
+              exit 1
+            fi
+            echo "✅ Found component: $component"
+          done
+
+          echo "✅ All expected components found"
+
+      - name: Validate changes structure
+        env:
+          CHANGES_JSON: ${{ steps.detect.outputs.changes_json }}
+        run: |
+          set -x
+
+          # Check that all components have a boolean value
+          EXPECTED_COMPONENTS=("detector" "cli" "action")
+
+          for component in "${EXPECTED_COMPONENTS[@]}"; do
+            HAS_KEY=$(echo "${CHANGES_JSON}" | jq -e --arg comp "$component" 'has($comp)')
+            if [ "${HAS_KEY}" != "true" ]; then
+              echo "❌ Error: Component '$component' not found in changes"
+              exit 1
+            fi
+
+            VALUE=$(echo "${CHANGES_JSON}" | jq -r --arg comp "$component" '.[$comp]')
+            if [ "${VALUE}" != "true" ] && [ "${VALUE}" != "false" ]; then
+              echo "❌ Error: Component '$component' has invalid value: ${VALUE}"
+              exit 1
+            fi
+
+            echo "✅ Component '$component' has valid boolean value: ${VALUE}"
+          done
+
+          echo "✅ Changes structure validated successfully"
+
+      - name: Test dependency propagation
+        env:
+          CHANGES_JSON: ${{ steps.detect.outputs.changes_json }}
+        run: |
+          set -x
+
+          # If detector changed, cli should also be changed (due to dependency)
+          DETECTOR_CHANGED=$(echo "${CHANGES_JSON}" | jq -r '.detector')
+          CLI_CHANGED=$(echo "${CHANGES_JSON}" | jq -r '.cli')
+
+          echo "detector changed: ${DETECTOR_CHANGED}"
+          echo "cli changed: ${CLI_CHANGED}"
+
+          # This is only relevant when there are actual commits
+          # For first run without previous tags, all will be true anyway
+          if [ "${DETECTOR_CHANGED}" = "true" ]; then
+            echo "ℹ️  Detector changed - CLI should also be marked as changed due to dependency"
+            if [ "${CLI_CHANGED}" != "true" ]; then
+              echo "❌ Error: CLI should be changed when detector changes (dependency)"
+              exit 1
+            fi
+            echo "✅ Dependency propagation working correctly"
+          else
+            echo "ℹ️  Detector didn't change - dependency propagation test skipped"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Test Results 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All validation checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Detected Components" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.detect.outputs.components_json }}' | jq . >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Component Changes" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.detect.outputs.changes_json }}' | jq . >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

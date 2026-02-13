@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/go-kit/log"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -212,16 +210,21 @@ func TestGlobalExcludes_Integration(t *testing.T) {
 	detector := &Detector{
 		config: config,
 		git: &MockGitOps{
-			RefExistsFunc: func(ref string) (bool, error) {
-				return true, nil
+			ExistingRefs: map[string]bool{
+				"HEAD": true,
 			},
-			GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-				return []string{
+			CommitsBetween: map[string]map[string][]string{
+				"HEAD": {
+					"HEAD": []string{"commit1"},
+				},
+			},
+			FilesInCommit: map[string][]string{
+				"commit1": {
 					"pkg/app/main.go",      // Should match
 					"pkg/app/main_test.go", // Excluded by global
 					"docs/README.md",       // Excluded by global
 					"pkg/vendor/lib.go",    // Excluded by component
-				}, nil
+				},
 			},
 		},
 		tags:   tags,
@@ -258,13 +261,18 @@ func TestGlobalExcludes(t *testing.T) {
 			},
 			tags: Tags{"comp1": "abc123"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"abc123": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{
+				CommitsBetween: map[string]map[string][]string{
+					"abc123": {
+						"HEAD": []string{"commit1"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"commit1": {
 						"pkg/app/main_test.go", // Excluded by global
-					}, nil
+					},
 				},
 			},
 			wantErr:     false,
@@ -280,14 +288,19 @@ func TestGlobalExcludes(t *testing.T) {
 			},
 			tags: Tags{"comp1": "abc123"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"abc123": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{
+				CommitsBetween: map[string]map[string][]string{
+					"abc123": {
+						"HEAD": []string{"commit1"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"commit1": {
 						"docs/api.md", // Excluded by global
 						"README.md",   // Excluded by global
-					}, nil
+					},
 				},
 			},
 			wantErr:     false,
@@ -306,13 +319,18 @@ func TestGlobalExcludes(t *testing.T) {
 			},
 			tags: Tags{"comp1": "abc123"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"abc123": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{
+				CommitsBetween: map[string]map[string][]string{
+					"abc123": {
+						"HEAD": []string{"commit1"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"commit1": {
 						"pkg/app/main.go", // Should match
-					}, nil
+					},
 				},
 			},
 			wantErr:     false,
@@ -327,13 +345,18 @@ func TestGlobalExcludes(t *testing.T) {
 			},
 			tags: Tags{"comp1": "abc123"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"abc123": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{
+				CommitsBetween: map[string]map[string][]string{
+					"abc123": {
+						"HEAD": []string{"commit1"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"commit1": {
 						"pkg/app/main_test.go", // Would normally be excluded, but no global excludes
-					}, nil
+					},
 				},
 			},
 			wantErr:     false,
@@ -354,16 +377,21 @@ func TestGlobalExcludes(t *testing.T) {
 			},
 			tags: Tags{"comp1": "abc123"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"abc123": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{
+				CommitsBetween: map[string]map[string][]string{
+					"abc123": {
+						"HEAD": []string{"commit1"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"commit1": {
 						"pkg/app/main_test.go", // Excluded
 						"docs/guide.md",        // Excluded
 						"scripts/deploy.sh",    // Excluded
 						"CHANGELOG.md",         // Excluded
-					}, nil
+					},
 				},
 			},
 			wantErr:     false,
@@ -379,14 +407,19 @@ func TestGlobalExcludes(t *testing.T) {
 			},
 			tags: Tags{"comp1": "abc123"},
 			mockGit: &MockGitOps{
-				RefExistsFunc: func(ref string) (bool, error) {
-					return true, nil
+				ExistingRefs: map[string]bool{
+					"abc123": true,
 				},
-				GetChangedFilesFunc: func(fromRef, toRef string) ([]string, error) {
-					return []string{
+				CommitsBetween: map[string]map[string][]string{
+					"abc123": {
+						"HEAD": []string{"commit1"},
+					},
+				},
+				FilesInCommit: map[string][]string{
+					"commit1": {
 						"pkg/app/main_test.go", // Excluded
 						"pkg/app/main.go",      // Should match
-					}, nil
+					},
 				},
 			},
 			wantErr:     false,
@@ -401,7 +434,6 @@ func TestGlobalExcludes(t *testing.T) {
 				git:    tt.mockGit,
 				tags:   tt.tags,
 				target: "HEAD",
-				logger: log.NewNopLogger(),
 			}
 
 			changes, err := detector.DetectChanges()
