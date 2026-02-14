@@ -22,7 +22,7 @@
     "actions/dependabot-auto-triage": "1.1.1",
     "actions/get-latest-workflow-artifact": "0.2.0",
     "actions/create-github-app-token": "0.2.2",
-    "actions/run-capslock": "0.2.0",
+    "actions/run-capslock": "0.2.1",
     "actions/azure-trusted-signing": "1.0.0",
     "actions/validate-renovate-config": "0.1.1",
     "actions/cleanup-branches": "0.2.1",
