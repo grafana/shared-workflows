@@ -1,8 +1,10 @@
 # push-to-gar-docker
 
 > [!WARNING]
-> This GitHub Action is deprecated and will be removed from main after Jan 31, 2026.
+> This GitHub Action is deprecated and will be removed from main after March 31, 2026.
 > Please migrate to [docker-build-push-image](https://github.com/grafana/shared-workflows/tree/main/actions/docker-build-push-image#migrating).
+>
+> **Note**: The original deprecation date of January 31, 2026 was incorrect. We apologize for any confusion.
 
 > [!NOTE]
 > If you are at Grafana Labs:
