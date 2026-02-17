@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.2](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub/v0.4.1...build-push-to-dockerhub/v0.4.2) (2026-02-17)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v6.0.2 ([#1672](https://github.com/grafana/shared-workflows/issues/1672)) ([3105e25](https://github.com/grafana/shared-workflows/commit/3105e251e687194e9b2b4b456cb2846a761e0df0))
+* **deps:** update docker/build-push-action action to v6.19.0 ([#1717](https://github.com/grafana/shared-workflows/issues/1717)) ([37c176c](https://github.com/grafana/shared-workflows/commit/37c176c8a62d075692cbafeacbc4ea31613a33c5))
+* **deps:** update docker/build-push-action action to v6.19.2 ([#1721](https://github.com/grafana/shared-workflows/issues/1721)) ([bf35378](https://github.com/grafana/shared-workflows/commit/bf35378348bf907badcc18ddf782201261c62d8c))
+* **deps:** update docker/setup-buildx-action action to v3.12.0 ([#1633](https://github.com/grafana/shared-workflows/issues/1633)) ([9c7001f](https://github.com/grafana/shared-workflows/commit/9c7001fb8ab6048113c07b6454aea78589e0e6b9))
+* **multiple:** update deprecation deadline to March 31, 2026 ([#1720](https://github.com/grafana/shared-workflows/issues/1720)) ([e67b0ea](https://github.com/grafana/shared-workflows/commit/e67b0eaf212dec12e2e4ce846889592b68e0713c))
+
 ## [0.4.1](https://github.com/grafana/shared-workflows/compare/build-push-to-dockerhub/v0.4.0...build-push-to-dockerhub/v0.4.1) (2025-12-11)
 
 
