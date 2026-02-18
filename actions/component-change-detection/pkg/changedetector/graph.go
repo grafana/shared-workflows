@@ -2,6 +2,7 @@ package changedetector
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -109,7 +110,7 @@ func PropagateChanges(graph *Graph, directChanges map[string]bool) map[string]bo
 	// For each changed component, mark all dependents as changed
 	for comp, changed := range directChanges {
 		if changed {
-			markDependents(graph, comp, result)
+			markDependentsWithLogging(graph, comp, comp, result)
 		}
 	}
 
@@ -124,6 +125,20 @@ func markDependents(graph *Graph, component string, changed map[string]bool) {
 				changed[dependent] = true
 				// Recursively mark downstream dependents
 				markDependents(graph, dependent, changed)
+			}
+		}
+	}
+}
+
+// markDependentsWithLogging is like markDependents but logs why components are marked as changed
+func markDependentsWithLogging(graph *Graph, rootCause string, component string, changed map[string]bool) {
+	if dependents, exists := graph.nodes[component]; exists {
+		for _, dependent := range dependents {
+			if !changed[dependent] {
+				changed[dependent] = true
+				fmt.Fprintf(os.Stderr, "%s: (dependency on %s)\n", dependent, rootCause)
+				// Recursively mark downstream dependents
+				markDependentsWithLogging(graph, rootCause, dependent, changed)
 			}
 		}
 	}
