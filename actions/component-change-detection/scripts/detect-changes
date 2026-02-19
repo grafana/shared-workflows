@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+
+# detect-changes: Runs change detection and handles force rebuild logic
+#
+# This script wraps the changed-components binary and applies force rebuild logic.
+# Run with --help for full usage information.
+
+set -euo pipefail
+
+# Find repo root if not set
+if [ -z "${REPO_ROOT:-}" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+
+# Function to show usage/help
+show_help() {
+  cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Runs change detection and handles force rebuild logic.
+
+OPTIONS:
+  --github-output    Write outputs to \$GITHUB_OUTPUT for GitHub Actions
+  -h, --help        Show this help message
+
+ENVIRONMENT VARIABLES:
+  FORCE_REBUILD_ALL    Set to "true" to force rebuild all components
+  FORCE_COMPONENTS     Comma-separated list of components to force rebuild
+  COMPONENTS_JSON      JSON array of component names (required for --github-output)
+  TARGET_REF           Git ref to compare against (default: HEAD)
+  CONFIG_FILE          Path to .component-deps.yaml (default: ./.component-deps.yaml)
+
+REQUIRED FILES:
+  component-tags-previous.json      Previous build state
+  ./bin/changed-components          Change detection binary
+
+OUTPUT FILES:
+  changes.json                      Detected changes (created by this script)
+
+EXAMPLES:
+  # Run locally (just see changes, no GitHub output)
+  make bin/changed-components
+  echo '{"migrator":"abc123","apiserver":"def456"}' > component-tags-previous.json
+  ./scripts/detect-changes
+
+  # Force rebuild specific components
+  FORCE_COMPONENTS="apiserver,controller" ./scripts/detect-changes
+
+  # Force rebuild all
+  FORCE_REBUILD_ALL=true ./scripts/detect-changes
+
+  # Test as GitHub Actions would run it
+  export COMPONENTS_JSON='["migrator","apiserver","controller","templatewatcher"]'
+  export GITHUB_OUTPUT=/tmp/github-output.txt
+  ./scripts/detect-changes --github-output
+  cat /tmp/github-output.txt  # See what outputs would be set
+
+EOF
+}
+
+# Parse arguments
+GITHUB_OUTPUT_MODE=false
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --github-output)
+      GITHUB_OUTPUT_MODE=true
+      shift
+      ;;
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    *)
+      printf "Error: Unknown option: %s\n\n" "$1" >&2
+      show_help >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Get absolute paths for files (they might be in current directory or elsewhere)
+TAGS_FILE="$(pwd)/component-tags-previous.json"
+# Allow CONFIG_FILE to be overridden via env var
+if [ -z "${CONFIG_FILE:-}" ]; then
+  CONFIG_FILE="$(pwd)/.component-deps.yaml"
+fi
+OUTPUT_FILE="$(pwd)/changes.json"
+
+# Validate required files exist
+if [ ! -f "$TAGS_FILE" ]; then
+  printf "Error: component-tags-previous.json not found at %s\n" "$TAGS_FILE" >&2
+  exit 1
+fi
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  printf "Error: .component-deps.yaml not found at %s\n" "$CONFIG_FILE" >&2
+  exit 1
+fi
+
+# Use BINARY_PATH if provided (from GitHub Actions), otherwise look in repo
+if [ -z "${BINARY_PATH:-}" ]; then
+  BINARY_PATH="$REPO_ROOT/bin/changed-components"
+fi
+
+if [ ! -x "$BINARY_PATH" ]; then
+  printf "Error: %s not found or not executable\n" "$BINARY_PATH" >&2
+  printf "Run: make bin/changed-components (or ensure BINARY_PATH is set)\n" >&2
+  exit 1
+fi
+
+# Step 1: Run change detection (from repo root for git access)
+printf "Running change detection...\n"
+cd "$REPO_ROOT"
+
+# Run change detector once with --verbose
+# - Writes boolean changes map to $OUTPUT_FILE
+# - Prints detailed file/commit information to stderr
+"$BINARY_PATH" \
+  --config "$CONFIG_FILE" \
+  --tags "$TAGS_FILE" \
+  --target "${TARGET_REF:-HEAD}" \
+  --output "$OUTPUT_FILE" \
+  --verbose
+
+# Step 2: Apply force rebuild overrides
+if [ "${FORCE_REBUILD_ALL:-false}" = "true" ]; then
+  printf "Force rebuild all components requested\n"
+  jq 'with_entries(.value = true)' "$OUTPUT_FILE" > "${OUTPUT_FILE}.tmp" && mv "${OUTPUT_FILE}.tmp" "$OUTPUT_FILE"
+elif [ -n "${FORCE_COMPONENTS:-}" ]; then
+  printf "Force rebuild requested for: %s\n" "$FORCE_COMPONENTS"
+  IFS=',' read -ra COMPONENTS <<< "$FORCE_COMPONENTS"
+  for comp in "${COMPONENTS[@]}"; do
+    comp=$(echo "$comp" | xargs)  # Trim whitespace
+    if [ -n "${COMPONENTS_JSON:-}" ]; then
+      if ! echo "$COMPONENTS_JSON" | jq -e --arg comp "$comp" 'index($comp) != null' >/dev/null; then
+        printf "Error: Unknown component in FORCE_COMPONENTS: %s\n" "$comp" >&2
+        exit 1
+      fi
+    fi
+    jq --arg comp "$comp" '.[$comp] = true' "$OUTPUT_FILE" > "${OUTPUT_FILE}.tmp" && mv "${OUTPUT_FILE}.tmp" "$OUTPUT_FILE"
+    printf "  - Forcing %s\n" "$comp"
+  done
+fi
+
+# Step 3: Display results
+printf "\n"
+printf "==========================================\n"
+printf "Changes Detected:\n"
+printf "==========================================\n"
+jq . "$OUTPUT_FILE"
+printf "==========================================\n"
+printf "\n"
+
+# Step 3b: Display previous and new tags per component (if possible)
+# Use provided COMMIT_SHA from environment, or fall back to git rev-parse HEAD
+# This allows callers (e.g., GitHub Actions) to override with the actual PR commit SHA
+if [ -z "${COMMIT_SHA:-}" ]; then
+  COMMIT_SHA=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "")
+fi
+if [ -n "$COMMIT_SHA" ]; then
+  printf "==========================================\n"
+  printf "Component Tags (previous → new):\n"
+  printf "==========================================\n"
+
+  # Use jq to process both files in a single pass instead of spawning N processes
+  jq -r --arg commit "$COMMIT_SHA" --slurpfile prev "$TAGS_FILE" '
+    to_entries[] |
+    .key as $comp |
+    .value as $changed |
+    ($prev[0][$comp] // "none") as $prev_tag |
+    (if $changed then $commit else $prev_tag end) as $new_tag |
+    "\($comp): \($prev_tag) → \($new_tag)"
+  ' "$OUTPUT_FILE"
+
+  printf "==========================================\n"
+  printf "\n"
+else
+  printf "Unable to determine HEAD commit SHA; skipping tag output\n"
+fi
+
+# Step 4: Generate GitHub Actions outputs (if requested)
+if [ "$GITHUB_OUTPUT_MODE" = "true" ]; then
+  if [ -z "${GITHUB_OUTPUT:-}" ]; then
+    printf "Error: --github-output specified but GITHUB_OUTPUT env var not set\n" >&2
+    exit 1
+  fi
+
+  if [ -z "${COMPONENTS_JSON:-}" ]; then
+    printf "Error: --github-output specified but COMPONENTS_JSON env var not set\n" >&2
+    exit 1
+  fi
+
+  printf "Writing outputs to GitHub Actions...\n"
+
+  # Dynamically generate outputs for each component
+  echo "$COMPONENTS_JSON" | jq -r '.[]' | while read -r comp; do
+    value=$(jq -r ".$comp" "$OUTPUT_FILE")
+    echo "$comp=$value" >> "$GITHUB_OUTPUT"
+  done
+
+  # Also store as JSON for easier downstream consumption
+  echo "changes_json=$(jq -c . "$OUTPUT_FILE")" >> "$GITHUB_OUTPUT"
+
+  printf "GitHub Actions outputs written\n"
+fi
+
+printf "Change detection complete\n"
