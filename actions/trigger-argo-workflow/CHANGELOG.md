@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.2.2](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.2.1...trigger-argo-workflow/v1.2.2) (2026-02-19)
+
+
+### 🐛 Bug Fixes
+
+* **trigger-argo-workflow:** allow passing parameters with commas ([#1697](https://github.com/grafana/shared-workflows/issues/1697)) ([7f983a8](https://github.com/grafana/shared-workflows/commit/7f983a8135eb58eaec83c96d8b842b2092e110e3))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump the go group ([a369fe9](https://github.com/grafana/shared-workflows/commit/a369fe99d9d98fa42eea954fb905c4a200dc5973))
+* **deps:** bump the go group in /actions/trigger-argo-workflow with 2 updates ([#1560](https://github.com/grafana/shared-workflows/issues/1560)) ([a369fe9](https://github.com/grafana/shared-workflows/commit/a369fe99d9d98fa42eea954fb905c4a200dc5973))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+* **deps:** update actions/checkout action to v6.0.1 ([#1590](https://github.com/grafana/shared-workflows/issues/1590)) ([2425a5f](https://github.com/grafana/shared-workflows/commit/2425a5fe46fb39d1d282caad59150165323e29a6))
+* **deps:** update actions/checkout action to v6.0.2 ([#1672](https://github.com/grafana/shared-workflows/issues/1672)) ([3105e25](https://github.com/grafana/shared-workflows/commit/3105e251e687194e9b2b4b456cb2846a761e0df0))
+* **deps:** update actions/setup-go action to v6.1.0 ([#1565](https://github.com/grafana/shared-workflows/issues/1565)) ([cfddbee](https://github.com/grafana/shared-workflows/commit/cfddbeede13168d5c0d75c201fd298363a647e27))
+* **deps:** update actions/setup-go action to v6.2.0 ([#1657](https://github.com/grafana/shared-workflows/issues/1657)) ([d29b916](https://github.com/grafana/shared-workflows/commit/d29b9161f1803baed4a7305c85cb5a3018bc3c3e))
+
 ## [1.2.1](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.2.0...trigger-argo-workflow/v1.2.1) (2025-11-20)
 
 
