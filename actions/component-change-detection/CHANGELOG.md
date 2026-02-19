@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0 (2026-02-19)
+
+
+### 🎉 Features
+
+* add component-change-detection action ([#1711](https://github.com/grafana/shared-workflows/issues/1711)) ([ef4f6da](https://github.com/grafana/shared-workflows/commit/ef4f6dac37ac4e312a6282e112a0726888bee36e))
+
 ## 1.0.0 (2026-02-06)
 
 

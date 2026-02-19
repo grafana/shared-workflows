@@ -19,7 +19,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout with history
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v1.0.0
         with:
           fetch-depth: 100
 
