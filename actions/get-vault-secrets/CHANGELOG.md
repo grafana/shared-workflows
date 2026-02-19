@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v1.3.0...get-vault-secrets/v1.3.1) (2026-02-19)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/github-script action to v7.1.0 ([#1306](https://github.com/grafana/shared-workflows/issues/1306)) ([31b0c57](https://github.com/grafana/shared-workflows/commit/31b0c573abbbd9b56060318f7327ae8bb3ec041e))
+* **deps:** update actions/github-script action to v8 ([#1307](https://github.com/grafana/shared-workflows/issues/1307)) ([078c4a8](https://github.com/grafana/shared-workflows/commit/078c4a8af09e06d646077550f9e0f68171d5881e))
+
 ## [1.3.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v1.2.1...get-vault-secrets/v1.3.0) (2025-08-19)
 
 
