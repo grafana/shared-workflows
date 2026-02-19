@@ -70,7 +70,7 @@ jobs:
       id-token: write
     steps:
       - name: Trigger Argo Workflow
-        uses: grafana/shared-workflows/actions/trigger-argo-workflow@0f705663f602e305aa22034489f351dc7022d8ce # trigger-argo-workflow-v1.2.1
+        uses: grafana/shared-workflows/actions/trigger-argo-workflow@0f705663f602e305aa22034489f351dc7022d8ce # trigger-argo-workflow-v1.2.2
         with:
           instance: "ops"
           namespace: "mynamespace"
