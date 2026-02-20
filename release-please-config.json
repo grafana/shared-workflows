@@ -194,6 +194,16 @@
       "package-name": "component-change-detection",
       "extra-files": ["README.md"],
       "initial-version": "1.0.0"
+    },
+    "actions/save-component-digest": {
+      "package-name": "save-component-digest",
+      "extra-files": ["README.md"],
+      "initial-version": "1.0.0"
+    },
+    "actions/component-selective-deploy": {
+      "package-name": "component-selective-deploy",
+      "extra-files": ["README.md"],
+      "initial-version": "1.0.0"
     }
   },
   "release-type": "simple",

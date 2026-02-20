@@ -1,0 +1,13 @@
+# Local test artifacts generated when running scripts manually
+component-digests/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
