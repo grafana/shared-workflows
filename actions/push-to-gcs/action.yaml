@@ -50,6 +50,11 @@ inputs:
       Use WIF for authentication instead of service account.
     required: false
     default: "false"
+  process_gcloudignore:
+    description: |
+      Whether to process .gcloudignore file.
+    required: false
+    default: "false"
 
 outputs:
   uploaded:
@@ -114,7 +119,7 @@ runs:
         parent: ${{ inputs.parent }}
         predefinedAcl: ${{ inputs.use_wif_auth == 'true' && ' ' || inputs.predefinedAcl }} # when using WIF auth, we cannot use predefinedAcl
         gzip: ${{ inputs.gzip }}
-        process_gcloudignore: false
+        process_gcloudignore: ${{ inputs.process_gcloudignore }}
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
