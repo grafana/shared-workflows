@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Aggregate newly built component image digests from individual digest files,
+# write them to new-digests.json, and emit dockertag to GITHUB_OUTPUT.
+#
+# Environment variables:
+#   COMPONENTS_JSON       JSON array of component names
+#   COMPONENT_DIGESTS_DIR Directory containing per-component digest files (default: component-digests)
+#   GITHUB_OUTPUT         Set automatically by GitHub Actions
+
+: "${COMPONENTS_JSON:?COMPONENTS_JSON is required}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIGEST_DIR="${COMPONENT_DIGESTS_DIR:-component-digests}"
+
+COMPONENTS=$(echo "$COMPONENTS_JSON" | jq -r '.[]' | tr '\n' ' ')
+
+# shellcheck disable=SC2086
+"${SCRIPT_DIR}/aggregate-component-digests" \
+  "$DIGEST_DIR" \
+  json \
+  $COMPONENTS > new-digests.json
+
+echo "New component digests:"
+jq . new-digests.json
+
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  echo "dockertag=$(jq -r '.dockertag' new-digests.json)" >> "$GITHUB_OUTPUT"
+fi

@@ -30,5 +30,7 @@
     "actions/docker-export-digest": "0.1.1",
     "actions/docker-import-digests-push-manifest": "0.1.1",
     "actions/socket-export-sbom": "0.1.0",
-    "actions/component-change-detection": "1.0.0"
+    "actions/component-change-detection": "1.0.0",
+    "actions/save-component-digest": "1.0.0",
+    "actions/component-selective-deploy": "1.0.0"
 }
