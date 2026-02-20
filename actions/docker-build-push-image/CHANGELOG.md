@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.1](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.0...docker-build-push-image/v0.3.1) (2026-02-17)
+## [0.3.1](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.0...docker-build-push-image/v0.3.1) (2026-02-18)
 
 
 ### 📝 Documentation
