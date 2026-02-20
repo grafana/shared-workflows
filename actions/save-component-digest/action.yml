@@ -1,0 +1,32 @@
+name: Save Component Digest
+description: >
+  Saves a newly built component image digest to the component-digests directory
+  for later aggregation by the component-deployment action.
+author: Grafana Labs
+
+inputs:
+  component:
+    description: "Component identifier, typically the argowf parameter name (e.g. grafana_com_api_digest)"
+    required: true
+  new-dockertag:
+    description: "Short git SHA used as the Docker tag"
+    required: true
+  new-digest:
+    description: "Full image digest produced by the Docker push (e.g. sha256:abc123...)"
+    required: true
+  component-digests-dir:
+    description: "Directory to write digest files into"
+    required: false
+    default: "component-digests"
+
+runs:
+  using: composite
+  steps:
+    - name: Save component digest
+      shell: bash
+      env:
+        COMPONENT: ${{ inputs.component }}
+        NEW_DOCKERTAG: ${{ inputs.new-dockertag }}
+        NEW_DIGEST: ${{ inputs.new-digest }}
+        COMPONENT_DIGESTS_DIR: ${{ inputs.component-digests-dir }}
+      run: ${{ github.action_path }}/scripts/save-component-digest

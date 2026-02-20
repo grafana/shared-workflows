@@ -1,0 +1,68 @@
+name: Component Selective Deploy
+description: >
+  Aggregates newly built image digests, selects between new and previous digests
+  based on change detection output, validates them, and updates the component-tags
+  artifact. Designed to pair with the component-change-detection action.
+author: Grafana Labs
+
+inputs:
+  components-json:
+    description: "JSON array of component names, from component-change-detection outputs.components_json"
+    required: true
+  changes-json:
+    description: "JSON object of component → changed (true/false), from component-change-detection outputs.changes_json"
+    required: true
+  commit-sha:
+    description: "Git commit SHA of the deployment"
+    required: true
+  component-digests-dir:
+    description: "Directory containing per-component digest .txt files produced by save-component-digest"
+    required: false
+    default: "component-digests"
+  component-tags-file:
+    description: "Path to the component-tags.json file containing previous deployment state"
+    required: false
+    default: "component-tags.json"
+
+outputs:
+  selected-digests-json:
+    description: "JSON object of selected component digests keyed as <component>_digest"
+    value: ${{ steps.select.outputs.selected_digests_json }}
+  dockertag:
+    description: "Docker tag (short SHA) used for this build"
+    value: ${{ steps.aggregate.outputs.dockertag }}
+
+runs:
+  using: composite
+  steps:
+    - name: Aggregate newly built component digests
+      id: aggregate
+      shell: bash
+      env:
+        COMPONENTS_JSON: ${{ inputs.components-json }}
+        COMPONENT_DIGESTS_DIR: ${{ inputs.component-digests-dir }}
+      run: ${{ github.action_path }}/scripts/aggregate-new-digests
+
+    - name: Select component digests based on what changed
+      id: select
+      shell: bash
+      env:
+        COMPONENTS_JSON: ${{ inputs.components-json }}
+        CHANGES_JSON: ${{ inputs.changes-json }}
+        COMPONENT_TAGS_FILE: ${{ inputs.component-tags-file }}
+      run: ${{ github.action_path }}/scripts/select-deployment-digests
+
+    - name: Validate deployment digests
+      shell: bash
+      env:
+        COMPONENTS_JSON: ${{ inputs.components-json }}
+      run: ${{ github.action_path }}/scripts/validate-deployment-digests
+
+    - name: Update component tags artifact
+      shell: bash
+      env:
+        COMPONENTS_JSON: ${{ inputs.components-json }}
+        CHANGES_JSON: ${{ inputs.changes-json }}
+        COMMIT_SHA: ${{ inputs.commit-sha }}
+        COMPONENT_TAGS_FILE: ${{ inputs.component-tags-file }}
+      run: ${{ github.action_path }}/scripts/prepare-component-tags-update

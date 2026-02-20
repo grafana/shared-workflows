@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Save a newly built component image digest to the component-digests directory.
+#
+# Environment variables:
+#   COMPONENT              Component identifier (e.g. grafana_com_api_digest)
+#   NEW_DOCKERTAG          Short git SHA used as the Docker tag
+#   NEW_DIGEST             Full image digest (sha256:...)
+#   COMPONENT_DIGESTS_DIR  Output directory (default: component-digests)
+
+: "${COMPONENT:?COMPONENT is required}"
+: "${NEW_DOCKERTAG:?NEW_DOCKERTAG is required}"
+: "${NEW_DIGEST:?NEW_DIGEST is required}"
+
+DIGEST_DIR="${COMPONENT_DIGESTS_DIR:-component-digests}"
+mkdir -p "$DIGEST_DIR"
+
+DIGEST="${NEW_DOCKERTAG}@${NEW_DIGEST}"
+# Strip _digest suffix to get the component name used for the filename
+COMPONENT_NAME="${COMPONENT%_digest}"
+echo "$DIGEST" > "${DIGEST_DIR}/${COMPONENT_NAME}.txt"
+echo "Saved digest for ${COMPONENT_NAME}: $DIGEST"
+
+# All matrix jobs write the same tag value, which is fine
+echo "$NEW_DOCKERTAG" > "${DIGEST_DIR}/dockertag.txt"
