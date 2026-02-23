@@ -210,6 +210,9 @@ on:
       runner-arches:
         description: "The list of OS used to build images (for mapping to self hosted runners)"
         value: ${{ jobs.prepare-matrix.outputs.runner-arches }}
+      image-digests:
+        description: "Newline-separated list of tag@digest pairs for pushed manifests"
+        value: ${{ jobs.merge-digest.outputs.image-digests }}
 
 env:
   ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
@@ -378,8 +381,11 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      image-digests: ${{ steps.merge.outputs.image-digests }}
     steps:
       - name: Download Multi-Arch Digests, Construct and Upload Manifest
+        id: merge
         uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@c7c3322b5815fd007586605e0ea286969f6aeae2 # docker-import-digests-push-manifest/v0.1.1
         with:
           images: ${{ needs.build-and-push.outputs.images }}

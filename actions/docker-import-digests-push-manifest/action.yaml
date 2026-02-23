@@ -164,15 +164,15 @@ runs:
         done
 
     - name: Set up Go
-      if: ${{ inputs.generate-summary == 'true' }}
-      uses: actions/setup-go@v5
+      if: ${{ inputs.push == 'true' && inputs.generate-summary == 'true' }}
+      uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
       with:
-        go-version: '1.25'
+        go-version: '1.24'
         cache: true
 
     - name: Generate manifest summary
       id: summary
-      if: ${{ inputs.generate-summary == 'true' }}
+      if: ${{ inputs.push == 'true' && inputs.generate-summary == 'true' }}
       shell: bash
       run: |
         set -euo pipefail
