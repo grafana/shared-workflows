@@ -1,5 +1,6 @@
 # Local test artifacts generated when running scripts manually
-component-digests/
+# Leading / anchors each pattern to this directory only
+/component-digests/
 
 # OS
 .DS_Store

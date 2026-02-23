@@ -1,8 +1,9 @@
 # Local test artifacts generated when running scripts manually
-component-digests/
-new-digests.json
-selected-digests.json
-component-tags.json
+# Leading / anchors each pattern to this directory only, so test-fixtures/ is unaffected
+/component-digests/
+/new-digests.json
+/selected-digests.json
+/component-tags.json
 
 # OS
 .DS_Store
