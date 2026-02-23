@@ -21,7 +21,7 @@ while IFS= read -r component; do
     continue
   fi
 
-  if ! echo "$digest" | grep -qE '^[a-f0-9]+@sha256:[a-f0-9]{64}$'; then
+  if ! echo "$digest" | grep -qE '^[a-zA-Z0-9._-]+@sha256:[a-f0-9]{64}$'; then
     echo "ERROR: Component '${component}' has malformed digest: '${digest}'"
     echo "   Expected format: <tag>@sha256:<64-char-hex>"
     VALIDATION_FAILED=true
