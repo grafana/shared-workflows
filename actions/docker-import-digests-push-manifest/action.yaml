@@ -15,7 +15,7 @@ inputs:
   generate-summary:
     description: |
       Generates both a markdown summary and outputs the env variable OCI_MANIFEST_OUTPUT_JSON.
-    default: "true"
+    default: "false"
   push:
     description: |
       Whether to push the manifest to the configured registries.
@@ -167,7 +167,7 @@ runs:
       if: ${{ inputs.push == 'true' && inputs.generate-summary == 'true' }}
       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
       with:
-        go-version: '1.24'
+        go-version: "1.24"
         cache: true
 
     - name: Generate manifest summary
@@ -192,12 +192,12 @@ runs:
           echo "EOF"
         } >> "$GITHUB_ENV"
         echo $OCI_MANIFEST_OUTPUT_JSON
-    
+
         echo "## Manifest summary" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "This job produced the following OCI image manifests and attestations." >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-    
+
         # Per-tag section
         jq -r '
           map(
