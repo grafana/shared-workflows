@@ -33,21 +33,21 @@ Then upload the directory as an artifact so the deploy job can access it:
 
 ## Inputs
 
-| Name                    | Type   | Description                                                                          | Default             |
-| ----------------------- | ------ | ------------------------------------------------------------------------------------ | ------------------- |
-| `component`             | String | Component identifier, typically the argowf parameter name (e.g. `grafana_com_api_digest`) | |
-| `new-dockertag`         | String | Short git SHA used as the Docker tag                                                 |                     |
-| `new-digest`            | String | Full image digest from the Docker push (e.g. `sha256:abc123...`)                    |                     |
-| `component-digests-dir` | String | Directory to write digest files into                                                 | `component-digests` |
+| Name                    | Type   | Description                                                                               | Default             |
+| ----------------------- | ------ | ----------------------------------------------------------------------------------------- | ------------------- |
+| `component`             | String | Component identifier, typically the argowf parameter name (e.g. `grafana_com_api_digest`) |                     |
+| `new-dockertag`         | String | Short git SHA used as the Docker tag                                                      |                     |
+| `new-digest`            | String | Full image digest from the Docker push (e.g. `sha256:abc123...`)                          |                     |
+| `component-digests-dir` | String | Directory to write digest files into                                                      | `component-digests` |
 
 ## Outputs
 
 This action produces no step outputs. It writes two files to disk:
 
-| File                                          | Contents                                        |
-| --------------------------------------------- | ----------------------------------------------- |
-| `<component-digests-dir>/<component_name>.txt` | Full digest string `<dockertag>@<digest>`        |
-| `<component-digests-dir>/dockertag.txt`        | The Docker tag (short SHA) for this build        |
+| File                                           | Contents                                  |
+| ---------------------------------------------- | ----------------------------------------- |
+| `<component-digests-dir>/<component_name>.txt` | Full digest string `<dockertag>@<digest>` |
+| `<component-digests-dir>/dockertag.txt`        | The Docker tag (short SHA) for this build |
 
 The `_digest` suffix is automatically stripped from the `component` input when forming the filename, so `grafana_com_api_digest` becomes `grafana_com_api.txt`.
 

@@ -38,20 +38,20 @@ artifacts from the build job have been downloaded.
 
 ## Inputs
 
-| Name                    | Type   | Description                                                                                          | Default               |
-| ----------------------- | ------ | ---------------------------------------------------------------------------------------------------- | --------------------- |
-| `components-json`       | String | JSON array of component names, from `component-change-detection` `outputs.components_json`           |                       |
-| `changes-json`          | String | JSON object of component → changed (`true`/`false`), from `component-change-detection` `outputs.changes_json` |              |
-| `commit-sha`            | String | Git commit SHA of this deployment                                                                    |                       |
-| `component-digests-dir` | String | Directory containing per-component digest `.txt` files from `save-component-digest`                  | `component-digests`   |
-| `component-tags-file`   | String | Path to `component-tags.json` containing the previous deployment state                              | `component-tags.json` |
+| Name                    | Type   | Description                                                                                                   | Default               |
+| ----------------------- | ------ | ------------------------------------------------------------------------------------------------------------- | --------------------- |
+| `components-json`       | String | JSON array of component names, from `component-change-detection` `outputs.components_json`                    |                       |
+| `changes-json`          | String | JSON object of component → changed (`true`/`false`), from `component-change-detection` `outputs.changes_json` |                       |
+| `commit-sha`            | String | Git commit SHA of this deployment                                                                             |                       |
+| `component-digests-dir` | String | Directory containing per-component digest `.txt` files from `save-component-digest`                           | `component-digests`   |
+| `component-tags-file`   | String | Path to `component-tags.json` containing the previous deployment state                                        | `component-tags.json` |
 
 ## Outputs
 
-| Name                    | Type   | Description                                                                       |
-| ----------------------- | ------ | --------------------------------------------------------------------------------- |
-| `selected-digests-json` | String | JSON object of selected component digests keyed as `<component>_digest`           |
-| `dockertag`             | String | Docker tag (short SHA) used for this build                                        |
+| Name                    | Type   | Description                                                             |
+| ----------------------- | ------ | ----------------------------------------------------------------------- |
+| `selected-digests-json` | String | JSON object of selected component digests keyed as `<component>_digest` |
+| `dockertag`             | String | Docker tag (short SHA) used for this build                              |
 
 ### Using `selected-digests-json`
 
@@ -115,9 +115,9 @@ component-selective-deploy → called in the deploy job after detection
 
 ## Troubleshooting
 
-| Issue | Cause | Solution |
-| ----- | ----- | -------- |
-| "Missing digest file for component" | `save-component-digest` didn't run for that component, or artifacts weren't downloaded | Ensure every component in `components-json` has a corresponding artifact uploaded and downloaded |
-| "Digest validation failed" | Digest format is incorrect | Check that `new-digest` passed to `save-component-digest` is the raw `sha256:...` value from the Docker push |
-| All components use new digests | No `component-tags.json` found | Expected on first deployment; upload the file after each run so future deploys can use it |
-| `component-tags.json` not updating | File not uploaded as artifact after deployment | Add an upload step after the action runs |
+| Issue                               | Cause                                                                                  | Solution                                                                                                     |
+| ----------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| "Missing digest file for component" | `save-component-digest` didn't run for that component, or artifacts weren't downloaded | Ensure every component in `components-json` has a corresponding artifact uploaded and downloaded             |
+| "Digest validation failed"          | Digest format is incorrect                                                             | Check that `new-digest` passed to `save-component-digest` is the raw `sha256:...` value from the Docker push |
+| All components use new digests      | No `component-tags.json` found                                                         | Expected on first deployment; upload the file after each run so future deploys can use it                    |
+| `component-tags.json` not updating  | File not uploaded as artifact after deployment                                         | Add an upload step after the action runs                                                                     |

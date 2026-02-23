@@ -23,7 +23,7 @@ inputs:
 
 outputs:
   selected-digests-json:
-    description: 'JSON object of selected component digests keyed as <component>_digest'
+    description: "JSON object of selected component digests keyed as <component>_digest"
     value: ${{ steps.select.outputs.selected_digests_json }}
   dockertag:
     description: "Docker tag (short SHA) used for this build"
