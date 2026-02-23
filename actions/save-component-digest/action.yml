@@ -1,7 +1,5 @@
 name: Save Component Digest
-description: >
-  Saves a newly built component image digest to the component-digests directory
-  for later aggregation by the component-deployment action.
+description: Saves a newly built component image digest to the component-digests directory for later aggregation by the component-selective-deploy action.
 author: Grafana Labs
 
 inputs:
