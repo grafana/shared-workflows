@@ -169,6 +169,7 @@ runs:
       with:
         go-version: "1.24"
         cache: true
+        cache-dependency-path: _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest/go.sum
 
     - name: Generate manifest summary
       id: summary
