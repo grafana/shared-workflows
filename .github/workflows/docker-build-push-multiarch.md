@@ -57,6 +57,7 @@ jobs:
 | `dockerhub-registry`          | string | DockerHub Registry to store docker images in.                                                                                                                                                                          |
 | `dockerhub-repository`        | string | DockerHub Repository to store docker images in. Default: github.repository                                                                                                                                             |
 | `file`                        | string | The dockerfile to use. Passed to `docker/build-push-action`.                                                                                                                                                           |
+| `generate-summary`            | string | Generates a markdown step summary and exposes the `image-digests` and `oci-manifest-output-json` outputs. Requires `push` to be `true`. Default: `"false"`.                                                            |
 | `gar-delete-credentials-file` | string | Delete the Google credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false.                                                                         |
 | `gar-environment`             | string | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project (gar-project) to either `grafanalabs-dev` or `grafanalabs-global`.                                                            |
 | `gar-image`                   | string | Name of the image to build. Default: `${GitHub Repo Name}`.                                                                                                                                                            |
@@ -80,15 +81,17 @@ jobs:
 
 ## Outputs
 
-| Name            | Type   | Description                                                              |
-| --------------- | ------ | ------------------------------------------------------------------------ |
-| `annotations`   | String | Generated annotations (from docker/metadata-action)                      |
-| `digest`        | String | Image digest (from docker/build-push-action)                             |
-| `imageid`       | String | Image ID (from docker/build-push-action)                                 |
-| `images`        | String | Comma separated list of the images that were built                       |
-| `json`          | String | JSON output of tags and labels (from docker/metadata-action)             |
-| `labels`        | String | Generated Docker labels (from docker/metadata-action)                    |
-| `metadata`      | String | Build result metadata (from docker/build-push-action)                    |
-| `runner_arches` | String | The list of OS used to build images (for mapping to self hosted runners) |
-| `tags`          | String | Generated Docker tags (from docker/metadata-action)                      |
-| `version`       | String | Generated Docker image version (from docker/metadata-action)             |
+| Name                       | Type   | Description                                                                                                                              |
+| -------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations`              | String | Generated annotations (from docker/metadata-action)                                                                                      |
+| `digest`                   | String | Image digest (from docker/build-push-action)                                                                                             |
+| `image-digests`            | String | Newline-separated list of `tag@digest` pairs for pushed manifests. Only populated when `generate-summary` is `"true"`.                  |
+| `imageid`                  | String | Image ID (from docker/build-push-action)                                                                                                 |
+| `images`                   | String | Comma separated list of the images that were built                                                                                       |
+| `json`                     | String | JSON output of tags and labels (from docker/metadata-action)                                                                             |
+| `labels`                   | String | Generated Docker labels (from docker/metadata-action)                                                                                    |
+| `metadata`                 | String | Build result metadata (from docker/build-push-action)                                                                                    |
+| `oci-manifest-output-json` | String | JSON array of manifests with tag, indexDigest, and per-platform digest information. Only populated when `generate-summary` is `"true"`. |
+| `runner-arches`            | String | The list of OS used to build images (for mapping to self hosted runners)                                                                 |
+| `tags`                     | String | Generated Docker tags (from docker/metadata-action)                                                                                      |
+| `version`                  | String | Generated Docker image version (from docker/metadata-action)                                                                             |

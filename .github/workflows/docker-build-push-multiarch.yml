@@ -178,6 +178,13 @@ on:
           Sets the target stage to build.
           Passed to `docker/build-push-action`.
         type: string
+      generate-summary:
+        description: |
+          Generates a markdown step summary and exposes the image-digests and
+          oci-manifest-output-json outputs. Requires push to be true.
+        required: false
+        default: "false"
+        type: string
       # /INHERITED CONFIGS
     outputs:
       annotations:
@@ -213,6 +220,9 @@ on:
       image-digests:
         description: "Newline-separated list of tag@digest pairs for pushed manifests"
         value: ${{ jobs.merge-digest.outputs.image-digests }}
+      oci-manifest-output-json:
+        description: "JSON array of manifests with tag, indexDigest, and per-platform digest information"
+        value: ${{ jobs.merge-digest.outputs.oci-manifest-output-json }}
 
 env:
   ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
@@ -383,6 +393,7 @@ jobs:
       id-token: write
     outputs:
       image-digests: ${{ steps.merge.outputs.image-digests }}
+      oci-manifest-output-json: ${{ steps.merge.outputs.oci-manifest-output-json }}
     steps:
       - name: Download Multi-Arch Digests, Construct and Upload Manifest
         id: merge
@@ -392,3 +403,4 @@ jobs:
           gar-environment: ${{ inputs.gar-environment }}
           push: ${{ inputs.push }}
           tags: ${{ inputs.tags }}
+          generate-summary: ${{ inputs.generate-summary }}
