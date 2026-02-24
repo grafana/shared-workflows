@@ -1,0 +1,86 @@
+[
+  {
+    "tag": "us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs",
+    "indexDigest": "sha256:c3ff43832a55beab44333fae1647717fc2cb0be8096ac3c6ad855bb1ee880b90",
+    "manifests": [
+      {
+        "name": "us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+        "platform": "linux/amd64",
+        "kind": "image"
+      },
+      {
+        "name": "us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:b12caf961a9446e8eb4d85641f0b3e3935d4e17297b95c1e30122513eca22abd",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:b12caf961a9446e8eb4d85641f0b3e3935d4e17297b95c1e30122513eca22abd",
+        "kind": "attestation",
+        "refersTo": "sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+        "annotations": {
+          "vnd.docker.reference.digest": "sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+          "vnd.docker.reference.type": "attestation-manifest"
+        }
+      },
+      {
+        "name": "us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+        "platform": "linux/arm64",
+        "kind": "image"
+      },
+      {
+        "name": "us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:927e3f82cc9aa3fdc0f7827d401acac3ff52105087d9b09cbdf5c468cb2c2f73",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:927e3f82cc9aa3fdc0f7827d401acac3ff52105087d9b09cbdf5c468cb2c2f73",
+        "kind": "attestation",
+        "refersTo": "sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+        "annotations": {
+          "vnd.docker.reference.digest": "sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+          "vnd.docker.reference.type": "attestation-manifest"
+        }
+      }
+    ]
+  },
+  {
+    "tag": "docker.io/grafana/cicd-test:rickytest-manifest-outputs",
+    "indexDigest": "sha256:c3ff43832a55beab44333fae1647717fc2cb0be8096ac3c6ad855bb1ee880b90",
+    "manifests": [
+      {
+        "name": "docker.io/grafana/cicd-test:rickytest-manifest-outputs@sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+        "platform": "linux/amd64",
+        "kind": "image"
+      },
+      {
+        "name": "docker.io/grafana/cicd-test:rickytest-manifest-outputs@sha256:b12caf961a9446e8eb4d85641f0b3e3935d4e17297b95c1e30122513eca22abd",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:b12caf961a9446e8eb4d85641f0b3e3935d4e17297b95c1e30122513eca22abd",
+        "kind": "attestation",
+        "refersTo": "sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+        "annotations": {
+          "vnd.docker.reference.digest": "sha256:8eb8cfe33d2f104d99579505fff909bd4e84eff7bc5ca809c441bd8acd48ffbc",
+          "vnd.docker.reference.type": "attestation-manifest"
+        }
+      },
+      {
+        "name": "docker.io/grafana/cicd-test:rickytest-manifest-outputs@sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+        "platform": "linux/arm64",
+        "kind": "image"
+      },
+      {
+        "name": "docker.io/grafana/cicd-test:rickytest-manifest-outputs@sha256:927e3f82cc9aa3fdc0f7827d401acac3ff52105087d9b09cbdf5c468cb2c2f73",
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:927e3f82cc9aa3fdc0f7827d401acac3ff52105087d9b09cbdf5c468cb2c2f73",
+        "kind": "attestation",
+        "refersTo": "sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+        "annotations": {
+          "vnd.docker.reference.digest": "sha256:e09f16d819675ede0aac899700e8749eb3f0e66efd7b55619407b6372ba6cc90",
+          "vnd.docker.reference.type": "attestation-manifest"
+        }
+      }
+    ]
+  }
+]

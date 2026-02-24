@@ -12,6 +12,10 @@ inputs:
       CSV of Docker images to push. These images should not include tags.
       Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image
     required: true
+  generate-summary:
+    description: |
+      Generates both a markdown summary and outputs the env variable OCI_MANIFEST_OUTPUT_JSON.
+    default: "false"
   push:
     description: |
       Whether to push the manifest to the configured registries.
@@ -20,6 +24,13 @@ inputs:
     description: |
       List of Docker tags to be pushed.
     required: true
+outputs:
+  image-digests:
+    description: CSV list of image digests.
+    value: ${{ steps.summary.outputs.image-digests }}
+  oci-manifest-output-json:
+    description: JSON array of manifests with tag, indexDigest, and per-platform digest information.
+    value: ${{ steps.summary.outputs.oci-manifest-output-json }}
 
 runs:
   using: composite
@@ -154,3 +165,95 @@ runs:
           echo "Inspecting $tag"
           docker buildx imagetools inspect "$tag"
         done
+
+    - name: Set up Go
+      if: ${{ inputs.push == 'true' && inputs.generate-summary == 'true' }}
+      uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+      with:
+        go-version: "1.25"
+        cache: true
+        cache-dependency-path: _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest/go.sum
+
+    - name: Generate manifest summary
+      id: summary
+      if: ${{ inputs.push == 'true' && inputs.generate-summary == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        cd _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest
+
+        mapfile -t TAGS < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+
+        # Run your Go tool once
+        OCI_MANIFEST_OUTPUT_JSON="$(
+          go run . "${TAGS[@]}"
+        )"
+        # Persist for future steps (multiline-safe)
+        {
+          echo "OCI_MANIFEST_OUTPUT_JSON<<EOF"
+          echo "$OCI_MANIFEST_OUTPUT_JSON"
+          echo "EOF"
+        } >> "$GITHUB_ENV"
+        echo $OCI_MANIFEST_OUTPUT_JSON
+
+        echo "## Manifest summary" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "This job produced the following OCI image manifests and attestations." >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+
+        # Per-tag section
+        jq -r '
+          map(
+            "### `" + .tag + "`\n" +
+            "**Index digest:** `" + .indexDigest + "`\n\n" +
+
+            (
+              .manifests
+              | map(select(.kind == "image"))
+              | if length > 0 then
+                  "| Platform | Digest |\n|---|---|\n" +
+                  (map("| `" + .platform + "` | `" + .digest + "` |") | join("\n")) +
+                  "\n\n"
+                else
+                  "_No image manifests_\n\n"
+                end
+            ) +
+
+            (
+              .manifests
+              | map(select(.kind == "attestation"))
+              | if length > 0 then
+                  "<details><summary>Attestations</summary>\n\n" +
+                  "| Digest | Refers to |\n|---|---|\n" +
+                  (map("| `" + .digest + "` | `" + .refersTo + "` |") | join("\n")) +
+                  "\n\n</details>\n"
+                else
+                  ""
+                end
+            ) +
+            "\n---\n\n"
+          )
+          | join("")
+        ' <<< "$OCI_MANIFEST_OUTPUT_JSON" >> "$GITHUB_STEP_SUMMARY"
+
+        TAG_DIGESTS="$(
+          jq -r '.[] | "\(.tag)@\(.indexDigest)"' <<< "$OCI_MANIFEST_OUTPUT_JSON"
+        )"
+
+        # Print for visibility (optional)
+        echo "Published image digests:"
+        echo "$TAG_DIGESTS"
+
+        # Export as multiline step output
+        {
+          echo "image-digests<<EOF"
+          echo "$TAG_DIGESTS"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
+        {
+          echo "oci-manifest-output-json<<EOF"
+          echo "$OCI_MANIFEST_OUTPUT_JSON"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
