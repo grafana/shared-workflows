@@ -27,6 +27,13 @@ on:
           The instance type to use for x64 builds.
         required: false
         type: string
+      generate-summary:
+        description: |
+          Generates a markdown step summary and sets the OCI_MANIFEST_OUTPUT_JSON env variable
+          and image-digests output after pushing the manifest.
+        required: false
+        default: "false"
+        type: string
 
       # The following inputs are identical to the inputs
       # found in `shared-workflows/actions/docker-build-push-image`
@@ -210,6 +217,9 @@ on:
       runner-arches:
         description: "The list of OS used to build images (for mapping to self hosted runners)"
         value: ${{ jobs.prepare-matrix.outputs.runner-arches }}
+      image-digests:
+        description: "Newline-separated list of image digests in the format <image>:<tag>@<digest> (from docker-import-digests-push-manifest)"
+        value: ${{ jobs.merge-digest.outputs.image-digests }}
 
 env:
   ARCH_TO_PLATFORM_MAP: '{"arm64": "linux/arm64", "x64": "linux/amd64"}'
@@ -378,11 +388,15 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      image-digests: ${{ steps.merge.outputs.image-digests }}
     steps:
       - name: Download Multi-Arch Digests, Construct and Upload Manifest
-        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@c7c3322b5815fd007586605e0ea286969f6aeae2 # docker-import-digests-push-manifest/v0.1.1
+        id: merge
+        uses: grafana/shared-workflows/actions/docker-import-digests-push-manifest@943e0dabf320bf0762834fc99fb3927e30f843af # docker-import-digests-push-manifest/v0.2.0
         with:
           images: ${{ needs.build-and-push.outputs.images }}
           gar-environment: ${{ inputs.gar-environment }}
+          generate-summary: ${{ inputs.generate-summary }}
           push: ${{ inputs.push }}
           tags: ${{ inputs.tags }}

@@ -73,6 +73,7 @@ jobs:
 | `runner-type-arm64`           | string | The instance type to use for arm64 builds.                                                                                                                                                                             |
 | `runner-type-manifest`        | string | The instance type to use when building and pushing the manifest.                                                                                                                                                       |
 | `runner-type-x64`             | string | The instance type to use for x64 builds.                                                                                                                                                                               |
+| `generate-summary`            | string | Generates a markdown step summary and sets the `OCI_MANIFEST_OUTPUT_JSON` env variable and `image-digests` output after pushing the manifest. Default: `false`.                                                        |
 | `secrets`                     | string | Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built. Passed to `docker/build-push-action`.                                |
 | `ssh`                         | string | List of SSH agent socket or keys to expose to the build Passed to `docker/build-push-action`.                                                                                                                          |
 | `tags`                        | string | List of Docker tags to be pushed. Passed to `docker/build-push-action`.                                                                                                                                                |
@@ -80,15 +81,16 @@ jobs:
 
 ## Outputs
 
-| Name            | Type   | Description                                                              |
-| --------------- | ------ | ------------------------------------------------------------------------ |
-| `annotations`   | String | Generated annotations (from docker/metadata-action)                      |
-| `digest`        | String | Image digest (from docker/build-push-action)                             |
-| `imageid`       | String | Image ID (from docker/build-push-action)                                 |
-| `images`        | String | Comma separated list of the images that were built                       |
-| `json`          | String | JSON output of tags and labels (from docker/metadata-action)             |
-| `labels`        | String | Generated Docker labels (from docker/metadata-action)                    |
-| `metadata`      | String | Build result metadata (from docker/build-push-action)                    |
-| `runner_arches` | String | The list of OS used to build images (for mapping to self hosted runners) |
-| `tags`          | String | Generated Docker tags (from docker/metadata-action)                      |
-| `version`       | String | Generated Docker image version (from docker/metadata-action)             |
+| Name            | Type   | Description                                                                                                        |
+| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------ |
+| `annotations`   | String | Generated annotations (from docker/metadata-action)                                                                |
+| `digest`        | String | Image digest (from docker/build-push-action)                                                                       |
+| `imageid`       | String | Image ID (from docker/build-push-action)                                                                           |
+| `images`        | String | Comma separated list of the images that were built                                                                 |
+| `json`          | String | JSON output of tags and labels (from docker/metadata-action)                                                       |
+| `labels`        | String | Generated Docker labels (from docker/metadata-action)                                                              |
+| `metadata`      | String | Build result metadata (from docker/build-push-action)                                                              |
+| `runner_arches` | String | The list of OS used to build images (for mapping to self hosted runners)                                           |
+| `image-digests` | String | Newline-separated list of image digests in the format `<image>:<tag>@<digest>` (requires `generate-summary: true`) |
+| `tags`          | String | Generated Docker tags (from docker/metadata-action)                                                                |
+| `version`       | String | Generated Docker image version (from docker/metadata-action)                                                       |
