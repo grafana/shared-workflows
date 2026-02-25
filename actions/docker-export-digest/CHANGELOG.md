@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/grafana/shared-workflows/compare/docker-export-digest/v0.1.1...docker-export-digest/v0.1.2) (2026-02-25)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update github artifact actions ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+* **deps:** update github artifact actions (major) ([#1629](https://github.com/grafana/shared-workflows/issues/1629)) ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/docker-export-digest/v0.1.0...docker-export-digest/v0.1.1) (2025-11-12)
 
 
