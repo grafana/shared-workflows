@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.0](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.1...docker-import-digests-push-manifest/v0.2.0) (2026-02-25)
+
+
+### 🎉 Features
+
+* **docker-import-digests-push-manifest:** add manifest detail outputs ([f5bed00](https://github.com/grafana/shared-workflows/commit/f5bed0079a15c2c2ebfec1a76fc3b8e646f7f892))
+* **docker-import-digests-push-manifest:** add manifest summaries ([#1745](https://github.com/grafana/shared-workflows/issues/1745)) ([f5bed00](https://github.com/grafana/shared-workflows/commit/f5bed0079a15c2c2ebfec1a76fc3b8e646f7f892))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+* **deps:** update actions/checkout action to v6.0.1 ([#1590](https://github.com/grafana/shared-workflows/issues/1590)) ([2425a5f](https://github.com/grafana/shared-workflows/commit/2425a5fe46fb39d1d282caad59150165323e29a6))
+* **deps:** update actions/checkout action to v6.0.2 ([#1672](https://github.com/grafana/shared-workflows/issues/1672)) ([3105e25](https://github.com/grafana/shared-workflows/commit/3105e251e687194e9b2b4b456cb2846a761e0df0))
+* **deps:** update actions/setup-go action to v6.2.0 ([#1746](https://github.com/grafana/shared-workflows/issues/1746)) ([9be2f51](https://github.com/grafana/shared-workflows/commit/9be2f51d865bc51202190c8ca09c0382c9a2f7fa))
+* **deps:** update docker/metadata-action action to v5.10.0 ([#1582](https://github.com/grafana/shared-workflows/issues/1582)) ([d80ddba](https://github.com/grafana/shared-workflows/commit/d80ddba3b588ad911410ce91c599bbbe513196b0))
+* **deps:** update docker/setup-buildx-action action to v3.12.0 ([#1633](https://github.com/grafana/shared-workflows/issues/1633)) ([9c7001f](https://github.com/grafana/shared-workflows/commit/9c7001fb8ab6048113c07b6454aea78589e0e6b9))
+* **deps:** update github artifact actions ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+* **deps:** update github artifact actions (major) ([#1629](https://github.com/grafana/shared-workflows/issues/1629)) ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.0...docker-import-digests-push-manifest/v0.1.1) (2025-11-12)
 
 
