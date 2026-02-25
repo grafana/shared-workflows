@@ -81,16 +81,17 @@ jobs:
 
 ## Outputs
 
-| Name            | Type   | Description                                                                                                        |
-| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------ |
-| `annotations`   | String | Generated annotations (from docker/metadata-action)                                                                |
-| `digest`        | String | Image digest (from docker/build-push-action)                                                                       |
-| `imageid`       | String | Image ID (from docker/build-push-action)                                                                           |
-| `images`        | String | Comma separated list of the images that were built                                                                 |
-| `json`          | String | JSON output of tags and labels (from docker/metadata-action)                                                       |
-| `labels`        | String | Generated Docker labels (from docker/metadata-action)                                                              |
-| `metadata`      | String | Build result metadata (from docker/build-push-action)                                                              |
-| `runner_arches` | String | The list of OS used to build images (for mapping to self hosted runners)                                           |
-| `image-digests` | String | Newline-separated list of image digests in the format `<image>:<tag>@<digest>` (requires `generate-summary: true`) |
-| `tags`          | String | Generated Docker tags (from docker/metadata-action)                                                                |
-| `version`       | String | Generated Docker image version (from docker/metadata-action)                                                       |
+| Name                       | Type   | Description                                                                                                            |
+| -------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `annotations`              | String | Generated annotations (from docker/metadata-action)                                                                    |
+| `digest`                   | String | Image digest (from docker/build-push-action)                                                                           |
+| `imageid`                  | String | Image ID (from docker/build-push-action)                                                                               |
+| `images`                   | String | Comma separated list of the images that were built                                                                     |
+| `json`                     | String | JSON output of tags and labels (from docker/metadata-action)                                                           |
+| `labels`                   | String | Generated Docker labels (from docker/metadata-action)                                                                  |
+| `metadata`                 | String | Build result metadata (from docker/build-push-action)                                                                  |
+| `runner_arches`            | String | The list of OS used to build images (for mapping to self hosted runners)                                               |
+| `image-digests`            | String | Newline-separated list of image digests in the format `<image>:<tag>@<digest>` (requires `generate-summary: true`)     |
+| `oci-manifest-output-json` | String | JSON array of manifests with tag, indexDigest, and per-platform digest information (requires `generate-summary: true`) |
+| `tags`                     | String | Generated Docker tags (from docker/metadata-action)                                                                    |
+| `version`                  | String | Generated Docker image version (from docker/metadata-action)                                                           |
