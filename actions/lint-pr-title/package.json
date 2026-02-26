@@ -22,9 +22,9 @@
   "dependencies": {
     "@actions/core": "3.0.0",
     "@actions/github": "7.0.0",
-    "@commitlint/config-conventional": "20.4.1",
+    "@commitlint/config-conventional": "20.4.2",
     "@commitlint/format": "20.4.0",
-    "@commitlint/lint": "20.4.1",
+    "@commitlint/lint": "20.4.2",
     "@commitlint/load": "20.4.0",
     "@octokit/core": "7.0.6",
     "@octokit/graphql": "9.0.3",
