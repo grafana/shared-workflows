@@ -15,7 +15,7 @@ inputs:
     description: |
       Common secrets mapping. Only Grafana Labs employees can list these secrets in Vault.
       These secrets are stored in the `ci/data/common/<secret path>` path in Vault.
-      Ex:
+      Ex :
       ```
       repo_secrets: |
         ENVVAR1=secretpath:key
@@ -41,6 +41,9 @@ outputs:
   secrets:
     description: "JSON object containing all the secrets"
     value: ${{ toJSON(steps.import-secrets.outputs) }}
+  github-jwt:
+    description: "GitHub JWT token"
+    value: ${{ steps.get-github-jwt-token.outputs.github-jwt }}
 
 runs:
   using: composite
@@ -114,7 +117,7 @@ runs:
       id: import-secrets
       uses: hashicorp/vault-action@4c06c5ccf5c0761b6029f56cfb1dcf5565918a3b # v3.4.0
       with:
-        url: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net/"
+        url: "https://vault-github-actions-test.grafana-${{ inputs.vault_instance }}.net/"
         role: vault-github-actions
         path: github-actions-oidc
         method: jwt
