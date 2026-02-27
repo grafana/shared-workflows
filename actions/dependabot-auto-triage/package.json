@@ -14,7 +14,7 @@
     "@octokit/graphql": "9.0.3",
     "@octokit/request-error": "7.1.0",
     "@octokit/rest": "22.0.1",
-    "minimatch": "10.2.2"
+    "minimatch": "10.2.3"
   },
   "devDependencies": {
     "@eslint/js": "9.39.3",
