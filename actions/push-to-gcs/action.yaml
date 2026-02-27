@@ -119,7 +119,7 @@ runs:
         parent: ${{ inputs.parent }}
         predefinedAcl: ${{ inputs.use_wif_auth == 'true' && ' ' || inputs.predefinedAcl }} # when using WIF auth, we cannot use predefinedAcl
         gzip: ${{ inputs.gzip }}
-        process_gcloudignore: ${{ inputs.process_gcloudignore }}
+        process_gcloudignore: ${{ inputs.process_gcloudignore == 'true' }}
 
     - name: Cleanup checkout directory
       if: ${{ !cancelled() }}
