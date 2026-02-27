@@ -1,0 +1,71 @@
+name: Test Save Component Digest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/save-component-digest/**
+      - .github/workflows/test-save-component-digest.yml
+
+  pull_request:
+    paths:
+      - actions/save-component-digest/**
+      - .github/workflows/test-save-component-digest.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      # Scenario 1: basic digest is saved with correct content
+      - name: Save component digest
+        uses: ./actions/save-component-digest
+        with:
+          component: grafana_com_api_digest
+          new-dockertag: abc1234
+          new-digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+      - name: Validate outputs (basic)
+        env:
+          EXPECTED_DIGEST: abc1234@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          EXPECTED_DOCKERTAG: abc1234
+          EXPECTED_FILENAME: grafana_com_api.txt
+        run: ./actions/save-component-digest/scripts/validate-outputs.sh
+
+      # Scenario 2: _digest suffix is stripped from the component name in the filename
+      - name: Save component digest (suffix stripping)
+        uses: ./actions/save-component-digest
+        with:
+          component: stacks_api_migrator_digest
+          new-dockertag: abc1234
+          new-digest: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
+      - name: Validate outputs (suffix stripping)
+        env:
+          EXPECTED_DIGEST: abc1234@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          EXPECTED_DOCKERTAG: abc1234
+          EXPECTED_FILENAME: stacks_api_migrator.txt
+        run: ./actions/save-component-digest/scripts/validate-outputs.sh

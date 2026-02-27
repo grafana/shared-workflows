@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Validate that all component digests in selected-digests.json are present
+# and correctly formatted (tag@sha256:<64-hex-chars>) before triggering deployment.
+#
+# Environment variables:
+#   COMPONENTS_JSON  JSON array of component names
+
+: "${COMPONENTS_JSON:?COMPONENTS_JSON is required}"
+
+echo "Validating deployment digests..."
+VALIDATION_FAILED=false
+
+while IFS= read -r component; do
+  digest=$(jq -r ".${component}_digest" selected-digests.json)
+
+  if [[ "$digest" = "null" ]] || [[ -z "$digest" ]]; then
+    echo "ERROR: Component '${component}' has invalid digest: '${digest}'"
+    VALIDATION_FAILED=true
+    continue
+  fi
+
+  if ! echo "$digest" | grep -qE '^[a-zA-Z0-9._-]+@sha256:[a-f0-9]{64}$'; then
+    echo "ERROR: Component '${component}' has malformed digest: '${digest}'"
+    echo "   Expected format: <tag>@sha256:<64-char-hex>"
+    VALIDATION_FAILED=true
+    continue
+  fi
+
+  echo "VALID: ${component}: ${digest}"
+done < <(echo "$COMPONENTS_JSON" | jq -r '.[]')
+
+if [[ "$VALIDATION_FAILED" = "true" ]]; then
+  echo ""
+  echo "Digest validation failed - cannot proceed with deployment"
+  exit 1
+fi
+
+echo ""
+echo "All digests validated successfully"
