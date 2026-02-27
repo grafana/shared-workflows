@@ -127,6 +127,7 @@ jobs:
 | `predefinedAcl`           | String  | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation][gcs-docs-upload-options] for a list of available options.                            |
 | `delete_credentials_file` | Boolean | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. (Default: `true`)                                    |
 | `use_wif_auth`            | Boolean | Use WIF authentication. Overrides the `service_account` input.                                                                                                                               |
+| `process_gcloudignore`    | Boolean | Whether to process `.gcloudignore` file. (Default: `false`)                                                                                                                                  |
 
 > [!TIP]
 > To use WIF authentication you must enable `uniform_bucket_level_access` on the destination bucket. If you are at Grafana Labs, instructions can be found [here](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/google-artifact-registry/). More info can be found in [Google's docs](https://cloud.google.com/storage/docs/uniform-bucket-level-access).
