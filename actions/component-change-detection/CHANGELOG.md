@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/component-change-detection/v1.0.0...component-change-detection/v1.0.1) (2026-02-28)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dawidd6/action-download-artifact action to v15 ([#1738](https://github.com/grafana/shared-workflows/issues/1738)) ([36005ff](https://github.com/grafana/shared-workflows/commit/36005ff276117278dcb4498b82975048530ef069))
+
 ## 1.0.0 (2026-02-19)
 
 
