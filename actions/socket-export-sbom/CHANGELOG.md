@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.1](https://github.com/grafana/shared-workflows/compare/socket-export-sbom/v0.1.0...socket-export-sbom/v0.1.1) (2026-02-28)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v6.2.0 ([#1657](https://github.com/grafana/shared-workflows/issues/1657)) ([d29b916](https://github.com/grafana/shared-workflows/commit/d29b9161f1803baed4a7305c85cb5a3018bc3c3e))
+
+
+### ♻️ Code Refactoring
+
+* socket sbom export ([#1661](https://github.com/grafana/shared-workflows/issues/1661)) ([02e1113](https://github.com/grafana/shared-workflows/commit/02e11133b44d47c5fa8356395095026fb70378fb))
+* uses socket package covered by tests ([02e1113](https://github.com/grafana/shared-workflows/commit/02e11133b44d47c5fa8356395095026fb70378fb))
+
 ## 0.1.0 (2025-12-15)
 
 

@@ -38,11 +38,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v0.1.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v0.1.1
 
       - name: Get vault secrets
         id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v0.1.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v0.1.1
         with:
           repo_secrets: |
             SOCKET_API_TOKEN=socket:SOCKET_SBOM_API_KEY
@@ -50,13 +50,13 @@ jobs:
 
       - name: Export SBOM from Socket
         id: export-sbom
-        uses: grafana/shared-workflows/actions/socket-export-sbom@socket-export-sbom/v0.1.0
+        uses: grafana/shared-workflows/actions/socket-export-sbom@socket-export-sbom/v0.1.1
         with:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           output_file: ${{ inputs.output_file }}
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v0.1.0
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v0.1.1
         with:
           name: "sbom"
           path: ${{ steps.export-sbom.outputs.path }}
