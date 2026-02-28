@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/login-to-gar/v1.0.1...login-to-gar/v1.0.2) (2026-02-28)
+
+
+### 📝 Documentation
+
+* **multiple:** add warning about push to GAR failure ([#1555](https://github.com/grafana/shared-workflows/issues/1555)) ([eb33f84](https://github.com/grafana/shared-workflows/commit/eb33f84481d38701f4d2c587a4817ce332784f5f))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/login-to-gar/v1.0.0...login-to-gar/v1.0.1) (2025-11-05)
 
 
