@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.2...create-github-app-token/v0.2.3) (2026-02-28)
+
+
+### 📝 Documentation
+
+* **create-github-app-token:** fix some errors in readme ([#1558](https://github.com/grafana/shared-workflows/issues/1558)) ([0a7a2fc](https://github.com/grafana/shared-workflows/commit/0a7a2fc07560de0f2fe500ed9fd1f53ec7d86d33))
+
 ## [0.2.2](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.1...create-github-app-token/v0.2.2) (2025-10-31)
 
 
