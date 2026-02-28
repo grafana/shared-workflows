@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/find-pr-for-commit/v1.0.1...find-pr-for-commit/v1.0.2) (2026-02-28)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update octokit/graphql-action action to v3 ([#1497](https://github.com/grafana/shared-workflows/issues/1497)) ([273c085](https://github.com/grafana/shared-workflows/commit/273c085fd3c84eb8f2ad9a1d5572818bc2040061))
+* **deps:** update octokit/graphql-action action to v3.0.2 ([#1614](https://github.com/grafana/shared-workflows/issues/1614)) ([eecdf5e](https://github.com/grafana/shared-workflows/commit/eecdf5e8671bef36fd20193eafce478724e8d76f))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/find-pr-for-commit-v1.0.0...find-pr-for-commit/v1.0.1) (2025-06-04)
 
 
