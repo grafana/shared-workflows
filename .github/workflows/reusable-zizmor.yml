@@ -525,13 +525,24 @@ jobs:
         with:
           name: SARIF file
 
-      # Same pattern as https://github.com/grafana/grafana-bench/blob/main/docs/github_actions.md
+      # Install from release (action not resolvable when workflow runs as required workflow from another repo)
       - name: Setup Grafana Bench
-        uses: grafana/grafana-bench/.github/actions/setup-grafana-bench@281b943dbbdf2a30aa0fd2e5fd07503a49734f44
-        with:
-          version: 'v1.0.1'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: v1.0.1
+        run: |
+          ARCH=$(uname -m)
+          case "$ARCH" in x86_64) ARCH=amd64 ;; aarch64|arm64) ARCH=arm64 ;; *) echo "Unsupported: $ARCH"; exit 1 ;; esac
+          URL="https://github.com/grafana/grafana-bench/releases/download/${VERSION}/grafana-bench_${VERSION#v}_linux_${ARCH}.tar.gz"
+          echo "Downloading grafana-bench ${VERSION}..."
+          curl -sSfL -H "Authorization: bearer ${GITHUB_TOKEN}" "${URL}" | tar -xz -C /tmp
+          sudo mv /tmp/grafana-bench /usr/local/bin/grafana-bench
+          sudo chmod +x /usr/local/bin/grafana-bench
+          grafana-bench --version
 
       - name: Setup bench (Prometheus auth)
+        continue-on-error: true
         run: grafana-bench setup bench
 
       - name: Send metrics to Prometheus via Grafana Bench
