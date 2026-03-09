@@ -507,7 +507,7 @@ jobs:
   grafana-bench:
     name: Send zizmor metrics to Prometheus via Grafana Bench
     needs: analysis
-    if: ${{ !cancelled() && secrets.PROMETHEUS_PUSHGATEWAY_URL != '' }}
+    if: ${{ !cancelled() }}
     runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: read
@@ -533,6 +533,10 @@ jobs:
         env:
           PROMETHEUS_PUSHGATEWAY_URL: ${{ secrets.PROMETHEUS_PUSHGATEWAY_URL }}
         run: |
+          if [ -z "${PROMETHEUS_PUSHGATEWAY_URL}" ]; then
+            echo "PROMETHEUS_PUSHGATEWAY_URL not set, skipping grafana-bench"
+            exit 0
+          fi
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
           if [ -z "$SARIF_FILE" ]; then
             echo "No SARIF file found, skipping grafana-bench"
