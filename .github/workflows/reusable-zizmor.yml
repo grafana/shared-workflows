@@ -525,6 +525,8 @@ jobs:
       # Use action at latest (main), run setup bench for Prometheus auth, then --prometheus-metrics when parsing
       - name: Setup Grafana Bench
         uses: grafana/grafana-bench/.github/actions/setup-grafana-bench@main
+        with:
+          version: 'v1.0.0'
 
       - name: Setup bench (Prometheus auth)
         run: grafana-bench setup bench
