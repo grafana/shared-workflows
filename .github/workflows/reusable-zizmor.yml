@@ -508,13 +508,16 @@ jobs:
     name: Send zizmor metrics to Prometheus via Grafana Bench
     needs: analysis
     if: ${{ !cancelled() }}
-    # Use ubuntu-latest (amd64) so setup-grafana-bench has pre-built binary; no arm64 binary
     runs-on: ubuntu-latest
+    services:
+      grafana:
+        image: grafana/grafana:latest
+        ports:
+          - 3000:3000
     permissions:
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@v5
 
       - name: Download SARIF artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -522,29 +525,13 @@ jobs:
         with:
           name: SARIF file
 
-      # Install grafana-bench from release. If 404, confirm asset name with grafana-bench team.
-      # See https://github.com/grafana/grafana-bench/blob/main/docs/github_actions.md
+      # Same pattern as https://github.com/grafana/grafana-bench/blob/main/docs/github_actions.md
       - name: Setup Grafana Bench
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: v1.0.0
-        run: |
-          ARCH=$(uname -m)
-          case "$ARCH" in
-            x86_64) ARCH=amd64 ;;
-            aarch64|arm64) ARCH=arm64 ;;
-            *) echo "Unsupported arch: $ARCH"; exit 1 ;;
-          esac
-          URL="https://github.com/grafana/grafana-bench/releases/download/${VERSION}/grafana-bench_${VERSION#v}_linux_${ARCH}.tar.gz"
-          echo "Downloading grafana-bench from ${URL}..."
-          curl -sSfL -H "Authorization: bearer ${GITHUB_TOKEN}" "${URL}" | tar -xz -C /tmp
-          sudo mv /tmp/grafana-bench /usr/local/bin/grafana-bench
-          sudo chmod +x /usr/local/bin/grafana-bench
-          grafana-bench --version
+        uses: grafana/grafana-bench/.github/actions/setup-grafana-bench@281b943dbbdf2a30aa0fd2e5fd07503a49734f44
+        with:
+          version: 'v1.0.1'
 
       - name: Setup bench (Prometheus auth)
-        continue-on-error: true
         run: grafana-bench setup bench
 
       - name: Send metrics to Prometheus via Grafana Bench
