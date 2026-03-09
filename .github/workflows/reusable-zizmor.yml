@@ -535,10 +535,9 @@ jobs:
         run: |
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
           if [ -z "$SARIF_FILE" ]; then
-            echo "⚠️  No SARIF file found, skipping grafana-bench"
+            echo "No SARIF file found, skipping grafana-bench"
             exit 0
           fi
-          echo "Processing zizmor findings with Grafana Bench..."
           grafana-bench test \
             --service security \
             --service-version ${{ github.sha }} \
@@ -550,4 +549,4 @@ jobs:
             --prometheus-url "${PROMETHEUS_PUSHGATEWAY_URL}" \
             --run-stage ci \
             --log-level info
-          echo "✅ Metrics sent to Prometheus Pushgateway"
+          echo "Metrics sent to Prometheus Pushgateway"
