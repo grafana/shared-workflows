@@ -508,7 +508,8 @@ jobs:
     name: Send zizmor metrics to Prometheus via Grafana Bench
     needs: analysis
     if: ${{ !cancelled() }}
-    runs-on: ${{ inputs.runs-on }}
+    # Use ubuntu-latest (amd64) so setup-grafana-bench has pre-built binary; no arm64 binary
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -520,10 +521,10 @@ jobs:
         with:
           name: SARIF file
 
+      # See https://github.com/grafana/grafana-bench/blob/main/docs/github_actions.md
+      # Use action at latest (main), run setup bench for Prometheus auth, then --prometheus-metrics when parsing
       - name: Setup Grafana Bench
         uses: grafana/grafana-bench/.github/actions/setup-grafana-bench@main
-        with:
-          version: 'v1.0.0'
 
       - name: Setup bench (Prometheus auth)
         run: grafana-bench setup bench
