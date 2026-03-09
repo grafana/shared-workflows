@@ -518,6 +518,7 @@ jobs:
 
       - name: Download SARIF artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        continue-on-error: true
         with:
           name: SARIF file
 
@@ -529,6 +530,7 @@ jobs:
           version: 'v1.0.0'
 
       - name: Setup bench (Prometheus auth)
+        continue-on-error: true
         run: grafana-bench setup bench
 
       - name: Send metrics to Prometheus via Grafana Bench
