@@ -503,3 +503,51 @@ jobs:
             echo "Failing the build due to findings at or above ${FAIL_LEVEL} severity."
             exit 1
           fi
+
+  grafana-bench:
+    name: Send zizmor metrics to Prometheus via Grafana Bench
+    needs: analysis
+    if: ${{ !cancelled() && secrets.PROMETHEUS_PUSHGATEWAY_URL != '' }}
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Download SARIF artifact
+        uses: actions/download-artifact@50769540e3f4bd5e9e2f82a8f4223c56c4e33a28 # v4
+        with:
+          name: SARIF file
+
+      - name: Setup Grafana Bench
+        uses: grafana/grafana-bench/.github/actions/setup-grafana-bench@main
+        with:
+          version: 'v1.0.0'
+
+      - name: Setup bench (Prometheus auth)
+        run: grafana-bench setup bench
+
+      - name: Send metrics to Prometheus via Grafana Bench
+        continue-on-error: true
+        env:
+          PROMETHEUS_PUSHGATEWAY_URL: ${{ secrets.PROMETHEUS_PUSHGATEWAY_URL }}
+        run: |
+          SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
+          if [ -z "$SARIF_FILE" ]; then
+            echo "⚠️  No SARIF file found, skipping grafana-bench"
+            exit 0
+          fi
+          echo "Processing zizmor findings with Grafana Bench..."
+          grafana-bench test \
+            --service security \
+            --service-version ${{ github.sha }} \
+            --test-runner zizmor \
+            --suite-name ${{ github.repository }}/zizmor \
+            --suite-path . \
+            --sarif-file "${SARIF_FILE}" \
+            --prometheus-metrics \
+            --prometheus-url "${PROMETHEUS_PUSHGATEWAY_URL}" \
+            --run-stage ci \
+            --log-level info
+          echo "✅ Metrics sent to Prometheus Pushgateway"
