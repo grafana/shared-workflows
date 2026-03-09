@@ -522,9 +522,10 @@ jobs:
         with:
           name: SARIF file
 
-      # Install grafana-bench from release (repo may be private; action not resolvable in required-workflow context)
+      # Install grafana-bench from release. If 404, confirm asset name with grafana-bench team.
       # See https://github.com/grafana/grafana-bench/blob/main/docs/github_actions.md
       - name: Setup Grafana Bench
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: v1.0.0
@@ -553,6 +554,10 @@ jobs:
         run: |
           if [ -z "${PROMETHEUS_PUSHGATEWAY_URL}" ]; then
             echo "PROMETHEUS_PUSHGATEWAY_URL not set, skipping grafana-bench"
+            exit 0
+          fi
+          if ! command -v grafana-bench >/dev/null 2>&1; then
+            echo "grafana-bench not installed (release may be 404), skipping"
             exit 0
           fi
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
