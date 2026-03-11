@@ -184,7 +184,7 @@ runs:
         registry: ${{ inputs.registry }}
     - name: Extract metadata (tags, labels) for Docker
       id: meta
-      uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+      uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
       with:
         images: "${{ inputs.registry }}/${{ steps.resolve-project.outputs.project }}/docker-${{ steps.get-repository-name.outputs.repo_name }}-${{ inputs.environment }}/${{ inputs.image_name }}"
         tags: ${{ inputs.tags }}
