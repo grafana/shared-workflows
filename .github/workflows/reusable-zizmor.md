@@ -102,17 +102,36 @@ jobs:
 
 ## Inputs
 
-| Name                      | Type    | Description                                                                                                                      | Default Value   | Required |
-| ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
-| min-severity              | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                         | medium          | false    |
-| min-confidence            | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                | low             | false    |
-| fail-severity             | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]        | high            | false    |
-| runs-on                   | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                           | ubuntu-latest   | false    |
-| always-use-default-config | boolean | Whether to always use the [default configuration]. When `false`, `.zizmor.yml` or `.github/zizmor.yml` will be used, if present. | false           | false    |
-| github-token              | string  | The GitHub token to use when authenticating with the GitHub API                                                                  | ${github.token} | false    |
-| extra-args                | string  | Extra arguments to pass into zizmor                                                                                              | ""              | false    |
+| Name                      | Type    | Description                                                                                                                                                                  | Default Value   | Required |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
+| min-severity              | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                     | medium          | false    |
+| min-confidence            | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                            | low             | false    |
+| fail-severity             | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]                                                    | high            | false    |
+| runs-on                   | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                                                                       | ubuntu-latest   | false    |
+| always-use-default-config | boolean | Whether to always use the [default configuration]. When `false`, `.zizmor.yml` or `.github/zizmor.yml` will be used, if present.                                             | false           | false    |
+| github-token              | string  | The GitHub token to use when authenticating with the GitHub API                                                                                                              | ${github.token} | false    |
+| extra-args                | string  | Extra arguments to pass into zizmor                                                                                                                                          | ""              | false    |
+| send-bench-metrics        | boolean | If true, run Grafana Bench after analysis to send zizmor metrics to Prometheus. Uses shared Vault secrets (grafana-bench); no caller secrets required. Set to false to skip. | true            | false    |
 
 [default configuration]: ../zizmor.yml
+
+## Grafana Bench (Prometheus metrics)
+
+When `send-bench-metrics` is true (default), the workflow runs a second job after zizmor analysis that:
+
+1. Fetches **Prometheus credentials** from Vault (shared `grafana-bench` common secrets), same as the [setup-grafana-bench](https://github.com/grafana/grafana-bench/blob/main/.github/actions/setup-grafana-bench/action.yml) action.
+2. Downloads the **SARIF file** artifact produced by the analysis job.
+3. Runs the [Grafana Bench](https://github.com/grafana/grafana-bench) Docker image with `report --report-input zizmor` and `--prometheus-metrics`, sending metrics to Grafana’s Prometheus (ops) endpoint.
+
+**No caller configuration needed:** You do not need to set `PROMETHEUS_URL` or pass `secrets: inherit` for metrics; the workflow uses Vault.
+
+**To disable:** Pass `send-bench-metrics: false` so the Grafana Bench job is skipped.
+
+**If only `bench_*` metrics appear in Prometheus and `zizmor_*` metrics are missing:**
+
+1. **Docker image version:** The image `grafana-bench:v1.0.2` must be built from a grafana-bench commit that includes the zizmor parser and the Prometheus reporter logic that pushes `summary.Metrics`. If the image was built before that code was merged, build and push a new image from current grafana-bench main (e.g. tag v1.0.3) and update the workflow to use that tag.
+2. **Workflow log:** The job runs bench with `--log-level debug`. In the "Run Grafana Bench (Docker image)" step, check for Prometheus push errors or missing env (e.g. "PROMETHEUS_URL not set").
+3. **Remote write:** Confirm the Prometheus/Mimir remote-write endpoint accepts and retains the `zizmor_*` metric names (no filtering or drop rules).
 
 ## Getting started
 

@@ -1,0 +1,31 @@
+# Runs the reusable zizmor workflow (analysis + grafana-bench metrics) on push/PR so it appears in shared-workflows PR checks.
+name: Zizmor GitHub Actions static analysis
+
+on:
+  push:
+    paths:
+      - ".github/**"
+  pull_request:
+    paths:
+      - ".github/**"
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    name: Run zizmor
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      pull-requests: write
+      security-events: write
+    uses: ./.github/workflows/reusable-zizmor.yml
+    with:
+      runs-on: ubuntu-latest
+      fail-severity: high
+      min-severity: high
+      min-confidence: low
+      extra-args: --offline
+    secrets: inherit
