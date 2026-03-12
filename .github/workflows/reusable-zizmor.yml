@@ -47,6 +47,15 @@ on:
         type: string
         default: ""
 
+      send-bench-metrics:
+        description: |
+          If true, run Grafana Bench after analysis to send zizmor metrics to Prometheus.
+          No caller secrets needed; the workflow fetches Prometheus credentials from Vault
+          (shared grafana-bench common secrets). Set to false to skip the metrics job.
+        required: false
+        type: boolean
+        default: true
+
 permissions: {}
 
 jobs:
@@ -503,3 +512,68 @@ jobs:
             echo "Failing the build due to findings at or above ${FAIL_LEVEL} severity."
             exit 1
           fi
+
+  grafana-bench:
+    name: Send zizmor metrics to Prometheus via Grafana Bench
+    needs: [analysis, job-workflow-ref]
+    # Only run when caller enables it and analysis has finished (success or failure). SARIF is uploaded before "Fail the build".
+    if: ${{ inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
+    # Always use amd64 runner so Docker image runs natively (avoids "exec format error" on arm64).
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Get Prometheus secrets from Vault
+        uses: grafana/shared-workflows/actions/get-vault-secrets@078c4a8af09e06d646077550f9e0f68171d5881e
+        with:
+          common_secrets: |
+            PROMETHEUS_URL=grafana-bench:prometheus_url
+            PROMETHEUS_USER=grafana-bench:prometheus_user
+            PROMETHEUS_PASSWORD=grafana-bench:prometheus_token
+
+      - name: Download SARIF artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: SARIF file
+
+      - name: Run Grafana Bench (Docker image)
+        env:
+          BENCH_SERVICE: ${{ format('grafana-{0}', github.event.repository.name) }}
+          BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
+          BENCH_SERVICE_VERSION: ${{ github.sha }}
+        run: |
+          SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
+          if [ -z "${SARIF_FILE}" ]; then
+            echo "::error::No SARIF file found; analysis job must upload the SARIF artifact."
+            exit 1
+          fi
+          if [ -z "${PROMETHEUS_URL}" ]; then
+            echo "::error::PROMETHEUS_URL not set; Vault step may have failed or export_env is false."
+            exit 1
+          fi
+          echo "PROMETHEUS_URL is set (length ${#PROMETHEUS_URL}); running bench report..."
+          if ! docker pull ghcr.io/grafana/grafana-bench:v1.0.2; then
+            echo "Could not pull Bench image; skipping bench step."
+            exit 0
+          fi
+          docker run --rm \
+            --network=host \
+            --volume="${PWD}:/tests/" \
+            -e PROMETHEUS_URL="${PROMETHEUS_URL}" \
+            -e PROMETHEUS_USER="${PROMETHEUS_USER}" \
+            -e PROMETHEUS_PASSWORD="${PROMETHEUS_PASSWORD}" \
+            ghcr.io/grafana/grafana-bench:v1.0.2 report \
+            --report-input zizmor \
+            --service "${BENCH_SERVICE}" \
+            --service-version "${BENCH_SERVICE_VERSION}" \
+            --suite-name "${BENCH_SUITE_NAME}" \
+            --run-stage ci \
+            --report-output log \
+            --log-level debug \
+            --prometheus-metrics \
+            "/tests/${SARIF_FILE#./}"
