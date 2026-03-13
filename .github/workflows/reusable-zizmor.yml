@@ -52,6 +52,10 @@ on:
           If true, run Grafana Bench after analysis to send zizmor metrics to Prometheus.
           No caller secrets needed; the workflow fetches Prometheus credentials from Vault
           (shared grafana-bench common secrets). Set to false to skip the metrics job.
+          The grafana-bench job is only run when repository_owner is 'grafana' and the
+          run is not from a fork PR (fork PRs do not have OIDC/Vault access). Callers
+          should pass ${{ github.repository_owner == 'grafana' }} so fork runs do not
+          request metrics; the workflow also gates internally.
         required: false
         type: boolean
         default: true
@@ -516,9 +520,8 @@ jobs:
   grafana-bench:
     name: Send zizmor metrics to Prometheus via Grafana Bench
     needs: [analysis, job-workflow-ref]
-    # Only run when caller enables it and analysis has finished (success or failure). SARIF is uploaded before "Fail the build".
-    # Skip on fork PRs; they don't have OIDC/Vault access for Prometheus credentials.
-    if: ${{ github.repository_owner == 'grafana' && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
+    # Long-term gate: only run when (1) grafana org, (2) not a fork PR (no OIDC/Vault), (3) caller enabled send-bench-metrics, (4) analysis finished.
+    if: ${{ github.repository_owner == 'grafana' && (!github.event.pull_request || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
     # Always use amd64 runner so Docker image runs natively (avoids "exec format error" on arm64).
     runs-on: ubuntu-latest
     permissions:
