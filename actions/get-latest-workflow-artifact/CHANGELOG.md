@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.2.1...get-latest-workflow-artifact/v0.2.2) (2026-03-13)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @actions/github to v9 ([#1687](https://github.com/grafana/shared-workflows/issues/1687)) ([0a6d038](https://github.com/grafana/shared-workflows/commit/0a6d0382a92b7282ab72bb4a934225d8cb17a8ff))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @types/node to v24.11.0 ([#1760](https://github.com/grafana/shared-workflows/issues/1760)) ([f619a63](https://github.com/grafana/shared-workflows/commit/f619a637e489e8e7749cf4966ee2776e4178a303))
+* **deps:** update dependency @types/node to v24.12.0 ([#1781](https://github.com/grafana/shared-workflows/issues/1781)) ([b1e1813](https://github.com/grafana/shared-workflows/commit/b1e181350974c73d9510b0363a0624c136e64204))
+* **deps:** update oven-sh/setup-bun action to v2.1.3 ([#1778](https://github.com/grafana/shared-workflows/issues/1778)) ([f4207e5](https://github.com/grafana/shared-workflows/commit/f4207e5231816574b5d565733ded8f1a189cb31c))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.2.0...get-latest-workflow-artifact/v0.2.1) (2026-02-19)
 
 
