@@ -102,7 +102,7 @@ jobs:
         env:
           # Keep this updated in a simpler way than needing a full package.json.
           # renovate: datasource=npm depName=jose
-          JOSE_VERSION: 6.2.0
+          JOSE_VERSION: 6.2.1
         run: npm install "jose@${JOSE_VERSION}"
 
       - id: get-job-workflow-ref
