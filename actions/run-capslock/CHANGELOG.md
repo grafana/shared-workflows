@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.1...run-capslock/v0.2.2) (2026-03-13)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v6.3.0 ([#1756](https://github.com/grafana/shared-workflows/issues/1756)) ([c6b0752](https://github.com/grafana/shared-workflows/commit/c6b07529443393154d824d1ad0e707f4b3d090f6))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.0...run-capslock/v0.2.1) (2026-02-19)
 
 
