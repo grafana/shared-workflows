@@ -208,13 +208,13 @@ export async function handlePullRequest(
  * @param config - The configuration object.
  * @throws If any title is invalid.
  */
-async function handleMergeGroup(
-  context: Context,
+export async function handleMergeGroup(
+  payload: WebHookPayload,
   octokit: Octokit,
   { actionConfig: { titleOnly }, commitLintConfig: config }: Config,
 ): Promise<LintResult> {
   console.log("linting merge group");
-  const mergeGroup = context.payload as MergeGroupChecksRequestedEvent;
+  const mergeGroup = payload as MergeGroupChecksRequestedEvent;
   console.log(`Handling ${mergeGroup.action} event for merge group`);
 
   const {
@@ -327,7 +327,7 @@ export async function handleEvent(
     case "pull_request":
       return handlePullRequest(context.payload, config);
     case "merge_group":
-      return handleMergeGroup(context, octokit, config);
+      return handleMergeGroup(context.payload, octokit, config);
     default:
       throw new WrongEventTypeError(context.eventName);
   }
