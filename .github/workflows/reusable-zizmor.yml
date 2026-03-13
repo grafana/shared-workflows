@@ -521,7 +521,7 @@ jobs:
     name: Send zizmor metrics to Prometheus via Grafana Bench
     needs: [analysis, job-workflow-ref]
     # Long-term gate: only run when (1) grafana org, (2) not a fork PR (no OIDC/Vault), (3) caller enabled send-bench-metrics, (4) analysis finished.
-    if: ${{ github.repository_owner == 'grafana' && (!github.event.pull_request || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
+    if: ${{ github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
     # Always use amd64 runner so Docker image runs natively (avoids "exec format error" on arm64).
     runs-on: ubuntu-latest
     permissions:
