@@ -1,0 +1,14 @@
+# Local test artifacts generated when running scripts manually
+# Leading / anchors each pattern to this directory only
+/component-digests/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
