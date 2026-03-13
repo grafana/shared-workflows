@@ -3,16 +3,16 @@ import { QualifiedConfig, RuleConfigSeverity } from "@commitlint/types";
 import { beforeAll, describe, expect, it } from "bun:test";
 
 import {
-  Octokit,
   compareCommitsWithBaseheadResponse,
-  handleEvent,
+  handleMergeGroup,
+  handlePullRequest,
   lint,
   loadConfig,
+  Octokit,
 } from "./main";
-import { compareCommitsWithBaseheadResponses } from "./testUtils/compareCommitsWithBaseheadresponses";
-import { mergeQueueContext } from "./testUtils/mergeGroupContext";
-import { expect_toBeDefined, newContextFromPullRequest } from "./testUtils";
+import { expect_toBeDefined } from "./testUtils";
 import { tmpFileAsync } from "./tempfile";
+import { compareCommitsWithBaseheadResponses } from "./testUtils/compareCommitsWithBaseheadresponses";
 
 const config = await loadConfig("commitlint.config.js");
 
@@ -126,16 +126,25 @@ describe("pull_request", () => {
   ])(
     "pull request event",
     ({ title, body, validTitleOnly, validTitleAndMessage }) => {
-      const ctx = newContextFromPullRequest(title, body);
-
       for (const titleOnly of [true, false]) {
-        const lintResult = handleEvent(ctx, mockOctokit(), {
-          actionConfig: {
-            configPath: "commitlint.config.js",
-            titleOnly: titleOnly,
+        const lintResult = handlePullRequest(
+          {
+            action: "opened",
+            number: 1,
+            pull_request: {
+              number: 1,
+              title,
+              body: body ?? undefined,
+            },
           },
-          commitLintConfig: mockConfig,
-        });
+          {
+            actionConfig: {
+              configPath: "commitlint.config.js",
+              titleOnly: titleOnly,
+            },
+            commitLintConfig: mockConfig,
+          },
+        );
 
         expect(lintResult).resolves.toMatchObject({
           valid: titleOnly ? validTitleOnly : validTitleAndMessage,
@@ -162,8 +171,40 @@ describe("merge_group", () => {
   it.each(compareCommitsWithBaseheadResponses)(
     "should lint properly",
     async ({ expectedCheckedCommits, commits, valid }) => {
-      const lintResult = await handleEvent(
-        mergeQueueContext,
+      const payload = {
+        action: "checks_requested",
+        merge_group: {
+          head_sha: "2ffea6db159f6b6c47a24e778fb9ef40cf6b1c7d",
+          head_ref:
+            "refs/heads/gh-readonly-queue/main/pr-104-929f8209d40f77f4abc622a499c93a83babdbe64",
+          base_sha: "380387fbc80638b734a49e1be1c4dfec1c01b33c",
+          base_ref: "refs/heads/main",
+          head_commit: {
+            id: "ec26c3e57ca3a959ca5aad62de7213c562f8c821",
+            tree_id: "31b122c26a97cf9af023e9ddab94a82c6e77b0ea",
+            message:
+              "Merge pull request #2048 from octo-repo/update-readme\n\nUpdate README.md",
+            timestamp: "2019-05-15T15:20:30Z",
+            author: {
+              name: "Codertocat",
+              email: "21031067+Codertocat@users.noreply.github.com",
+            },
+            committer: {
+              name: "Codertocat",
+              email: "21031067+Codertocat@users.noreply.github.com",
+            },
+          },
+        },
+        repository: {
+          name: "octo-repo",
+          full_name: "octo-org/octo-repo",
+          owner: {
+            login: "octo-org",
+          },
+        },
+      };
+      const lintResult = await handleMergeGroup(
+        payload,
         mockOctokit({ commits }),
         {
           actionConfig: {
