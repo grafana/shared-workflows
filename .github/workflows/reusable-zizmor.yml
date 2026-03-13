@@ -517,7 +517,8 @@ jobs:
     name: Send zizmor metrics to Prometheus via Grafana Bench
     needs: [analysis, job-workflow-ref]
     # Only run when caller enables it and analysis has finished (success or failure). SARIF is uploaded before "Fail the build".
-    if: ${{ inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
+    # Skip on fork PRs; they don't have OIDC/Vault access for Prometheus credentials.
+    if: ${{ github.repository_owner == 'grafana' && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
     # Always use amd64 runner so Docker image runs natively (avoids "exec format error" on arm64).
     runs-on: ubuntu-latest
     permissions:
