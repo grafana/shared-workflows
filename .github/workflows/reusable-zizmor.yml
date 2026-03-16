@@ -219,13 +219,18 @@ jobs:
               core.setOutput('repo', repo);
               core.setOutput('sha', sha);
             } catch (error) {
-              // On errors, we log an error messge, but we don't fail. It's
-              // better to run with the default config than not run at all.
+              // On errors (e.g. fork PRs have no OIDC token), use fallback so the
+              // workflow can still fetch the default zizmor config and run analysis.
               core.error(`Script failed: ${error.message}`);
 
               if (error.stack) {
                 console.error(`Stack trace: ${error.stack}`);
               }
+
+              core.info('Using fallback: grafana/shared-workflows@main for default config.');
+              core.setOutput('owner', 'grafana');
+              core.setOutput('repo', 'shared-workflows');
+              core.setOutput('sha', 'main');
             }
 
   analysis:
@@ -385,17 +390,21 @@ jobs:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         shell: sh
-        run: >-
-          uvx zizmor@"${ZIZMOR_VERSION}"
-          --format sarif
-          --min-severity "${MIN_SEVERITY}"
-          --min-confidence "${MIN_CONFIDENCE}"
-          --cache-dir "${ZIZMOR_CACHE_DIR}"
-          ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"}
-          ${RUNNER_DEBUG:+"--verbose"}
-          ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}}
-          .
-          > results.sarif
+        run: |
+          uvx zizmor@"${ZIZMOR_VERSION}" \
+            --format sarif \
+            --min-severity "${MIN_SEVERITY}" \
+            --min-confidence "${MIN_CONFIDENCE}" \
+            --cache-dir "${ZIZMOR_CACHE_DIR}" \
+            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
+            ${RUNNER_DEBUG:+"--verbose"} \
+            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
+            . \
+            > results.sarif
+          exit_code=$?
+          # Only fail on exit code 1 (zizmor crash). 0 = no findings, 10-14 = findings by severity.
+          if [ "${exit_code}" -eq 1 ]; then exit 1; fi
+          exit 0
 
       - name: Upload artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
