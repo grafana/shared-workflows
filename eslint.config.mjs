@@ -3,11 +3,12 @@ import eslintPluginJest from "eslint-plugin-jest";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
 
-export default tseslint.config(
+export default defineConfig([
   js.configs.recommended,
   eslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
+  tseslint.configs.strict,
   eslintPluginPrettierRecommended,
   {
     // Allow unused vars if they start with an underscore
@@ -44,4 +45,4 @@ export default tseslint.config(
   {
     ignores: ["coverage/", "dist/", "node_modules/"],
   },
-);
+]);
