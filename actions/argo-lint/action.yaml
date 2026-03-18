@@ -6,6 +6,10 @@ inputs:
     description: |
       Path to files for linting.
     required: true
+  argo-version:
+    description: |
+      Version of the Argo CLI to use for linting.
+    default: "3.7.10"
 
 runs:
   using: composite
@@ -27,6 +31,8 @@ runs:
 
     - name: Setup Argo
       uses: ./_shared-workflows-argo-lint/actions/setup-argo
+      with:
+        version: ${{ inputs.argo-version }}
 
     - name: Run
       env:
