@@ -1,0 +1,17 @@
+# Local test artifacts generated when running scripts manually
+# Leading / anchors each pattern to this directory only, so test-fixtures/ is unaffected
+/component-digests/
+/new-digests.json
+/selected-digests.json
+/component-tags.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

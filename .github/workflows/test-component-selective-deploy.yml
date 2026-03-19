@@ -1,0 +1,84 @@
+name: Test Component Selective Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/component-selective-deploy/**
+      - actions/save-component-digest/**
+      - .github/workflows/test-component-selective-deploy.yml
+
+  pull_request:
+    paths:
+      - actions/component-selective-deploy/**
+      - actions/save-component-digest/**
+      - .github/workflows/test-component-selective-deploy.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      # Use save-component-digest to populate component-digests/ as a real
+      # build job would, rather than creating files inline
+      - name: Save apiserver digest (simulates build job)
+        uses: ./actions/save-component-digest
+        with:
+          component: apiserver_digest
+          new-dockertag: abc1234
+          new-digest: sha256:1111111111111111111111111111111111111111111111111111111111111111
+
+      - name: Save controller digest (simulates build job)
+        uses: ./actions/save-component-digest
+        with:
+          component: controller_digest
+          new-dockertag: abc1234
+          new-digest: sha256:2222222222222222222222222222222222222222222222222222222222222222
+
+      - name: Save migrator digest (simulates build job)
+        uses: ./actions/save-component-digest
+        with:
+          component: migrator_digest
+          new-dockertag: abc1234
+          new-digest: sha256:3333333333333333333333333333333333333333333333333333333333333333
+
+      - name: Set up previous component tags (simulates download-previous-component-tags)
+        run: ./actions/component-selective-deploy/scripts/test-setup.sh
+
+      # Test scenario: apiserver and migrator changed, controller unchanged
+      - name: Run component-selective-deploy
+        id: deploy
+        uses: ./actions/component-selective-deploy
+        with:
+          components-json: '["apiserver","controller","migrator"]'
+          changes-json: '{"apiserver":true,"controller":false,"migrator":true}'
+          commit-sha: test-commit-sha
+
+      - name: Validate outputs
+        env:
+          SELECTED_DIGESTS_JSON: ${{ steps.deploy.outputs.selected-digests-json }}
+          DOCKERTAG: ${{ steps.deploy.outputs.dockertag }}
+        run: ./actions/component-selective-deploy/scripts/validate-outputs.sh
