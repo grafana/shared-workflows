@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.0.3...setup-argo/v1.1.0) (2026-03-19)
+
+
+### 🎉 Features
+
+* **argo:** bump default Argo CLI to 3.7.10 and make version configurable in argo-lint ([f684d78](https://github.com/grafana/shared-workflows/commit/f684d7826a961af39afa358f2e3f041fab0f5595))
+* **argo:** bump default Argo CLI to 3.7.10, make version configurable ([#1814](https://github.com/grafana/shared-workflows/issues/1814)) ([f684d78](https://github.com/grafana/shared-workflows/commit/f684d7826a961af39afa358f2e3f041fab0f5595))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.0.2...setup-argo/v1.0.3) (2025-12-10)
 
 
