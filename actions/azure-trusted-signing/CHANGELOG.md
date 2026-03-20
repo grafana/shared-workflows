@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.0...azure-trusted-signing/v1.0.1) (2026-03-20)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/download-artifact action to v8 ([#1749](https://github.com/grafana/shared-workflows/issues/1749)) ([9169dac](https://github.com/grafana/shared-workflows/commit/9169dac82ee307312a1c948918184ea02f34aff8))
+* **deps:** update actions/download-artifact action to v8.0.1 ([#1803](https://github.com/grafana/shared-workflows/issues/1803)) ([1fa2a72](https://github.com/grafana/shared-workflows/commit/1fa2a7215acb603ae344a91da488771e1b11502b))
+* **deps:** update actions/setup-dotnet action to v5 ([#1303](https://github.com/grafana/shared-workflows/issues/1303)) ([e2b2855](https://github.com/grafana/shared-workflows/commit/e2b2855c2f7e5dfb9cfe551773495cce69c5dd42))
+* **deps:** update actions/setup-dotnet action to v5.0.1 ([#1576](https://github.com/grafana/shared-workflows/issues/1576)) ([ae79dff](https://github.com/grafana/shared-workflows/commit/ae79dff04fd1182f8d2b6d3f7e60b7d4ef2b70b0))
+* **deps:** update actions/setup-dotnet action to v5.1.0 ([#1660](https://github.com/grafana/shared-workflows/issues/1660)) ([f8d38df](https://github.com/grafana/shared-workflows/commit/f8d38df9065ff1beb3c670acb5c0efacd9299f97))
+* **deps:** update actions/setup-dotnet action to v5.2.0 ([#1767](https://github.com/grafana/shared-workflows/issues/1767)) ([fa12a14](https://github.com/grafana/shared-workflows/commit/fa12a1486d937f2a2fba2f0a615356ee3053695e))
+* **deps:** update actions/upload-artifact action to v7 ([#1762](https://github.com/grafana/shared-workflows/issues/1762)) ([af89a9f](https://github.com/grafana/shared-workflows/commit/af89a9f0638d70d86acbcc7006f5c22cfa6dacde))
+* **deps:** update azure/login action to v3 ([#1820](https://github.com/grafana/shared-workflows/issues/1820)) ([23f936d](https://github.com/grafana/shared-workflows/commit/23f936d6a12003131be02a776e90c68f55588284))
+* **deps:** update dependency dotnet-sdk to v8.0.414 ([#1323](https://github.com/grafana/shared-workflows/issues/1323)) ([d2db509](https://github.com/grafana/shared-workflows/commit/d2db509c45f0d0e75e26fe03c276225d6bbc3e0d))
+* **deps:** update dependency dotnet-sdk to v8.0.415 ([#1429](https://github.com/grafana/shared-workflows/issues/1429)) ([0f55fdf](https://github.com/grafana/shared-workflows/commit/0f55fdf6c11ffae5d84b4c243e443591836b98e8))
+* **deps:** update dependency dotnet-sdk to v8.0.416 ([#1533](https://github.com/grafana/shared-workflows/issues/1533)) ([31543ed](https://github.com/grafana/shared-workflows/commit/31543ede04484fc3fcf1b053f9cda008d2d4ce3f))
+* **deps:** update dependency dotnet-sdk to v8.0.417 ([#1655](https://github.com/grafana/shared-workflows/issues/1655)) ([af489aa](https://github.com/grafana/shared-workflows/commit/af489aa95024fb11c33f8438636cb003fe2d323c))
+* **deps:** update dependency dotnet-sdk to v8.0.418 ([#1715](https://github.com/grafana/shared-workflows/issues/1715)) ([dc556a9](https://github.com/grafana/shared-workflows/commit/dc556a9221f731438679e3a7b30dcd9dccec4c8b))
+* **deps:** update dependency dotnet-sdk to v8.0.419 ([#1797](https://github.com/grafana/shared-workflows/issues/1797)) ([3bc640b](https://github.com/grafana/shared-workflows/commit/3bc640b0d6af61f8d26e5965dd8e399190793cba))
+* **deps:** update github artifact actions ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+* **deps:** update github artifact actions ([ebaf11d](https://github.com/grafana/shared-workflows/commit/ebaf11d9a28ba8617d6c1db41ca7ecb97005e4b4))
+* **deps:** update github artifact actions (major) ([#1463](https://github.com/grafana/shared-workflows/issues/1463)) ([ebaf11d](https://github.com/grafana/shared-workflows/commit/ebaf11d9a28ba8617d6c1db41ca7ecb97005e4b4))
+* **deps:** update github artifact actions (major) ([#1629](https://github.com/grafana/shared-workflows/issues/1629)) ([3b65def](https://github.com/grafana/shared-workflows/commit/3b65def88604a4f3789b144e891b14efeb528057))
+
 ## 1.0.0 (2025-09-04)
 
 
