@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.1...run-capslock/v0.2.2) (2026-03-20)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v6.3.0 ([#1756](https://github.com/grafana/shared-workflows/issues/1756)) ([c6b0752](https://github.com/grafana/shared-workflows/commit/c6b07529443393154d824d1ad0e707f4b3d090f6))
+* **deps:** update marocchino/sticky-pull-request-comment action to v3 ([#1807](https://github.com/grafana/shared-workflows/issues/1807)) ([5882b92](https://github.com/grafana/shared-workflows/commit/5882b921f4806a59dd2659909a1e569c9d796289))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.0...run-capslock/v0.2.1) (2026-02-19)
 
 
