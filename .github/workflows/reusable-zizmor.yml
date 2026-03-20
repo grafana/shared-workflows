@@ -543,7 +543,7 @@ jobs:
           persist-credentials: false
 
       - name: Get Prometheus secrets from Vault
-        uses: grafana/shared-workflows/actions/get-vault-secrets@078c4a8af09e06d646077550f9e0f68171d5881e
+        uses: grafana/shared-workflows/actions/get-vault-secrets@d3e134ded5c97bd60d74ec8878eb3d0eb2d66fad
         with:
           common_secrets: |
             PROMETHEUS_URL=grafana-bench:prometheus_url
