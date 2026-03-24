@@ -9,7 +9,7 @@ inputs:
   version:
     description: |
       Version of the Argo CLI to install.
-    default: 3.7.10
+    default: 4.0.3
 
 outputs:
   cache-hit:
