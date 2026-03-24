@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.1.0...setup-argo/v1.2.0) (2026-03-24)
+
+
+### 🎉 Features
+
+* **trigger-argo-workflows:** update default argo-cli version to 4.0.3 ([#1827](https://github.com/grafana/shared-workflows/issues/1827)) ([e53f729](https://github.com/grafana/shared-workflows/commit/e53f7299a1dcda82d5e0f5444264621b94062207))
+
 ## [1.1.0](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.0.3...setup-argo/v1.1.0) (2026-03-19)
 
 
