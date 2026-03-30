@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Update the component-tags artifact with new deployment state.
+# Changed components get their SHA and digest updated.
+# Unchanged components keep their previous entry (or are created fresh on first run).
+#
+# Usage: update-component-tags <previous-tags-file> <output-file> <commit-sha> <component:changed:digest> ...
+#
+# Arguments:
+#   previous-tags-file  JSON file with previous component tags
+#   output-file         Path to write the updated component tags JSON
+#   commit-sha          Git commit SHA of this deployment
+#   component triplets  "name:changed:digest" where changed is "true" or "false"
+#
+# Exit codes:
+#   0 - Success
+#   2 - Invalid arguments
+
+usage() {
+  cat <<EOF
+Usage: $0 <previous-tags-file> <output-file> <commit-sha> <component:changed:digest> ...
+
+Examples:
+  $0 component-tags.json component-tags.json abc123def456 \\
+    apiserver:true:abc123@sha256:new123 \\
+    controller:false:abc123@sha256:old456
+EOF
+}
+
+if [ $# -lt 4 ]; then
+  usage
+  exit 2
+fi
+
+PREVIOUS_TAGS_FILE="$1"
+OUTPUT_FILE="$2"
+COMMIT_SHA="$3"
+shift 3
+COMPONENT_SPECS=("$@")
+
+echo "Updating component tags artifact..." >&2
+echo "Commit SHA: $COMMIT_SHA" >&2
+
+WORKING_TAGS_JSON=$(mktemp)
+TEMP_TAGS_JSON=$(mktemp)
+trap 'rm -f "$WORKING_TAGS_JSON" "$TEMP_TAGS_JSON"' EXIT
+
+if [ -f "$PREVIOUS_TAGS_FILE" ] && [ -s "$PREVIOUS_TAGS_FILE" ]; then
+  cp "$PREVIOUS_TAGS_FILE" "$WORKING_TAGS_JSON"
+  echo "Loaded previous component tags" >&2
+else
+  echo '{}' > "$WORKING_TAGS_JSON"
+  echo "No previous tags found, starting fresh" >&2
+fi
+
+for spec in "${COMPONENT_SPECS[@]}"; do
+  IFS=':' read -r component changed digest <<< "$spec"
+
+  if [ -z "$component" ] || [ -z "$changed" ] || [ -z "$digest" ]; then
+    echo "ERROR: Invalid component spec: $spec (expected component:changed:digest)" >&2
+    exit 2
+  fi
+
+  if [ "$changed" = "true" ]; then
+    jq --arg comp "$component" \
+       --arg sha "$COMMIT_SHA" \
+       --arg digest "$digest" \
+       '.[$comp] = {"commitSHA": $sha, "digest": $digest}' \
+       "$WORKING_TAGS_JSON" > "$TEMP_TAGS_JSON"
+    mv "$TEMP_TAGS_JSON" "$WORKING_TAGS_JSON"
+    echo "Updated $component: commitSHA=$COMMIT_SHA digest=$digest" >&2
+  else
+    has_component=$(jq --arg comp "$component" 'has($comp)' "$WORKING_TAGS_JSON")
+    if [ "$has_component" = "false" ]; then
+      jq --arg comp "$component" \
+         --arg sha "$COMMIT_SHA" \
+         --arg digest "$digest" \
+         '.[$comp] = {"commitSHA": $sha, "digest": $digest}' \
+         "$WORKING_TAGS_JSON" > "$TEMP_TAGS_JSON"
+      mv "$TEMP_TAGS_JSON" "$WORKING_TAGS_JSON"
+      echo "Created $component (first time): commitSHA=$COMMIT_SHA digest=$digest" >&2
+    else
+      echo "Kept $component: unchanged" >&2
+    fi
+  fi
+done
+
+mv "$WORKING_TAGS_JSON" "$OUTPUT_FILE"
+
+echo "" >&2
+echo "Updated component tags:" >&2
+jq . "$OUTPUT_FILE" >&2
+echo "Component tags updated successfully → $OUTPUT_FILE" >&2

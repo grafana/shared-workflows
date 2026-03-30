@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Build component triplets from change-detection output, pass them to
+# select-component-digests, write selected-digests.json, and emit
+# selected_digests_json to GITHUB_OUTPUT for downstream steps.
+#
+# Environment variables:
+#   CHANGES_JSON        JSON object of component → changed (true/false)
+#   COMPONENTS_JSON     JSON array of component names
+#   COMPONENT_TAGS_FILE Path to previous component tags file (default: component-tags.json)
+#   GITHUB_OUTPUT       Set automatically by GitHub Actions
+
+: "${CHANGES_JSON:?CHANGES_JSON is required}"
+: "${COMPONENTS_JSON:?COMPONENTS_JSON is required}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TAGS_FILE="${COMPONENT_TAGS_FILE:-component-tags.json}"
+
+TRIPLETS=()
+while IFS= read -r component; do
+  changed=$(echo "$CHANGES_JSON" | jq -r ".$component")
+  new_digest=$(jq -r ".${component}_digest" new-digests.json)
+  TRIPLETS+=("${component}:${changed}:${new_digest}")
+done < <(echo "$COMPONENTS_JSON" | jq -r '.[]')
+
+"${SCRIPT_DIR}/select-component-digests" \
+  "$TAGS_FILE" \
+  json \
+  "${TRIPLETS[@]}" > selected-digests.json
+
+echo "Selected digests:"
+jq . selected-digests.json
+
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  echo "selected_digests_json=$(jq -c . selected-digests.json)" >> "$GITHUB_OUTPUT"
+fi

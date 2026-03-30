@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Aggregate component digests from individual digest files.
+#
+# Usage: aggregate-component-digests <digest-dir> <output-format> [components...]
+#
+# Arguments:
+#   digest-dir     Directory containing per-component digest .txt files
+#   output-format  "github" (GITHUB_OUTPUT) or "json" (JSON to stdout)
+#   components     Space-separated list of component names
+#
+# Exit codes:
+#   0 - Success
+#   1 - Missing or invalid digest files
+#   2 - Invalid arguments
+
+usage() {
+  cat <<EOF
+Usage: $0 <digest-dir> <output-format> [components...]
+
+Arguments:
+  digest-dir      Directory containing component digest files
+  output-format   Output format: "github" or "json"
+  components      Space-separated list of component names
+
+Examples:
+  $0 component-digests github apiserver controller migrator
+  $0 component-digests json apiserver controller
+EOF
+}
+
+if [ $# -lt 3 ]; then
+  usage
+  exit 2
+fi
+
+DIGEST_DIR="$1"
+OUTPUT_FORMAT="$2"
+shift 2
+COMPONENTS=("$@")
+
+if [ ! -d "$DIGEST_DIR" ]; then
+  echo "ERROR: Digest directory not found: $DIGEST_DIR" >&2
+  exit 2
+fi
+
+if [[ "$OUTPUT_FORMAT" != "github" && "$OUTPUT_FORMAT" != "json" ]]; then
+  echo "ERROR: Invalid output format: $OUTPUT_FORMAT (must be 'github' or 'json')" >&2
+  exit 2
+fi
+
+echo "Aggregating component digests from $DIGEST_DIR..." >&2
+
+DOCKERTAG_FILE="$DIGEST_DIR/dockertag.txt"
+if [ ! -f "$DOCKERTAG_FILE" ]; then
+  echo "ERROR: Missing dockertag file: $DOCKERTAG_FILE" >&2
+  exit 1
+fi
+
+DOCKERTAG=$(< "$DOCKERTAG_FILE")
+echo "Using dockertag: $DOCKERTAG" >&2
+
+INVALID_COMPONENTS=""
+DIGESTS_JSON=$(mktemp)
+trap 'rm -f "$DIGESTS_JSON"' EXIT
+echo "{}" > "$DIGESTS_JSON"
+
+for component in "${COMPONENTS[@]}"; do
+  digest_file="$DIGEST_DIR/${component}.txt"
+
+  if [ ! -f "$digest_file" ]; then
+    echo "ERROR: Missing digest file for component '$component'" >&2
+    INVALID_COMPONENTS="${INVALID_COMPONENTS}${component} "
+    continue
+  fi
+
+  DIGEST=$(< "$digest_file")
+
+  if [ -z "$DIGEST" ]; then
+    echo "ERROR: Component '$component' has empty digest" >&2
+    INVALID_COMPONENTS="${INVALID_COMPONENTS}${component} "
+  else
+    jq --arg comp "$component" --arg digest "$DIGEST" '. + {($comp): $digest}' "$DIGESTS_JSON" > "${DIGESTS_JSON}.tmp"
+    mv "${DIGESTS_JSON}.tmp" "$DIGESTS_JSON"
+    echo "$component: $DIGEST" >&2
+  fi
+done
+
+if [ -n "$INVALID_COMPONENTS" ]; then
+  echo "FATAL: Components with invalid/missing digests: $INVALID_COMPONENTS" >&2
+  exit 1
+fi
+
+echo "All component digests are valid" >&2
+
+if [ "$OUTPUT_FORMAT" = "github" ]; then
+  echo "dockertag=$DOCKERTAG" >> "${GITHUB_OUTPUT:-/dev/stdout}"
+  for component in "${COMPONENTS[@]}"; do
+    DIGEST=$(jq -r --arg comp "$component" '.[$comp]' "$DIGESTS_JSON")
+    echo "${component}_digest=${DIGEST}" >> "${GITHUB_OUTPUT:-/dev/stdout}"
+  done
+elif [ "$OUTPUT_FORMAT" = "json" ]; then
+  printf '%s\n' "${COMPONENTS[@]}" | jq -R . | jq -s \
+    --arg dockertag "$DOCKERTAG" \
+    --slurpfile digests "$DIGESTS_JSON" '
+    {dockertag: $dockertag} +
+    (. | map({("\(.)_digest"): $digests[0][.]}) | add)
+  '
+fi
+
+echo "Aggregation complete" >&2
