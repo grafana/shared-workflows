@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.1...azure-trusted-signing/v1.0.2) (2026-04-03)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency sign to 0.9.1-beta.26179.1 ([#1842](https://github.com/grafana/shared-workflows/issues/1842)) ([b7599c8](https://github.com/grafana/shared-workflows/commit/b7599c8bf2a6ac988912714bedf87154eda15623))
+
 ## [1.0.1](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.0...azure-trusted-signing/v1.0.1) (2026-03-20)
 
 
