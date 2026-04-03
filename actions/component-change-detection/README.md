@@ -19,13 +19,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout with history
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v1.0.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v1.0.1
         with:
           fetch-depth: 100
 
       - name: Detect changed components
         id: detect
-        uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.0
+        uses: grafana/shared-workflows/actions/component-change-detection@component-change-detection/v1.0.1
         with:
           config-file: ".component-deps.yaml"
           previous-tags-source: "deploy-prod.yml"
