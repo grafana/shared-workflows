@@ -194,6 +194,11 @@
       "package-name": "component-change-detection",
       "extra-files": ["README.md"],
       "initial-version": "1.0.0"
+    },
+    ".github/workflows/docker-build-push-multiarch": {
+      "package-name": "docker-build-push-multiarch",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
