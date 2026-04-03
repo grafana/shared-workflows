@@ -1,0 +1,99 @@
+name: Update GitHub Project Issue Status
+description: |
+  Updates a GitHub Project (v2) issue status field when an issue is assigned.
+  Requires the calling job to have `id-token: write` permission for Vault authentication.
+
+inputs:
+  github-app:
+    description: |
+      GitHub App name in Vault used to generate an API token with project write access.
+      (e.g. `grafana-federal-app`)
+    required: true
+  project-id:
+    description: |
+      The node ID of the GitHub Project (v2) board.
+      Retrieve with: gh project view <number> --owner <org> --format json
+    required: true
+  status-field-id:
+    description: |
+      The node ID of the Status field on the project board.
+      Retrieve with: gh project field-list <number> --owner <org> --format json
+    required: true
+  target-status-option-id:
+    description: |
+      The ID of the status option to set on the project item (e.g. the "In Progress" option ID).
+      Retrieve with: gh project field-list <number> --owner <org> --format json
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout shared workflows
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _shared-workflows-issues-update-project-status
+        persist-credentials: false
+
+    - id: get-token
+      uses: ./_shared-workflows-issues-update-project-status/actions/create-github-app-token
+      with:
+        github_app: ${{ inputs.github-app }}
+
+    - name: Remove shared workflows checkout
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: rm -rf _shared-workflows-issues-update-project-status
+
+    - name: Update project item status
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.get-token.outputs.token }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        ORG: ${{ github.repository_owner }}
+        REPO: ${{ github.event.repository.name }}
+        PROJECT_ID: ${{ inputs.project-id }}
+        STATUS_FIELD_ID: ${{ inputs.status-field-id }}
+        TARGET_STATUS_OPTION_ID: ${{ inputs.target-status-option-id }}
+      run: |
+        # shellcheck disable=SC2016
+        ITEM_ID=$(gh api graphql -f query='
+          query($org: String!, $repo: String!, $issueNumber: Int!) {
+            repository(owner: $org, name: $repo) {
+              issue(number: $issueNumber) {
+                projectItems(first: 10) {
+                  nodes {
+                    id
+                    project { id }
+                  }
+                }
+              }
+            }
+          }
+        ' -f org="$ORG" -f repo="$REPO" -F issueNumber="$ISSUE_NUMBER" \
+          | jq -r --arg projectId "$PROJECT_ID" '
+              .data.repository.issue.projectItems.nodes[]
+              | select(.project.id == $projectId)
+              | .id
+            ')
+
+        # shellcheck disable=SC2016
+        gh api graphql -f query='
+          mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+            updateProjectV2ItemFieldValue(
+              input: {
+                projectId: $projectId
+                itemId: $itemId
+                fieldId: $fieldId
+                value: { singleSelectOptionId: $optionId }
+              }
+            ) {
+              projectV2Item { id }
+            }
+          }
+        ' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" \
+          -f fieldId="$STATUS_FIELD_ID" -f optionId="$TARGET_STATUS_OPTION_ID"
