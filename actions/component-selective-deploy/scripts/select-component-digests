@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Select appropriate component digests based on change detection.
+# Changed components use the new digest; unchanged use the previous digest
+# (falling back to new if no previous is available).
+#
+# Usage: select-component-digests <previous-tags-file> <output-format> <component:changed:new_digest> ...
+#
+# Arguments:
+#   previous-tags-file  JSON file with previous component tags ({component: {commitSHA, digest}})
+#   output-format       "github" (GITHUB_OUTPUT) or "json" (JSON to stdout)
+#   component triplets  "name:changed:new_digest" where changed is "true" or "false"
+#
+# Exit codes:
+#   0 - Success
+#   2 - Invalid arguments
+
+usage() {
+  cat <<EOF
+Usage: $0 <previous-tags-file> <output-format> <component:changed:new_digest> ...
+
+Examples:
+  $0 component-tags.json json \\
+    apiserver:true:abc123@sha256:new123 \\
+    controller:false:abc123@sha256:new456
+EOF
+}
+
+if [ $# -lt 3 ]; then
+  usage
+  exit 2
+fi
+
+PREVIOUS_TAGS_FILE="$1"
+OUTPUT_FORMAT="$2"
+shift 2
+COMPONENT_SPECS=("$@")
+
+if [[ "$OUTPUT_FORMAT" != "github" && "$OUTPUT_FORMAT" != "json" ]]; then
+  echo "ERROR: Invalid output format: $OUTPUT_FORMAT (must be 'github' or 'json')" >&2
+  exit 2
+fi
+
+echo "Selecting appropriate digests for deployment..." >&2
+
+PREVIOUS_TAGS_JSON=$(mktemp)
+SELECTED_DIGESTS_JSON=$(mktemp)
+trap 'rm -f "$PREVIOUS_TAGS_JSON" "$SELECTED_DIGESTS_JSON"' EXIT
+
+if [ -f "$PREVIOUS_TAGS_FILE" ] && [ -s "$PREVIOUS_TAGS_FILE" ]; then
+  echo "Found previous component tags:" >&2
+  if jq . "$PREVIOUS_TAGS_FILE" >&2; then
+    FIRST_VALUE=$(jq -r 'to_entries | .[0].value | type' "$PREVIOUS_TAGS_FILE" 2>/dev/null || echo "null")
+    if [ "$FIRST_VALUE" = "string" ]; then
+      echo "Old format detected (SHA only) - all components will use new digests" >&2
+      echo '{}' > "$PREVIOUS_TAGS_JSON"
+    else
+      echo "New format detected (SHA + digest)" >&2
+      cp "$PREVIOUS_TAGS_FILE" "$PREVIOUS_TAGS_JSON"
+    fi
+  else
+    echo "Warning: Could not parse previous tags as JSON, treating as empty" >&2
+    echo '{}' > "$PREVIOUS_TAGS_JSON"
+  fi
+else
+  echo "No previous tags found - first deployment, all components will use new digests" >&2
+  echo '{}' > "$PREVIOUS_TAGS_JSON"
+fi
+
+echo "{}" > "$SELECTED_DIGESTS_JSON"
+
+for spec in "${COMPONENT_SPECS[@]}"; do
+  IFS=':' read -r component changed new_digest <<< "$spec"
+
+  if [ -z "$component" ] || [ -z "$changed" ] || [ -z "$new_digest" ]; then
+    echo "ERROR: Invalid component spec: $spec (expected component:changed:new_digest)" >&2
+    exit 2
+  fi
+
+  if [ "$changed" = "true" ]; then
+    echo "$component changed - using NEW digest: $new_digest" >&2
+    jq --arg comp "$component" --arg digest "$new_digest" '. + {($comp): $digest}' "$SELECTED_DIGESTS_JSON" > "${SELECTED_DIGESTS_JSON}.tmp"
+    mv "${SELECTED_DIGESTS_JSON}.tmp" "$SELECTED_DIGESTS_JSON"
+  else
+    old_digest=$(jq -r ".${component}.digest // empty" "$PREVIOUS_TAGS_JSON" 2>/dev/null || echo "")
+    if [ -n "$old_digest" ]; then
+      echo "$component unchanged - using OLD digest: $old_digest" >&2
+      jq --arg comp "$component" --arg digest "$old_digest" '. + {($comp): $digest}' "$SELECTED_DIGESTS_JSON" > "${SELECTED_DIGESTS_JSON}.tmp"
+      mv "${SELECTED_DIGESTS_JSON}.tmp" "$SELECTED_DIGESTS_JSON"
+    else
+      echo "Warning: $component unchanged but no previous digest - using NEW digest: $new_digest" >&2
+      jq --arg comp "$component" --arg digest "$new_digest" '. + {($comp): $digest}' "$SELECTED_DIGESTS_JSON" > "${SELECTED_DIGESTS_JSON}.tmp"
+      mv "${SELECTED_DIGESTS_JSON}.tmp" "$SELECTED_DIGESTS_JSON"
+    fi
+  fi
+done
+
+echo "" >&2
+echo "Final deployment digests:" >&2
+jq -r 'to_entries | .[] | "  \(.key): \(.value)"' "$SELECTED_DIGESTS_JSON" >&2
+
+if [ "$OUTPUT_FORMAT" = "github" ]; then
+  jq -r 'to_entries | .[] | "\(.key)_digest=\(.value)"' "$SELECTED_DIGESTS_JSON" >> "${GITHUB_OUTPUT:-/dev/stdout}"
+elif [ "$OUTPUT_FORMAT" = "json" ]; then
+  jq 'to_entries | map({("\(.key)_digest"): .value}) | add' "$SELECTED_DIGESTS_JSON"
+fi
+
+echo "Digest selection complete" >&2

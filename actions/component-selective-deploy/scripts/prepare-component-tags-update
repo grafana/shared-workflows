@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Build component triplets from change-detection output and selected digests,
+# then call update-component-tags to persist the new state.
+#
+# Environment variables:
+#   CHANGES_JSON        JSON object of component → changed (true/false)
+#   COMPONENTS_JSON     JSON array of component names
+#   COMMIT_SHA          Git commit SHA of the deployment
+#   COMPONENT_TAGS_FILE Path to component tags file (default: component-tags.json)
+
+: "${CHANGES_JSON:?CHANGES_JSON is required}"
+: "${COMPONENTS_JSON:?COMPONENTS_JSON is required}"
+: "${COMMIT_SHA:?COMMIT_SHA is required}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TAGS_FILE="${COMPONENT_TAGS_FILE:-component-tags.json}"
+
+TRIPLETS=()
+while IFS= read -r component; do
+  changed=$(echo "$CHANGES_JSON" | jq -r ".$component")
+  deployed_digest=$(jq -r ".${component}_digest" selected-digests.json)
+  TRIPLETS+=("${component}:${changed}:${deployed_digest}")
+done < <(echo "$COMPONENTS_JSON" | jq -r '.[]')
+
+"${SCRIPT_DIR}/update-component-tags" \
+  "$TAGS_FILE" \
+  "$TAGS_FILE" \
+  "${COMMIT_SHA}" \
+  "${TRIPLETS[@]}"

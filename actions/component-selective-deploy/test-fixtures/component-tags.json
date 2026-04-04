@@ -1,0 +1,14 @@
+{
+  "apiserver": {
+    "commitSHA": "old5678",
+    "digest": "old5678@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "controller": {
+    "commitSHA": "old5678",
+    "digest": "old5678@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "migrator": {
+    "commitSHA": "old5678",
+    "digest": "old5678@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  }
+}
