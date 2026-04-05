@@ -1,0 +1,174 @@
+name: Shorten Renovate branch names
+
+on:
+  workflow_call:
+    inputs:
+      max-combined-length:
+        description: >
+          Maximum allowed length of repo name + branch name combined.
+          WIF assertion.sub has a ~127 byte limit; subtract 21 chars overhead
+          for "repo:" + ":ref:refs/heads/" to get the default of 100.
+        required: false
+        type: number
+        default: 100
+
+permissions: {}
+
+jobs:
+  shorten-branch:
+    runs-on: ubuntu-arm64
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check eligibility
+        id: check
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_NAME: ${{ github.repository }}
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          MAX_LENGTH: ${{ inputs.max-combined-length }}
+          EVENT_ACTION: ${{ github.event.action }}
+        shell: bash
+        run: |
+          # Only act on Renovate PRs
+          if [[ "${PR_AUTHOR}" != "renovate[bot]" ]]; then
+            echo "Not a Renovate PR (author: ${PR_AUTHOR}). Skipping."
+            echo "eligible=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          combined_length=$(( ${#REPO_NAME} + ${#BRANCH_NAME} ))
+          echo "Combined length: ${combined_length} (repo=${#REPO_NAME} + branch=${#BRANCH_NAME})"
+
+          if [[ "${combined_length}" -le "${MAX_LENGTH}" ]]; then
+            echo "Combined length ${combined_length} <= ${MAX_LENGTH}. Skipping."
+            echo "eligible=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          short_branch="${PR_NUMBER}"
+          echo "Branch too long. Will mirror to: ${short_branch}"
+          echo "eligible=true" >> "${GITHUB_OUTPUT}"
+          echo "short-branch=${short_branch}" >> "${GITHUB_OUTPUT}"
+
+      - name: Handle closed event
+        if: steps.check.outputs.eligible == 'true' && github.event.action == 'closed'
+        env:
+          SHORT_BRANCH: ${{ steps.check.outputs.short-branch }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          # Close any mirror PR
+          mirror_pr=$(gh pr list \
+            --repo "${REPO}" \
+            --head "${SHORT_BRANCH}" \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [[ -n "${mirror_pr}" ]]; then
+            echo "Closing mirror PR #${mirror_pr}"
+            gh pr close "${mirror_pr}" --repo "${REPO}" --delete-branch
+          else
+            echo "No mirror PR found. Attempting to delete branch directly."
+            gh api "repos/${REPO}/git/refs/heads/${SHORT_BRANCH}" \
+              -X DELETE 2>/dev/null || echo "Branch ${SHORT_BRANCH} not found or already deleted."
+          fi
+
+      - name: Checkout original branch
+        if: steps.check.outputs.eligible == 'true' && github.event.action != 'closed'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Force-push to short branch
+        if: steps.check.outputs.eligible == 'true' && github.event.action != 'closed'
+        env:
+          SHORT_BRANCH: ${{ steps.check.outputs.short-branch }}
+        shell: bash
+        run: |
+          git push --force origin "HEAD:refs/heads/${SHORT_BRANCH}"
+
+      - name: Check for existing mirror PR
+        if: steps.check.outputs.eligible == 'true' && github.event.action != 'closed'
+        id: find-mirror
+        env:
+          SHORT_BRANCH: ${{ steps.check.outputs.short-branch }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          mirror_pr=$(gh pr list \
+            --repo "${REPO}" \
+            --head "${SHORT_BRANCH}" \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [[ -n "${mirror_pr}" ]]; then
+            echo "Mirror PR already exists: #${mirror_pr}"
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+            echo "number=${mirror_pr}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "No mirror PR found."
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Create mirror PR
+        if: steps.check.outputs.eligible == 'true' && github.event.action != 'closed' && steps.find-mirror.outputs.exists == 'false'
+        id: create-mirror
+        env:
+          SHORT_BRANCH: ${{ steps.check.outputs.short-branch }}
+          ORIGINAL_PR: ${{ github.event.pull_request.number }}
+          ORIGINAL_TITLE: ${{ github.event.pull_request.title }}
+          REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        shell: bash
+        run: |
+          # Copy labels from original PR
+          labels=$(gh pr view "${ORIGINAL_PR}" \
+            --repo "${REPO}" \
+            --json labels \
+            --jq '[.labels[].name] | join(",")')
+
+          printf -v body '%s\n\n%s\n\n%s' \
+            "Mirror of #${ORIGINAL_PR} with a shorter branch name for WIF compatibility." \
+            "This PR was automatically created because the original Renovate branch name was too long for Google Workload Identity Federation." \
+            "> **Do not close the original PR** — merge this one instead. Renovate will auto-close the original when it detects the dependency has been updated."
+
+          create_args=(
+            --repo "${REPO}"
+            --base "${DEFAULT_BRANCH}"
+            --head "${SHORT_BRANCH}"
+            --title "${ORIGINAL_TITLE}"
+            --body "${body}"
+          )
+
+          if [[ -n "${labels}" ]]; then
+            create_args+=(--label "${labels}")
+          fi
+
+          mirror_url=$(gh pr create "${create_args[@]}")
+
+          echo "Created mirror PR: ${mirror_url}"
+          echo "url=${mirror_url}" >> "${GITHUB_OUTPUT}"
+
+      - name: Comment on original PR
+        if: steps.check.outputs.eligible == 'true' && github.event.action != 'closed' && steps.find-mirror.outputs.exists == 'false'
+        env:
+          ORIGINAL_PR: ${{ github.event.pull_request.number }}
+          MIRROR_URL: ${{ steps.create-mirror.outputs.url }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          printf -v body '%s\n\n%s' \
+            "A mirror PR with a shorter branch name has been created for WIF compatibility: ${MIRROR_URL}" \
+            "Please review and merge the mirror PR instead of this one."
+
+          gh pr comment "${ORIGINAL_PR}" \
+            --repo "${REPO}" \
+            --body "${body}"
