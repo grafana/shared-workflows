@@ -95,6 +95,11 @@ runs:
               | .id
             ')
 
+        if [[ -z "$ITEM_ID" ]]; then
+          echo "::warning::Issue #${ISSUE_NUMBER} was not found in project ${PROJECT_ID} - skipping status update" >&2
+          exit 0
+        fi
+
         # shellcheck disable=SC2016
         gh api graphql -f query='
           mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
