@@ -56,7 +56,7 @@ runs:
         ${GITHUB_ACTION_PATH}/capslock.sh
       # Remove checkout credentials
     - uses: grafana/shared-workflows/actions/remove-checkout-credentials@2c55567fed8874f47886e035f4e91f79f6039149 # v0.1.0
-    - uses: marocchino/sticky-pull-request-comment@70d2764d1a7d5d9560b100cbea0077fc8f633987 # v3.0.2
+    - uses: marocchino/sticky-pull-request-comment@d4d6b0936434b21bc8345ad45a440c5f7d2c40ff # v3.0.3
       if: steps.capslock-run.outputs.output != ''
       with:
         hide_and_recreate: true
