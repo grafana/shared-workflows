@@ -434,6 +434,7 @@ jobs:
         id: zizmor-plain
         shell: bash
         env:
+          NO_COLOR: 1
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         run: |
