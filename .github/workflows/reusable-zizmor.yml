@@ -203,14 +203,10 @@ jobs:
 
             const AUDIENCE = 'zizmor-job-workflow-ref';
 
-            // Fork PRs (and some other contexts) have no OIDC token. Detect that
-            // up front and use fallback without throwing, so the step succeeds
-            // and the log stays clear.
+            // Fork PRs have no OIDC token, so we can't detect the workflow ref. Use main.
             const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL'];
             if (!runtimeUrl) {
-              core.info(
-                "No OIDC token available (e.g. pull request from a fork). Using fallback: grafana/shared-workflows@main for default config."
-              );
+              core.info("No OIDC token (e.g. fork PR). Using grafana/shared-workflows@main for default config.");
               core.setOutput('owner', 'grafana');
               core.setOutput('repo', 'shared-workflows');
               core.setOutput('sha', 'main');
@@ -278,6 +274,64 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+
+      # Optional: repos that vendor upstream trees with nested `.github/workflows` (e.g.
+      # deployment_tools — security-appsec#326) can list directory prefixes in this file.
+      # If the file is absent, zizmor still runs on `.` only (unchanged from before).
+      - name: Optional vendored-path excludes for zizmor
+        id: zizmor-paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          LIST="${RUNNER_TEMP}/zizmor-explicit-inputs.txt"
+          NORM="${RUNNER_TEMP}/zizmor-collection-prefixes.txt"
+
+          if [ ! -f .github/zizmor-collection-ignore ]; then
+            echo "use_explicit_paths=false" >> "${GITHUB_OUTPUT}"
+            echo "paths_list=" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          : > "${NORM}"
+          while IFS= read -r line || [ -n "${line}" ]; do
+            s="${line#"${line%%[![:space:]]*}"}"
+            s="${s%"${s##*[![:space:]]}"}"
+            [ -z "${s}" ] && continue
+            case "${s}" in \#*) continue ;; esac
+            s="${s#/}"
+            s="${s%\*\*}"
+            s="${s%/\*}"
+            while [ "${s}" != "${s%/}" ]; do s="${s%/}"; done
+            case "${s}" in *\*) continue ;; esac
+            [ -n "${s}" ] && printf '%s\n' "${s}" >> "${NORM}"
+          done < <(sed '/^[[:space:]]*$/d;/^[[:space:]]*#/d' .github/zizmor-collection-ignore)
+
+          if [ ! -s "${NORM}" ]; then
+            echo "use_explicit_paths=false" >> "${GITHUB_OUTPUT}"
+            echo "paths_list=" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          pargs=()
+          while IFS= read -r p || [ -n "${p}" ]; do
+            [ -z "${p}" ] && continue
+            pargs+=( "(" "-path" "./${p}" "-prune" ")" "-o" )
+          done < "${NORM}"
+
+          : > "${LIST}"
+          find . "${pargs[@]}" \
+            \( \( -type f \( -path '*/.github/workflows/*.yml' -o -path '*/.github/workflows/*.yaml' \) \) -o \
+               \( -type f \( -name 'action.yml' -o -name 'action.yaml' \) \) -o \
+               \( -type f \( -name 'dependabot.yml' -o -name 'dependabot.yaml' \) \) \
+            \) -print > "${LIST}"
+
+          if [ ! -s "${LIST}" ]; then
+            echo "::error::.github/zizmor-collection-ignore excluded every zizmor input. Remove or relax a prefix."
+            exit 1
+          fi
+
+          echo "use_explicit_paths=true" >> "${GITHUB_OUTPUT}"
+          echo "paths_list=${LIST}" >> "${GITHUB_OUTPUT}"
 
       - name: Restore config from cache
         id: cache-config
@@ -398,21 +452,83 @@ jobs:
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-        shell: sh
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-paths.outputs.paths_list }}
+        shell: bash
         run: |
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format sarif \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            > results.sarif
-          exit_code=$?
-          # Only fail on exit code 1 (zizmor crash). 0 = no findings, 10-14 = findings by severity.
-          if [ "${exit_code}" -eq 1 ]; then exit 1; fi
+          set -euo pipefail
+          # Cap argv size per zizmor process (explicit path mode only); merge SARIF parts with jq.
+          ZIZMOR_ARG_BATCH=400
+
+          zizmor_sarif() {
+            uvx zizmor@"${ZIZMOR_VERSION}" \
+              --format sarif \
+              --min-severity "${MIN_SEVERITY}" \
+              --min-confidence "${MIN_CONFIDENCE}" \
+              --cache-dir "${ZIZMOR_CACHE_DIR}" \
+              ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
+              ${RUNNER_DEBUG:+"--verbose"} \
+              ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
+              "$@"
+          }
+
+          if [ "${USE_EXPLICIT_PATHS}" != "true" ]; then
+            set +e
+            zizmor_sarif . > results.sarif
+            exit_code=$?
+            set -e
+            if [ "${exit_code}" -eq 1 ]; then exit 1; fi
+            exit 0
+          fi
+
+          npaths=$(wc -l < "${PATHS_LIST}" | tr -d ' ')
+          if [ "${npaths}" -le "${ZIZMOR_ARG_BATCH}" ]; then
+            TARGETS=()
+            while IFS= read -r line || [ -n "${line}" ]; do
+              [ -z "${line}" ] && continue
+              TARGETS+=("${line}")
+            done < "${PATHS_LIST}"
+            set +e
+            zizmor_sarif "${TARGETS[@]}" > results.sarif
+            exit_code=$?
+            set -e
+            if [ "${exit_code}" -eq 1 ]; then exit 1; fi
+            exit 0
+          fi
+
+          echo "Splitting ${npaths} zizmor inputs into batches of ${ZIZMOR_ARG_BATCH} (argv limit)."
+          rm -f "${RUNNER_TEMP}"/ziz-sarif-part-*.sarif
+          split -l "${ZIZMOR_ARG_BATCH}" "${PATHS_LIST}" "${RUNNER_TEMP}/zizpath."
+          part=0
+          for chunk in "${RUNNER_TEMP}"/zizpath.*; do
+            [ -f "${chunk}" ] || continue
+            part=$((part + 1))
+            printf -v sarif_out '%s/ziz-sarif-part-%05d.sarif' "${RUNNER_TEMP}" "${part}"
+            batch=()
+            while IFS= read -r line || [ -n "${line}" ]; do
+              [ -z "${line}" ] && continue
+              batch+=("${line}")
+            done < "${chunk}"
+            set +e
+            zizmor_sarif "${batch[@]}" > "${sarif_out}"
+            exit_code=$?
+            set -e
+            if [ "${exit_code}" -eq 1 ]; then exit 1; fi
+          done
+          mapfile -t sarif_parts < <(find "${RUNNER_TEMP}" -maxdepth 1 -name 'ziz-sarif-part-*.sarif' | LC_ALL=C sort)
+          jq -s '
+            if length == 0 then
+              error("no SARIF parts")
+            elif length == 1 then
+              .[0]
+            else
+              {
+                "$schema": .[0]["$schema"],
+                version: .[0].version,
+                runs: [.[].runs[]]
+              }
+            end
+          ' "${sarif_parts[@]}" > results.sarif
           exit 0
 
       - name: Upload artifact
@@ -437,33 +553,70 @@ jobs:
           NO_COLOR: 1
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-paths.outputs.paths_list }}
         run: |
           set -o pipefail
+          ZIZMOR_ARG_BATCH=400
+
+          zizmor_plain() {
+            uvx zizmor@"${ZIZMOR_VERSION}" \
+              --format plain \
+              --min-severity "${MIN_SEVERITY}" \
+              --min-confidence "${MIN_CONFIDENCE}" \
+              --cache-dir "${ZIZMOR_CACHE_DIR}" \
+              ${RUNNER_DEBUG:+"--verbose"} \
+              ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
+              ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
+              "$@"
+          }
+
+          # Sets _zec to zizmor exit (pipefail); crashes (1) exit the step immediately.
+          run_plain_batch() {
+            set +e
+            zizmor_plain "$@" | tee -a "${GITHUB_OUTPUT}"
+            _zec=$?
+            set -e
+            if [ "${_zec}" -eq 1 ]; then
+              echo "zizmor itself failed - check the above output. failing the workflow."
+              exit 1
+            fi
+          }
 
           echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
-          # don't fail the build if zizmor fails - we want to capture the output
-          # and the exit code
-          set +e
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format plain \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            | tee -a "${GITHUB_OUTPUT}"
-          zizmor_exit_code=$?
-          set -e
-          echo "EOF" >> "${GITHUB_OUTPUT}"
 
-          # Error 1 is a failure of zizmor itself
-          if [ "${zizmor_exit_code}" -eq 1 ]; then
-            echo "zizmor itself failed - check the above output. failing the workflow."
-            exit 1
+          zizmor_exit_code=0
+          if [ "${USE_EXPLICIT_PATHS}" != "true" ]; then
+            run_plain_batch .
+            zizmor_exit_code="${_zec}"
+          else
+            npaths=$(wc -l < "${PATHS_LIST}" | tr -d ' ')
+            if [ "${npaths}" -le "${ZIZMOR_ARG_BATCH}" ]; then
+              TARGETS=()
+              while IFS= read -r line || [ -n "${line}" ]; do
+                [ -z "${line}" ] && continue
+                TARGETS+=("${line}")
+              done < "${PATHS_LIST}"
+              run_plain_batch "${TARGETS[@]}"
+              zizmor_exit_code="${_zec}"
+            else
+              split -l "${ZIZMOR_ARG_BATCH}" "${PATHS_LIST}" "${RUNNER_TEMP}/zizplain."
+              for chunk in "${RUNNER_TEMP}"/zizplain.*; do
+                [ -f "${chunk}" ] || continue
+                batch=()
+                while IFS= read -r line || [ -n "${line}" ]; do
+                  [ -z "${line}" ] && continue
+                  batch+=("${line}")
+                done < "${chunk}"
+                run_plain_batch "${batch[@]}"
+                if [ "${_zec}" -gt "${zizmor_exit_code}" ]; then
+                  zizmor_exit_code="${_zec}"
+                fi
+              done
+            fi
           fi
 
+          echo "EOF" >> "${GITHUB_OUTPUT}"
           echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Remove zizmor config
