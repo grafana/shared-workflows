@@ -419,6 +419,16 @@ jobs:
           # Stable prefix for CI log search (e.g. `zizmor-config-validator failed`).
           _FAIL_LOG_PREFIX = "zizmor-config-validator failed:"
 
+          # Audits that must not appear under `rules` in repo-local zizmor.yml at all
+          # (no disable, ignore, or config — the whole block is forbidden).
+          _FORBIDDEN_RULE_AUDITS = (
+              "insecure-commands",
+              "template-injection",
+              "impostor-commit",
+              "known-vulnerable-actions",
+              "ref-confusion",
+          )
+
 
           class UniqueKeyFullLoader(FullLoader):
               """Like FullLoader but reject duplicate keys in any mapping (YAML 1.2 forbids them)."""
@@ -493,11 +503,12 @@ jobs:
                   _fail(path, "`rules` must be a mapping")
                   return
 
-              if "insecure-commands" in rules:
-                  _fail(path, "forbidden key `rules.insecure-commands` (remove this audit block from the config)")
-
-              if "template-injection" in rules:
-                  _fail(path, "forbidden key `rules.template-injection` (remove this audit block from the config)")
+              for audit_id in _FORBIDDEN_RULE_AUDITS:
+                  if audit_id in rules:
+                      _fail(
+                          path,
+                          f"forbidden key `rules.{audit_id}` (remove this audit block from the config)",
+                      )
 
               unpinned = rules.get("unpinned-uses")
               if unpinned is None:

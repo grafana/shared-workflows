@@ -169,7 +169,7 @@ The gate is **skipped** when:
 
 The policy rejects configs that:
 
-- Define `rules.insecure-commands` or `rules.template-injection` (any keys under those audits),
+- Define any of these audit blocks under `rules` (no `disable`, `ignore`, or `config` is allowed — remove the block entirely): `insecure-commands`, `template-injection`, `impostor-commit`, `known-vulnerable-actions`, `ref-confusion`,
 - Set `rules.unpinned-uses.disable`,
 - Set `rules.unpinned-uses.config.policies` with a universal [`"*": any`](https://docs.zizmor.sh/audits/#unpinned-uses) entry (all `uses:` clauses may stay unpinned). Scoped policies such as `actions/*: any` or `grafana/*: any` remain valid.
 
