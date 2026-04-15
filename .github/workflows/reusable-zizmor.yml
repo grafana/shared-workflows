@@ -361,12 +361,14 @@ jobs:
             if [ -f "zizmor.yml" ]; then
               # No action needed, zizmor will find it
               echo "Using zizmor.yml found in repository root."
+              echo "repo_local_zizmor_config=zizmor.yml" >> "${GITHUB_OUTPUT}"
               exit 0
             fi
 
             if [ -f ".github/zizmor.yml" ]; then
               # No action needed, zizmor will find it
               echo "Using .github/zizmor.yml found in repository."
+              echo "repo_local_zizmor_config=.github/zizmor.yml" >> "${GITHUB_OUTPUT}"
               exit 0
             fi
 
@@ -387,6 +389,177 @@ jobs:
           activate-environment: true
           cache-suffix: ${{ env.ZIZMOR_VERSION }}
           cache-dependency-glob: ""
+
+      - name: Validate repo-local zizmor config policy
+        if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs.repo_local_zizmor_config != '' }}
+        env:
+          # renovate: datasource=pypi depName=pyyaml
+          PYYAML_VERSION: 6.0.2
+          CONFIG_TO_VALIDATE: ${{ steps.setup-config.outputs.repo_local_zizmor_config }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCRIPT="${RUNNER_TEMP}/validate_zizmor_config.py"
+          cat <<'__ZIZMOR_VALIDATE_PY__' > "${SCRIPT}"
+          #!/usr/bin/env python3
+          """Fail if a repo-local zizmor.yml violates Grafana shared-workflows policy."""
+
+          from __future__ import annotations
+
+          import argparse
+          import sys
+          from collections.abc import Hashable
+          from pathlib import Path
+
+          import yaml
+          from yaml.constructor import ConstructorError
+          from yaml.loader import FullLoader
+          from yaml.nodes import MappingNode
+
+          # Stable prefix for CI log search (e.g. `zizmor-config-validator failed`).
+          _FAIL_LOG_PREFIX = "zizmor-config-validator failed:"
+
+
+          class UniqueKeyFullLoader(FullLoader):
+              """Like FullLoader but reject duplicate keys in any mapping (YAML 1.2 forbids them)."""
+
+              def construct_mapping(self, node, deep=False):
+                  if isinstance(node, MappingNode):
+                      self.flatten_mapping(node)
+                  if not isinstance(node, MappingNode):
+                      raise ConstructorError(
+                          None,
+                          None,
+                          "expected a mapping node, but found %s" % node.id,
+                          node.start_mark,
+                      )
+                  mapping = {}
+                  for key_node, value_node in node.value:
+                      key = self.construct_object(key_node, deep=deep)
+                      if not isinstance(key, Hashable):
+                          raise ConstructorError(
+                              "while constructing a mapping",
+                              node.start_mark,
+                              "found unhashable key",
+                              key_node.start_mark,
+                          )
+                      if key in mapping:
+                          raise ConstructorError(
+                              "while constructing a mapping",
+                              node.start_mark,
+                              "found duplicate key %r" % (key,),
+                              key_node.start_mark,
+                          )
+                      value = self.construct_object(value_node, deep=deep)
+                      mapping[key] = value
+                  return mapping
+
+
+          def _github_error(message: str) -> None:
+              escaped = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::error::{escaped}")
+
+
+          def _fail(path: Path, message: str) -> None:
+              full = f"{_FAIL_LOG_PREFIX} {path}: {message}"
+              _github_error(full)
+              print(full, file=sys.stderr)
+              sys.exit(1)
+
+
+          def _normalize_policy_pattern_key(key: object) -> str | None:
+              if key is None:
+                  return None
+              if isinstance(key, bool):
+                  return None
+              if isinstance(key, (int, float)):
+                  return str(key)
+              if isinstance(key, str):
+                  return key.strip()
+              return None
+
+
+          def validate(data: object, path: Path) -> None:
+              if data is None:
+                  return
+              if not isinstance(data, dict):
+                  _fail(path, "top-level YAML must be a mapping")
+                  return
+
+              rules = data.get("rules")
+              if rules is None:
+                  return
+              if not isinstance(rules, dict):
+                  _fail(path, "`rules` must be a mapping")
+                  return
+
+              if "insecure-commands" in rules:
+                  _fail(path, "forbidden key `rules.insecure-commands` (remove this audit block from the config)")
+
+              if "template-injection" in rules:
+                  _fail(path, "forbidden key `rules.template-injection` (remove this audit block from the config)")
+
+              unpinned = rules.get("unpinned-uses")
+              if unpinned is None:
+                  return
+              if not isinstance(unpinned, dict):
+                  _fail(path, "`rules.unpinned-uses` must be a mapping")
+                  return
+
+              if "disable" in unpinned:
+                  _fail(path, "forbidden key `rules.unpinned-uses.disable`")
+
+              cfg = unpinned.get("config")
+              if cfg is None:
+                  return
+              if not isinstance(cfg, dict):
+                  _fail(path, "`rules.unpinned-uses.config` must be a mapping")
+                  return
+
+              policies = cfg.get("policies")
+              if policies is None:
+                  return
+              if not isinstance(policies, dict):
+                  _fail(path, "`rules.unpinned-uses.config.policies` must be a mapping")
+                  return
+
+              for raw_key, raw_val in policies.items():
+                  key = _normalize_policy_pattern_key(raw_key)
+                  if key == "*" and raw_val == "any":
+                      _fail(
+                          path,
+                          'forbidden `rules.unpinned-uses.config.policies` entry `"*": any` '
+                          "(universal unpinned policy); use scoped patterns instead (e.g. `actions/*: any`)",
+                      )
+
+
+          def main() -> None:
+              parser = argparse.ArgumentParser(description=__doc__)
+              parser.add_argument("config_path", type=Path, help="Path to zizmor.yml or .github/zizmor.yml")
+              args = parser.parse_args()
+              path: Path = args.config_path
+
+              if not path.is_file():
+                  _fail(path, "config file does not exist or is not a file")
+
+              text = path.read_text(encoding="utf-8")
+              if len(text) > 256 * 1024:
+                  _fail(path, "config file exceeds 256KiB limit")
+
+              try:
+                  data = yaml.load(text, Loader=UniqueKeyFullLoader)
+              except yaml.YAMLError as exc:
+                  _fail(path, f"invalid YAML: {exc}")
+
+              validate(data, path)
+
+
+          if __name__ == "__main__":
+              main()
+          __ZIZMOR_VALIDATE_PY__
+          uv run --with "pyyaml==${PYYAML_VERSION}" \
+            python "${SCRIPT}" \
+            "${CONFIG_TO_VALIDATE}"
 
       - name: Zizmor cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
