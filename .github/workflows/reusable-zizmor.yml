@@ -253,8 +253,6 @@ jobs:
       actions: read
       contents: read
 
-      # comment with the results
-      pull-requests: write
       # upload the results to code-scanning dashboard.
       security-events: write
 
@@ -262,7 +260,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.23.1
+      ZIZMOR_VERSION: 1.24.1
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -438,11 +436,9 @@ jobs:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         run: |
-          set -o pipefail
-
-          echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
-          # don't fail the build if zizmor fails - we want to capture the output
-          # and the exit code
+          # Run zizmor again with plain output for human-readable logs.
+          # Don't fail the build here - we capture the exit code for the
+          # "Fail the build" step to evaluate against fail-severity.
           set +e
           uvx zizmor@"${ZIZMOR_VERSION}" \
             --format plain \
@@ -452,11 +448,9 @@ jobs:
             ${RUNNER_DEBUG:+"--verbose"} \
             ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
             ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            | tee -a "${GITHUB_OUTPUT}"
+            .
           zizmor_exit_code=$?
           set -e
-          echo "EOF" >> "${GITHUB_OUTPUT}"
 
           # Error 1 is a failure of zizmor itself
           if [ "${zizmor_exit_code}" -eq 1 ]; then
@@ -471,29 +465,6 @@ jobs:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
         if: steps.setup-config.outputs.zizmor-config
         run: rm "${ZIZMOR_CONFIG_PATH}"
-
-      - name: Hide any previous comments
-        if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
-        id: hide-comments
-        uses: int128/hide-comment-action@42badf94b3efd95bf2138bd9c74da19203e83f40 # v1.55.0
-        with:
-          ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
-
-      - name: Comment with zizmor results
-        if: steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@b85aa71d92f4460f5a61f8ac460a45caeb2df451 # v1.56.0
-        with:
-          post: |
-            :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
-
-            <details>
-            <summary>Expand for full output</summary>
-
-            ```
-            ${{ steps.zizmor-plain.outputs.zizmor-results }}
-            ```
-            </details>
-            ${{ steps.hide-comments.outputs.ends-with }}
 
       - name: Fail the build
         if: inputs.fail-severity != 'never' && steps.zizmor-plain.outputs.zizmor-exit-code != 0
