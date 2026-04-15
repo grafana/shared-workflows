@@ -5,11 +5,10 @@ tool on a repo's GitHub Actions workflow files. This will report things such as
 whether there is potential for untrusted code to be injected via a template. See
 a full list of checks in [the documentation][zizmor-checks].
 
-This workflow will run zizmor, upload results to GitHub's code scanning service
-(requires an Advanced Security subscription for private repositories), and
-comment on the pull request with the results. The comment will be re-posted on
-each run - and previous comments hidden - so the most recent comment will always
-show the current results.
+This workflow will run zizmor and upload results to GitHub's code scanning
+service. Findings are surfaced as inline annotations on pull requests via
+GitHub's Code Scanning integration. For private repositories without Advanced
+Security, the workflow falls back to posting a PR comment with the results.
 
 [reusable workflow]: https://docs.github.com/en/actions/using-workflows/reusing-workflows
 [zizmor]: https://woodruffw.github.io/zizmor/
@@ -45,11 +44,12 @@ jobs:
       # Zizmor's default config behaviour will be used.
       id-token: write
 
-      # required to comment on pull requests with the results of the check
+      # fallback: comment on PR when code-scanning upload is unavailable
+      # (private repos without Advanced Security)
       pull-requests: write
       # required to upload the results to GitHub's code scanning service. This
       # doesn't work if the repo doesn't have Advanced Security enabled. In that
-      # case we'll skip the upload.
+      # case the workflow falls back to posting a PR comment.
       security-events: write
 
     uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<some sha>
@@ -86,11 +86,12 @@ jobs:
       # Zizmor's default config behaviour will be used.
       id-token: write
 
-      # required to comment on pull requests with the results of the check
+      # fallback: comment on PR when code-scanning upload is unavailable
+      # (private repos without Advanced Security)
       pull-requests: write
       # required to upload the results to GitHub's code scanning service. This
       # doesn't work if the repo doesn't have Advanced Security enabled. In that
-      # case we'll skip the upload.
+      # case the workflow falls back to posting a PR comment.
       security-events: write
 
     uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<some sha>
@@ -140,7 +141,7 @@ to introduce this workflow and fix all of the issues at once. There are a few
 ways to get started if this is the case:
 
 1. Set `fail-severity: never` to run the check without failing the build.
-   Results will still be posted to pull requests but they won't be blocking.
+   Results will still be visible via Code Scanning annotations but won't be blocking.
 2. Adopt an incremental approach to fixing issues. For example, start with
    `min-severity: high`. Once all high severity issues are resolved, lower the
    severity to `medium` and then onwards to `low`.
