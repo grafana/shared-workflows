@@ -253,7 +253,8 @@ jobs:
       actions: read
       contents: read
 
-      # comment with the results
+      # fallback: comment on PR when code-scanning upload is unavailable
+      # (private repos without Advanced Security)
       pull-requests: write
       # upload the results to code-scanning dashboard.
       security-events: write
@@ -262,7 +263,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.23.1
+      ZIZMOR_VERSION: 1.24.1
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -423,6 +424,7 @@ jobs:
           retention-days: 5
 
       - name: Upload to code-scanning
+        id: upload-sarif
         uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
         continue-on-error: true
         with:
@@ -441,8 +443,11 @@ jobs:
           set -o pipefail
 
           echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
-          # don't fail the build if zizmor fails - we want to capture the output
-          # and the exit code
+          # Run zizmor again with plain output for human-readable logs.
+          # Don't fail the build here - we capture the exit code for the
+          # "Fail the build" step to evaluate against fail-severity.
+          # Output is also captured for the fallback PR comment when
+          # Code Scanning is unavailable.
           set +e
           uvx zizmor@"${ZIZMOR_VERSION}" \
             --format plain \
@@ -472,15 +477,17 @@ jobs:
         if: steps.setup-config.outputs.zizmor-config
         run: rm "${ZIZMOR_CONFIG_PATH}"
 
+      # Fallback: post a PR comment with findings when Code Scanning is
+      # unavailable (e.g. private repos without Advanced Security).
       - name: Hide any previous comments
-        if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ !cancelled() && steps.upload-sarif.outcome == 'failure' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
         uses: int128/hide-comment-action@42badf94b3efd95bf2138bd9c74da19203e83f40 # v1.55.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
-        if: steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
         uses: int128/comment-action@b85aa71d92f4460f5a61f8ac460a45caeb2df451 # v1.56.0
         with:
           post: |
