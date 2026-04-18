@@ -6,9 +6,9 @@ Intended to be called from [`.github/workflows/reusable-zizmor.yml`](../../.gith
 
 ## Inputs
 
-| Name             | Required | Description                                      |
-| ---------------- | -------- | ------------------------------------------------ |
-| `config_path`    | yes      | Path to the config file relative to the workspace |
+| Name             | Required | Description                                        |
+| ---------------- | -------- | -------------------------------------------------- |
+| `config_path`    | yes      | Path to the config file relative to the workspace  |
 | `pyyaml_version` | no       | PyYAML version for `uv run --with` (default 6.0.2) |
 
 ## Requirements
