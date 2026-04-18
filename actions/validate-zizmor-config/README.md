@@ -2,7 +2,7 @@
 
 Composite action that enforces Grafana policy on a **repo-local** `zizmor.yml` / `.github/zizmor.yml` before running zizmor.
 
-Intended to be called from [`.github/workflows/reusable-zizmor.yml`](../../.github/workflows/reusable-zizmor.yml) at the **same ref** as the reusable workflow (see `uses:` `format(.../actions/validate-zizmor-config@...)` there).
+Intended to be called from [`.github/workflows/reusable-zizmor.yml`](../../.github/workflows/reusable-zizmor.yml) with a **full commit SHA** pin (see `uses: grafana/shared-workflows/actions/validate-zizmor-config@<sha>` there); update that SHA when you change this action so it stays aligned with the revision consumers use for the reusable workflow.
 
 ## Inputs
 
