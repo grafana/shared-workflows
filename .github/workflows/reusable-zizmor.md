@@ -171,7 +171,6 @@ The policy rejects configs that:
 
 - Define any of these audit blocks under `rules` (no `disable`, `ignore`, or `config` is allowed — remove the block entirely): `insecure-commands`, `template-injection`, `impostor-commit`, `known-vulnerable-actions`, and `ref-confusion`.
 - Set `rules.unpinned-uses.disable`.
-  
 
 Inline `# zizmor: ignore[...]` comments in workflow files are unchanged; this gate applies only to the repo-local YAML config file.
 
