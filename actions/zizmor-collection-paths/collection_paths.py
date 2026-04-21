@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Build explicit zizmor scan paths when ignore prefixes are configured."""
 
-from __future__ import annotations
-
 import argparse
 import os
 import sys
