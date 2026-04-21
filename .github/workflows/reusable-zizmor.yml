@@ -276,63 +276,43 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Detect local zizmor helper action
+        id: zizmor-helper
+        shell: bash
+        run: |
+          if [ -f "./actions/zizmor-collection-paths/action.yml" ]; then
+            echo "use_local=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "use_local=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Checkout shared-workflows for helper actions
+        if: steps.zizmor-helper.outputs.use_local != 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ needs.job-workflow-ref.outputs.owner }}/${{ needs.job-workflow-ref.outputs.repo }}
+          ref: ${{ needs.job-workflow-ref.outputs.sha }}
+          path: _shared-workflows-zizmor
+          persist-credentials: false
+
       # Optional: repos that vendor upstream trees with nested `.github/workflows` (e.g.
       # deployment_tools — security-appsec#326) can list directory prefixes in this file.
       # If the file is absent, zizmor still runs on `.` only (unchanged from before).
-      - name: Optional vendored-path excludes for zizmor
-        id: zizmor-paths
-        shell: bash
-        run: |
-          set -euo pipefail
-          LIST="${RUNNER_TEMP}/zizmor-explicit-inputs.txt"
-          NORM="${RUNNER_TEMP}/zizmor-collection-prefixes.txt"
+      - name: Optional vendored-path excludes for zizmor (local helper)
+        if: steps.zizmor-helper.outputs.use_local == 'true'
+        id: zizmor-paths-local
+        uses: ./actions/zizmor-collection-paths
+        with:
+          repo-root: ${{ github.workspace }}
+          paths-out: ${{ runner.temp }}/zizmor-explicit-inputs.txt
 
-          if [ ! -f .github/zizmor-collection-ignore ]; then
-            echo "use_explicit_paths=false" >> "${GITHUB_OUTPUT}"
-            echo "paths_list=" >> "${GITHUB_OUTPUT}"
-            exit 0
-          fi
-
-          : > "${NORM}"
-          while IFS= read -r line || [ -n "${line}" ]; do
-            s="${line#"${line%%[![:space:]]*}"}"
-            s="${s%"${s##*[![:space:]]}"}"
-            [ -z "${s}" ] && continue
-            case "${s}" in \#*) continue ;; esac
-            s="${s#/}"
-            s="${s%\*\*}"
-            s="${s%/\*}"
-            while [ "${s}" != "${s%/}" ]; do s="${s%/}"; done
-            case "${s}" in *\*) continue ;; esac
-            [ -n "${s}" ] && printf '%s\n' "${s}" >> "${NORM}"
-          done < <(sed '/^[[:space:]]*$/d;/^[[:space:]]*#/d' .github/zizmor-collection-ignore)
-
-          if [ ! -s "${NORM}" ]; then
-            echo "use_explicit_paths=false" >> "${GITHUB_OUTPUT}"
-            echo "paths_list=" >> "${GITHUB_OUTPUT}"
-            exit 0
-          fi
-
-          pargs=()
-          while IFS= read -r p || [ -n "${p}" ]; do
-            [ -z "${p}" ] && continue
-            pargs+=( "(" "-path" "./${p}" "-prune" ")" "-o" )
-          done < "${NORM}"
-
-          : > "${LIST}"
-          find . "${pargs[@]}" \
-            \( \( -type f \( -path '*/.github/workflows/*.yml' -o -path '*/.github/workflows/*.yaml' \) \) -o \
-               \( -type f \( -name 'action.yml' -o -name 'action.yaml' \) \) -o \
-               \( -type f \( -name 'dependabot.yml' -o -name 'dependabot.yaml' \) \) \
-            \) -print > "${LIST}"
-
-          if [ ! -s "${LIST}" ]; then
-            echo "::error::.github/zizmor-collection-ignore excluded every zizmor input. Remove or relax a prefix."
-            exit 1
-          fi
-
-          echo "use_explicit_paths=true" >> "${GITHUB_OUTPUT}"
-          echo "paths_list=${LIST}" >> "${GITHUB_OUTPUT}"
+      - name: Optional vendored-path excludes for zizmor (checked out helper)
+        if: steps.zizmor-helper.outputs.use_local != 'true'
+        id: zizmor-paths-remote
+        uses: ./_shared-workflows-zizmor/actions/zizmor-collection-paths
+        with:
+          repo-root: ${{ github.workspace }}
+          paths-out: ${{ runner.temp }}/zizmor-explicit-inputs.txt
 
       - name: Restore config from cache
         id: cache-config
@@ -453,8 +433,8 @@ jobs:
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths.outputs.use_explicit_paths }}
-          PATHS_LIST: ${{ steps.zizmor-paths.outputs.paths_list }}
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths-local.outputs.use_explicit_paths || steps.zizmor-paths-remote.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-paths-local.outputs.paths_list || steps.zizmor-paths-remote.outputs.paths_list }}
         shell: bash
         run: |
           set -euo pipefail
@@ -555,8 +535,8 @@ jobs:
           NO_COLOR: 1
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths.outputs.use_explicit_paths }}
-          PATHS_LIST: ${{ steps.zizmor-paths.outputs.paths_list }}
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths-local.outputs.use_explicit_paths || steps.zizmor-paths-remote.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-paths-local.outputs.paths_list || steps.zizmor-paths-remote.outputs.paths_list }}
         run: |
           set -o pipefail
           ZIZMOR_ARG_BATCH=400

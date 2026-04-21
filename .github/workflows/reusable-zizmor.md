@@ -171,7 +171,7 @@ files can be ignored][zizmor-ignore-config].
 
 If you do **not** add this file, zizmor runs on `.` exactly as before.
 
-Some repositories vendor upstream trees that still contain `.github/workflows/` copies. Your root `.gitignore` may even re-include those paths (e.g. `!ksonnet/vendor/**`), so a normal `zizmor .` walk still scans them. For that case only, add **`.github/zizmor-collection-ignore`**: one **directory prefix** per line from the repo root (optional leading `/`, optional trailing `/` or `/**`), `#` comments and blank lines allowed. The workflow uses `find -path ./prefix -prune` and then runs zizmor on the same kinds of YAML it would normally collect (workflows under `.github/workflows`, `action.yml` / `action.yaml`, dependabot configs), minus anything under those prefixes. Very large path lists are split into batches (merged SARIF with `jq`) so the runner does not hit argv limits.
+Some repositories vendor upstream trees that still contain `.github/workflows/` copies. Your root `.gitignore` may even re-include those paths (e.g. `!ksonnet/vendor/**`), so a normal `zizmor .` walk still scans them. For that case only, add **`.github/zizmor-collection-ignore`**: one **directory prefix** per line from the repo root (optional leading `/`, optional trailing `/` or `/**`), `#` comments and blank lines allowed. The reusable workflow runs **`grafana/shared-workflows/actions/zizmor-collection-paths`**, which prunes those prefixes with `find` and collects the same YAML kinds as before (workflows, composite `action.y*ml`, dependabot). Very large path lists are batched (merged SARIF with `jq`) to avoid argv limits.
 
 See [grafana/security-appsec#326](https://github.com/grafana/security-appsec/issues/326) for context.
 
