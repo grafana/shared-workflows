@@ -2,14 +2,13 @@
 
 Composite action that enforces Grafana policy on a **repo-local** `zizmor.yml` / `.github/zizmor.yml` before running zizmor.
 
-Intended to be called from [`.github/workflows/reusable-zizmor.yml`](../../.github/workflows/reusable-zizmor.yml) with a **full commit SHA** pin (see `uses: grafana/shared-workflows/actions/validate-zizmor-config@<sha>` there); update that SHA when you change this action so it stays aligned with the revision consumers use for the reusable workflow.
+Intended to be called from [`.github/workflows/reusable-zizmor.yml`](../../.github/workflows/reusable-zizmor.yml).
 
 ## Inputs
 
-| Name             | Required | Description                                        |
-| ---------------- | -------- | -------------------------------------------------- |
-| `config_path`    | yes      | Path to the config file relative to the workspace  |
-| `pyyaml_version` | no       | PyYAML version for `uv run --with` (default 6.0.2) |
+| Name          | Required | Description                                       |
+| ------------- | -------- | ------------------------------------------------- |
+| `config_path` | yes      | Path to the config file relative to the workspace |
 
 ## Requirements
 

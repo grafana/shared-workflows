@@ -5,11 +5,6 @@ inputs:
   config_path:
     description: Path to the zizmor config file relative to the workspace (e.g. zizmor.yml).
     required: true
-  pyyaml_version:
-    description: PyYAML version passed to uv run --with.
-    required: false
-    # renovate: datasource=pypi depName=pyyaml
-    default: "6.0.2"
 
 runs:
   using: composite
@@ -23,4 +18,5 @@ runs:
           "${CONFIG_PATH}"
       env:
         CONFIG_PATH: ${{ inputs.config_path }}
-        PYYAML_VERSION: ${{ inputs.pyyaml_version }}
+        # renovate: datasource=pypi depName=pyyaml
+        PYYAML_VERSION: "6.0.2"

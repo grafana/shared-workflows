@@ -47,9 +47,12 @@ jobs:
           enable-cache: true
 
       - name: Unit tests
+        env:
+          # renovate: datasource=pypi depName=pyyaml
+          PYYAML_VERSION: "6.0.2"
         run: |
           cd actions/validate-zizmor-config
-          uv run --with pyyaml==6.0.2 python3 -m unittest discover -v
+          uv run --with "pyyaml==${PYYAML_VERSION}" python3 -m unittest discover -v
 
       - name: Integration smoke (action on repo default zizmor)
         uses: ./actions/validate-zizmor-config
