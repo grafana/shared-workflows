@@ -26,14 +26,19 @@ def normalize_prefix_line(line: str) -> str | None:
     s = line.strip()
     if not s or s.startswith("#"):
         return None
-    if s.startswith("/"):
-        s = s[1:]
-    if s.endswith("**"):
-        s = s[:-2]
-    if s.endswith("/*"):
-        s = s[:-2]
-    while s.endswith("/"):
-        s = s[:-1]
+
+    s = s.removeprefix("/")
+
+    # Support a couple common spellings people use in ignore files, but reject
+    # arbitrary glob patterns (we only exclude directory prefixes).
+    while True:
+        before = s
+        s = s.removesuffix("**").removesuffix("/*")
+        while s.endswith("/"):
+            s = s[:-1]
+        if s == before:
+            break
+
     if "*" in s:
         return None
     return s or None

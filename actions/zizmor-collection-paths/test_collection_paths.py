@@ -14,6 +14,8 @@ class TestNormalize(unittest.TestCase):
     def test_strip_suffixes(self) -> None:
         self.assertEqual(cp.normalize_prefix_line("vendor/**"), "vendor")
         self.assertEqual(cp.normalize_prefix_line("vendor/*"), "vendor")
+        self.assertEqual(cp.normalize_prefix_line("/vendor/**/"), "vendor")
+        self.assertEqual(cp.normalize_prefix_line("terraform/modules/foo/*"), "terraform/modules/foo")
 
     def test_skip_glob(self) -> None:
         self.assertIsNone(cp.normalize_prefix_line("foo*bar"))

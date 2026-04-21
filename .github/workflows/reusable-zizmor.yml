@@ -282,8 +282,10 @@ jobs:
         run: |
           if [ -f "./actions/zizmor-collection-paths/action.yml" ]; then
             echo "use_local=true" >> "${GITHUB_OUTPUT}"
+            echo "helper_root=${GITHUB_WORKSPACE}/actions/zizmor-collection-paths" >> "${GITHUB_OUTPUT}"
           else
             echo "use_local=false" >> "${GITHUB_OUTPUT}"
+            echo "helper_root=${GITHUB_WORKSPACE}/_shared-workflows-zizmor/actions/zizmor-collection-paths" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Checkout shared-workflows for helper actions
@@ -438,79 +440,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Cap argv size per zizmor process (explicit path mode only); merge SARIF parts with jq.
-          ZIZMOR_ARG_BATCH=400
-
-          zizmor_sarif() {
-            uvx zizmor@"${ZIZMOR_VERSION}" \
-              --format sarif \
-              --min-severity "${MIN_SEVERITY}" \
-              --min-confidence "${MIN_CONFIDENCE}" \
-              --cache-dir "${ZIZMOR_CACHE_DIR}" \
-              ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-              ${RUNNER_DEBUG:+"--verbose"} \
-              ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-              "$@"
-          }
-
-          if [ "${USE_EXPLICIT_PATHS}" != "true" ]; then
-            set +e
-            zizmor_sarif . > results.sarif
-            exit_code=$?
-            set -e
-            if [ "${exit_code}" -eq 1 ]; then exit 1; fi
-            exit 0
-          fi
-
-          npaths=$(wc -l < "${PATHS_LIST}" | tr -d ' ')
-          if [ "${npaths}" -le "${ZIZMOR_ARG_BATCH}" ]; then
-            TARGETS=()
-            while IFS= read -r line || [ -n "${line}" ]; do
-              [ -z "${line}" ] && continue
-              TARGETS+=("${line}")
-            done < "${PATHS_LIST}"
-            set +e
-            zizmor_sarif "${TARGETS[@]}" > results.sarif
-            exit_code=$?
-            set -e
-            if [ "${exit_code}" -eq 1 ]; then exit 1; fi
-            exit 0
-          fi
-
-          echo "Splitting ${npaths} zizmor inputs into batches of ${ZIZMOR_ARG_BATCH} (argv limit)."
-          rm -f "${RUNNER_TEMP}"/ziz-sarif-part-*.sarif
-          split -l "${ZIZMOR_ARG_BATCH}" "${PATHS_LIST}" "${RUNNER_TEMP}/zizpath."
-          part=0
-          for chunk in "${RUNNER_TEMP}"/zizpath.*; do
-            [ -f "${chunk}" ] || continue
-            part=$((part + 1))
-            printf -v sarif_out '%s/ziz-sarif-part-%05d.sarif' "${RUNNER_TEMP}" "${part}"
-            batch=()
-            while IFS= read -r line || [ -n "${line}" ]; do
-              [ -z "${line}" ] && continue
-              batch+=("${line}")
-            done < "${chunk}"
-            set +e
-            zizmor_sarif "${batch[@]}" > "${sarif_out}"
-            exit_code=$?
-            set -e
-            if [ "${exit_code}" -eq 1 ]; then exit 1; fi
-          done
-          mapfile -t sarif_parts < <(find "${RUNNER_TEMP}" -maxdepth 1 -name 'ziz-sarif-part-*.sarif' | LC_ALL=C sort)
-          jq -s '
-            if length == 0 then
-              error("no SARIF parts")
-            elif length == 1 then
-              .[0]
-            else
-              {
-                "$schema": .[0]["$schema"],
-                version: .[0].version,
-                runs: [.[].runs[]]
-              }
-            end
-          ' "${sarif_parts[@]}" > results.sarif
-          exit 0
+          python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" sarif --batch-size 400 --out results.sarif
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -538,73 +468,8 @@ jobs:
           USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths-local.outputs.use_explicit_paths || steps.zizmor-paths-remote.outputs.use_explicit_paths }}
           PATHS_LIST: ${{ steps.zizmor-paths-local.outputs.paths_list || steps.zizmor-paths-remote.outputs.paths_list }}
         run: |
-          set -o pipefail
-          ZIZMOR_ARG_BATCH=400
-
-          zizmor_plain() {
-            uvx zizmor@"${ZIZMOR_VERSION}" \
-              --format plain \
-              --min-severity "${MIN_SEVERITY}" \
-              --min-confidence "${MIN_CONFIDENCE}" \
-              --cache-dir "${ZIZMOR_CACHE_DIR}" \
-              ${RUNNER_DEBUG:+"--verbose"} \
-              ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-              ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-              "$@"
-          }
-
-          # Sets _zec to zizmor exit (pipefail); crashes (1) exit the step immediately.
-          run_plain_batch() {
-            set +e
-            zizmor_plain "$@" | tee -a "${GITHUB_OUTPUT}"
-            _zec=$?
-            set -e
-            if [ "${_zec}" -eq 1 ]; then
-              echo "zizmor itself failed - check the above output. failing the workflow."
-              exit 1
-            fi
-          }
-
-          echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
-          # Run zizmor again with plain output for human-readable logs.
-          # Don't fail the build here - we capture the exit code for the
-          # "Fail the build" step to evaluate against fail-severity.
-          # Output is also captured for the fallback PR comment when
-          # Code Scanning is unavailable.
-
-          zizmor_exit_code=0
-          if [ "${USE_EXPLICIT_PATHS}" != "true" ]; then
-            run_plain_batch .
-            zizmor_exit_code="${_zec}"
-          else
-            npaths=$(wc -l < "${PATHS_LIST}" | tr -d ' ')
-            if [ "${npaths}" -le "${ZIZMOR_ARG_BATCH}" ]; then
-              TARGETS=()
-              while IFS= read -r line || [ -n "${line}" ]; do
-                [ -z "${line}" ] && continue
-                TARGETS+=("${line}")
-              done < "${PATHS_LIST}"
-              run_plain_batch "${TARGETS[@]}"
-              zizmor_exit_code="${_zec}"
-            else
-              split -l "${ZIZMOR_ARG_BATCH}" "${PATHS_LIST}" "${RUNNER_TEMP}/zizplain."
-              for chunk in "${RUNNER_TEMP}"/zizplain.*; do
-                [ -f "${chunk}" ] || continue
-                batch=()
-                while IFS= read -r line || [ -n "${line}" ]; do
-                  [ -z "${line}" ] && continue
-                  batch+=("${line}")
-                done < "${chunk}"
-                run_plain_batch "${batch[@]}"
-                if [ "${_zec}" -gt "${zizmor_exit_code}" ]; then
-                  zizmor_exit_code="${_zec}"
-                fi
-              done
-            fi
-          fi
-
-          echo "EOF" >> "${GITHUB_OUTPUT}"
-          echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
+          set -euo pipefail
+          python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" plain-github-output --batch-size 400
 
       - name: Remove zizmor config
         env:
