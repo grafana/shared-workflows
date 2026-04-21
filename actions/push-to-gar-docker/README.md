@@ -43,7 +43,7 @@ jobs:
           persist-credentials: false
 
       - id: push-to-gar
-        uses: grafana/shared-workflows/actions/push-to-gar-docker@push-to-gar-docker/v0.7.1
+        uses: grafana/shared-workflows/actions/push-to-gar-docker@push-to-gar-docker/v0.7.2
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev, optional
           tags: |-

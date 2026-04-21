@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.2](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.7.1...push-to-gar-docker/v0.7.2) (2026-04-21)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v7 ([#1785](https://github.com/grafana/shared-workflows/issues/1785)) ([490b672](https://github.com/grafana/shared-workflows/commit/490b6727050ad2740e5a8f86ac0e6c9e653fc15b))
+* **deps:** update docker/build-push-action action to v7.1.0 ([#1864](https://github.com/grafana/shared-workflows/issues/1864)) ([32404b4](https://github.com/grafana/shared-workflows/commit/32404b4f4a2a8ec646d6ee76ed3df0ab8f84bdfb))
+* **deps:** update docker/metadata-action action to v6 ([#1787](https://github.com/grafana/shared-workflows/issues/1787)) ([de48747](https://github.com/grafana/shared-workflows/commit/de48747bf25be41fcb04d5d6ff05cc5eed0775fe))
+* **deps:** update docker/setup-buildx-action action to v4 ([#1791](https://github.com/grafana/shared-workflows/issues/1791)) ([2376476](https://github.com/grafana/shared-workflows/commit/2376476a8678d5422711041823033659e4872548))
+
 ## [0.7.1](https://github.com/grafana/shared-workflows/compare/push-to-gar-docker/v0.7.0...push-to-gar-docker/v0.7.1) (2026-02-17)
 
 
