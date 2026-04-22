@@ -569,7 +569,7 @@ jobs:
           BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
           BENCH_SERVICE_VERSION: ${{ github.sha }}
           # renovate: datasource=github-releases packageName=grafana/grafana-bench
-          BENCH_VERSION: "v1.0.2"
+          BENCH_VERSION: "v1.0.9"
         run: |
           BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
