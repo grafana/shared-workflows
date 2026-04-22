@@ -568,7 +568,10 @@ jobs:
           BENCH_SERVICE: ${{ format('grafana-{0}', github.event.repository.name) }}
           BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
           BENCH_SERVICE_VERSION: ${{ github.sha }}
+          # renovate: datasource=github-releases packageName=grafana/grafana-bench
+          BENCH_VERSION: "v1.0.2"
         run: |
+          BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
           if [ -z "${SARIF_FILE}" ]; then
             echo "::error::No SARIF file found; analysis job must upload the SARIF artifact."
@@ -579,7 +582,7 @@ jobs:
             exit 1
           fi
           echo "PROMETHEUS_URL is set (length ${#PROMETHEUS_URL}); running bench report..."
-          if ! docker pull ghcr.io/grafana/grafana-bench:v1.0.2; then
+          if ! docker pull "${BENCH_IMAGE}"; then
             echo "Could not pull Bench image; skipping bench step."
             exit 0
           fi
@@ -589,7 +592,7 @@ jobs:
             -e PROMETHEUS_URL="${PROMETHEUS_URL}" \
             -e PROMETHEUS_USER="${PROMETHEUS_USER}" \
             -e PROMETHEUS_PASSWORD="${PROMETHEUS_PASSWORD}" \
-            ghcr.io/grafana/grafana-bench:v1.0.2 report \
+            "${BENCH_IMAGE}" report \
             --report-input zizmor \
             --service "${BENCH_SERVICE}" \
             --service-version "${BENCH_SERVICE_VERSION}" \
