@@ -166,3 +166,13 @@ files can be ignored][zizmor-ignore-config].
 
 [zizmor-config]: https://woodruffw.github.io/zizmor/configuration/
 [zizmor-ignore-config]: https://woodruffw.github.io/zizmor/usage/#with-zizmoryml
+
+## Skipping vendored workflow trees (optional)
+
+If you do **not** add this file, zizmor runs on `.` exactly as before.
+
+Some repositories vendor upstream trees that still contain `.github/workflows/` copies. Your root `.gitignore` may even re-include those paths (e.g. `!ksonnet/vendor/**`), so a normal `zizmor .` walk still scans them. For that case only, add **`.github/zizmor-collection-ignore`**: one **directory prefix** per line from the repo root (optional leading `/`, optional trailing `/` or `/**`), `#` comments and blank lines allowed. The reusable workflow runs **`grafana/shared-workflows/actions/zizmor-collection-paths`**, which walks the repository, skips those directory prefixes, and collects the same YAML kinds as before (workflows, composite `action.y*ml`, dependabot). Very large path lists are batched and merged into a single SARIF file to avoid argv limits.
+
+See [grafana/security-appsec#326](https://github.com/grafana/security-appsec/issues/326) for context.
+
+[gitignore]: https://git-scm.com/docs/gitignore
