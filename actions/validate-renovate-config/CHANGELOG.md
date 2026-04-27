@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.3](https://github.com/grafana/shared-workflows/compare/validate-renovate-config/v0.1.2...validate-renovate-config/v0.1.3) (2026-04-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-node action to v6.3.0 ([#1770](https://github.com/grafana/shared-workflows/issues/1770)) ([11e75ec](https://github.com/grafana/shared-workflows/commit/11e75ec9a4eb153dcc8a894e2a57b995573cc149))
+* **deps:** update actions/setup-node action to v6.4.0 ([#1894](https://github.com/grafana/shared-workflows/issues/1894)) ([0f3e84a](https://github.com/grafana/shared-workflows/commit/0f3e84a3f952139dcfcfed85aeba4d85dd9b5114))
+* **deps:** update dependency renovate to 43.104 ([#1836](https://github.com/grafana/shared-workflows/issues/1836)) ([fff7794](https://github.com/grafana/shared-workflows/commit/fff7794b0b9537b2a37884eef14fa7b184dd4a89))
+* **deps:** update dependency renovate to 43.110 ([#1867](https://github.com/grafana/shared-workflows/issues/1867)) ([86ca535](https://github.com/grafana/shared-workflows/commit/86ca535b008126b06a294cbc0965fb784c792645))
+* **deps:** update dependency renovate to 43.127 ([#1886](https://github.com/grafana/shared-workflows/issues/1886)) ([3679a93](https://github.com/grafana/shared-workflows/commit/3679a9381aad70bf2554d6c73aa092c0234b65ce))
+* **deps:** update dependency renovate to 43.140 ([#1903](https://github.com/grafana/shared-workflows/issues/1903)) ([da5fcec](https://github.com/grafana/shared-workflows/commit/da5fcec5fdf7fe2f7da879e719c84b6d6131e631))
+* **deps:** update dependency renovate to 43.87 ([#1806](https://github.com/grafana/shared-workflows/issues/1806)) ([6469743](https://github.com/grafana/shared-workflows/commit/64697433e0b78485bbc62748adba42db2fd11ddc))
+
 ## [0.1.2](https://github.com/grafana/shared-workflows/compare/validate-renovate-config/v0.1.1...validate-renovate-config/v0.1.2) (2026-02-27)
 
 
