@@ -158,6 +158,24 @@ uses: actions/checkout@v3 # zizmor: ignore[artipacked]
 
 [zizmor-ignore-comment]: https://woodruffw.github.io/zizmor/usage/#with-comments
 
+## Repo-local `zizmor.yml` policy gate
+
+When `always-use-default-config` is `false` and the calling repository uses a **repo-local** `zizmor.yml` or `.github/zizmor.yml` (so zizmor discovers that file instead of the Grafana default from `shared-workflows`), the workflow **validates that file before running zizmor**. If validation fails, the job stops and zizmor is not executed. Validation uses the composite action [`actions/validate-zizmor-config`](../../actions/validate-zizmor-config) from this repository, **hash-pinned** in `reusable-zizmor.yml` to satisfy pinning checks (bump that SHA when you change the action). **Set up Zizmor configuration** writes the path to validate as step output `repo-local-zizmor-config` when a repo-local file is used; that is separate from `zizmor-config`, which is only set when the run uses **`--config`** with the downloaded Grafana default.
+
+The gate is **skipped** when:
+
+- `always-use-default-config` is `true` (only the Grafana default from this repository is used), or
+- There is no repo-local config file, or
+- The run uses the fetched default via `--config` (no repo-local file in play).
+
+The policy rejects configs that:
+
+- Define any of these audit blocks under `rules` (no `disable`, `ignore`, or `config` is allowed — remove the block entirely): `insecure-commands`, `template-injection`, `impostor-commit`, `known-vulnerable-actions`, and `ref-confusion`.
+- Set `rules.unpinned-uses.disable`.
+- Set `rules.unpinned-uses.config.policies` with a universal [`"*": any`](https://docs.zizmor.sh/audits/#unpinned-uses) entry (all matching `uses:` clauses may stay unpinned). Scoped policies such as `actions/*: any` or `grafana/*: any` remain valid.
+
+Inline `# zizmor: ignore[...]` comments in workflow files are unchanged; this gate applies only to the repo-local YAML config file.
+
 ## Configuration
 
 zizmor [can be configured][zizmor-config] with a `zizmor.yml` or
