@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.2.0...docker-import-digests-push-manifest/v0.2.1) (2026-04-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/download-artifact action to v8 ([#1749](https://github.com/grafana/shared-workflows/issues/1749)) ([9169dac](https://github.com/grafana/shared-workflows/commit/9169dac82ee307312a1c948918184ea02f34aff8))
+* **deps:** update actions/download-artifact action to v8.0.1 ([#1803](https://github.com/grafana/shared-workflows/issues/1803)) ([1fa2a72](https://github.com/grafana/shared-workflows/commit/1fa2a7215acb603ae344a91da488771e1b11502b))
+* **deps:** update actions/setup-go action to v6.3.0 ([#1756](https://github.com/grafana/shared-workflows/issues/1756)) ([c6b0752](https://github.com/grafana/shared-workflows/commit/c6b07529443393154d824d1ad0e707f4b3d090f6))
+* **deps:** update actions/setup-go action to v6.4.0 ([#1837](https://github.com/grafana/shared-workflows/issues/1837)) ([170bd5b](https://github.com/grafana/shared-workflows/commit/170bd5b0ba3c2414519216fd5d7f0fe5a40e3f40))
+* **deps:** update docker/metadata-action action to v6 ([#1787](https://github.com/grafana/shared-workflows/issues/1787)) ([de48747](https://github.com/grafana/shared-workflows/commit/de48747bf25be41fcb04d5d6ff05cc5eed0775fe))
+* **deps:** update docker/setup-buildx-action action to v4 ([#1791](https://github.com/grafana/shared-workflows/issues/1791)) ([2376476](https://github.com/grafana/shared-workflows/commit/2376476a8678d5422711041823033659e4872548))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.1.1...docker-import-digests-push-manifest/v0.2.0) (2026-02-25)
 
 
