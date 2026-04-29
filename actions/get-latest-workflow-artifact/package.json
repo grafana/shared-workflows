@@ -10,7 +10,7 @@
   "dependencies": {
     "@actions/artifact": "6.2.1",
     "@actions/core": "3.0.0",
-    "@actions/github": "9.1.0",
+    "@actions/github": "9.1.1",
     "@js-temporal/polyfill": "0.5.1"
   },
   "devDependencies": {
