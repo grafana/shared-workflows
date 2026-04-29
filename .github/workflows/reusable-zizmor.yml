@@ -541,7 +541,7 @@ jobs:
     needs: [analysis, job-workflow-ref]
     # Only run for grafana org and non-fork PRs (fork PRs have no OIDC/Vault access).
     if: ${{ github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: read
       id-token: write
