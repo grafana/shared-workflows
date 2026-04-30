@@ -393,7 +393,7 @@ jobs:
 
       - name: Validate repo-local zizmor config policy
         if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs['repo-local-zizmor-config'] != '' }}
-        uses: grafana/shared-workflows/actions/validate-zizmor-config@c2b99bc7ec69e11c1c4e4cba5cbc9197f794b683
+        uses: grafana/shared-workflows/actions/validate-zizmor-config@0de3298c32a8d21aebbe5405116864ab53bc8115
         with:
           config_path: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
 
