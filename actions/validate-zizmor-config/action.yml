@@ -1,0 +1,22 @@
+name: Validate repo-local zizmor config
+description: >-
+  Enforces Grafana policy on a repo-local zizmor.yml (used from reusable-zizmor before running zizmor).
+inputs:
+  config_path:
+    description: Path to the zizmor config file relative to the workspace (e.g. zizmor.yml).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Run policy validator
+      shell: bash
+      run: |
+        set -euo pipefail
+        uv run --with "pyyaml==${PYYAML_VERSION}" python3 \
+          "${GITHUB_ACTION_PATH}/validate_zizmor_config.py" \
+          "${CONFIG_PATH}"
+      env:
+        CONFIG_PATH: ${{ inputs.config_path }}
+        # renovate: datasource=pypi depName=pyyaml
+        PYYAML_VERSION: "6.0.2"

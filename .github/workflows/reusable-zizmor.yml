@@ -362,12 +362,14 @@ jobs:
             if [ -f "zizmor.yml" ]; then
               # No action needed, zizmor will find it
               echo "Using zizmor.yml found in repository root."
+              echo "repo-local-zizmor-config=zizmor.yml" >> "${GITHUB_OUTPUT}"
               exit 0
             fi
 
             if [ -f ".github/zizmor.yml" ]; then
               # No action needed, zizmor will find it
               echo "Using .github/zizmor.yml found in repository."
+              echo "repo-local-zizmor-config=.github/zizmor.yml" >> "${GITHUB_OUTPUT}"
               exit 0
             fi
 
@@ -388,6 +390,12 @@ jobs:
           activate-environment: true
           cache-suffix: ${{ env.ZIZMOR_VERSION }}
           cache-dependency-glob: ""
+
+      - name: Validate repo-local zizmor config policy
+        if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs['repo-local-zizmor-config'] != '' }}
+        uses: grafana/shared-workflows/actions/validate-zizmor-config@c2b99bc7ec69e11c1c4e4cba5cbc9197f794b683
+        with:
+          config_path: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
 
       - name: Zizmor cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
