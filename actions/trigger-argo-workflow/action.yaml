@@ -29,6 +29,11 @@ inputs:
     description: |
       The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.
     default: info
+  output_summary:
+    description: |
+      If `true`, write the triggered workflow URL to the GitHub job summary.
+      Defaults to `false`.
+    default: "false"
 
 outputs:
   uri:
@@ -136,3 +141,13 @@ runs:
           "${parameters[@]}" \
           submit \
           ${EXTRA_ARGS}
+
+    - name: Write workflow URL to job summary
+      if: ${{ inputs.output_summary == 'true' }}
+      shell: bash
+      env:
+        WORKFLOW_URI: ${{ steps.run.outputs.uri }}
+      run: |
+        echo "### Argo Workflow" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "Triggered workflow: [${WORKFLOW_URI}](${WORKFLOW_URI})" >> "$GITHUB_STEP_SUMMARY"
