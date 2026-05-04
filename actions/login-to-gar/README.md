@@ -25,7 +25,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: grafana/shared-workflows/actions/login-to-gar@login-to-gar/v1.0.1
+      - uses: grafana/shared-workflows/actions/login-to-gar@login-to-gar/v1.0.2
         id: login-to-gar
         with:
           registry: "<YOUR-GAR>" # e.g. us-docker.pkg.dev
