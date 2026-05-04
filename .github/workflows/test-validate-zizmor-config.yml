@@ -49,7 +49,7 @@ jobs:
       - name: Unit tests
         env:
           # renovate: datasource=pypi depName=pyyaml
-          PYYAML_VERSION: "6.0.2"
+          PYYAML_VERSION: "6.0.3"
         run: |
           cd actions/validate-zizmor-config
           uv run --with "pyyaml==${PYYAML_VERSION}" python3 -m unittest discover -v
