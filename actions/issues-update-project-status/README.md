@@ -46,7 +46,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: grafana/shared-workflows/actions/issues-update-project-status@issues-update-project-status/v0.1.0
+      - uses: grafana/shared-workflows/actions/issues-update-project-status@issues-update-project-status/v0.1.1
         if: contains(github.event.issue.labels.*.name, 'area/federal')
         with:
           app-id-vault-secret: grafana-federal-app:app-id
