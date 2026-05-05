@@ -1,7 +1,6 @@
 """Unit tests for run_zizmor."""
 
-from __future__ import annotations
-
+import io
 import json
 import os
 import tempfile
@@ -73,13 +72,7 @@ class TestPlainGithubOutput(unittest.TestCase):
                 def __init__(self, cmd, stdout=None, stderr=None, text=False):
                     self.cmd = cmd
                     calls.append(list(cmd))
-                    self.stdout = iter(["line\n"])
-
-                def __enter__(self):
-                    return self
-
-                def __exit__(self, exc_type, exc, tb):
-                    return None
+                    self.stdout = io.StringIO("line\n")
 
                 def wait(self):
                     # First batch rc=12, second batch rc=10

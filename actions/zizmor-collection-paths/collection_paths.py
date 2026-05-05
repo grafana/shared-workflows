@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 
-def _lines_after_sed_filter(content: str) -> list[str]:
+def _noncomment_lines(content: str) -> list[str]:
     """Drop blank lines and full-line comments."""
     out: list[str] = []
     for line in content.splitlines():
@@ -32,8 +32,7 @@ def normalize_prefix_line(line: str) -> str | None:
     while True:
         before = s
         s = s.removesuffix("**").removesuffix("/*")
-        while s.endswith("/"):
-            s = s[:-1]
+        s = s.rstrip("/")
         if s == before:
             break
 
@@ -44,7 +43,7 @@ def normalize_prefix_line(line: str) -> str | None:
 
 def parse_prefixes_from_ignore(content: str) -> list[str]:
     prefixes: list[str] = []
-    for raw in _lines_after_sed_filter(content):
+    for raw in _noncomment_lines(content):
         p = normalize_prefix_line(raw)
         if p:
             prefixes.append(p)
@@ -74,9 +73,11 @@ def collect_paths(repo_root: Path, prefixes: list[str], paths_out: Path) -> None
     collected: list[str] = []
     for current_root, dirs, files in os.walk(repo_root, topdown=True):
         current_path = Path(current_root).resolve()
-        dirs[:] = [
-            d for d in dirs if not _is_in_excluded_tree((current_path / d).resolve(), excluded_roots)
-        ]
+        allowed_dirs: list[str] = []
+        for d in dirs:
+            if not _is_in_excluded_tree((current_path / d).resolve(), excluded_roots):
+                allowed_dirs.append(d)
+        dirs[:] = allowed_dirs
 
         for filename in files:
             file_path = (current_path / filename).resolve()
