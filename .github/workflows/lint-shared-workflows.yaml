@@ -136,3 +136,6 @@ jobs:
         with:
           schema: github-action.json
           jsons: ${{ steps.convert-action-yaml-to-json.outputs.converted-files }}
+
+      - name: Validate release-please-manifest.json
+        run: yq . .release-please-manifest.json > /dev/null && echo "Valid JSON"
