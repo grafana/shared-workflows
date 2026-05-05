@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build explicit zizmor scan paths when ignore prefixes are configured."""
+"""Build explicit zizmor scan paths when `.github/zizmor-collection-ignore` lists prefixes."""
 
 import argparse
 import os
@@ -8,91 +8,64 @@ from pathlib import Path
 
 
 def _noncomment_lines(content: str) -> list[str]:
-    """Drop blank lines and full-line comments."""
-    out: list[str] = []
-    for line in content.splitlines():
-        if not line.strip():
-            continue
-        if line.lstrip().startswith("#"):
-            continue
-        out.append(line)
-    return out
+    return [
+        line.strip()
+        for line in content.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
 
 
 def normalize_prefix_line(line: str) -> str | None:
-    """Normalize one ignore entry to a repo-relative prefix."""
     s = line.strip()
     if not s or s.startswith("#"):
         return None
-
     s = s.removeprefix("/")
-
-    # Support a couple common spellings people use in ignore files, but reject
-    # arbitrary glob patterns (we only exclude directory prefixes).
     while True:
         before = s
-        s = s.removesuffix("**").removesuffix("/*")
-        s = s.rstrip("/")
+        s = s.removesuffix("**").removesuffix("/*").rstrip("/")
         if s == before:
             break
-
     if "*" in s:
         return None
     return s or None
 
 
 def parse_prefixes_from_ignore(content: str) -> list[str]:
-    prefixes: list[str] = []
-    for raw in _noncomment_lines(content):
-        p = normalize_prefix_line(raw)
-        if p:
-            prefixes.append(p)
-    return prefixes
+    return [p for raw in _noncomment_lines(content) if (p := normalize_prefix_line(raw))]
 
 
-def _is_in_excluded_tree(path: Path, excluded_roots: list[Path]) -> bool:
-    return any(path == root or root in path.parents for root in excluded_roots)
+def _under_exclusion(path: Path, excluded: list[Path]) -> bool:
+    return any(path == r or r in path.parents for r in excluded)
 
 
-def _is_target_file(path: Path) -> bool:
-    name = path.name
-    if name in {"action.yml", "action.yaml", "dependabot.yml", "dependabot.yaml"}:
+def _is_scan_file(path: Path) -> bool:
+    if path.name in {"action.yml", "action.yaml", "dependabot.yml", "dependabot.yaml"}:
         return True
-
     if path.suffix not in {".yml", ".yaml"}:
         return False
-    parent = path.parent
-    return parent.name == "workflows" and parent.parent.name == ".github"
+    return path.parent.name == "workflows" and path.parent.parent.name == ".github"
 
 
-def collect_paths(repo_root: Path, prefixes: list[str], paths_out: Path) -> None:
+def collect_paths(repo_root: Path, prefixes: list[str], paths_out: Path) -> int:
+    """Write sorted scan paths; return how many lines were written."""
     repo_root = repo_root.resolve()
     paths_out.parent.mkdir(parents=True, exist_ok=True)
-    excluded_roots = [(repo_root / p).resolve() for p in prefixes]
+    roots = [(repo_root / p).resolve() for p in prefixes]
+    found: list[str] = []
 
-    collected: list[str] = []
-    for current_root, dirs, files in os.walk(repo_root, topdown=True):
-        current_path = Path(current_root).resolve()
-        allowed_dirs: list[str] = []
-        for d in dirs:
-            if not _is_in_excluded_tree((current_path / d).resolve(), excluded_roots):
-                allowed_dirs.append(d)
-        dirs[:] = allowed_dirs
-
-        for filename in files:
-            file_path = (current_path / filename).resolve()
-            if _is_in_excluded_tree(file_path, excluded_roots):
+    for root, dirs, files in os.walk(repo_root, topdown=True):
+        cur = Path(root).resolve()
+        dirs[:] = [d for d in dirs if not _under_exclusion((cur / d).resolve(), roots)]
+        for name in files:
+            fp = (cur / name).resolve()
+            if _under_exclusion(fp, roots) or not _is_scan_file(fp):
                 continue
-            if not _is_target_file(file_path):
-                continue
-            rel = file_path.relative_to(repo_root).as_posix()
-            collected.append(f"./{rel}")
+            found.append(f"./{fp.relative_to(repo_root).as_posix()}")
 
-    lines = sorted(set(collected))
-    output = "\n".join(lines)
-    if output:
-        output += "\n"
-    paths_out.write_text(output, encoding="utf-8")
+    lines = sorted(set(found))
+    text = "\n".join(lines) + ("\n" if lines else "")
+    paths_out.write_text(text, encoding="utf-8")
+    return len(lines)
 
 
 def append_github_output(github_output: Path, use_explicit: bool, paths_list: str) -> None:
@@ -126,10 +99,7 @@ def main() -> int:
         append_github_output(Path(gh_out), False, "")
         return 0
 
-    collect_paths(repo_root, prefixes, paths_out)
-    text = paths_out.read_text(encoding="utf-8")
-    nonempty_lines = [ln for ln in text.splitlines() if ln.strip()]
-    if not nonempty_lines:
+    if collect_paths(repo_root, prefixes, paths_out) == 0:
         print(
             "::error::.github/zizmor-collection-ignore excluded every zizmor input. "
             "Remove or relax a prefix.",

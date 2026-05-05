@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run zizmor from reusable-zizmor: scan `.` or explicit paths; batch + merge SARIF when needed."""
+"""Run zizmor: `.` or explicit path list; long lists batched; SARIF parts merged."""
 
 import argparse
 import json
@@ -10,6 +10,11 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, TextIO
+
+
+def _batches(items: list[str], n: int):
+    for i in range(0, len(items), n):
+        yield items[i : i + n]
 
 
 def _env() -> SimpleNamespace:
@@ -50,8 +55,8 @@ def _uvx(e: SimpleNamespace, fmt: str, tgts: list[str]) -> list[str]:
     ]
     if e.cfg:
         cmd += ["--config", str(e.cfg)]
-    dbg = os.environ.get("RUNNER_DEBUG", "")
-    if dbg and dbg.strip().lower() in {"1", "true", "yes", "y", "on"}:
+    dbg = (os.environ.get("RUNNER_DEBUG") or "").strip().lower()
+    if dbg in {"1", "true", "yes", "y", "on"}:
         cmd.append("--verbose")
     return cmd + e.extra + tgts
 
@@ -95,16 +100,16 @@ def _sarif(e: SimpleNamespace, batch: int, out: Path) -> int:
     if tg is None:
         out.write_text("", encoding="utf-8")
         return 0
-    n = len(tg)
-    if n <= batch:
-        rc = _run(_uvx(e, "sarif", tg), out=out)
+    chunks = list(_batches(tg, batch))
+    if len(chunks) == 1:
+        rc = _run(_uvx(e, "sarif", chunks[0]), out=out)
         return 1 if rc == 1 else 0
-    parts: list[Path] = []
     with tempfile.TemporaryDirectory(prefix="zizmor-sarif-", dir=os.environ["RUNNER_TEMP"]) as td:
         tdir = Path(td)
-        for i in range(0, n, batch):
-            p = tdir / f"p{len(parts):05d}.sarif"
-            rc = _run(_uvx(e, "sarif", tg[i : i + batch]), out=p)
+        parts: list[Path] = []
+        for i, ch in enumerate(chunks):
+            p = tdir / f"p{i:05d}.sarif"
+            rc = _run(_uvx(e, "sarif", ch), out=p)
             if rc == 1:
                 return 1
             parts.append(p)
@@ -121,13 +126,9 @@ def _plain(e: SimpleNamespace, batch: int) -> int:
     with Path(gh).open("a", encoding="utf-8") as fh:
         fh.write("zizmor-results<<EOF\n")
         code = 0
-        if tg is None:
-            pass
-        elif len(tg) <= batch:
-            code = _plain_stream(e, tg, fh)
-        else:
-            for i in range(0, len(tg), batch):
-                rc = _plain_stream(e, tg[i : i + batch], fh)
+        if tg is not None:
+            for ch in _batches(tg, batch):
+                rc = _plain_stream(e, ch, fh)
                 if rc == 1:
                     print(
                         "zizmor itself failed - check the above output. failing the workflow.",
