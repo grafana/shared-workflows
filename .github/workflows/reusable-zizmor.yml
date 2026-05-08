@@ -546,6 +546,7 @@ jobs:
 
   grafana-bench:
     name: Send zizmor metrics to Prometheus via Grafana Bench
+    continue-on-error: true
     needs: [analysis, job-workflow-ref]
     # Only run for grafana org and non-fork PRs (fork PRs have no OIDC/Vault access).
     if: ${{ github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
@@ -559,7 +560,6 @@ jobs:
           persist-credentials: false
 
       - name: Get Prometheus secrets from Vault
-        continue-on-error: true
         uses: grafana/shared-workflows/actions/get-vault-secrets@4e6a096e033d00f25363adb1dc75b7e56ecdb7c6
         with:
           common_secrets: |
@@ -568,13 +568,11 @@ jobs:
             PROMETHEUS_PASSWORD=grafana-bench:prometheus_token
 
       - name: Download SARIF artifact
-        continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: SARIF file
 
       - name: Run Grafana Bench (Docker image)
-        continue-on-error: true
         env:
           BENCH_SERVICE: ${{ format('grafana-{0}', github.event.repository.name) }}
           BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
