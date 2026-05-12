@@ -53,24 +53,6 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
-  description: Build and publish docker images to DockerHub
-  links:
-  - title: README
-    url: https://github.com/grafana/shared-workflows/blob/main/actions/build-push-to-dockerhub/README.md
-  name: shared-workflows-build-push-to-dockerhub
-  title: build-push-to-dockerhub
-spec:
-  lifecycle: production
-  owner: group:platform-productivity
-  subcomponentOf: component:shared-workflows
-  type: github-action
-
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    github.com/project-slug: grafana/shared-workflows
   description: Auto dismiss Dependabot alerts based on manifest path
   links:
   - title: README
@@ -223,24 +205,6 @@ metadata:
     url: https://github.com/grafana/shared-workflows/blob/main/actions/login-to-gcs/README.md
   name: shared-workflows-login-to-gcs
   title: login-to-gcs
-spec:
-  lifecycle: production
-  owner: group:platform-productivity
-  subcomponentOf: component:shared-workflows
-  type: github-action
-
----
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    github.com/project-slug: grafana/shared-workflows
-  description: Composite action to push to Google Artifact Registry
-  links:
-  - title: README
-    url: https://github.com/grafana/shared-workflows/blob/main/actions/push-to-gar-docker/README.md
-  name: shared-workflows-push-to-gar-docker
-  title: push-to-gar-docker
 spec:
   lifecycle: production
   owner: group:platform-productivity

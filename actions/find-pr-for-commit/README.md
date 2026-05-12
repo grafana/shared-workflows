@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Find PR for current commit
         id: find-pr
-        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.1
+        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.2
 
       - name: Use PR number
         run: echo "PR Number is ${{ steps.find-pr.outputs.pr_number }}"
@@ -68,7 +68,7 @@ jobs:
     steps:
       - name: Find PR for specific commit
         id: find-pr
-        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.1
+        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.2
         with:
           commitrev: "1234567890abcdef1234567890abcdef12345678"
 
@@ -92,7 +92,7 @@ jobs:
     steps:
       - name: Find PR for named revision
         id: find-pr
-        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.1
+        uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.2
         with:
         commitrev: "HEAD~2"
 
@@ -117,7 +117,7 @@ jobs:
         steps:
           - name: Find PR for commit in another repository
               id: find-pr
-              uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.1
+              uses: grafana/shared-workflows/actions/find-pr-for-commit@find-pr-for-commit/v1.0.2
               with:
                 owner: "grafana"
                 repo: "grafana"

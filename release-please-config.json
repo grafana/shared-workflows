@@ -65,10 +65,6 @@
       "package-name": "azure-trusted-signing",
       "extra-files": ["README.md"]
     },
-    "actions/build-push-to-dockerhub": {
-      "package-name": "build-push-to-dockerhub",
-      "extra-files": ["README.md"]
-    },
     "actions/dockerhub-login": {
       "package-name": "dockerhub-login",
       "extra-files": ["README.md"]
@@ -95,10 +91,6 @@
     },
     "actions/login-to-gcs": {
       "package-name": "login-to-gcs",
-      "extra-files": ["README.md"]
-    },
-    "actions/push-to-gar-docker": {
-      "package-name": "push-to-gar-docker",
       "extra-files": ["README.md"]
     },
     "actions/push-to-gcs": {
