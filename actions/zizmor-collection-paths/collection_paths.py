@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
-"""Build explicit zizmor scan paths when `.github/zizmor-collection-ignore` lists prefixes."""
+# security-appsec#326: optional .github/zizmor-collection-ignore — directory prefixes to skip when collecting zizmor inputs.
 
 import argparse
 import os
 import sys
 from pathlib import Path
-
-
-def _noncomment_lines(content: str) -> list[str]:
-    return [
-        line.strip()
-        for line in content.splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    ]
 
 
 def normalize_prefix_line(line: str) -> str | None:
@@ -21,9 +13,9 @@ def normalize_prefix_line(line: str) -> str | None:
         return None
     s = s.removeprefix("/")
     while True:
-        before = s
+        old = s
         s = s.removesuffix("**").removesuffix("/*").rstrip("/")
-        if s == before:
+        if s == old:
             break
     if "*" in s:
         return None
@@ -31,83 +23,85 @@ def normalize_prefix_line(line: str) -> str | None:
 
 
 def parse_prefixes_from_ignore(content: str) -> list[str]:
-    return [p for raw in _noncomment_lines(content) if (p := normalize_prefix_line(raw))]
+    prefixes = []
+    for line in content.splitlines():
+        line = line.strip()
+        if not line or line.lstrip().startswith("#"):
+            continue
+        p = normalize_prefix_line(line)
+        if p:
+            prefixes.append(p)
+    return prefixes
 
 
-def _under_exclusion(path: Path, excluded: list[Path]) -> bool:
-    return any(path == r or r in path.parents for r in excluded)
+def excluded(path: Path, roots: list[Path]) -> bool:
+    return any(path == r or r in path.parents for r in roots)
 
 
-def _is_scan_file(path: Path) -> bool:
-    if path.name in {"action.yml", "action.yaml", "dependabot.yml", "dependabot.yaml"}:
+def want_file(path: Path) -> bool:
+    if path.name in ("action.yml", "action.yaml", "dependabot.yml", "dependabot.yaml"):
         return True
-    if path.suffix not in {".yml", ".yaml"}:
+    if path.suffix not in (".yml", ".yaml"):
         return False
     return path.parent.name == "workflows" and path.parent.parent.name == ".github"
 
 
-def collect_paths(repo_root: Path, prefixes: list[str], paths_out: Path) -> int:
-    """Write sorted scan paths; return how many lines were written."""
+def collect_paths(repo_root: Path, prefixes: list[str], out: Path) -> int:
     repo_root = repo_root.resolve()
-    paths_out.parent.mkdir(parents=True, exist_ok=True)
-    roots = [(repo_root / p).resolve() for p in prefixes]
-    found: list[str] = []
+    out.parent.mkdir(parents=True, exist_ok=True)
+    skip = [(repo_root / p).resolve() for p in prefixes]
+    hits = []
 
-    for root, dirs, files in os.walk(repo_root, topdown=True):
-        cur = Path(root).resolve()
-        dirs[:] = [d for d in dirs if not _under_exclusion((cur / d).resolve(), roots)]
-        for name in files:
-            fp = (cur / name).resolve()
-            if _under_exclusion(fp, roots) or not _is_scan_file(fp):
+    for dirpath, dirnames, filenames in os.walk(repo_root, topdown=True):
+        here = Path(dirpath).resolve()
+        pruned = [d for d in dirnames if not excluded((here / d).resolve(), skip)]
+        dirnames[:] = pruned
+        for fn in filenames:
+            f = (here / fn).resolve()
+            if excluded(f, skip) or not want_file(f):
                 continue
-            found.append(f"./{fp.relative_to(repo_root).as_posix()}")
+            hits.append("./" + str(f.relative_to(repo_root)).replace("\\", "/"))
 
-    lines = sorted(set(found))
-    text = "\n".join(lines) + ("\n" if lines else "")
-    paths_out.write_text(text, encoding="utf-8")
+    lines = sorted(set(hits))
+    out.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
     return len(lines)
 
 
-def append_github_output(github_output: Path, use_explicit: bool, paths_list: str) -> None:
-    with github_output.open("a", encoding="utf-8") as fh:
-        fh.write(f"use_explicit_paths={'true' if use_explicit else 'false'}\n")
-        fh.write(f"paths_list={paths_list}\n")
-
-
 def main() -> int:
-    p = argparse.ArgumentParser()
-    p.add_argument("--repo-root", type=Path, required=True)
-    p.add_argument("--ignore-file", type=Path, required=True)
-    p.add_argument("--paths-out", type=Path, required=True)
-    args = p.parse_args()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--repo-root", type=Path, required=True)
+    ap.add_argument("--ignore-file", type=Path, required=True)
+    ap.add_argument("--paths-out", type=Path, required=True)
+    args = ap.parse_args()
 
-    gh_out = os.environ.get("GITHUB_OUTPUT")
-    if not gh_out:
+    gh = os.environ.get("GITHUB_OUTPUT")
+    if not gh:
         print("GITHUB_OUTPUT is not set", file=sys.stderr)
         return 2
 
-    repo_root = args.repo_root.resolve()
-    ignore_file = args.ignore_file
-    paths_out = args.paths_out
-
-    if not ignore_file.is_file():
-        append_github_output(Path(gh_out), False, "")
+    root = args.repo_root.resolve()
+    if not args.ignore_file.is_file():
+        with open(gh, "a", encoding="utf-8") as f:
+            f.write("use_explicit_paths=false\npaths_list=\n")
         return 0
 
-    prefixes = parse_prefixes_from_ignore(ignore_file.read_text(encoding="utf-8"))
-    if not prefixes:
-        append_github_output(Path(gh_out), False, "")
+    prefs = parse_prefixes_from_ignore(args.ignore_file.read_text(encoding="utf-8"))
+    if not prefs:
+        with open(gh, "a", encoding="utf-8") as f:
+            f.write("use_explicit_paths=false\npaths_list=\n")
         return 0
 
-    if collect_paths(repo_root, prefixes, paths_out) == 0:
+    n = collect_paths(root, prefs, args.paths_out)
+    if n == 0:
         print(
-            "::error::.github/zizmor-collection-ignore excluded every zizmor input. "
-            "Remove or relax a prefix.",
+            "::error::.github/zizmor-collection-ignore excluded every zizmor input; remove or relax a prefix.",
             file=sys.stderr,
         )
         return 1
 
-    append_github_output(Path(gh_out), True, str(paths_out.resolve()))
+    with open(gh, "a", encoding="utf-8") as f:
+        f.write("use_explicit_paths=true\n")
+        f.write(f"paths_list={args.paths_out.resolve()}\n")
     return 0
 
 

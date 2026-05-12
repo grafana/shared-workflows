@@ -1,5 +1,5 @@
 name: Zizmor collection paths
-description: Reads optional zizmor-collection-ignore and emits explicit scan paths for reusable-zizmor.
+description: Optional zizmor-collection-ignore prefixes for explicit zizmor scans (security-appsec#326).
 
 inputs:
   repo-root:

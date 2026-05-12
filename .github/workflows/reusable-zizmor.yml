@@ -276,20 +276,20 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Detect local zizmor helper action
-        id: zizmor-helper
+      # security-appsec#326: optional zizmor-collection-ignore (see reusable-zizmor.md).
+      - name: Zizmor helper present in workspace?
+        id: zizmor-remote
         shell: bash
         run: |
-          if [ -f "./actions/zizmor-collection-paths/action.yml" ]; then
-            echo "use_local=true" >> "${GITHUB_OUTPUT}"
-            echo "helper_root=${GITHUB_WORKSPACE}/actions/zizmor-collection-paths" >> "${GITHUB_OUTPUT}"
+          set -euo pipefail
+          if [ -f "${GITHUB_WORKSPACE}/actions/zizmor-collection-paths/run_zizmor.py" ]; then
+            echo "need_remote=false" >> "${GITHUB_OUTPUT}"
           else
-            echo "use_local=false" >> "${GITHUB_OUTPUT}"
-            echo "helper_root=${GITHUB_WORKSPACE}/_shared-workflows-zizmor/actions/zizmor-collection-paths" >> "${GITHUB_OUTPUT}"
+            echo "need_remote=true" >> "${GITHUB_OUTPUT}"
           fi
 
-      - name: Checkout shared-workflows for helper actions
-        if: steps.zizmor-helper.outputs.use_local != 'true'
+      - name: Checkout shared-workflows (helper scripts only)
+        if: steps.zizmor-remote.outputs.need_remote == 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: ${{ needs.job-workflow-ref.outputs.owner }}/${{ needs.job-workflow-ref.outputs.repo }}
@@ -297,24 +297,24 @@ jobs:
           path: _shared-workflows-zizmor
           persist-credentials: false
 
-      # Optional: repos that vendor upstream trees with nested `.github/workflows` (e.g.
-      # deployment_tools — security-appsec#326) can list directory prefixes in this file.
-      # If the file is absent, zizmor still runs on `.` only (unchanged from before).
-      - name: Optional vendored-path excludes for zizmor (local helper)
-        if: steps.zizmor-helper.outputs.use_local == 'true'
-        id: zizmor-paths-local
-        uses: ./actions/zizmor-collection-paths
-        with:
-          repo-root: ${{ github.workspace }}
-          paths-out: ${{ runner.temp }}/zizmor-explicit-inputs.txt
-
-      - name: Optional vendored-path excludes for zizmor (checked out helper)
-        if: steps.zizmor-helper.outputs.use_local != 'true'
-        id: zizmor-paths-remote
-        uses: ./_shared-workflows-zizmor/actions/zizmor-collection-paths
-        with:
-          repo-root: ${{ github.workspace }}
-          paths-out: ${{ runner.temp }}/zizmor-explicit-inputs.txt
+      - name: Zizmor paths + helper_root
+        id: zizmor-helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="${GITHUB_WORKSPACE}/actions/zizmor-collection-paths"
+          if [ ! -f "${ROOT}/run_zizmor.py" ]; then
+            ROOT="${GITHUB_WORKSPACE}/_shared-workflows-zizmor/actions/zizmor-collection-paths"
+          fi
+          if [ ! -f "${ROOT}/run_zizmor.py" ]; then
+            echo "::error::zizmor helper missing (expected under workspace or _shared-workflows-zizmor)." >&2
+            exit 1
+          fi
+          echo "helper_root=${ROOT}" >> "${GITHUB_OUTPUT}"
+          python3 "${ROOT}/collection_paths.py" \
+            --repo-root "${GITHUB_WORKSPACE}" \
+            --ignore-file "${GITHUB_WORKSPACE}/.github/zizmor-collection-ignore" \
+            --paths-out "${RUNNER_TEMP}/zizmor-explicit-inputs.txt"
 
       - name: Restore config from cache
         id: cache-config
@@ -435,8 +435,8 @@ jobs:
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths-local.outputs.use_explicit_paths || steps.zizmor-paths-remote.outputs.use_explicit_paths }}
-          PATHS_LIST: ${{ steps.zizmor-paths-local.outputs.paths_list || steps.zizmor-paths-remote.outputs.paths_list }}
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
         shell: bash
         run: |
           set -euo pipefail
@@ -465,8 +465,8 @@ jobs:
           NO_COLOR: 1
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-          USE_EXPLICIT_PATHS: ${{ steps.zizmor-paths-local.outputs.use_explicit_paths || steps.zizmor-paths-remote.outputs.use_explicit_paths }}
-          PATHS_LIST: ${{ steps.zizmor-paths-local.outputs.paths_list || steps.zizmor-paths-remote.outputs.paths_list }}
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
         run: |
           set -euo pipefail
           python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" plain-github-output --batch-size 400

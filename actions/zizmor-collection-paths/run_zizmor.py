@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run zizmor: `.` or explicit path list; long lists batched; SARIF parts merged."""
+# Called from reusable-zizmor.yml (security-appsec#326).
 
 import argparse
 import json
@@ -8,132 +8,121 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
-from typing import Any, TextIO
+
+try:
+    from itertools import batched
+except ImportError:
+
+    def batched(iterable, n):  # Python <3.12
+        seq = list(iterable)
+        for i in range(0, len(seq), n):
+            yield seq[i : i + n]
 
 
-def _batches(items: list[str], n: int):
-    for i in range(0, len(items), n):
-        yield items[i : i + n]
-
-
-def _env() -> SimpleNamespace:
-    ex = os.environ.get("USE_EXPLICIT_PATHS", "").strip().lower() == "true"
-    cfg = os.environ.get("ZIZMOR_CONFIG_PATH", "").strip()
-    return SimpleNamespace(
-        ver=os.environ["ZIZMOR_VERSION"],
-        sev=os.environ["MIN_SEVERITY"],
-        conf=os.environ["MIN_CONFIDENCE"],
-        cache=Path(os.environ["ZIZMOR_CACHE_DIR"]),
-        cfg=Path(cfg) if cfg else None,
-        extra=(os.environ.get("ZIZMOR_EXTRA_ARGS") or "").split(),
-        explicit=ex,
-        plist=Path(os.environ["PATHS_LIST"]) if ex else None,
-    )
-
-
-def _targets(e: SimpleNamespace) -> list[str] | None:
-    if not e.explicit:
-        return ["."]
-    assert e.plist is not None
-    lines = [ln.strip() for ln in e.plist.read_text(encoding="utf-8").splitlines() if ln.strip()]
-    return lines or None
-
-
-def _uvx(e: SimpleNamespace, fmt: str, tgts: list[str]) -> list[str]:
-    cmd = [
-        "uvx",
-        f"zizmor@{e.ver}",
-        "--format",
-        fmt,
-        "--min-severity",
-        e.sev,
-        "--min-confidence",
-        e.conf,
-        "--cache-dir",
-        str(e.cache),
-    ]
-    if e.cfg:
-        cmd += ["--config", str(e.cfg)]
-    dbg = (os.environ.get("RUNNER_DEBUG") or "").strip().lower()
-    if dbg in {"1", "true", "yes", "y", "on"}:
-        cmd.append("--verbose")
-    return cmd + e.extra + tgts
-
-
-def _run(cmd: list[str], *, out: Path | None) -> int:
-    if out is None:
-        return int(subprocess.run(cmd, check=False).returncode)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("wb") as fh:
-        return int(subprocess.run(cmd, stdout=fh, stderr=None, check=False).returncode)
-
-
-def _merge_sarif_parts(parts: list[Path], dst: Path) -> None:
+def _merge_sarif_parts(parts, dst: Path):
     if not parts:
         raise ValueError("no SARIF parts")
     docs = [json.loads(p.read_text(encoding="utf-8")) for p in parts]
     if len(docs) == 1:
         merged = docs[0]
     else:
-        runs: list[Any] = []
-        for d in docs:
-            r = d.get("runs")
+        runs = []
+        for doc in docs:
+            r = doc.get("runs")
             if isinstance(r, list):
                 runs.extend(r)
         merged = {"$schema": docs[0].get("$schema"), "version": docs[0].get("version"), "runs": runs}
     dst.write_text(json.dumps(merged), encoding="utf-8")
 
 
-def _plain_stream(e: SimpleNamespace, tgts: list[str], fh: TextIO) -> int:
-    proc = subprocess.Popen(_uvx(e, "plain", tgts), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+def _zizmor_cmd(fmt: str, paths: list[str]) -> list[str]:
+    cmd = [
+        "uvx",
+        f"zizmor@{os.environ['ZIZMOR_VERSION']}",
+        "--format",
+        fmt,
+        "--min-severity",
+        os.environ["MIN_SEVERITY"],
+        "--min-confidence",
+        os.environ["MIN_CONFIDENCE"],
+        "--cache-dir",
+        os.environ["ZIZMOR_CACHE_DIR"],
+    ]
+    cfg = os.environ.get("ZIZMOR_CONFIG_PATH", "").strip()
+    if cfg:
+        cmd += ["--config", cfg]
+    dbg = os.environ.get("RUNNER_DEBUG", "").strip().lower()
+    if dbg in ("1", "true", "yes", "y", "on"):
+        cmd.append("--verbose")
+    cmd += (os.environ.get("ZIZMOR_EXTRA_ARGS") or "").split()
+    cmd += paths
+    return cmd
+
+
+def _run(cmd: list[str], out: Path | None) -> int:
+    if out is None:
+        return subprocess.run(cmd, check=False).returncode
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("wb") as fh:
+        return subprocess.run(cmd, stdout=fh, check=False).returncode
+
+
+def _scan_paths():
+    if os.environ.get("USE_EXPLICIT_PATHS", "").strip().lower() != "true":
+        return ["."]
+    text = Path(os.environ["PATHS_LIST"]).read_text(encoding="utf-8")
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    return lines if lines else None
+
+
+def _pipe_plain(cmd: list[str], fh) -> int:
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if proc.stdout is None:
         return 1
     with proc.stdout:
         for line in proc.stdout:
             fh.write(line)
-    return int(proc.wait())
+    return proc.wait()
 
 
-def _sarif(e: SimpleNamespace, batch: int, out: Path) -> int:
-    tg = _targets(e)
-    if tg is None:
-        out.write_text("", encoding="utf-8")
+def _sarif(batch: int, out: Path) -> int:
+    paths = _scan_paths()
+    if paths is None:
+        out.write_text("")
         return 0
-    chunks = list(_batches(tg, batch))
+
+    chunks = [list(c) for c in batched(paths, batch)]
     if len(chunks) == 1:
-        rc = _run(_uvx(e, "sarif", chunks[0]), out=out)
+        rc = _run(_zizmor_cmd("sarif", chunks[0]), out)
         return 1 if rc == 1 else 0
-    with tempfile.TemporaryDirectory(prefix="zizmor-sarif-", dir=os.environ["RUNNER_TEMP"]) as td:
-        tdir = Path(td)
-        parts: list[Path] = []
-        for i, ch in enumerate(chunks):
-            p = tdir / f"p{i:05d}.sarif"
-            rc = _run(_uvx(e, "sarif", ch), out=p)
-            if rc == 1:
+
+    with tempfile.TemporaryDirectory(prefix="zizmor-sarif-", dir=os.environ["RUNNER_TEMP"]) as name:
+        t = Path(name)
+        parts = []
+        for i, c in enumerate(chunks):
+            part = t / f"part-{i}.sarif"
+            if _run(_zizmor_cmd("sarif", c), part) == 1:
                 return 1
-            parts.append(p)
+            parts.append(part)
         _merge_sarif_parts(parts, out)
     return 0
 
 
-def _plain(e: SimpleNamespace, batch: int) -> int:
+def _plain(batch: int) -> int:
     gh = os.environ.get("GITHUB_OUTPUT")
     if not gh:
         print("GITHUB_OUTPUT is not set", file=sys.stderr)
         return 2
-    tg = _targets(e)
-    with Path(gh).open("a", encoding="utf-8") as fh:
+
+    paths = _scan_paths()
+    with open(gh, "a", encoding="utf-8") as fh:
         fh.write("zizmor-results<<EOF\n")
         code = 0
-        if tg is not None:
-            for ch in _batches(tg, batch):
-                rc = _plain_stream(e, ch, fh)
+        if paths is not None:
+            for chunk in batched(paths, batch):
+                rc = _pipe_plain(_zizmor_cmd("plain", list(chunk)), fh)
                 if rc == 1:
-                    print(
-                        "zizmor itself failed - check the above output. failing the workflow.",
-                        file=sys.stderr,
-                    )
+                    print("zizmor crashed; see output above.", file=sys.stderr)
                     return 1
                 code = max(code, rc)
         fh.write("EOF\n")
@@ -141,31 +130,22 @@ def _plain(e: SimpleNamespace, batch: int) -> int:
     return 0
 
 
-def cmd_sarif(argv: list[str]) -> int:
-    p = argparse.ArgumentParser()
-    p.add_argument("--batch-size", type=int, default=400)
-    p.add_argument("--out", type=Path, default=Path("results.sarif"))
-    a = p.parse_args(argv)
-    return _sarif(_env(), a.batch_size, a.out)
-
-
-def cmd_plain_github_output(argv: list[str]) -> int:
-    p = argparse.ArgumentParser()
-    p.add_argument("--batch-size", type=int, default=400)
-    return _plain(_env(), p.parse_args(argv).batch_size)
-
-
 def main(argv: list[str]) -> int:
+    prog = Path(argv[0]).name if argv else "run_zizmor.py"
+    p = argparse.ArgumentParser(prog=prog)
+    sub = p.add_subparsers(dest="command", required=True)
+    ps = sub.add_parser("sarif", help="run zizmor with SARIF output")
+    ps.add_argument("--batch-size", type=int, default=400)
+    ps.add_argument("--out", type=Path, default=Path("results.sarif"))
+    pp = sub.add_parser("plain-github-output", help="append zizmor plain output to GITHUB_OUTPUT")
+    pp.add_argument("--batch-size", type=int, default=400)
     if len(argv) < 2:
-        print("usage: run_zizmor.py {sarif|plain-github-output} ...", file=sys.stderr)
+        p.print_help(sys.stderr)
         return 2
-    sub, rest = argv[1], argv[2:]
-    if sub == "sarif":
-        return cmd_sarif(rest)
-    if sub == "plain-github-output":
-        return cmd_plain_github_output(rest)
-    print(f"unknown command: {sub}", file=sys.stderr)
-    return 2
+    ns = p.parse_args(argv[1:])
+    if ns.command == "sarif":
+        return _sarif(ns.batch_size, ns.out)
+    return _plain(ns.batch_size)
 
 
 if __name__ == "__main__":
