@@ -55,6 +55,7 @@ def collect_paths(repo_root: Path, prefixes: list[str], out: Path) -> int:
     for dirpath, dirnames, filenames in os.walk(repo_root, topdown=True):
         here = Path(dirpath).resolve()
         pruned = [d for d in dirnames if not excluded((here / d).resolve(), skip)]
+        # os.walk only skips subtrees when dirnames is replaced in place (topdown=True).
         dirnames[:] = pruned
         for fn in filenames:
             f = (here / fn).resolve()
