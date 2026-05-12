@@ -23,7 +23,7 @@ runs:
       id: auth_with_direct_wif
       with:
         project_id: "grafanalabs-workload-identity"
-        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github-test/providers/github-provider"
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github-test/providers/github-test-provider"
         create_credentials_file: true
 
     - name: "Move credentials to temporary location"
