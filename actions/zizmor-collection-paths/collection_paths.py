@@ -7,17 +7,36 @@ import sys
 from pathlib import Path
 
 
+def _unsafe_prefix_reason(rel: str) -> str | None:
+    """Reject absolute paths, .. segments, and odd slashes (Copilot / path-escape hardening)."""
+    if not rel:
+        return "empty"
+    if rel.startswith(("/", "\\")):
+        return "absolute path"
+    norm = rel.replace("\\", "/")
+    parts = norm.split("/")
+    if ".." in parts:
+        return "parent segment"
+    if any(p == "" for p in parts):
+        return "empty path segment"
+    return None
+
+
 def normalize_prefix_line(line: str) -> str | None:
-    s = line.strip()
-    if not s or s.startswith("#"):
+    raw = line.strip()
+    if not raw or raw.startswith("#"):
         return None
-    s = s.removeprefix("/")
+    if raw.startswith(("/", "\\")):
+        return None
+    s = raw
     while True:
         old = s
         s = s.removesuffix("**").removesuffix("/*").rstrip("/")
         if s == old:
             break
     if "*" in s:
+        return None
+    if _unsafe_prefix_reason(s):
         return None
     return s or None
 
@@ -38,18 +57,32 @@ def excluded(path: Path, roots: list[Path]) -> bool:
     return any(path == r or r in path.parents for r in roots)
 
 
-def want_file(path: Path) -> bool:
-    if path.name in ("action.yml", "action.yaml", "dependabot.yml", "dependabot.yaml"):
+def want_file(path: Path, repo_root: Path) -> bool:
+    try:
+        rel = path.resolve().relative_to(repo_root)
+    except ValueError:
+        return False
+    parts = rel.parts
+    if path.name in ("action.yml", "action.yaml"):
         return True
+    if path.name in ("dependabot.yml", "dependabot.yaml"):
+        return len(parts) == 2 and parts[0] == ".github"
     if path.suffix not in (".yml", ".yaml"):
         return False
-    return path.parent.name == "workflows" and path.parent.parent.name == ".github"
+    return len(parts) >= 3 and parts[0] == ".github" and parts[1] == "workflows"
 
 
 def collect_paths(repo_root: Path, prefixes: list[str], out: Path) -> int:
     repo_root = repo_root.resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
-    skip = [(repo_root / p).resolve() for p in prefixes]
+    skip = []
+    for p in prefixes:
+        cand = (repo_root / p).resolve()
+        try:
+            cand.relative_to(repo_root)
+        except ValueError as e:
+            raise ValueError(f"ignore prefix {p!r} resolves outside repo root") from e
+        skip.append(cand)
     hits = []
 
     for dirpath, dirnames, filenames in os.walk(repo_root, topdown=True):
@@ -59,7 +92,7 @@ def collect_paths(repo_root: Path, prefixes: list[str], out: Path) -> int:
         dirnames[:] = pruned
         for fn in filenames:
             f = (here / fn).resolve()
-            if excluded(f, skip) or not want_file(f):
+            if excluded(f, skip) or not want_file(f, repo_root):
                 continue
             hits.append("./" + str(f.relative_to(repo_root)).replace("\\", "/"))
 
@@ -92,7 +125,11 @@ def main() -> int:
             f.write("use_explicit_paths=false\npaths_list=\n")
         return 0
 
-    n = collect_paths(root, prefs, args.paths_out)
+    try:
+        n = collect_paths(root, prefs, args.paths_out)
+    except ValueError as e:
+        print(f"::error::{e}", file=sys.stderr)
+        return 1
     if n == 0:
         print(
             "::error::.github/zizmor-collection-ignore excluded every zizmor input; remove or relax a prefix.",

@@ -19,6 +19,14 @@ except ImportError:
             yield seq[i : i + n]
 
 
+# Minimal valid SARIF when we cannot run zizmor (upload-sarif rejects empty files).
+_EMPTY_SARIF = {
+    "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+    "version": "2.1.0",
+    "runs": [],
+}
+
+
 def _merge_sarif_parts(parts, dst: Path):
     if not parts:
         raise ValueError("no SARIF parts")
@@ -88,7 +96,7 @@ def _pipe_plain(cmd: list[str], fh) -> int:
 def _sarif(batch: int, out: Path) -> int:
     paths = _scan_paths()
     if paths is None:
-        out.write_text("")
+        out.write_text(json.dumps(_EMPTY_SARIF), encoding="utf-8")
         return 0
 
     chunks = [list(c) for c in batched(paths, batch)]

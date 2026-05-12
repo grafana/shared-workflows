@@ -1,0 +1,47 @@
+name: Test zizmor-collection-paths action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/zizmor-collection-paths/**
+      - .github/workflows/test-zizmor-collection-paths.yml
+      - .github/workflows/reusable-zizmor.yml
+
+  pull_request:
+    paths:
+      - actions/zizmor-collection-paths/**
+      - .github/workflows/test-zizmor-collection-paths.yml
+      - .github/workflows/reusable-zizmor.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Unit tests
+        run: |
+          cd actions/zizmor-collection-paths
+          python3 -m unittest discover -v
