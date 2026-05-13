@@ -546,6 +546,7 @@ jobs:
 
   grafana-bench:
     name: Send zizmor metrics to Prometheus via Grafana Bench
+    continue-on-error: true
     needs: [analysis, job-workflow-ref]
     # Only run for grafana org and non-fork PRs (fork PRs have no OIDC/Vault access).
     if: ${{ github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
