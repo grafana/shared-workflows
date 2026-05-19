@@ -16,6 +16,15 @@ From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub
 | ------- | ------ | -------------------------- |
 | `token` | String | The generated GitHub token |
 
+## Action Permissions
+
+This action will need the following permissions in your workflow file to generate github OIDC token:
+
+```yaml
+permissions:
+  id-token: write
+```
+
 ## Examples
 
 ### Using Environment Variables (default)
@@ -35,7 +44,6 @@ jobs:
 
     # These permissions are needed to assume roles from GitHub's OIDC.
     permissions:
-      contents: read
       id-token: write
 
     steps:
@@ -67,7 +75,6 @@ jobs:
 
     # These permissions are needed to assume roles from GitHub's OIDC.
     permissions:
-      contents: read
       id-token: write
 
     steps:
