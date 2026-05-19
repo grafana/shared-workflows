@@ -1,8 +1,6 @@
 name: Zizmor collection paths
 description: >-
-  Reads optional .github/zizmor-collection-ignore (security-appsec#326). If the file is missing or
-  yields no prefixes, outputs use_explicit_paths=false and zizmor keeps scanning .; otherwise
-  writes an explicit path list for batch zizmor runs.
+  Reads optional .github/zizmor-collection-ignore and writes zizmor input paths for reusable-zizmor.
 
 inputs:
   repo-root:

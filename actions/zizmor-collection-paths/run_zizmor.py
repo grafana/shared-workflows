@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# Called from reusable-zizmor.yml (security-appsec#326).
+# Invoked from reusable-zizmor.yml.
 
 import argparse
 import json
 import os
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,14 @@ except ImportError:
         seq = list(iterable)
         for i in range(0, len(seq), n):
             yield seq[i : i + n]
+
+
+# upload-sarif rejects an empty file; use an empty runs array instead.
+_EMPTY_SARIF = {
+    "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+    "version": "2.1.0",
+    "runs": [],
+}
 
 
 def _merge_sarif_parts(parts, dst: Path):
@@ -54,7 +63,9 @@ def _zizmor_cmd(fmt: str, paths: list[str]) -> list[str]:
     dbg = os.environ.get("RUNNER_DEBUG", "").strip().lower()
     if dbg in ("1", "true", "yes", "y", "on"):
         cmd.append("--verbose")
-    cmd += (os.environ.get("ZIZMOR_EXTRA_ARGS") or "").split()
+    extra = (os.environ.get("ZIZMOR_EXTRA_ARGS") or "").strip()
+    if extra:
+        cmd += shlex.split(extra)
     cmd += paths
     return cmd
 
@@ -88,7 +99,7 @@ def _pipe_plain(cmd: list[str], fh) -> int:
 def _sarif(batch: int, out: Path) -> int:
     paths = _scan_paths()
     if paths is None:
-        out.write_text("")
+        out.write_text(json.dumps(_EMPTY_SARIF), encoding="utf-8")
         return 0
 
     chunks = [list(c) for c in batched(paths, batch)]

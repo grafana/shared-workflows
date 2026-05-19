@@ -187,11 +187,11 @@ files can be ignored][zizmor-ignore-config].
 
 ## Skipping vendored workflow trees ([security-appsec#326](https://github.com/grafana/security-appsec/issues/326))
 
-Vendored trees can still contain `.github/workflows/`. Add **`.github/zizmor-collection-ignore`**: one **directory prefix** per line (lines like `ksonnet/vendor/**/*` work—the `/**` suffix is stripped). Comments (`#`) and blank lines are OK. Without this file, zizmor still scans `.`. Explicit targets, batching, and SARIF merging are handled in **`actions/zizmor-collection-paths`** (Python), not shell `find`/`jq`.
+Vendored trees can still contain `.github/workflows/`. Add **`.github/zizmor-collection-ignore`** at the repo root with one directory prefix per line. Lines like `ksonnet/vendor/**/*` work (a trailing `/**` is stripped). Do not use `..` or absolute paths. Comments (`#`) and blank lines are OK. Without this file, zizmor still scans `.`.
 
 ```text
 ksonnet/vendor
 terraform/modules/github.com/github-aws-runners
 ```
 
-[gitignore]: https://git-scm.com/docs/gitignore
+Explicit path collection, batching, and SARIF merging live in **`actions/zizmor-collection-paths`**. The reusable workflow always runs those helpers from the **OIDC-pinned `shared-workflows` checkout** (`_shared-workflows-zizmor`), not from the scanned repository.
