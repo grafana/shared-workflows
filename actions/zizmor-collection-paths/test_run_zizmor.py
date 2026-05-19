@@ -58,7 +58,7 @@ class SarifEmptyExplicitTests(unittest.TestCase):
             }
             (Path(d) / "empty.txt").write_text("\n\n", encoding="utf-8")
             with mock.patch.dict("os.environ", env, clear=False):
-                rc = run_zizmor._sarif(400, out)
+                rc = run_zizmor._run_sarif(None, 400, out)
             self.assertEqual(rc, 0)
             doc = json.loads(out.read_text(encoding="utf-8"))
             self.assertEqual(doc.get("version"), "2.1.0")
