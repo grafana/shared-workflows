@@ -19,10 +19,12 @@ From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub
 ## Action Permissions
 
 This action will need the following permissions in your workflow file:
+
 ```yaml
 permissions:
   id-token: write
 ```
+
 ## Examples
 
 ### Using Environment Variables (default)
