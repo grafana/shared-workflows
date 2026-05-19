@@ -18,7 +18,7 @@ From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub
 
 ## Action Permissions
 
-This action will need the following permissions in your workflow file:
+This action will need the following permissions in your workflow file to generate github OIDC token:
 
 ```yaml
 permissions:
