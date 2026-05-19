@@ -1,5 +1,3 @@
-"""Tests for run_zizmor."""
-
 import json
 import tempfile
 import unittest

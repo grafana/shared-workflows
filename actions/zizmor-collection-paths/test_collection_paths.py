@@ -1,5 +1,3 @@
-"""Tests for collection_paths."""
-
 import os
 import shutil
 import sys
