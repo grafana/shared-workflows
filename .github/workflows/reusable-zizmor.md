@@ -184,3 +184,14 @@ files can be ignored][zizmor-ignore-config].
 
 [zizmor-config]: https://woodruffw.github.io/zizmor/configuration/
 [zizmor-ignore-config]: https://woodruffw.github.io/zizmor/usage/#with-zizmoryml
+
+## Skipping vendored workflow trees ([security-appsec#326](https://github.com/grafana/security-appsec/issues/326))
+
+Vendored trees can still contain `.github/workflows/`. Add **`.github/zizmor-collection-ignore`**: one **directory prefix** per line (lines like `ksonnet/vendor/**/*` work—the `/**` suffix is stripped). Comments (`#`) and blank lines are OK. Without this file, zizmor still scans `.`. Explicit targets, batching, and SARIF merging are handled in **`actions/zizmor-collection-paths`** (Python), not shell `find`/`jq`.
+
+```text
+ksonnet/vendor
+terraform/modules/github.com/github-aws-runners
+```
+
+[gitignore]: https://git-scm.com/docs/gitignore
