@@ -1,5 +1,6 @@
-// Persist the Vault credentials and lease ID to job state so the post step can
-// revoke the lease after the user's job has finished using the token.
+// Persist the Vault credentials to job state so the post step can revoke the
+// Vault token after the user's job has finished. Revoking the token
+// cascade-revokes every lease it created, including the GitHub App token.
 //
 // Uses only Node.js built-ins so it can run as a self-contained action without
 // a bundled `node_modules`.
@@ -11,7 +12,6 @@ const fs = require("node:fs");
 const stateFile = process.env.GITHUB_STATE;
 const vaultUrl = process.env.INPUT_VAULT_URL || "";
 const vaultToken = process.env.INPUT_VAULT_TOKEN || "";
-const leaseId = process.env.INPUT_LEASE_ID || "";
 
 if (!stateFile) {
   console.log(
@@ -20,9 +20,9 @@ if (!stateFile) {
   process.exit(0);
 }
 
-if (!vaultUrl || !vaultToken || !leaseId) {
+if (!vaultUrl || !vaultToken) {
   console.log(
-    "Missing required input(s) (vault_url / vault_token / lease_id); " +
+    "Missing required input(s) (vault_url / vault_token); " +
       "post-step will be a no-op.",
   );
   process.exit(0);
@@ -34,8 +34,8 @@ if (!vaultUrl || !vaultToken || !leaseId) {
 console.log(`::add-mask::${vaultToken}`);
 
 // GITHUB_STATE supports the same heredoc format as GITHUB_ENV / GITHUB_OUTPUT.
-// Vault URLs, tokens and lease IDs do not contain newlines, but the heredoc
-// form is robust against unexpected characters such as `=`.
+// Vault URLs and tokens do not contain newlines, but the heredoc form is
+// robust against unexpected characters such as `=`.
 const delim = `ghacleanup_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 const writeState = (key, value) => {
   fs.appendFileSync(stateFile, `${key}<<${delim}\n${value}\n${delim}\n`);
@@ -43,6 +43,5 @@ const writeState = (key, value) => {
 
 writeState("vault_url", vaultUrl);
 writeState("vault_token", vaultToken);
-writeState("lease_id", leaseId);
 
-console.log("Registered Vault lease for post-job cleanup.");
+console.log("Registered Vault token for post-job revocation.");

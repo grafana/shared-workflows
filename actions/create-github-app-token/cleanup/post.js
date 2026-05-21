@@ -1,7 +1,14 @@
-// Revoke the Vault lease that backs the GitHub App installation token. This
-// runs as a post-job step, so it executes after the user's workflow has
+// Revoke the Vault token that issued the GitHub App installation token. Per
+// the Vault docs, revoking a token also revokes every dynamic secret created
+// with it, so the GitHub App token is invalidated as a side-effect:
+// https://developer.hashicorp.com/vault/api-docs/auth/token#revoke-a-token-self
+//
+// This runs as a post-job step, so it executes after the user's workflow has
 // finished using the token regardless of whether earlier steps succeeded or
 // failed (post-if: always()).
+//
+// `revoke-self` is part of Vault's built-in `default` policy, so it requires
+// no extra capability on the role.
 //
 // Uses only Node.js built-ins so it can run as a self-contained action without
 // a bundled `node_modules`.
@@ -16,12 +23,11 @@ const RETRY_BASE_DELAY_MS = 2000;
 
 const vaultUrl = process.env.STATE_vault_url || "";
 const vaultToken = process.env.STATE_vault_token || "";
-const leaseId = process.env.STATE_lease_id || "";
 
-if (!vaultUrl || !vaultToken || !leaseId) {
+if (!vaultUrl || !vaultToken) {
   console.log(
     "No cleanup state present (token creation likely failed); " +
-      "skipping Vault lease revocation.",
+      "skipping Vault token revocation.",
   );
   process.exit(0);
 }
@@ -31,24 +37,22 @@ console.log(`::add-mask::${vaultToken}`);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const revokeLeaseOnce = () => {
+const revokeTokenOnce = () => {
   const endpoint = new URL(
-    "/v1/sys/leases/revoke",
+    "/v1/auth/token/revoke-self",
     vaultUrl.replace(/\/+$/, ""),
   );
-  const payload = JSON.stringify({ lease_id: leaseId });
 
   return new Promise((resolve) => {
     const req = https.request(
       {
-        method: "PUT",
+        method: "POST",
         hostname: endpoint.hostname,
         port: endpoint.port || 443,
         path: endpoint.pathname,
         headers: {
           "X-Vault-Token": vaultToken,
-          "Content-Type": "application/json",
-          "Content-Length": Buffer.byteLength(payload),
+          "Content-Length": 0,
         },
       },
       (res) => {
@@ -66,31 +70,29 @@ const revokeLeaseOnce = () => {
       resolve({ status: 0, body: err.message });
     });
 
-    req.write(payload);
     req.end();
   });
 };
 
-const revokeLease = async () => {
+const revokeToken = async () => {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const { status, body } = await revokeLeaseOnce();
+    const { status, body } = await revokeTokenOnce();
 
     if (status >= 200 && status < 300) {
-      console.log(`Vault lease revoked (HTTP ${status}, lease_id=${leaseId}).`);
+      console.log(`Vault token revoked (HTTP ${status}).`);
       return;
     }
 
-    // 403 / 404 typically mean the token or lease is already gone; no point
-    // retrying.
+    // 403 / 404 typically mean the token is already gone; no point retrying.
     if (status === 403 || status === 404) {
       console.log(
-        `::warning::Vault lease revoke skipped (HTTP ${status}): ${body}`,
+        `::warning::Vault token revoke skipped (HTTP ${status}): ${body}`,
       );
       return;
     }
 
     console.log(
-      `::warning::Vault lease revoke attempt ${attempt}/${MAX_ATTEMPTS} ` +
+      `::warning::Vault token revoke attempt ${attempt}/${MAX_ATTEMPTS} ` +
         `failed (HTTP ${status}): ${body}`,
     );
 
@@ -100,13 +102,13 @@ const revokeLease = async () => {
   }
 
   console.log(
-    `::warning::Failed to revoke Vault lease after ${MAX_ATTEMPTS} attempts. ` +
-      "The token will still expire naturally when its TTL elapses.",
+    `::warning::Failed to revoke Vault token after ${MAX_ATTEMPTS} attempts. ` +
+      "The GitHub App token will still expire naturally when its TTL elapses.",
   );
 };
 
-revokeLease().catch((err) => {
+revokeToken().catch((err) => {
   // Never fail the post-step on cleanup errors — the token will expire on its
   // own and surfacing an error here would mask the real job result.
-  console.log(`::warning::Vault lease revoke errored: ${err.message}`);
+  console.log(`::warning::Vault token revoke errored: ${err.message}`);
 });
