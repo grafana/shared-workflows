@@ -1,0 +1,48 @@
+// Persist the Vault credentials and lease ID to job state so the post step can
+// revoke the lease after the user's job has finished using the token.
+//
+// Uses only Node.js built-ins so it can run as a self-contained action without
+// a bundled `node_modules`.
+
+"use strict";
+
+const fs = require("node:fs");
+
+const stateFile = process.env.GITHUB_STATE;
+const vaultUrl = process.env.INPUT_VAULT_URL || "";
+const vaultToken = process.env.INPUT_VAULT_TOKEN || "";
+const leaseId = process.env.INPUT_LEASE_ID || "";
+
+if (!stateFile) {
+  console.log(
+    "GITHUB_STATE is not set; skipping registration of cleanup state.",
+  );
+  process.exit(0);
+}
+
+if (!vaultUrl || !vaultToken || !leaseId) {
+  console.log(
+    "Missing required input(s) (vault_url / vault_token / lease_id); " +
+      "post-step will be a no-op.",
+  );
+  process.exit(0);
+}
+
+// Re-mask the vault token in case any later log statement echoes the state
+// values. `auth_vault.sh` already masks it for the duration of the job, but
+// adding the mask again is harmless and defensive.
+console.log(`::add-mask::${vaultToken}`);
+
+// GITHUB_STATE supports the same heredoc format as GITHUB_ENV / GITHUB_OUTPUT.
+// Vault URLs, tokens and lease IDs do not contain newlines, but the heredoc
+// form is robust against unexpected characters such as `=`.
+const delim = `ghacleanup_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+const writeState = (key, value) => {
+  fs.appendFileSync(stateFile, `${key}<<${delim}\n${value}\n${delim}\n`);
+};
+
+writeState("vault_url", vaultUrl);
+writeState("vault_token", vaultToken);
+writeState("lease_id", leaseId);
+
+console.log("Registered Vault lease for post-job cleanup.");

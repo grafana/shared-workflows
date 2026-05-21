@@ -22,7 +22,9 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
 
     if [[ "${RESPONSE}" -eq 200 ]]; then
         TOKEN=$(jq -r '.data.token' "${TEMP_FILE}")
+        LEASE_ID=$(jq -r '.lease_id // empty' "${TEMP_FILE}")
         echo "github_token=${TOKEN}" >> "${GITHUB_OUTPUT}"
+        echo "lease_id=${LEASE_ID}" >> "${GITHUB_OUTPUT}"
         echo "Create GitHub Token done!"
         exit 0
     else

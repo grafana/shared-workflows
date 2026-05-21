@@ -1,0 +1,20 @@
+name: Cleanup GitHub App Token (internal)
+description: |
+  Internal helper for `create-github-app-token`. Registers a post-job step that
+  revokes the Vault lease backing the issued GitHub App installation token,
+  which in turn invalidates the token. Should not be invoked directly by users.
+inputs:
+  vault_url:
+    description: Vault base URL (e.g. https://vault-github-actions.grafana-ops.net).
+    required: true
+  vault_token:
+    description: Vault token authorized to revoke the lease.
+    required: true
+  lease_id:
+    description: The Vault lease ID associated with the GitHub App token.
+    required: true
+runs:
+  using: node20
+  main: main.js
+  post: post.js
+  post-if: always()

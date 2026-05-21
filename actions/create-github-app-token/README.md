@@ -2,6 +2,12 @@
 
 From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub App using Vault.
 
+The action automatically registers a post-job step that revokes the Vault
+lease backing the issued token, which invalidates the GitHub App token as soon
+as the job finishes (regardless of whether earlier steps succeeded or failed).
+If revocation fails for any reason, the token still expires naturally when its
+Vault lease TTL elapses.
+
 ## Inputs
 
 | Name             | Type   | Description                 | Default Value | Required |
