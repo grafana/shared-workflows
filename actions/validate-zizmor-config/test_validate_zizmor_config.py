@@ -4,7 +4,11 @@ import unittest
 
 import yaml
 
-from validate_zizmor_config import UniqueKeyFullLoader, collect_violations
+import json
+import tempfile
+from pathlib import Path
+
+from validate_zizmor_config import UniqueKeyFullLoader, collect_violations, write_validation_sarif
 
 
 class CollectViolationsTests(unittest.TestCase):
@@ -95,6 +99,19 @@ rules:
         text = "rules:\n  insecure-commands:\n    x: 1\n  insecure-commands:\n    y: 2\n"
         with self.assertRaises(yaml.YAMLError):
             yaml.load(text, Loader=UniqueKeyFullLoader)
+
+    def test_write_validation_sarif(self) -> None:
+        violations = ["forbidden key `rules.insecure-commands` (remove this audit block from the config)"]
+        with tempfile.TemporaryDirectory() as tmp:
+            sarif_path = Path(tmp) / "results.sarif"
+            config_path = Path(".github/zizmor.yml")
+            write_validation_sarif(config_path, violations, sarif_output=sarif_path)
+            sarif = json.loads(sarif_path.read_text(encoding="utf-8"))
+        self.assertEqual(sarif["version"], "2.1.0")
+        results = sarif["runs"][0]["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["level"], "error")
+        self.assertIn("zizmor-config-validator failed", results[0]["message"]["text"])
 
 
 if __name__ == "__main__":

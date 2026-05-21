@@ -6,9 +6,10 @@ Intended to be called from [`.github/workflows/reusable-zizmor.yml`](../../.gith
 
 ## Inputs
 
-| Name          | Required | Description                                       |
-| ------------- | -------- | ------------------------------------------------- |
-| `config_path` | yes      | Path to the config file relative to the workspace |
+| Name           | Required | Description                                                                 |
+| -------------- | -------- | --------------------------------------------------------------------------- |
+| `config_path`  | yes      | Path to the config file relative to the workspace                           |
+| `sarif_output` | no       | When set, write a SARIF report to this path if validation fails (for Bench) |
 
 ## Requirements
 
