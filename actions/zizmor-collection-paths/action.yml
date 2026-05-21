@@ -1,0 +1,33 @@
+name: Zizmor collection paths
+description: Reads optional zizmor-collection-ignore and emits explicit scan paths for reusable-zizmor.
+
+inputs:
+  repo-root:
+    description: Checked-out repository root (same as zizmor scan root).
+    required: true
+  paths-out:
+    description: Absolute path to the newline-separated file zizmor will read.
+    required: true
+
+outputs:
+  use_explicit_paths:
+    description: "true when zizmor should scan explicit paths instead of `.`"
+    value: ${{ steps.run.outputs.use_explicit_paths }}
+  paths_list:
+    description: Absolute path to the explicit inputs file (empty when not used)
+    value: ${{ steps.run.outputs.paths_list }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      env:
+        REPO_ROOT: ${{ inputs.repo-root }}
+        PATHS_OUT: ${{ inputs.paths-out }}
+      run: |
+        set -euo pipefail
+        python3 "${{ github.action_path }}/collection_paths.py" \
+          --repo-root "${REPO_ROOT}" \
+          --ignore-file "${REPO_ROOT}/.github/zizmor-collection-ignore" \
+          --paths-out "${PATHS_OUT}"
