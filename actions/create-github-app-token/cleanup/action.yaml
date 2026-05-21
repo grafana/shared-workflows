@@ -1,0 +1,24 @@
+name: Cleanup GitHub App Token (internal)
+description: |
+  Internal helper for `create-github-app-token`. Registers a post-job step that
+  revokes the Vault token used to issue the GitHub App installation token.
+  Revoking the Vault token cascade-revokes every lease it created, which
+  invalidates the GitHub App token. Should not be invoked directly by users.
+inputs:
+  vault_url:
+    description: Vault base URL (e.g. https://vault-github-actions.grafana-ops.net).
+    required: true
+  vault_token:
+    description: Vault token to revoke at the end of the job.
+    required: true
+  proxy_audience:
+    description: |
+      GitHub OIDC audience for the proxy fronting Vault. The post step mints a
+      fresh ID token for this audience because the JWT used during the job may
+      have expired by the time post-job cleanup runs.
+    required: true
+runs:
+  using: node20
+  main: main.js
+  post: post.js
+  post-if: always()

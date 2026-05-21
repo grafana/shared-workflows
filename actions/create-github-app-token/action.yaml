@@ -86,3 +86,36 @@ runs:
         REF_SHA: ${{ steps.normalize-workflow-name.outputs.ref_sha }}
       run: |
         ${GITHUB_ACTION_PATH}/create_token.sh
+
+    # The remaining steps register a post-job step that revokes the Vault
+    # token used to issue the GitHub App token. Revoking the Vault token
+    # cascade-revokes every lease it created, which invalidates the GitHub
+    # App token as soon as the job finishes. This uses a local JS sub-action
+    # because composite actions do not support a top-level `post` step. The
+    # sparse checkout makes the sub-action source available at a path
+    # resolvable by `uses: ./...`. We fall back to the caller repository /
+    # sha when `github.action_repository` is empty (which happens when this
+    # action is invoked locally for testing).
+    - name: Checkout cleanup sub-action
+      if: steps.auth-vault.outputs.vault_token != ''
+      env:
+        action_repo: ${{ github.action_repository }}
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: ${{ env.action_repo || github.repository }}
+        ref: ${{ env.action_ref || github.sha }}
+        path: _shared-workflows-create-github-app-token
+        sparse-checkout: actions/create-github-app-token/cleanup
+        persist-credentials: false
+
+    - name: Register post-job token cleanup
+      if: steps.auth-vault.outputs.vault_token != ''
+      uses: ./_shared-workflows-create-github-app-token/actions/create-github-app-token/cleanup
+      with:
+        vault_url: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
+        vault_token: ${{ steps.auth-vault.outputs.vault_token }}
+        # The Vault instance sits behind a proxy that requires a GitHub OIDC
+        # JWT on every request. The post step mints a fresh JWT for this
+        # audience because the one captured here may have expired by then.
+        proxy_audience: "vault-github-actions-grafana-${{ inputs.vault_instance }}"
