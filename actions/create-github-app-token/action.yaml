@@ -115,3 +115,7 @@ runs:
       with:
         vault_url: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
         vault_token: ${{ steps.auth-vault.outputs.vault_token }}
+        # The Vault instance sits behind a proxy that requires a GitHub OIDC
+        # JWT on every request. The post step mints a fresh JWT for this
+        # audience because the one captured here may have expired by then.
+        proxy_audience: "vault-github-actions-grafana-${{ inputs.vault_instance }}"

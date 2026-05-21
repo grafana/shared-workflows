@@ -12,6 +12,7 @@ const fs = require("node:fs");
 const stateFile = process.env.GITHUB_STATE;
 const vaultUrl = process.env.INPUT_VAULT_URL || "";
 const vaultToken = process.env.INPUT_VAULT_TOKEN || "";
+const proxyAudience = process.env.INPUT_PROXY_AUDIENCE || "";
 
 if (!stateFile) {
   console.log(
@@ -20,9 +21,9 @@ if (!stateFile) {
   process.exit(0);
 }
 
-if (!vaultUrl || !vaultToken) {
+if (!vaultUrl || !vaultToken || !proxyAudience) {
   console.log(
-    "Missing required input(s) (vault_url / vault_token); " +
+    "Missing required input(s) (vault_url / vault_token / proxy_audience); " +
       "post-step will be a no-op.",
   );
   process.exit(0);
@@ -34,7 +35,7 @@ if (!vaultUrl || !vaultToken) {
 console.log(`::add-mask::${vaultToken}`);
 
 // GITHUB_STATE supports the same heredoc format as GITHUB_ENV / GITHUB_OUTPUT.
-// Vault URLs and tokens do not contain newlines, but the heredoc form is
+// The values stored here do not contain newlines, but the heredoc form is
 // robust against unexpected characters such as `=`.
 const delim = `ghacleanup_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 const writeState = (key, value) => {
@@ -43,5 +44,6 @@ const writeState = (key, value) => {
 
 writeState("vault_url", vaultUrl);
 writeState("vault_token", vaultToken);
+writeState("proxy_audience", proxyAudience);
 
 console.log("Registered Vault token for post-job revocation.");

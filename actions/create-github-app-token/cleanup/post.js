@@ -10,6 +10,12 @@
 // `revoke-self` is part of Vault's built-in `default` policy, so it requires
 // no extra capability on the role.
 //
+// The Vault instance is fronted by a proxy that requires a GitHub OIDC JWT
+// in the `Proxy-Authorization-Token` header on every request. We mint a fresh
+// JWT here rather than reusing the one minted at job start, because GitHub
+// OIDC tokens are short-lived (~5 minutes) and may have expired by the time
+// the post step runs.
+//
 // Uses only Node.js built-ins so it can run as a self-contained action without
 // a bundled `node_modules`.
 
@@ -23,11 +29,23 @@ const RETRY_BASE_DELAY_MS = 2000;
 
 const vaultUrl = process.env.STATE_vault_url || "";
 const vaultToken = process.env.STATE_vault_token || "";
+const proxyAudience = process.env.STATE_proxy_audience || "";
+const oidcRequestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL || "";
+const oidcRequestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN || "";
 
-if (!vaultUrl || !vaultToken) {
+if (!vaultUrl || !vaultToken || !proxyAudience) {
   console.log(
     "No cleanup state present (token creation likely failed); " +
       "skipping Vault token revocation.",
+  );
+  process.exit(0);
+}
+
+if (!oidcRequestUrl || !oidcRequestToken) {
+  console.log(
+    "::warning::ACTIONS_ID_TOKEN_REQUEST_URL/TOKEN not set; cannot mint " +
+      "proxy JWT for Vault revoke-self. The Vault token will expire " +
+      "naturally when its TTL elapses.",
   );
   process.exit(0);
 }
@@ -37,7 +55,61 @@ console.log(`::add-mask::${vaultToken}`);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const revokeTokenOnce = () => {
+const fetchProxyJwt = () => {
+  const url = new URL(oidcRequestUrl);
+  url.searchParams.set("audience", proxyAudience);
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        method: "GET",
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: `${url.pathname}${url.search}`,
+        headers: {
+          Authorization: `Bearer ${oidcRequestToken}`,
+          Accept: "application/json",
+        },
+      },
+      (res) => {
+        let body = "";
+        res.on("data", (chunk) => {
+          body += chunk;
+        });
+        res.on("end", () => {
+          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+            try {
+              const parsed = JSON.parse(body);
+              if (parsed.value) {
+                resolve(parsed.value);
+              } else {
+                reject(new Error("OIDC response did not contain a token"));
+              }
+            } catch (err) {
+              reject(
+                new Error(`Failed to parse OIDC response: ${err.message}`),
+              );
+            }
+          } else {
+            reject(
+              new Error(
+                `OIDC mint failed (HTTP ${res.statusCode || 0}): ${body}`,
+              ),
+            );
+          }
+        });
+      },
+    );
+
+    req.on("error", (err) => {
+      reject(err);
+    });
+
+    req.end();
+  });
+};
+
+const revokeTokenOnce = (proxyJwt) => {
   const endpoint = new URL(
     "/v1/auth/token/revoke-self",
     vaultUrl.replace(/\/+$/, ""),
@@ -52,6 +124,7 @@ const revokeTokenOnce = () => {
         path: endpoint.pathname,
         headers: {
           "X-Vault-Token": vaultToken,
+          "Proxy-Authorization-Token": `Bearer ${proxyJwt}`,
           "Content-Length": 0,
         },
       },
@@ -75,8 +148,21 @@ const revokeTokenOnce = () => {
 };
 
 const revokeToken = async () => {
+  let proxyJwt;
+  try {
+    proxyJwt = await fetchProxyJwt();
+  } catch (err) {
+    console.log(
+      `::warning::Failed to mint proxy JWT for Vault revoke-self: ${err.message}. ` +
+        "The Vault token will expire naturally when its TTL elapses.",
+    );
+    return;
+  }
+  // Mask the JWT so it never appears verbatim in subsequent log lines.
+  console.log(`::add-mask::${proxyJwt}`);
+
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const { status, body } = await revokeTokenOnce();
+    const { status, body } = await revokeTokenOnce(proxyJwt);
 
     if (status >= 200 && status < 300) {
       console.log(`Vault token revoked (HTTP ${status}).`);
