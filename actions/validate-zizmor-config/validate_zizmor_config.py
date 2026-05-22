@@ -2,6 +2,7 @@
 """Fail if a repo-local zizmor.yml violates Grafana shared-workflows policy."""
 
 import argparse
+import json
 import sys
 from collections.abc import Hashable
 from pathlib import Path
@@ -122,6 +123,56 @@ def collect_violations(data: object) -> list[str]:
     return violations
 
 
+def write_validation_sarif(
+    path: Path,
+    violations: list[str],
+    *,
+    sarif_output: Path,
+) -> None:
+    """Write a minimal SARIF report so downstream bench/Loki ingestion still runs."""
+    config_uri = path.as_posix()
+    results = [
+        {
+            "ruleId": "zizmor-config-policy",
+            "level": "error",
+            "message": {"text": f"{_FAIL_LOG_PREFIX} {path}: {msg}"},
+            "locations": [
+                {
+                    "physicalLocation": {
+                        "artifactLocation": {"uri": config_uri},
+                    },
+                },
+            ],
+        }
+        for msg in violations
+    ]
+    sarif = {
+        "version": "2.1.0",
+        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "zizmor",
+                        "informationUri": "https://github.com/grafana/shared-workflows/tree/main/actions/validate-zizmor-config",
+                        "rules": [
+                            {
+                                "id": "zizmor-config-policy",
+                                "name": "zizmor-config-policy",
+                                "shortDescription": {
+                                    "text": "Repo-local zizmor.yml violates Grafana policy",
+                                },
+                            },
+                        ],
+                    },
+                },
+                "results": results,
+            },
+        ],
+    }
+    sarif_output.write_text(json.dumps(sarif, indent=2) + "\n", encoding="utf-8")
+
+
 def _normalize_policy_pattern_key(key: object) -> str | None:
     if key is None:
         return None
@@ -134,35 +185,51 @@ def _normalize_policy_pattern_key(key: object) -> str | None:
     return None
 
 
+def _fail(
+    path: Path,
+    violations: list[str],
+    *,
+    sarif_output: Path | None,
+) -> None:
+    for msg in violations:
+        full = f"{_FAIL_LOG_PREFIX} {path}: {msg}"
+        _github_error(full)
+        print(full, file=sys.stderr)
+    if sarif_output is not None:
+        write_validation_sarif(path, violations, sarif_output=sarif_output)
+    sys.exit(1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("config_path", type=Path, help="Path to zizmor.yml or .github/zizmor.yml")
+    parser.add_argument(
+        "--sarif-output",
+        type=Path,
+        default=None,
+        help="When validation fails, write a SARIF report to this path before exiting.",
+    )
     args = parser.parse_args()
     path: Path = args.config_path
+    sarif_output: Path | None = args.sarif_output
 
     if not path.is_file():
-        full = f"{_FAIL_LOG_PREFIX} {path}: config file does not exist or is not a file"
-        _github_error(full)
-        print(full, file=sys.stderr)
-        sys.exit(1)
+        _fail(
+            path,
+            ["config file does not exist or is not a file"],
+            sarif_output=sarif_output,
+        )
 
     text = path.read_text(encoding="utf-8")
 
     try:
         data = yaml.load(text, Loader=UniqueKeyFullLoader)
     except yaml.YAMLError as exc:
-        full = f"{_FAIL_LOG_PREFIX} {path}: invalid YAML: {exc}"
-        _github_error(full)
-        print(full, file=sys.stderr)
-        sys.exit(1)
+        _fail(path, [f"invalid YAML: {exc}"], sarif_output=sarif_output)
 
     violations = collect_violations(data)
     if violations:
-        for msg in violations:
-            full = f"{_FAIL_LOG_PREFIX} {path}: {msg}"
-            _github_error(full)
-            print(full, file=sys.stderr)
-        sys.exit(1)
+        _fail(path, violations, sarif_output=sarif_output)
 
 
 if __name__ == "__main__":

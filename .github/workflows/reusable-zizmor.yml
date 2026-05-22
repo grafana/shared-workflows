@@ -392,10 +392,13 @@ jobs:
           cache-dependency-glob: ""
 
       - name: Validate repo-local zizmor config policy
+        id: validate-config
+        continue-on-error: true
         if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs['repo-local-zizmor-config'] != '' }}
         uses: grafana/shared-workflows/actions/validate-zizmor-config@c2b99bc7ec69e11c1c4e4cba5cbc9197f794b683
         with:
           config_path: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
+          sarif_output: results.sarif
 
       - name: Zizmor cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
@@ -404,6 +407,7 @@ jobs:
           key: zizmor-${{ runner.os }}-${{ runner.arch }}
 
       - name: Run zizmor
+        if: steps.validate-config.outcome != 'failure'
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
@@ -425,6 +429,7 @@ jobs:
           exit 0
 
       - name: Upload artifact
+        if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: SARIF file
@@ -433,6 +438,7 @@ jobs:
 
       - name: Upload to code-scanning
         id: upload-sarif
+        if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@e46ed2cbd01164d986452f91f178727624ae40d7 # v4.35.3
         continue-on-error: true
         with:
@@ -445,12 +451,33 @@ jobs:
         shell: bash
         env:
           NO_COLOR: 1
+          VALIDATE_CONFIG_OUTCOME: ${{ steps.validate-config.outcome }}
+          REPO_LOCAL_ZIZMOR_CONFIG: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
         run: |
           set -o pipefail
 
           echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
+
+          if [ "${VALIDATE_CONFIG_OUTCOME}" = "failure" ]; then
+            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}."
+            if [ -f results.sarif ]; then
+              python3 - <<'PY' | tee -a "${GITHUB_OUTPUT}"
+          import json
+          from pathlib import Path
+
+          sarif = json.loads(Path("results.sarif").read_text(encoding="utf-8"))
+          for run in sarif.get("runs", []):
+              for result in run.get("results", []):
+                  print(result.get("message", {}).get("text", result))
+          PY
+            fi
+            echo "EOF" >> "${GITHUB_OUTPUT}"
+            echo "zizmor-exit-code=14" | tee -a "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
           # Run zizmor again with plain output for human-readable logs.
           # Don't fail the build here - we capture the exit code for the
           # "Fail the build" step to evaluate against fail-severity.
@@ -510,8 +537,14 @@ jobs:
             </details>
             ${{ steps.hide-comments.outputs.ends-with }}
 
+      - name: Fail on repo-local config policy violation
+        if: steps.validate-config.outcome == 'failure'
+        run: |
+          echo "Failing the build: repo-local zizmor config violates Grafana policy."
+          exit 1
+
       - name: Fail the build
-        if: inputs.fail-severity != 'never' && steps.zizmor-plain.outputs.zizmor-exit-code != 0
+        if: inputs.fail-severity != 'never' && steps.validate-config.outcome != 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0
         shell: sh
         env:
           FAIL_LEVEL: ${{ inputs.fail-severity }}
