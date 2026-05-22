@@ -395,7 +395,7 @@ jobs:
         id: validate-config
         continue-on-error: true
         if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs['repo-local-zizmor-config'] != '' }}
-        uses: grafana/shared-workflows/actions/validate-zizmor-config@a476b2f125c0d35381b8b20f09b1c5d9ab95cd1c
+        uses: grafana/shared-workflows/actions/validate-zizmor-config@c2b99bc7ec69e11c1c4e4cba5cbc9197f794b683
         with:
           config_path: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           sarif_output: results.sarif
