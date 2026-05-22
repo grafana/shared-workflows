@@ -152,6 +152,11 @@
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
     },
+    "actions/validate-zizmor-config": {
+      "package-name": "validate-zizmor-config",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/cleanup-branches": {
       "package-name": "cleanup-branches",
       "extra-files": ["README.md"],
