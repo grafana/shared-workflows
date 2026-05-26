@@ -89,3 +89,39 @@ jobs:
       - name: Show pusher log
         if: always()
         run: cat /tmp/pusher.log 2>/dev/null || echo "no pusher log"
+
+  timeout-path:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Record start time
+        id: start
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Wait for image that will never appear
+        id: wait
+        continue-on-error: true
+        uses: ./actions/wait-for-docker-publish
+        with:
+          image: library/hello-world:never-real-${{ github.run_id }}
+          timeout: 20s
+
+      - name: Assert timeout behaviour
+        env:
+          START: ${{ steps.start.outputs.epoch }}
+          OUTCOME: ${{ steps.wait.outcome }}
+        run: |
+          elapsed=$(( $(date +%s) - START ))
+          echo "elapsed=${elapsed}s outcome=${OUTCOME}"
+          [ "${OUTCOME}" = "failure" ] || { echo "expected failure, got ${OUTCOME}"; exit 1; }
+          [ "${elapsed}" -ge 18 ] || { echo "exited too quickly: ${elapsed}s"; exit 1; }
+          [ "${elapsed}" -le 35 ] || { echo "took way too long: ${elapsed}s"; exit 1; }
