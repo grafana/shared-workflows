@@ -31,6 +31,30 @@ if ! validate_image "$IMAGE"; then
   exit 1
 fi
 
-# Loop not yet implemented.
-echo "::error::wait-for-docker-publish: polling loop not yet implemented"
+parse_duration() {
+  local v="$1"
+  local n="${v%[smh]}"
+
+  if ! [[ "$n" =~ ^[0-9]+$ ]]; then
+    echo "::error::duration '${v}' is not a valid number with optional s/m/h suffix" >&2
+    return 1
+  fi
+
+  case "$v" in
+    *h) echo "$(( n * 3600 ))" ;;
+    *m) echo "$(( n * 60 ))" ;;
+    *s) echo "$n" ;;
+    *)  echo "$n" ;;  # bare number = seconds
+  esac
+}
+
+: "${TIMEOUT:=10m}"
+: "${INITIAL_INTERVAL:=5s}"
+: "${MAX_INTERVAL:=60s}"
+
+timeout_s=$(parse_duration "$TIMEOUT")
+initial_s=$(parse_duration "$INITIAL_INTERVAL")
+max_s=$(parse_duration "$MAX_INTERVAL")
+
+echo "wait-for-docker-publish: parsed timeout=${timeout_s}s initial=${initial_s}s max=${max_s}s (polling loop not yet implemented)"
 exit 1
