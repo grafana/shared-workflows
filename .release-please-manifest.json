@@ -31,5 +31,6 @@
     "actions/component-change-detection": "1.0.1",
     "actions/socket-export-sbom": "0.1.1",
     "actions/issues-update-project-status": "0.1.1",
-    "actions/go-flaky-tests": "0.1.0"
+    "actions/go-flaky-tests": "0.1.0",
+    "actions/download-branch-workflow-artifact": "0.1.0"
 }
