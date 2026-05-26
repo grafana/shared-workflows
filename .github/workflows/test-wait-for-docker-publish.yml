@@ -163,4 +163,3 @@ jobs:
           [ "${OUTCOME}" = "failure" ] || { echo "expected failure, got ${OUTCOME}"; exit 1; }
           # Validation must fire in well under a second; allow 5s for harness overhead.
           [ "${elapsed}" -le 5 ] || { echo "validation did not fast-fail (${elapsed}s)"; exit 1; }
-
