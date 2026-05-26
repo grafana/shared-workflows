@@ -56,12 +56,18 @@ on:
       auto-delete-dangerous-branches:
         description: >
           If true, automatically delete non-default branches on push events
-          when zizmor finds dangerous-triggers findings. Creates a GitHub issue
-          assigned to the pusher before deletion. Caller must grant
-          contents:write and issues:write permissions.
+          when zizmor finds dangerous-triggers findings. Sends a Slack
+          notification before deletion. Caller must grant contents:write and
+          id-token:write permissions.
         required: false
         type: boolean
         default: false
+
+      auto-delete-slack-channel-id:
+        description: Slack channel ID to notify before deleting a branch.
+        required: false
+        type: string
+        default: ""
 
 permissions: {}
 
@@ -691,42 +697,87 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
-      issues: write
+      id-token: write
     steps:
-      - name: Create issue notifying branch author
+      - name: Build Slack notification payload
+        id: slack-payload
         env:
-          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           REF_NAME: ${{ github.ref_name }}
           ACTOR: ${{ github.actor }}
           SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_CHANNEL_ID: ${{ inputs.auto-delete-slack-channel-id }}
         run: |
-          gh issue create \
-            --repo "${REPO}" \
-            --title "Vulnerable workflow detected — branch \`${REF_NAME}\` deleted" \
-            --assignee "${ACTOR}" \
-            --body "$(cat <<EOF
-          ## Branch auto-deleted due to vulnerable GitHub Actions workflow
+          python3 <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
 
-          | Field | Value |
-          |---|---|
-          | **Branch** | \`${REF_NAME}\` |
-          | **Pushed by** | @${ACTOR} |
-          | **Commit** | ${SHA} |
-          | **Workflow run** | ${RUN_URL} |
+          channel = os.environ["SLACK_CHANNEL_ID"]
+          if not channel:
+              raise SystemExit("auto-delete-slack-channel-id must be set when auto-delete-dangerous-branches is true")
 
-          [zizmor](https://github.com/woodruffw/zizmor) found a dangerous-triggers finding in a GitHub Actions workflow on this branch. Triggers such as \`pull_request_target\`, \`issue_comment\`, \`issues\`, or \`workflow_run\` can be exploitable the moment they exist on any branch. To prevent exploitation, the branch was automatically deleted.
+          repo = os.environ["REPO"]
+          ref_name = os.environ["REF_NAME"]
+          actor = os.environ["ACTOR"]
+          sha = os.environ["SHA"]
+          run_url = os.environ["RUN_URL"]
 
-          ### What to do
+          def slack_escape(value):
+              return str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-          1. Review the [workflow run logs](${RUN_URL}) for details on the finding.
-          2. Fix the vulnerable workflow locally.
-          3. Push the branch again.
+          payload = {
+              "channel": channel,
+              "text": f"zizmor deleted branch {slack_escape(ref_name)} in {slack_escape(repo)} after finding a dangerous-trigger workflow vulnerability.",
+              "blocks": [
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": ":warning: *Branch auto-deleted due to vulnerable GitHub Actions workflow*",
+                      },
+                  },
+                  {
+                      "type": "section",
+                      "fields": [
+                          {"type": "mrkdwn", "text": f"*Repository:*\n{slack_escape(repo)}"},
+                          {"type": "mrkdwn", "text": f"*Branch:*\n{slack_escape(ref_name)}"},
+                          {"type": "mrkdwn", "text": f"*Pushed by:*\n{slack_escape(actor)}"},
+                          {"type": "mrkdwn", "text": f"*Commit:*\n`{sha}`"},
+                      ],
+                  },
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": (
+                              "zizmor found a `dangerous-triggers` finding in a workflow on this branch. "
+                              "Triggers such as `pull_request_target`, `issue_comment`, `issues`, or "
+                              "`workflow_run` can be exploitable the moment they exist on any branch. "
+                              "The branch was automatically deleted to prevent exploitation."
+                          ),
+                      },
+                  },
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": f"<{run_url}|Review the workflow run logs>, fix the workflow locally, then push the branch again.",
+                      },
+                  },
+              ],
+          }
 
-          If you believe this is a false positive, reach out in **#security**.
-          EOF
-          )"
+          print("payload<<EOF")
+          print(json.dumps(payload))
+          print("EOF")
+          PY
+
+      - name: Notify Slack
+        uses: grafana/shared-workflows/actions/send-slack-message@eb1fbd807f87aea8f40ff08dc9cd02872cad55b3 # send-slack-message/v2.0.5
+        with:
+          method: chat.postMessage
+          payload: ${{ steps.slack-payload.outputs.payload }}
 
       - name: Delete branch
         env:

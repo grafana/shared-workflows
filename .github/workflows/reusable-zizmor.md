@@ -113,7 +113,8 @@ jobs:
 | github-token                   | string  | The GitHub token to use when authenticating with the GitHub API                                                                                                                                                                | ${github.token} | false    |
 | extra-args                     | string  | Extra arguments to pass into zizmor                                                                                                                                                                                            | ""              | false    |
 | send-bench-metrics             | boolean | If true, run Grafana Bench after analysis to send zizmor metrics to Prometheus. Uses shared Vault secrets (grafana-bench); no caller secrets required. Set to false to skip.                                                   | true            | false    |
-| auto-delete-dangerous-branches | boolean | If true, on `push` to a non-default branch, delete the branch when zizmor reports `dangerous-triggers` findings. Creates a GitHub issue assigned to the pusher first. Caller must grant `contents: write` and `issues: write`. | false           | false    |
+| auto-delete-dangerous-branches | boolean | If true, on `push` to a non-default branch, delete the branch when zizmor reports `dangerous-triggers` findings. Sends a Slack notification first. Caller must grant `contents: write` and `id-token: write`. | false           | false    |
+| auto-delete-slack-channel-id   | string  | Slack channel ID to notify before deleting a branch. Required when `auto-delete-dangerous-branches` is `true`.                                                                                                           | ""              | false    |
 
 [default configuration]: ../zizmor.yml
 
@@ -139,12 +140,14 @@ When `send-bench-metrics` is true (default), the workflow runs a second job afte
 
 When `auto-delete-dangerous-branches` is `true`, the workflow runs an additional job after analysis on **`push` events to non-default branches** only. If the SARIF output contains any `dangerous-triggers` finding (for example `pull_request_target`, `issue_comment`, `issues`, or `workflow_run`), the job:
 
-1. Opens a GitHub issue assigned to the pusher with branch name, commit, and a link to the workflow run.
+1. Sends a Slack notification with branch name, pusher, commit, and a link to the workflow run.
 2. Deletes the branch via the GitHub API.
 
 These triggers can be exploitable as soon as they exist on any branch, so deletion closes the attack window without waiting for a human review.
 
-**Caller permissions:** Grant `contents: write` and `issues: write` on the job that calls this reusable workflow. Without them, issue creation or branch deletion will fail with HTTP 403.
+**Caller permissions:** Grant `contents: write` and `id-token: write` on the job that calls this reusable workflow. `contents: write` is required for branch deletion. `id-token: write` is required by the Slack helper to fetch the shared Slack token from Vault.
+
+**Slack channel:** Set `auto-delete-slack-channel-id` to the Slack channel ID that should receive notifications. If auto-delete is enabled and no channel ID is configured, the delete job fails before deleting the branch.
 
 **To enable:**
 
@@ -153,13 +156,13 @@ permissions:
   actions: read
   contents: write
   id-token: write
-  issues: write
   pull-requests: write
   security-events: write
 
 uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<sha>
 with:
   auto-delete-dangerous-branches: true
+  auto-delete-slack-channel-id: ${{ vars.ZIZMOR_SLACK_CHANNEL_ID }}
 ```
 
 ## Getting started
