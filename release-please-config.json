@@ -192,6 +192,11 @@
       "extra-files": ["README.md"],
       "initial-version": "1.0.0"
     },
+    "actions/download-branch-workflow-artifact": {
+      "package-name": "download-branch-workflow-artifact",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/issues-update-project-status": {
       "package-name": "issues-update-project-status",
       "extra-files": ["README.md"],
