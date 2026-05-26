@@ -1,0 +1,41 @@
+name: Dockerfile Hardening
+description: Scan Dockerfiles for baseline hardening requirements
+
+inputs:
+  dockerfiles:
+    description: |
+      Newline- or space-separated list of Dockerfile paths (relative to the
+      caller's workspace) to scan.
+    required: true
+  conftest-version:
+    description: |
+      Version of conftest to install.
+    default: '0.55.0'
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout shared-workflows
+      env:
+        action_repo: "${{ github.action_repository || 'grafana/shared-workflows' }}"
+        action_ref: ${{ github.action_ref }}
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: ${{ env.action_repo }}
+        ref: ${{ env.action_ref }}
+        path: _shared-workflows-dockerfile-hardening
+        persist-credentials: false
+
+    - name: Setup Conftest
+      uses: ./_shared-workflows-dockerfile-hardening/actions/setup-conftest
+      with:
+        version: ${{ inputs.conftest-version }}
+
+    - name: Run Conftest
+      env:
+        DOCKERFILES: ${{ inputs.dockerfiles }}
+      shell: bash
+      working-directory: ${{ github.workspace }}/_shared-workflows-dockerfile-hardening/actions/dockerfile-hardening
+      run: bash ./run-conftest.sh verify-dockerfiles
+
