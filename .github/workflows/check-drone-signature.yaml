@@ -94,7 +94,8 @@ jobs:
           path: _shared-workflows-check-drone-signature
           persist-credentials: false
 
-      - name: Retrieve drone-signature-checker token
+      - id: get-secrets
+        name: Retrieve drone-signature-checker token
         uses: ./_shared-workflows-check-drone-signature/actions/get-vault-secrets
         with:
           common_secrets: |
@@ -116,6 +117,7 @@ jobs:
         env:
           DRONE_CONFIG_PATH: ${{ inputs.drone_config_path }}
           DRONE_SERVER: ${{ inputs.drone_server }}
+          DRONE_TOKEN: ${{ fromJSON(steps.get-secrets.outputs.secrets).DRONE_TOKEN }}
         run: |
           # Run drone sign command
           drone sign --save ${{ github.repository }} "${DRONE_CONFIG_PATH}"

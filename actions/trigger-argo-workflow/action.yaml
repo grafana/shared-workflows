@@ -107,7 +107,7 @@ runs:
       id: run
       shell: bash
       env:
-        ARGO_TOKEN: ${{ env.ARGO_TOKEN }}
+        ARGO_TOKEN: ${{ fromJSON(steps.get-argo-token.outputs.secrets).ARGO_TOKEN }}
         EXTRA_ARGS: ${{ inputs.extra_args }}
         INSTANCE: ${{ inputs.instance }}
         LOG_LEVEL: ${{ inputs.log_level }}
