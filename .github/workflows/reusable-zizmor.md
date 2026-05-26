@@ -113,6 +113,7 @@ jobs:
 | github-token              | string  | The GitHub token to use when authenticating with the GitHub API                                                                                                              | ${github.token} | false    |
 | extra-args                | string  | Extra arguments to pass into zizmor                                                                                                                                          | ""              | false    |
 | send-bench-metrics        | boolean | If true, run Grafana Bench after analysis to send zizmor metrics to Prometheus. Uses shared Vault secrets (grafana-bench); no caller secrets required. Set to false to skip. | true            | false    |
+| auto-delete-dangerous-branches | boolean | If true, on `push` to a non-default branch, delete the branch when zizmor reports `dangerous-triggers` findings. Creates a GitHub issue assigned to the pusher first. Caller must grant `contents: write` and `issues: write`. | false           | false    |
 
 [default configuration]: ../zizmor.yml
 
@@ -133,6 +134,33 @@ When `send-bench-metrics` is true (default), the workflow runs a second job afte
 1. **Docker image version:** The image `grafana-bench:v1.0.2` must be built from a grafana-bench commit that includes the zizmor parser and the Prometheus reporter logic that pushes `summary.Metrics`. If the image was built before that code was merged, build and push a new image from current grafana-bench main (e.g. tag v1.0.3) and update the workflow to use that tag.
 2. **Workflow log:** The job runs bench with `--log-level debug`. In the "Run Grafana Bench (Docker image)" step, check for Prometheus push errors or missing env (e.g. "PROMETHEUS_URL not set").
 3. **Remote write:** Confirm the Prometheus/Mimir remote-write endpoint accepts and retains the `zizmor_*` metric names (no filtering or drop rules).
+
+## Auto-delete branches with dangerous triggers
+
+When `auto-delete-dangerous-branches` is `true`, the workflow runs an additional job after analysis on **`push` events to non-default branches** only. If the SARIF output contains any `dangerous-triggers` finding (for example `pull_request_target`, `issue_comment`, `issues`, or `workflow_run`), the job:
+
+1. Opens a GitHub issue assigned to the pusher with branch name, commit, and a link to the workflow run.
+2. Deletes the branch via the GitHub API.
+
+These triggers can be exploitable as soon as they exist on any branch, so deletion closes the attack window without waiting for a human review.
+
+**Caller permissions:** Grant `contents: write` and `issues: write` on the job that calls this reusable workflow. Without them, issue creation or branch deletion will fail with HTTP 403.
+
+**To enable:**
+
+```yaml
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+  security-events: write
+
+uses: grafana/shared-workflows/.github/workflows/reusable-zizmor.yml@<sha>
+with:
+  auto-delete-dangerous-branches: true
+```
 
 ## Getting started
 
