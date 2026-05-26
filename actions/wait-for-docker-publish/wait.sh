@@ -56,5 +56,39 @@ timeout_s=$(parse_duration "$TIMEOUT")
 initial_s=$(parse_duration "$INITIAL_INTERVAL")
 max_s=$(parse_duration "$MAX_INTERVAL")
 
-echo "wait-for-docker-publish: parsed timeout=${timeout_s}s initial=${initial_s}s max=${max_s}s (polling loop not yet implemented)"
-exit 1
+start=$SECONDS
+deadline=$(( start + timeout_s ))
+interval=$initial_s
+attempt=1
+err_file="$(mktemp)"
+trap 'rm -f "$err_file"' EXIT
+
+echo "wait-for-docker-publish: polling for ${IMAGE} (timeout ${timeout_s}s)"
+
+while true; do
+  : > "$err_file"
+  if docker manifest inspect "$IMAGE" >/dev/null 2>"$err_file"; then
+    echo "image found after $(( SECONDS - start ))s on attempt ${attempt}"
+    exit 0
+  fi
+
+  last_err="$(tr '\n' ' ' < "$err_file")"
+  remaining=$(( deadline - SECONDS ))
+  if (( remaining <= 0 )); then
+    echo "::error::timed out after ${TIMEOUT} waiting for ${IMAGE}; last error: ${last_err}"
+    exit 1
+  fi
+
+  sleep_for=$interval
+  if (( sleep_for > remaining )); then
+    sleep_for=$remaining
+  fi
+  echo "attempt ${attempt}: not yet available, sleeping ${sleep_for}s (elapsed $(( SECONDS - start ))s / ${timeout_s}s); last error: ${last_err}"
+  sleep "$sleep_for"
+
+  interval=$(( interval * 2 ))
+  if (( interval > max_s )); then
+    interval=$max_s
+  fi
+  attempt=$(( attempt + 1 ))
+done
