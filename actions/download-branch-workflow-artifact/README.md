@@ -6,20 +6,20 @@ Uses only first-party GitHub actions (`actions/github-script` and `actions/downl
 
 ## Inputs
 
-| Name           | Type     | Description                                              | Default Value         | Required |
-| -------------- | -------- | -------------------------------------------------------- | --------------------- | -------- |
-| `workflow`     | `string` | Workflow filename to download artifact from              |                       | true     |
-| `artifact-name`| `string` | Name of the artifact to download                         |                       | true     |
-| `branch`       | `string` | Branch to filter workflow runs by                        | `main`                | false    |
-| `path`         | `string` | Directory to download the artifact to                    | `.`                   | false    |
-| `github-token` | `string` | GitHub token with `actions:read` permission              | `${{ github.token }}` | false    |
+| Name            | Type     | Description                                 | Default Value         | Required |
+| --------------- | -------- | ------------------------------------------- | --------------------- | -------- |
+| `workflow`      | `string` | Workflow filename to download artifact from |                       | true     |
+| `artifact-name` | `string` | Name of the artifact to download            |                       | true     |
+| `branch`        | `string` | Branch to filter workflow runs by           | `main`                | false    |
+| `path`          | `string` | Directory to download the artifact to       | `.`                   | false    |
+| `github-token`  | `string` | GitHub token with `actions:read` permission | `${{ github.token }}` | false    |
 
 ## Outputs
 
 | Name            | Type     | Description                                                    |
 | --------------- | -------- | -------------------------------------------------------------- |
 | `found`         | `string` | Whether the artifact was found and downloaded (`true`/`false`) |
-| `run-id`        | `string` | The workflow run ID the artifact was downloaded from            |
+| `run-id`        | `string` | The workflow run ID the artifact was downloaded from           |
 | `download-path` | `string` | Path where the artifact was downloaded                         |
 
 ## Permissions
