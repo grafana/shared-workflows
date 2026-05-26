@@ -43,6 +43,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
     steps:
       - id: push
         uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.3.3
