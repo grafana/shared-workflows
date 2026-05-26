@@ -1,0 +1,87 @@
+name: Test wait-for-docker-publish action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/wait-for-docker-publish/**
+      - .github/workflows/test-wait-for-docker-publish.yml
+
+  pull_request:
+    paths:
+      - actions/wait-for-docker-publish/**
+      - .github/workflows/test-wait-for-docker-publish.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  success-after-retry:
+    runs-on: ubuntu-latest
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Pre-pull a small base image
+        run: docker pull hello-world:latest
+
+      - name: Tag image for local registry
+        env:
+          TARGET: localhost:5000/test:run-${{ github.run_id }}
+        run: docker tag hello-world:latest "${TARGET}"
+
+      - name: Schedule a delayed push to the local registry
+        env:
+          TARGET: localhost:5000/test:run-${{ github.run_id }}
+        run: |
+          # Push begins at t≈20s, after the action's first two backoff sleeps
+          # (5s + 10s = 15s elapsed). Forces at least two failed attempts
+          # before success.
+          ( sleep 20 && docker push "${TARGET}" ) &
+          echo "$!" > /tmp/pusher.pid
+
+      - name: Record start time
+        id: start
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Wait for the image
+        id: wait
+        uses: ./actions/wait-for-docker-publish
+        with:
+          image: localhost:5000/test:run-${{ github.run_id }}
+          timeout: 2m
+
+      - name: Assert retry behaviour
+        env:
+          START: ${{ steps.start.outputs.epoch }}
+          OUTCOME: ${{ steps.wait.outcome }}
+        run: |
+          elapsed=$(( $(date +%s) - START ))
+          echo "elapsed=${elapsed}s outcome=${OUTCOME}"
+          [ "${OUTCOME}" = "success" ] || { echo "expected success, got ${OUTCOME}"; exit 1; }
+          # 5s + 10s = 15s of backoff before the push lands at t=20s.
+          # Allow 13s lower bound to absorb small scheduling skew.
+          [ "${elapsed}" -ge 13 ] || { echo "exited too quickly (${elapsed}s) — loop did not retry"; exit 1; }
+          [ "${elapsed}" -le 90 ] || { echo "took too long (${elapsed}s) — loop is misbehaving"; exit 1; }
+
+      - name: Stop background pusher
+        if: always()
+        run: kill "$(cat /tmp/pusher.pid)" 2>/dev/null || true
