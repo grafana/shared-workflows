@@ -699,6 +699,25 @@ jobs:
       contents: write
       id-token: write
     steps:
+      - name: Validate inputs
+        env:
+          SLACK_CHANNEL_ID: ${{ inputs.auto-delete-slack-channel-id }}
+        run: |
+          if [ -z "${SLACK_CHANNEL_ID}" ]; then
+            echo "::error::auto-delete-slack-channel-id must be set when auto-delete-dangerous-branches is true"
+            exit 1
+          fi
+
+      - name: Delete branch
+        id: delete-branch
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.ref }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh api -X DELETE "repos/${REPO}/git/${REF}"
+
       - name: Build Slack notification payload
         id: slack-payload
         env:
@@ -708,34 +727,39 @@ jobs:
           SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SLACK_CHANNEL_ID: ${{ inputs.auto-delete-slack-channel-id }}
+          DELETE_OUTCOME: ${{ steps.delete-branch.outcome }}
         run: |
           python3 <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import os
 
           channel = os.environ["SLACK_CHANNEL_ID"]
-          if not channel:
-              raise SystemExit("auto-delete-slack-channel-id must be set when auto-delete-dangerous-branches is true")
-
           repo = os.environ["REPO"]
           ref_name = os.environ["REF_NAME"]
           actor = os.environ["ACTOR"]
           sha = os.environ["SHA"]
           run_url = os.environ["RUN_URL"]
+          deleted = os.environ["DELETE_OUTCOME"] == "success"
 
           def slack_escape(value):
               return str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
+          if deleted:
+              headline = ":white_check_mark: *Branch auto-deleted due to vulnerable GitHub Actions workflow*"
+              fallback = f"zizmor deleted branch {slack_escape(ref_name)} in {slack_escape(repo)} after finding a dangerous-trigger workflow vulnerability."
+              action_text = f"<{run_url}|Review the workflow run logs>, fix the workflow locally, then push the branch again."
+          else:
+              headline = ":rotating_light: *ACTION REQUIRED — failed to delete branch with dangerous workflow*"
+              fallback = f"zizmor found a dangerous-trigger vulnerability on branch {slack_escape(ref_name)} in {slack_escape(repo)} but could not delete it. Manual action required."
+              action_text = f"Automatic deletion failed. <{run_url}|Review the workflow run logs> and *manually delete the branch `{slack_escape(ref_name)}`* immediately."
+
           payload = {
               "channel": channel,
-              "text": f"zizmor deleted branch {slack_escape(ref_name)} in {slack_escape(repo)} after finding a dangerous-trigger workflow vulnerability.",
+              "text": fallback,
               "blocks": [
                   {
                       "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": ":warning: *Branch auto-deleted due to vulnerable GitHub Actions workflow*",
-                      },
+                      "text": {"type": "mrkdwn", "text": headline},
                   },
                   {
                       "type": "section",
@@ -753,17 +777,13 @@ jobs:
                           "text": (
                               "zizmor found a `dangerous-triggers` finding in a workflow on this branch. "
                               "Triggers such as `pull_request_target`, `issue_comment`, `issues`, or "
-                              "`workflow_run` can be exploitable the moment they exist on any branch. "
-                              "The branch was automatically deleted to prevent exploitation."
+                              "`workflow_run` can be exploitable the moment they exist on any branch."
                           ),
                       },
                   },
                   {
                       "type": "section",
-                      "text": {
-                          "type": "mrkdwn",
-                          "text": f"<{run_url}|Review the workflow run logs>, fix the workflow locally, then push the branch again.",
-                      },
+                      "text": {"type": "mrkdwn", "text": action_text},
                   },
               ],
           }
@@ -779,10 +799,8 @@ jobs:
           method: chat.postMessage
           payload: ${{ steps.slack-payload.outputs.payload }}
 
-      - name: Delete branch
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REF: ${{ github.ref }}
-          REPO: ${{ github.repository }}
+      - name: Fail if branch deletion failed
+        if: steps.delete-branch.outcome == 'failure'
         run: |
-          gh api -X DELETE "repos/${REPO}/git/${REF}"
+          echo "::error::Branch deletion failed — Slack notification sent as action-required alert"
+          exit 1
