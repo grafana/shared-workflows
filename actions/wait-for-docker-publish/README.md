@@ -1,13 +1,11 @@
 # wait-for-docker-publish
 
-Composite action that polls an OCI registry until the given image reference is
-published, or fails after a timeout. Used to bridge Grafana's async
-GAR→DockerHub mirror: after pushing to Google Artifact Registry with a
-short-lived OIDC token, downstream consumers use this action to wait for the
-mirror service to replicate the image to DockerHub before pulling.
-
-The action is registry-agnostic — it just calls `docker manifest inspect` in a
-retry loop — but the load-bearing use case is the GAR→DockerHub mirror.
+Polls an OCI registry until the given image reference is published, or fails
+after a timeout. The load-bearing use case is Grafana's async GAR→DockerHub
+mirror: after pushing to GAR with a short-lived OIDC token, downstream
+consumers use this action to wait for the mirror to replicate the image to
+DockerHub before pulling. Mechanism is `docker manifest inspect` in a retry
+loop, so the action works against any OCI-conformant registry.
 
 ## Inputs
 

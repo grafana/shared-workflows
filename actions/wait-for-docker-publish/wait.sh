@@ -6,19 +6,14 @@ set -euo pipefail
 validate_image() {
   local image="$1"
 
-  # Has @sha256:... digest? Accept.
   if [[ "$image" == *"@sha256:"* ]]; then
     return 0
   fi
 
-  # For refs with a registry path like 'localhost:5000/repo:tag', strip up to
-  # the last '/' so we look for the tag colon, not the registry port. Bare
-  # refs without a slash (e.g. 'localhost:5000') are left as-is and treated
-  # as name:tag — matching Docker CLI's own ref parser, which is intentionally
-  # lenient at this layer; bad refs surface as docker errors during polling.
+  # Strip up to the last '/' so a registry port (e.g. localhost:5000) isn't
+  # mistaken for a tag.
   local after_slash="${image##*/}"
 
-  # Has ':tag' after the last slash? Accept.
   if [[ "$after_slash" == *":"* ]]; then
     return 0
   fi
@@ -44,7 +39,7 @@ parse_duration() {
     *h) echo "$(( n * 3600 ))" ;;
     *m) echo "$(( n * 60 ))" ;;
     *s) echo "$n" ;;
-    *)  echo "$n" ;;  # bare number = seconds
+    *)  echo "$n" ;;
   esac
 }
 

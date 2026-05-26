@@ -47,18 +47,11 @@ jobs:
         env:
           TARGET: ttl.sh/wait-for-docker-publish-${{ github.run_id }}:1h
         run: |
-          # Push begins at t≈20s, after the action's first two backoff sleeps
-          # (5s + 10s = 15s elapsed). Forces at least two failed attempts
-          # before success.
-          #
-          # A plain backgrounded subshell would be killed when this step exits
-          # (GHA terminates the step's process group). `setsid -f` forks and
-          # puts the child in its own session, so it survives.
-          #
-          # ttl.sh is an anonymous, HTTPS-served, ephemeral OCI registry — the
-          # image expires after the tag's TTL. Used because `docker manifest
-          # inspect` defaults to HTTPS and doesn't fall back to HTTP for
-          # localhost registries like `docker push` does.
+          # 20s delay forces the action past its first two backoff sleeps (5s+10s).
+          # setsid -f detaches the pusher so it survives this step exit — GHA
+          # kills backgrounded subshells. ttl.sh is used (instead of registry:2
+          # on localhost) because `docker manifest inspect` defaults to HTTPS
+          # and won't fall back to HTTP.
           setsid -f bash -c "sleep 20 && docker push '${TARGET}'" \
             </dev/null >/tmp/pusher.log 2>&1
 
