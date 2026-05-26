@@ -22,6 +22,7 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
 
     if [[ "${RESPONSE}" -eq 200 ]]; then
         TOKEN=$(jq -r '.data.token' "${TEMP_FILE}")
+        echo "::add-mask::${TOKEN}"
         echo "github_token=${TOKEN}" >> "${GITHUB_OUTPUT}"
         echo "Create GitHub Token done!"
         exit 0
