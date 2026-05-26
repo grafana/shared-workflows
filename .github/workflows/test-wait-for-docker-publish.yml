@@ -24,11 +24,6 @@ permissions:
 jobs:
   success-after-retry:
     runs-on: ubuntu-latest
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
@@ -43,14 +38,14 @@ jobs:
       - name: Pre-pull a small base image
         run: docker pull hello-world:latest
 
-      - name: Tag image for local registry
+      - name: Tag image for ttl.sh
         env:
-          TARGET: localhost:5000/test:run-${{ github.run_id }}
+          TARGET: ttl.sh/wait-for-docker-publish-${{ github.run_id }}:1h
         run: docker tag hello-world:latest "${TARGET}"
 
-      - name: Schedule a delayed push to the local registry
+      - name: Schedule a delayed push to ttl.sh
         env:
-          TARGET: localhost:5000/test:run-${{ github.run_id }}
+          TARGET: ttl.sh/wait-for-docker-publish-${{ github.run_id }}:1h
         run: |
           # Push begins at t≈20s, after the action's first two backoff sleeps
           # (5s + 10s = 15s elapsed). Forces at least two failed attempts
@@ -58,7 +53,12 @@ jobs:
           #
           # A plain backgrounded subshell would be killed when this step exits
           # (GHA terminates the step's process group). `setsid -f` forks and
-          # puts the child in its own session/process group, so it survives.
+          # puts the child in its own session, so it survives.
+          #
+          # ttl.sh is an anonymous, HTTPS-served, ephemeral OCI registry — the
+          # image expires after the tag's TTL. Used because `docker manifest
+          # inspect` defaults to HTTPS and doesn't fall back to HTTP for
+          # localhost registries like `docker push` does.
           setsid -f bash -c "sleep 20 && docker push '${TARGET}'" \
             </dev/null >/tmp/pusher.log 2>&1
 
@@ -70,7 +70,7 @@ jobs:
         id: wait
         uses: ./actions/wait-for-docker-publish
         with:
-          image: localhost:5000/test:run-${{ github.run_id }}
+          image: ttl.sh/wait-for-docker-publish-${{ github.run_id }}:1h
           timeout: 2m
 
       - name: Assert retry behaviour
