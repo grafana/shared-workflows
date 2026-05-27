@@ -30,6 +30,27 @@ test_sudo_pipe_denied if {
 	contains(msg, "invokes sudo")
 }
 
+test_sudo_after_single_ampersand_denied if {
+	some msg in deny with input as [
+		{"Cmd": "run", "Stage": 0, "Value": ["true &sudo apk add curl"]},
+	]
+	contains(msg, "invokes sudo")
+}
+
+test_sudo_in_parens_denied if {
+	some msg in deny with input as [
+		{"Cmd": "run", "Stage": 0, "Value": ["(sudo apk add curl)"]},
+	]
+	contains(msg, "invokes sudo")
+}
+
+test_sudo_at_end_of_line_denied if {
+	some msg in deny with input as [
+		{"Cmd": "run", "Stage": 0, "Value": ["ls;sudo"]},
+	]
+	contains(msg, "invokes sudo")
+}
+
 test_sudo_in_later_stage_reports_stage if {
 	some msg in deny with input as [
 		{"Cmd": "from", "Stage": 0, "Value": ["alpine@sha256:abc"]},

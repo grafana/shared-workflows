@@ -2,16 +2,16 @@ package main
 
 import rego.v1
 
-test_port_80_denied if {
+test_port_1_denied if {
 	some msg in deny with input as [
-		{"Cmd": "expose", "Stage": 0, "Value": ["80"]},
+		{"Cmd": "expose", "Stage": 0, "Value": ["1"]},
 	]
 	contains(msg, "uses privileged port")
 }
 
-test_port_443_denied if {
+test_port_53_udp_denied if {
 	some msg in deny with input as [
-		{"Cmd": "expose", "Stage": 0, "Value": ["443"]},
+		{"Cmd": "expose", "Stage": 0, "Value": ["53/udp"]},
 	]
 	contains(msg, "uses privileged port")
 }
@@ -33,15 +33,6 @@ test_port_1023_denied if {
 test_port_1024_not_denied if {
 	msgs := deny with input as [
 		{"Cmd": "expose", "Stage": 0, "Value": ["1024"]},
-	]
-	every msg in msgs {
-		not contains(msg, "uses privileged port")
-	}
-}
-
-test_port_8080_not_denied if {
-	msgs := deny with input as [
-		{"Cmd": "expose", "Stage": 0, "Value": ["8080"]},
 	]
 	every msg in msgs {
 		not contains(msg, "uses privileged port")

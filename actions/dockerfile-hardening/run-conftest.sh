@@ -42,22 +42,45 @@ if [[ "${1}" = "verify-dockerfiles" ]]; then
             exit 1
         fi
 
-        read -r -a raw_files <<<"$(echo "${DOCKERFILES}" | tr '\n' ' ')"
+        # newline-delimited split preserves paths that contain spaces
+        mapfile -t raw_files <<<"${DOCKERFILES}"
+        # drop trailing empty entry if input ended with a newline
+        if [[ ${#raw_files[@]} -gt 0 && -z "${raw_files[-1]}" ]]; then
+            unset 'raw_files[-1]'
+        fi
     fi
 
-    # Ensure any Dockerfiles passed by the caller are rooted at the project's
-    # Github workspace (the project's main dir) IF they are not already a full
-    # file path from '/' (root)
+    # Resolve each path against the workspace and verify it stays within it.
+    # Rejects path-traversal (../../etc/passwd) and absolute paths outside
+    # the workspace, which would otherwise let a caller exfiltrate arbitrary
+    # files through conftest's parse-error messages.
     workspace="${GITHUB_WORKSPACE:-$PWD}"
+    workspace_real="$(realpath "${workspace}")"
     files=()
     for raw in "${raw_files[@]}"; do
-        if [[ "${raw}" = /* ]]; then
-            files+=("${raw}")
-        else
-            files+=("${workspace}/${raw}")
+        if [[ -z "${raw}" ]]; then
+            continue
         fi
+
+        if [[ "${raw}" = /* ]]; then
+            candidate="${raw}"
+        else
+            candidate="${workspace}/${raw}"
+        fi
+
+        candidate_real="$(realpath -m "${candidate}")"
+        if [[ "${candidate_real}" != "${workspace_real}"/* && "${candidate_real}" != "${workspace_real}" ]]; then
+            printf "ERROR: %q resolves outside the workspace (%s)\n" "${raw}" "${candidate_real}" >&2
+            exit 1
+        fi
+
+        files+=("${candidate_real}")
     done
 
-    conftest test --policy ./conftest/policy --parser dockerfile "${files[@]}"
+    conftest test --policy ./conftest/policy --parser dockerfile -- "${files[@]}"
+    exit
 fi
+
+printf "ERROR: unknown subcommand %q (expected test-policies or verify-dockerfiles)\n" "${1}" >&2
+exit 1
 

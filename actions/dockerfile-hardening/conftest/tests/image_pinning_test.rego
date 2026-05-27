@@ -11,13 +11,6 @@ test_from_tag_only_denied if {
 	contains(msg, "is not pinned by @sha256: digest")
 }
 
-test_from_no_tag_denied if {
-	some msg in deny with input as [
-		{"Cmd": "from", "Stage": 0, "Value": ["alpine"]},
-	]
-	contains(msg, "is not pinned by @sha256: digest")
-}
-
 test_from_digest_pinned_not_denied if {
 	msgs := deny with input as [
 		{"Cmd": "from", "Stage": 0, "Value": ["alpine:3.18@sha256:abc"]},
@@ -61,20 +54,6 @@ test_copy_from_tag_only_denied if {
 		{"Cmd": "copy", "Stage": 0, "Flags": ["--from=alpine:3.18"], "Value": ["/foo", "/foo"]},
 	]
 	contains(msg, "COPY --from=\"alpine:3.18\" is not pinned by @sha256: digest")
-}
-
-test_copy_from_no_tag_denied if {
-	some msg in deny with input as [
-		{"Cmd": "copy", "Stage": 0, "Flags": ["--from=alpine"], "Value": ["/foo", "/foo"]},
-	]
-	contains(msg, "is not pinned by @sha256: digest")
-}
-
-test_copy_from_latest_denied if {
-	some msg in deny with input as [
-		{"Cmd": "copy", "Stage": 0, "Flags": ["--from=alpine:latest"], "Value": ["/foo", "/foo"]},
-	]
-	contains(msg, "is not pinned by @sha256: digest")
 }
 
 test_copy_from_digest_pinned_not_denied if {

@@ -27,6 +27,17 @@ runs:
         path: _shared-workflows-dockerfile-hardening
         persist-credentials: false
 
+    - name: Validate conftest-version
+      shell: bash
+      env:
+        CONFTEST_VERSION: ${{ inputs.conftest-version }}
+      run: |
+        set -euo pipefail
+        if ! [[ "${CONFTEST_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            printf "ERROR: invalid conftest-version: %q (expected semver x.y.z)\n" "${CONFTEST_VERSION}" >&2
+            exit 1
+        fi
+
     - name: Setup Conftest
       uses: ./_shared-workflows-dockerfile-hardening/actions/setup-conftest
       with:

@@ -38,6 +38,7 @@ strip_alias(ref) := split(ref, " ")[0]
 user_indices := [i |
 	some i, instr in input
 	instr.Cmd == "user"
+	i > last_from_index
 ]
 
 final_user := input[i] if {

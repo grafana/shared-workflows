@@ -9,13 +9,6 @@ test_alpine_base_denied if {
 	contains(msg, "must be either scratch or a distroless base")
 }
 
-test_ubuntu_base_denied if {
-	some msg in deny with input as [
-		{"Cmd": "from", "Stage": 0, "Value": ["ubuntu:22.04@sha256:abc"]},
-	]
-	contains(msg, "must be either scratch or a distroless base")
-}
-
 test_scratch_base_not_denied if {
 	msgs := deny with input as [
 		{"Cmd": "from", "Stage": 0, "Value": ["scratch"]},

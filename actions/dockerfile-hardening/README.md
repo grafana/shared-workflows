@@ -13,12 +13,15 @@ These policies include (but are not limited to) the following checks:
 - All image references (`FROM` and `COPY --from=<image>`) must:
   - be pinned to a digest (`@sha256:`)
   - have an explicit non-`:latest` tag
+- `ADD` instructions must not fetch from a remote URL (`http://`, `https://`, `ftp://`) — supply chain risk; use `COPY` with a verified local file or `RUN curl` with explicit `sha256sum -c` verification
+- `RUN` must not pipe remote content directly into a shell (`curl ... | bash`, `wget ... | sh`, etc.) — remote code execution at build time with no verification
 - Container runtime must:
-  - have a `USER` instruction
+  - have a `USER` instruction in the final stage
   - not run as root (UID `0` or name `root`)
   - not invoke `sudo`
   - not `EXPOSE` a privileged port (`<1024`)
-  - not `chmod` to world-writable (`777`, `a+rwx`, `ugo+rwx`)
+  - not `chmod` to world-writable (octal `777`/`0777` or any symbolic form granting write to `other`)
+  - use exec form (JSON array) for `ENTRYPOINT` and `CMD` so the binary becomes PID 1 and receives signals
 
 Advisory checks (warnings, not failures):
 - `COPY .` in the final stage — may ship the source tree to the runtime image. Confirm the build context only contains intended artifacts (typical pattern: rely on `.dockerignore` or a curated build-context directory produced by an earlier CI step).
