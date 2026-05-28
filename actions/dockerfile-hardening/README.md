@@ -9,9 +9,7 @@ This action runs [conftest](https://www.conftest.dev/) using Rego policies under
 These policies include (but are not limited to) the following checks:
 
 - Final image base must utilize a `scratch` or distroless image
-- All image references (`FROM` and `COPY --from=<image>`) must:
-  - be pinned to a digest (`@sha256:`)
-  - have an explicit non-`:latest` tag
+- All image references (`FROM` and `COPY --from=<image>`) must be pinned to a digest (`@sha256:`, `@sha512:`, or `@blake3:`).
 - `ADD` instructions must not fetch from a remote URL (`http://`, `https://`, `ftp://`) — supply chain risk; use `COPY` with a verified local file or `RUN curl` with explicit `sha256sum -c` verification
 - `RUN` must not pipe remote content directly into a shell (`curl ... | bash`, `wget ... | sh`, etc.) — remote code execution at build time with no verification
 - Container runtime must:

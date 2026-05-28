@@ -81,6 +81,20 @@ test_copy_from_tag_only_denied if {
 	contains(msg, "COPY --from=\"alpine:3.18\" is not pinned by a supported digest")
 }
 
+test_copy_from_latest_denied if {
+	some msg in deny with input as [
+		{"Cmd": "copy", "Stage": 0, "Flags": ["--from=alpine:latest"], "Value": ["/foo", "/foo"]},
+	]
+	contains(msg, "COPY --from=\"alpine:latest\" is not pinned by a supported digest")
+}
+
+test_copy_from_untagged_denied if {
+	some msg in deny with input as [
+		{"Cmd": "copy", "Stage": 0, "Flags": ["--from=alpine"], "Value": ["/foo", "/foo"]},
+	]
+	contains(msg, "COPY --from=\"alpine\" is not pinned by a supported digest")
+}
+
 test_copy_from_sha256_digest_pinned_not_denied if {
 	msgs := deny with input as [
 		{"Cmd": "copy", "Stage": 0, "Flags": ["--from=alpine:3.18@sha256:abc"], "Value": ["/foo", "/foo"]},
