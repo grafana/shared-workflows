@@ -13,24 +13,24 @@ The action:
 
 ## Inputs
 
-| Name              | Type     | Description                                      | Default                                                                       | Required |
-| ----------------- | -------- | ------------------------------------------------ | ----------------------------------------------------------------------------- | -------- |
-| `commit-message`  | `string` | Commit message                                   | `Apply automatic changes`                                                     | false    |
-| `branch`          | `string` | Branch to push to                                | `${{ github.head_ref }}`                                                      | false    |
-| `file-pattern`    | `string` | Space-separated file patterns for `git add`      | `.`                                                                           | false    |
-| `git-user-name`   | `string` | Git user name for the commit                     | `github-actions[bot]`                                                         | false    |
-| `git-user-email`  | `string` | Git user email for the commit                    | `41898282+github-actions[bot]@users.noreply.github.com`                       | false    |
-| `token`           | `string` | GitHub token for push authentication             | `${{ github.token }}`                                                         | false    |
-| `commit-options`  | `string` | Additional flags for `git commit`                |                                                                               | false    |
-| `push-options`    | `string` | Additional flags for `git push`                  |                                                                               | false    |
-| `skip-push`       | `string` | Skip the push step (`true`/`false`)              | `false`                                                                       | false    |
+| Name             | Type     | Description                                 | Default                                                 | Required |
+| ---------------- | -------- | ------------------------------------------- | ------------------------------------------------------- | -------- |
+| `commit-message` | `string` | Commit message                              | `Apply automatic changes`                               | false    |
+| `branch`         | `string` | Branch to push to                           | `${{ github.head_ref }}`                                | false    |
+| `file-pattern`   | `string` | Space-separated file patterns for `git add` | `.`                                                     | false    |
+| `git-user-name`  | `string` | Git user name for the commit                | `github-actions[bot]`                                   | false    |
+| `git-user-email` | `string` | Git user email for the commit               | `41898282+github-actions[bot]@users.noreply.github.com` | false    |
+| `token`          | `string` | GitHub token for push authentication        | `${{ github.token }}`                                   | false    |
+| `commit-options` | `string` | Additional flags for `git commit`           |                                                         | false    |
+| `push-options`   | `string` | Additional flags for `git push`             |                                                         | false    |
+| `skip-push`      | `string` | Skip the push step (`true`/`false`)         | `false`                                                 | false    |
 
 ## Outputs
 
-| Name               | Description                                                      |
-| ------------------ | ---------------------------------------------------------------- |
-| `changes-detected` | `true` if changes were committed, `false` if working tree clean  |
-| `commit-hash`      | Full SHA of the created commit (empty if no changes)             |
+| Name               | Description                                                     |
+| ------------------ | --------------------------------------------------------------- |
+| `changes-detected` | `true` if changes were committed, `false` if working tree clean |
+| `commit-hash`      | Full SHA of the created commit (empty if no changes)            |
 
 ## Permissions
 
@@ -152,25 +152,25 @@ jobs:
 
 ## Migration from stefanzweifel/git-auto-commit-action
 
-| stefanzweifel input    | This action's input  | Notes                                           |
-| ---------------------- | -------------------- | ----------------------------------------------- |
-| `commit_message`       | `commit-message`     | Same behavior (uses kebab-case)                 |
-| `branch`               | `branch`             | Same default (`github.head_ref`)                |
-| `file_pattern`         | `file-pattern`       | Same behavior (uses kebab-case)                 |
-| `commit_user_name`     | `git-user-name`      | Same behavior                                   |
-| `commit_user_email`    | `git-user-email`     | Same behavior                                   |
-| `commit_author`        | *(not supported)*    | Uses same identity for author and committer     |
-| `commit_options`       | `commit-options`     | Same behavior (uses kebab-case)                 |
-| `push_options`         | `push-options`       | Same behavior (uses kebab-case)                 |
-| `skip_push`            | `skip-push`          | Same behavior (uses kebab-case)                 |
-| `repository`           | *(not supported)*    | Use `working-directory` on the step instead      |
-| `add_options`          | *(not supported)*    | Use `file-pattern` for most cases               |
-| `status_options`       | *(not supported)*    | Rarely needed                                   |
-| `skip_dirty_check`     | *(not supported)*    | Rarely needed                                   |
-| `skip_fetch`           | *(not applicable)*   | Action does not fetch                           |
-| `skip_checkout`        | *(not supported)*    | Rarely needed                                   |
-| `disable_globbing`     | *(not applicable)*   | Handled internally                              |
-| `create_branch`        | *(not supported)*    | Use `create-or-update-pr` action instead        |
-| `tag_name`             | *(not supported)*    | Tagging is a separate concern                   |
-| `tagging_message`      | *(not supported)*    | Tagging is a separate concern                   |
-| `create_git_tag_only`  | *(not supported)*    | Tagging is a separate concern                   |
+| stefanzweifel input   | This action's input | Notes                                       |
+| --------------------- | ------------------- | ------------------------------------------- |
+| `commit_message`      | `commit-message`    | Same behavior (uses kebab-case)             |
+| `branch`              | `branch`            | Same default (`github.head_ref`)            |
+| `file_pattern`        | `file-pattern`      | Same behavior (uses kebab-case)             |
+| `commit_user_name`    | `git-user-name`     | Same behavior                               |
+| `commit_user_email`   | `git-user-email`    | Same behavior                               |
+| `commit_author`       | _(not supported)_   | Uses same identity for author and committer |
+| `commit_options`      | `commit-options`    | Same behavior (uses kebab-case)             |
+| `push_options`        | `push-options`      | Same behavior (uses kebab-case)             |
+| `skip_push`           | `skip-push`         | Same behavior (uses kebab-case)             |
+| `repository`          | _(not supported)_   | Use `working-directory` on the step instead |
+| `add_options`         | _(not supported)_   | Use `file-pattern` for most cases           |
+| `status_options`      | _(not supported)_   | Rarely needed                               |
+| `skip_dirty_check`    | _(not supported)_   | Rarely needed                               |
+| `skip_fetch`          | _(not applicable)_  | Action does not fetch                       |
+| `skip_checkout`       | _(not supported)_   | Rarely needed                               |
+| `disable_globbing`    | _(not applicable)_  | Handled internally                          |
+| `create_branch`       | _(not supported)_   | Use `create-or-update-pr` action instead    |
+| `tag_name`            | _(not supported)_   | Tagging is a separate concern               |
+| `tagging_message`     | _(not supported)_   | Tagging is a separate concern               |
+| `create_git_tag_only` | _(not supported)_   | Tagging is a separate concern               |

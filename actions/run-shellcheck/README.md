@@ -11,21 +11,21 @@ The action:
 
 ## Inputs
 
-| Name               | Type     | Description                                                      | Default | Required |
-| ------------------ | -------- | ---------------------------------------------------------------- | ------- | -------- |
-| `scandir`          | `string` | Directory to scan for shell scripts                              | `.`     | false    |
-| `ignore-paths`     | `string` | Space-separated paths or directories to exclude                  |         | false    |
-| `ignore-names`     | `string` | Space-separated file names to exclude                            |         | false    |
-| `severity`         | `string` | Minimum severity: `error`, `warning`, `info`, `style`            |         | false    |
-| `format`           | `string` | Output format: `gcc`, `tty`, `json`, `json1`, `checkstyle`, `diff`, `quiet` | `gcc` | false |
-| `additional-files` | `string` | Space-separated extra file names to scan for                     |         | false    |
-| `check-together`   | `string` | Run shellcheck on all files at once (`true`/`false`)             | `false` | false    |
+| Name               | Type     | Description                                                                 | Default | Required |
+| ------------------ | -------- | --------------------------------------------------------------------------- | ------- | -------- |
+| `scandir`          | `string` | Directory to scan for shell scripts                                         | `.`     | false    |
+| `ignore-paths`     | `string` | Space-separated paths or directories to exclude                             |         | false    |
+| `ignore-names`     | `string` | Space-separated file names to exclude                                       |         | false    |
+| `severity`         | `string` | Minimum severity: `error`, `warning`, `info`, `style`                       |         | false    |
+| `format`           | `string` | Output format: `gcc`, `tty`, `json`, `json1`, `checkstyle`, `diff`, `quiet` | `gcc`   | false    |
+| `additional-files` | `string` | Space-separated extra file names to scan for                                |         | false    |
+| `check-together`   | `string` | Run shellcheck on all files at once (`true`/`false`)                        | `false` | false    |
 
 ## Outputs
 
-| Name    | Description                                      |
-| ------- | ------------------------------------------------ |
-| `files` | Space-separated list of files that were checked   |
+| Name    | Description                                     |
+| ------- | ----------------------------------------------- |
+| `files` | Space-separated list of files that were checked |
 
 ## ShellCheck options
 
@@ -117,14 +117,14 @@ Useful for resolving SC1090/SC1091 (can't follow sourced files):
 
 ## Migration from ludeeus/action-shellcheck
 
-| ludeeus input        | This action's input  | Notes                                           |
-| -------------------- | -------------------- | ----------------------------------------------- |
-| `scandir`            | `scandir`            | Same behavior                                   |
-| `ignore_paths`       | `ignore-paths`       | Same behavior (uses kebab-case)                 |
-| `ignore_names`       | `ignore-names`       | Same behavior (uses kebab-case)                 |
-| `severity`           | `severity`           | Same behavior                                   |
-| `format`             | `format`             | Same behavior, same default (`gcc`)             |
-| `additional_files`   | `additional-files`   | Same behavior (uses kebab-case)                 |
-| `check_together`     | `check-together`     | Same behavior (uses kebab-case)                 |
-| `version`            | *(not supported)*    | Uses runner's pre-installed shellcheck          |
-| `SHELLCHECK_OPTS`    | `SHELLCHECK_OPTS`    | Same -- set as env var on the step              |
+| ludeeus input      | This action's input | Notes                                  |
+| ------------------ | ------------------- | -------------------------------------- |
+| `scandir`          | `scandir`           | Same behavior                          |
+| `ignore_paths`     | `ignore-paths`      | Same behavior (uses kebab-case)        |
+| `ignore_names`     | `ignore-names`      | Same behavior (uses kebab-case)        |
+| `severity`         | `severity`          | Same behavior                          |
+| `format`           | `format`            | Same behavior, same default (`gcc`)    |
+| `additional_files` | `additional-files`  | Same behavior (uses kebab-case)        |
+| `check_together`   | `check-together`    | Same behavior (uses kebab-case)        |
+| `version`          | _(not supported)_   | Uses runner's pre-installed shellcheck |
+| `SHELLCHECK_OPTS`  | `SHELLCHECK_OPTS`   | Same -- set as env var on the step     |
