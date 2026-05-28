@@ -692,8 +692,8 @@ jobs:
       always() &&
       inputs.auto-delete-dangerous-branches &&
       needs.analysis.outputs.has-dangerous-triggers == 'true' &&
-      github.event_name == 'push' &&
-      github.ref != format('refs/heads/{0}', github.event.repository.default_branch)
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (github.event_name != 'push' || github.ref != format('refs/heads/{0}', github.event.repository.default_branch))
     runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
@@ -713,7 +713,7 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-          REF: ${{ github.ref }}
+          REF: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref) || github.ref }}
           REPO: ${{ github.repository }}
         run: |
           gh api -X DELETE "repos/${REPO}/git/${REF}"
@@ -722,8 +722,8 @@ jobs:
         id: slack-payload
         env:
           REPO: ${{ github.repository }}
-          REF_NAME: ${{ github.ref_name }}
-          ACTOR: ${{ github.actor }}
+          REF_NAME: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          ACTOR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login || github.actor }}
           SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SLACK_CHANNEL_ID: ${{ inputs.auto-delete-slack-channel-id }}
