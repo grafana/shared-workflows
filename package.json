@@ -17,6 +17,7 @@
   "workspaces": [
     "actions/dependabot-auto-triage",
     "actions/get-latest-workflow-artifact",
-    "actions/lint-pr-title"
+    "actions/lint-pr-title",
+    "actions/markdown-to-slack-mrkdwn"
   ]
 }
