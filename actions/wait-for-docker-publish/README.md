@@ -9,12 +9,12 @@ loop, so the action works against any OCI-conformant registry.
 
 ## Inputs
 
-| Name               | Required | Default | Description                                                                                                                                                                                                                                        |
-| ------------------ | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `image`            | yes      | —       | OCI image reference. **Must include a `:tag` or an `@sha256:…` digest** (or both). No implicit `:latest`. Accepted shapes: `repo:tag`, `repo@sha256:…`, `repo:tag@sha256:…`. Digest-pinned refs are recommended for the GAR→DockerHub mirror flow. |
-| `timeout`          | no       | `10m`   | Total wall-clock budget. Accepts `s`/`m`/`h` suffixes.                                                                                                                                                                                             |
-| `initial-interval` | no       | `5s`    | First sleep after a miss.                                                                                                                                                                                                                          |
-| `max-interval`     | no       | `60s`   | Upper bound on the exponential backoff.                                                                                                                                                                                                            |
+| Name               | Required | Default | Description                                                                        |
+| ------------------ | -------- | ------- | ---------------------------------------------------------------------------------- |
+| `image`            | yes      | —       | OCI image reference. **Must include a `:tag` or an `@sha256:…` digest** (or both). |
+| `timeout`          | no       | `10m`   | Total wall-clock budget. Accepts `s`/`m`/`h` suffixes.                             |
+| `initial-interval` | no       | `5s`    | First sleep after a miss.                                                          |
+| `max-interval`     | no       | `60s`   | Upper bound on the exponential backoff.                                            |
 
 ## Outputs
 
@@ -23,12 +23,7 @@ None. The step exits 0 on success and 1 on timeout.
 ## Behaviour
 
 - Polling cadence: `initial-interval`, then doubling each miss up to `max-interval` (default `5s, 10s, 20s, 40s, 60s, 60s, …`).
-- Every error mode that isn't success simply causes another retry until the timeout — including transient DNS, registry 5xx, and even an unauthenticated lookup of a private repo. A typo will eat the full timeout budget.
 - Auth is delegated to the Docker CLI's normal credential lookup (`~/.docker/config.json` + credential helpers). Run `grafana/shared-workflows/actions/dockerhub-login` or `docker/login-action` before this step for private images.
-
-## Requirements
-
-- Docker CLI on the runner. The action does not install it; every existing docker-using action in this repo assumes it is present.
 
 ## Usage
 
@@ -61,9 +56,6 @@ jobs:
       - name: Wait for DockerHub mirror
         uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.1.0
         with:
-          # Digest-pinned ref: the mirror replicates content addressably,
-          # so as soon as this digest is reachable on DockerHub the mirror
-          # has caught up to the GAR push.
           image: grafana/myrepo@${{ needs.publish.outputs.digest }}
 ```
 
@@ -81,6 +73,5 @@ Tag-only example (sufficient when tags are not reused):
 
 ## Non-goals
 
-- Verifying that a moving tag now points to a specific digest. Pinning by digest in the `image` input checks digest _reachability_, not the tag→digest binding. Sufficient for the mirror case (the mirror replicates tag binding and content together) but not for general "wait for `:latest` to be repointed" scenarios.
+- Verifying that a moving tag now points to a specific digest. Pinning by digest in the `image` input checks digest _reachability_, but not that tag now points at a specific digest.
 - Verifying that a manifest list contains all expected platforms.
-- Running on runners without a Docker CLI.

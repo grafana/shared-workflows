@@ -7,9 +7,7 @@ description: >-
 inputs:
   image:
     description: >-
-      Full image reference. Must include a :tag or @sha256:... digest (e.g.
-      grafana/grafana:11.0.0 or grafana/grafana@sha256:...). No implicit
-      :latest; fails fast if both are missing.
+      Full image reference. Must include a :tag or @sha256:... digest
     required: true
   timeout:
     description: Total wall-clock budget (e.g. 10m, 600s, 1h).

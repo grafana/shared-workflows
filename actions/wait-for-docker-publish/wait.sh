@@ -51,8 +51,6 @@ timeout_s=$(parse_duration "$TIMEOUT")
 initial_s=$(parse_duration "$INITIAL_INTERVAL")
 max_s=$(parse_duration "$MAX_INTERVAL")
 
-# Guard against hot-polling. A zero interval would make sleep a no-op and
-# spin the loop until the timeout.
 if (( initial_s < 1 )); then
   echo "::error::initial-interval must be at least 1s; got '${INITIAL_INTERVAL}'"
   exit 1
