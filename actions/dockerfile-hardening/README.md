@@ -8,9 +8,7 @@ This action runs [conftest](https://www.conftest.dev/) using Rego policies under
 
 These policies include (but are not limited to) the following checks:
 
-- Final image base must:
-  - utilize a `scratch` or distroless image
-  - not be based on a `golang:*` image (don't ship the Go toolchain)
+- Final image base must utilize a `scratch` or distroless image
 - All image references (`FROM` and `COPY --from=<image>`) must:
   - be pinned to a digest (`@sha256:`)
   - have an explicit non-`:latest` tag
