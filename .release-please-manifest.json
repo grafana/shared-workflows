@@ -30,6 +30,7 @@
     "actions/docker-import-digests-push-manifest": "0.2.1",
     "actions/component-change-detection": "1.0.1",
     "actions/create-or-update-pr": "0.1.0",
+    "actions/git-auto-commit": "0.1.0",
     "actions/run-shellcheck": "0.1.0",
     "actions/socket-export-sbom": "0.1.1",
     "actions/issues-update-project-status": "0.1.1",

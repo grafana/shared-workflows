@@ -197,6 +197,11 @@
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
     },
+    "actions/git-auto-commit": {
+      "package-name": "git-auto-commit",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/run-shellcheck": {
       "package-name": "run-shellcheck",
       "extra-files": ["README.md"],
