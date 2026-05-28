@@ -34,9 +34,14 @@ runs:
         NODE_ENV: production
       run: |
         slack_text=$(bun run src/index.ts)
+        # Random delimiter per invocation so the output is not truncated if
+        # the converted text contains a line equal to a fixed sentinel —
+        # input is user-controlled markdown (release notes, changelog).
+        # Matches the pattern @actions/core uses internally.
+        delimiter="SLACK_MD_EOF_$(openssl rand -hex 16)"
         {
-          echo "text<<SLACK_MD_EOF"
+          echo "text<<${delimiter}"
           printf "%s" "$slack_text"
           echo ""
-          echo "SLACK_MD_EOF"
+          echo "${delimiter}"
         } >> "$GITHUB_OUTPUT"
