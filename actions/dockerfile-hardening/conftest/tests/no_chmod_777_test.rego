@@ -173,4 +173,3 @@ test_chmod_og_eq_w_denied if {
 	]
 	contains(msg, "world-writable chmod")
 }
-
