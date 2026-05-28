@@ -10,7 +10,7 @@ inputs:
   conftest-version:
     description: |
       Version of conftest to install.
-    default: '0.55.0'
+    default: "0.55.0"
 
 runs:
   using: composite
@@ -49,4 +49,3 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/_shared-workflows-dockerfile-hardening/actions/dockerfile-hardening
       run: bash ./run-conftest.sh verify-dockerfiles
-

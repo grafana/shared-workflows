@@ -7,6 +7,7 @@ Shared action which runs hardening tools against one or more Dockerfiles.
 This action runs [conftest](https://www.conftest.dev/) using Rego policies under [`conftest/policy`](./conftest/policy) to enforce hardening requirements for Dockerfiles committed in Grafana Labs repositories.
 
 These policies include (but are not limited to) the following checks:
+
 - Final image base must:
   - utilize a `scratch` or distroless image
   - not be based on a `golang:*` image (don't ship the Go toolchain)
@@ -24,6 +25,7 @@ These policies include (but are not limited to) the following checks:
   - use exec form (JSON array) for `ENTRYPOINT` and `CMD` so the binary becomes PID 1 and receives signals
 
 Advisory checks (warnings, not failures):
+
 - `COPY .` in the final stage — may ship the source tree to the runtime image. Confirm the build context only contains intended artifacts (typical pattern: rely on `.dockerignore` or a curated build-context directory produced by an earlier CI step).
 
 ### Example
@@ -52,25 +54,31 @@ with:
 For testing the policies against a `Dockerfile` or testing the policies themselves, the `run-conftest.sh` script must be run from the action directory (`actions/dockerfile-hardening/`).
 
 ### Verify Dockerfiles
+
 Run the `conftest` policy check against one or more Dockerfiles. Paths are resolved relative to `$GITHUB_WORKSPACE` (or `$PWD` if that variable is unset).
 
 Single file:
+
 ```sh
 DOCKERFILES="path/to/Dockerfile" bash ./run-conftest.sh verify-dockerfiles
 ```
 
 Multiple files (use `$'...'` so `\n` becomes a real newline):
+
 ```sh
 DOCKERFILES=$'Dockerfile\nimages/api/Dockerfile' bash ./run-conftest.sh verify-dockerfiles
 ```
 
 Or pass them with repeated `-f`:
+
 ```sh
 bash ./run-conftest.sh verify-dockerfiles -f Dockerfile -f images/api/Dockerfile
 ```
 
 ### Test Policies
+
 Run the `conftest` policy tests to verify the rego policies:
+
 ```sh
 bash ./run-conftest.sh test-policies
 ```
@@ -96,4 +104,3 @@ test_x_not_denied if {
 ```
 
 `not deny` asserts that **no** policy fires, which fails whenever the synthetic input trips a different rule (e.g., missing `USER`, missing digest pin). Scoping the assertion to the specific message keeps each test isolated.
-
