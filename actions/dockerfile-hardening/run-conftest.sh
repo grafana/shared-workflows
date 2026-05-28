@@ -4,7 +4,7 @@ set -euo pipefail
 : "${DOCKERFILES:=}"
 
 if [[ $# -lt 1 ]]; then
-    printf "ERROR: $0 <test-policies|verify-dockerfiles>\n" >&2
+    printf "ERROR: %s <test-policies|verify-dockerfiles>\n" "$0" >&2
 
     exit 1
 fi
@@ -83,4 +83,3 @@ fi
 
 printf "ERROR: unknown subcommand %q (expected test-policies or verify-dockerfiles)\n" "${1}" >&2
 exit 1
-
