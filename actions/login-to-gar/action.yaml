@@ -15,18 +15,10 @@ inputs:
       require workspace access in a later step.
     default: "false"
 
-  output_auth_token:
-    description: |
-      When set to `true`, requests an access token from the WIF authentication
-      step and exposes it via the `auth_token` output.
-    default: "false"
-
 outputs:
   auth_token:
-    description: |
-      The auth token produced by the WIF authentication step.
-      Only populated when `output_auth_token` is `true`.
-    value: ${{ inputs.output_auth_token && steps.auth_with_direct_wif.outputs.auth_token || '' }}
+    description: "The auth token produced by the WIF authentication step."
+    value: ${{ steps.auth_with_direct_wif.outputs.auth_token }}
 
 runs:
   using: composite

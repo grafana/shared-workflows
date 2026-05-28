@@ -41,7 +41,6 @@ jobs:
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------- |
 | `registry`              | Google Artifact Registry to authenticate against.                                                                        | `us-docker.pkg.dev` |
 | `workspace_credentials` | Whether to place the GCP credentials file in the workspace. Off by default. See [Docker Actions Compatibility] for more. | `false`             |
-| `output_auth_token`     | When set to `true`, exposes an `auth_token` output from the WIF authentication step.                                     | `false`             |
 
 [Docker Actions Compatibility]: #docker-actions-compatibility
 
@@ -49,7 +48,7 @@ jobs:
 
 | Name         | Description                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------------- |
-| `auth_token` | The auth token produced by WIF authentication. Only populated when `output_auth_token` is `true`.    |
+| `auth_token` | The auth token produced by WIF authentication.                                                        |
 
 ## Docker Actions Compatibility
 
