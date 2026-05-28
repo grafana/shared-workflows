@@ -798,6 +798,7 @@ jobs:
         with:
           method: chat.postMessage
           payload: ${{ steps.slack-payload.outputs.payload }}
+          payload-templated: false
 
       - name: Fail if branch deletion failed
         if: steps.delete-branch.outcome == 'failure'
