@@ -4,11 +4,12 @@ Composite action (step) to query for branches that are not in an open PR, and de
 
 ## Inputs
 
-| Name       | Type     | Description                                                                                                                                                                        | Default Value         | Required |
-| ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | -------- |
-| `token`    | `string` | GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (`contents: write`) and pull requests (`pull_requests: read`) | `${{ github.token }}` | true     |
-| `dry-run`  | `bool`   | If `'true'`, then the action will print branches to be deleted, but will not delete them                                                                                           | `'true'`              | true     |
-| `max-date` | `string` | Value passed to `date -d`; a human readable date string. Maximum date of the head ref of a branch in order to be deleted.                                                          | `"2 weeks ago"`       | false    |
+| Name               | Type     | Description                                                                                                                                                                        | Default Value         | Required |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | -------- |
+| `token`            | `string` | GitHub token used to authenticate with `gh`. Requires permission to query for protected branches and delete branches (`contents: write`) and pull requests (`pull_requests: read`) | `${{ github.token }}` | true     |
+| `dry-run`          | `bool`   | If `'true'`, then the action will print branches to be deleted, but will not delete them                                                                                           | `'true'`              | true     |
+| `max-date`         | `string` | Value passed to `date -d`; a human readable date string. Maximum date of the head ref of a branch in order to be deleted.                                                          | `"3 months ago"`      | false    |
+| `exclude-patterns` | `string` | Newline-separated list of glob patterns. Branches whose names match any pattern are excluded from deletion. Empty lines are ignored.                                               | `""`                  | false    |
 
 ## Examples
 
@@ -33,6 +34,8 @@ jobs:
       - uses: grafana/shared-workflows/actions/cleanup-branches@cleanup-branches/v0.2.1
         with:
           dry-run: false
+          exclude-patterns: |
+            release/*
 ```
 
 <!-- x-release-please-end-version -->

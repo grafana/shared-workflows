@@ -15,6 +15,11 @@ inputs:
       Value provided to `date -d={}. From `man date`: "The --date=STRING is a mostly free format human readable date string such as "Sun, 29 Feb 2004 16:21:42 -0800" or "2004-02-29 16:21:42" or even "next Thursday".  A date string may
        contain items indicating calendar date, time of day, time zone, day of week, relative time, relative date, and numbers.  An empty string indicates the beginning of the day.  The
        date string format is more complex than is easily documented here but is fully described in the info documentation."
+  exclude-patterns:
+    default: ""
+    description: |
+      Optional list of glob patterns. Branches whose names match any pattern are excluded
+      from deletion. Patterns use bash glob syntax (e.g. `release/*`).
 runs:
   using: composite
   steps:
@@ -24,6 +29,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
         DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         MAX_DATE: ${{ inputs.max-date }}
+        EXCLUDE_PATTERNS: ${{ inputs.exclude-patterns }}
       run: |
         #!/usr/bin/env bash
         # Fetch all branches from remote. This is basically `git fetch --unshallow` but also fetches branches.
@@ -34,6 +40,12 @@ runs:
 
         # For repositories that have exceeded 2,000+ branches, this could fail.
         readarray -t protected_branches < <(gh api --paginate "/repos/${GITHUB_REPOSITORY}/branches?protected=true" | jq -cr '.[].name')
+
+        exclude_patterns=()
+        while IFS= read -r line; do
+          line="${line%$'\r'}"
+          [[ -n "$line" ]] && exclude_patterns+=("$line")
+        done <<< "$EXCLUDE_PATTERNS"
 
         branches=()
         while IFS= read -r line; do
@@ -52,6 +64,15 @@ runs:
           if [ "$found" != 1 ]; then
             for protected_branch in "${protected_branches[@]}"; do
               if [[ "$branch" == "$protected_branch" ]]; then
+                found=1
+                break
+              fi
+            done
+          fi
+          if [ "$found" != 1 ]; then
+            for pattern in "${exclude_patterns[@]}"; do
+              # Unquoted RHS so bash treats $pattern as a glob.
+              if [[ "$branch" == $pattern ]]; then
                 found=1
                 break
               fi
