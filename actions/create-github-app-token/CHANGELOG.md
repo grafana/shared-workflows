@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.3...create-github-app-token/v0.3.0) (2026-05-29)
+
+
+### 🎉 Features
+
+* **create-github-app-token:** revoke token in post-job step ([#1946](https://github.com/grafana/shared-workflows/issues/1946)) ([07a8487](https://github.com/grafana/shared-workflows/commit/07a8487494dcc332debf98242d129ec8fbda1e56))
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** clarify the workflow permissions ([#1942](https://github.com/grafana/shared-workflows/issues/1942)) ([7ae8508](https://github.com/grafana/shared-workflows/commit/7ae85085c0bed854b41785ba266604b08e50abe0))
+
 ## [0.2.3](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.2...create-github-app-token/v0.2.3) (2026-05-05)
 
 
