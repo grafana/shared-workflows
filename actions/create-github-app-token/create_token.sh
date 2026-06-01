@@ -21,7 +21,14 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
         -H "Proxy-Authorization-Token: Bearer ${GITHUB_JWT_PROXY}" || true)
 
     if [[ "${RESPONSE}" -eq 200 ]]; then
-        TOKEN=$(jq -r '.data.token' "${TEMP_FILE}")
+        # Avoid jq so this works inside minimal containers that don't ship it (e.g. grafana/docs-base).
+        # The Vault response shape is stable and the token never contains quotes.
+        TOKEN=$(sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${TEMP_FILE}" | head -n1)
+        if [[ -z "${TOKEN}" ]]; then
+            echo "Failed to parse token from Vault response"
+            exit 1
+        fi
+        echo "::add-mask::$TOKEN"
         echo "github_token=${TOKEN}" >> "${GITHUB_OUTPUT}"
         echo "Create GitHub Token done!"
         exit 0
