@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.2.1...cleanup-branches/v0.3.0) (2026-06-01)
+
+
+### 🎉 Features
+
+* **cleanup-branches:** add `exclude-patterns` input ([#1972](https://github.com/grafana/shared-workflows/issues/1972)) ([325973e](https://github.com/grafana/shared-workflows/commit/325973e977dd9f6c4397da14a1c754a7f62da308))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.2.0...cleanup-branches/v0.2.1) (2025-10-17)
 
 
