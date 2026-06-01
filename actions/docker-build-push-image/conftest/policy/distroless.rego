@@ -3,7 +3,6 @@ package main
 import rego.v1
 
 distroless_prefixes := {
-	"gcr.io/distroless/",
 	"cgr.dev/chainguard/",
 	"cgr.dev/chainguard-private/",
 }

@@ -4,14 +4,14 @@ on:
     branches:
       - main
     paths:
-      - actions/dockerfile-hardening/**
+      - actions/docker-build-push-image/**
       - .github/workflows/test-dockerfile-conftest-policy.yml
 
   pull_request:
     branches:
       - main
     paths:
-      - actions/dockerfile-hardening/**
+      - actions/docker-build-push-image/**
       - .github/workflows/test-dockerfile-conftest-policy.yml
     types:
       - edited
@@ -47,7 +47,7 @@ jobs:
         with:
           persist-credentials: false
           sparse-checkout: |
-            actions/dockerfile-hardening
+            actions/docker-build-push-image
             actions/setup-conftest
 
       - name: Setup Conftest
@@ -55,5 +55,5 @@ jobs:
 
       - name: Run Conftest policy tests
         shell: bash
-        working-directory: actions/dockerfile-hardening
+        working-directory: actions/docker-build-push-image
         run: bash ./run-conftest.sh test-policies

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 : "${DOCKERFILES:=}"
+: "${STRICT:=false}"
 
 if [[ $# -lt 1 ]]; then
     printf "ERROR: %s <test-policies|verify-dockerfiles>\n" "$0" >&2
@@ -77,8 +78,16 @@ if [[ "${1}" = "verify-dockerfiles" ]]; then
         files+=("${candidate_real}")
     done
 
-    conftest test --policy ./conftest/policy --parser dockerfile -- "${files[@]}"
-    exit
+    if conftest test --policy ./conftest/policy --parser dockerfile -- "${files[@]}"; then
+        exit 0
+    fi
+
+    if [[ "${STRICT}" = "true" ]]; then
+        exit 1
+    fi
+
+    printf "::warning::Dockerfile hardening policy violations found; not failing because strict mode is disabled (set strict: true to enforce)\n" >&2
+    exit 0
 fi
 
 printf "ERROR: unknown subcommand %q (expected test-policies or verify-dockerfiles)\n" "${1}" >&2
