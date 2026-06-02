@@ -1,0 +1,47 @@
+name: Markdown to Slack mrkdwn
+description: |
+  Convert CommonMark markdown to Slack mrkdwn (the syntax accepted inside
+  blocks[].text of a chat.postMessage payload). Wraps slackify-markdown.
+
+inputs:
+  markdown:
+    description: Markdown text to convert.
+    required: true
+
+outputs:
+  text:
+    description: Slack mrkdwn-encoded text.
+    value: ${{ steps.run.outputs.text }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install bun package manager
+      uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      with:
+        bun-version-file: ${{ github.action_path }}/.bun-version
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: bun install --frozen-lockfile --production
+
+    - id: run
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        INPUT_MARKDOWN: ${{ inputs.markdown }}
+        NODE_ENV: production
+      run: |
+        slack_text=$(bun run src/index.ts)
+        # Random delimiter per invocation so the output is not truncated if
+        # the converted text contains a line equal to a fixed sentinel —
+        # input is user-controlled markdown (release notes, changelog).
+        # Matches the pattern @actions/core uses internally.
+        delimiter="SLACK_MD_EOF_$(openssl rand -hex 16)"
+        {
+          echo "text<<${delimiter}"
+          printf "%s" "$slack_text"
+          echo ""
+          echo "${delimiter}"
+        } >> "$GITHUB_OUTPUT"
