@@ -4,9 +4,13 @@ description: |
   Requires the calling job to have `id-token: write` permission for Vault authentication.
 
 inputs:
-  github_app:
+  github-app:
     description: |
       GitHub app name in Vault.
+    required: true
+  permission-set:
+    description: Permission set name
+    default: default
   project-id:
     description: |
       The node ID of the GitHub Project (v2) board.
@@ -40,7 +44,8 @@ runs:
     - id: get-token
       uses: ./_shared-workflows-issues-update-project-status/actions/create-github-app-token
       with:
-        github_app: ${{ inputs.github_app }}
+        github_app: ${{ inputs.github-app }}
+        permission_set: ${{ inputs.permission-set }}
 
     - name: Remove shared workflows checkout
       if: ${{ !cancelled() }}

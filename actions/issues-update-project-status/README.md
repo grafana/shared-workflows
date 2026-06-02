@@ -6,12 +6,13 @@ The calling job must have `id-token: write` permission for Vault authentication.
 
 ## Inputs
 
-| Name                      | Type   | Description                                                                                                  | Default | Required |
-| ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------ | ------- | -------- |
-| `github_app`              | String | The required GitHub app name                                                                                 |         | Yes      |
-| `project-id`              | String | Node ID of the GitHub Project (v2). Retrieve with: `gh project view <projNum> --owner <org> --format json`   |         | Yes      |
-| `status-field-id`         | String | Node ID of the Status field. Retrieve with: `gh project field-list <projNum> --owner <org> --format json`    |         | Yes      |
-| `target-status-option-id` | String | ID of the status option to set. Retrieve with: `gh project field-list <projNum> --owner <org> --format json` |         | Yes      |
+| Name                      | Type   | Description                                                                                                  | Default   | Required |
+| ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------ | --------- | -------- |
+| `github-app`              | String | The required GitHub app name                                                                                 |           | Yes      |
+| `permission_set`          | String | The optional permission set name. Defaults to `default`                                                      | `default` | Yes      |
+| `project-id`              | String | Node ID of the GitHub Project (v2). Retrieve with: `gh project view <projNum> --owner <org> --format json`   |           | Yes      |
+| `status-field-id`         | String | Node ID of the Status field. Retrieve with: `gh project field-list <projNum> --owner <org> --format json`    |           | Yes      |
+| `target-status-option-id` | String | ID of the status option to set. Retrieve with: `gh project field-list <projNum> --owner <org> --format json` |           | Yes      |
 
 ## Filtering by label
 
