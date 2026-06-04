@@ -632,7 +632,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Get Prometheus secrets from Vault
+      - id: get-secrets
+        name: Get Prometheus secrets from Vault
         uses: grafana/shared-workflows/actions/get-vault-secrets@4e6a096e033d00f25363adb1dc75b7e56ecdb7c6
         with:
           common_secrets: |
@@ -652,6 +653,9 @@ jobs:
           BENCH_SERVICE_VERSION: ${{ github.sha }}
           # renovate: datasource=github-releases packageName=grafana/grafana-bench
           BENCH_VERSION: "v1.0.10"
+          PROMETHEUS_URL: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_URL }}
+          PROMETHEUS_USER: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_USER }}
+          PROMETHEUS_PASSWORD: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_PASSWORD }}
         run: |
           BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)

@@ -39,11 +39,13 @@ runs:
         path: _shared-workflows-slack
         persist-credentials: false
 
-    - name: Get a Slack token
+    - id: get-secrets
+      name: Get a Slack token
       uses: ./_shared-workflows-slack/actions/get-vault-secrets
       with:
         common_secrets: |
           SLACK_BOT_TOKEN=slack-notifications:oauth-token
+
     - name: Send Slack Message
       id: send-slack-message
       uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
@@ -51,7 +53,7 @@ runs:
         payload-templated: ${{ inputs.payload-templated }}
         method: ${{ inputs.method }}
         payload: ${{ inputs.payload }}
-        token: ${{ env.SLACK_BOT_TOKEN }}
+        token: ${{ fromJSON(steps.get-secrets.outputs.secrets).SLACK_BOT_TOKEN }}
 
     # Cleanup checkout directory
     - name: Cleanup shared workflows checkout
