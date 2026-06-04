@@ -12,6 +12,9 @@
 # Coverage output for local runs (testdata/ fixtures are still tracked)
 /.coverage/
 
-# Re-allow tracked testdata fixtures (repo root .gitignore excludes `coverage/`)
+# Re-allow tracked source/fixture directories named `coverage/` (repo root
+# .gitignore excludes `coverage/` to ignore coverage-output artifacts).
+!internal/coverage/
+!internal/coverage/**
 !testdata/coverage/
 !testdata/coverage/**
