@@ -17,15 +17,15 @@ func TestGitBaseDiffSource_GetDiff(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Initialize and configure
-	exec.Command("git", "-C", tmpDir, "init").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test User").Run()
+	runGit(t, tmpDir, "init")
+	runGit(t, tmpDir, "config", "user.email", "test@test.com")
+	runGit(t, tmpDir, "config", "user.name", "Test User")
 
 	// Create initial commit on main branch
 	err := os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "initial commit").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "initial commit")
 
 	// Get the initial commit SHA (will be our base)
 	out, err := exec.Command("git", "-C", tmpDir, "rev-parse", "HEAD").Output()
@@ -33,19 +33,19 @@ func TestGitBaseDiffSource_GetDiff(t *testing.T) {
 	baseSHA := strings.TrimSpace(string(out))
 
 	// Create a feature branch and add commits
-	exec.Command("git", "-C", tmpDir, "checkout", "-b", "feature").Run()
+	runGit(t, tmpDir, "checkout", "-b", "feature")
 
 	// First commit on feature branch
 	err = os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n\nfunc foo() {}\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "add foo").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "add foo")
 
 	// Second commit on feature branch
 	err = os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n\nfunc foo() {}\n\nfunc bar() {}\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "add bar").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "add bar")
 
 	tests := []struct {
 		name        string
@@ -121,15 +121,15 @@ func TestGitBaseDiffSource_ShortSHA(t *testing.T) {
 	// Test that short SHA works as base ref
 	tmpDir := t.TempDir()
 
-	exec.Command("git", "-C", tmpDir, "init").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test User").Run()
+	runGit(t, tmpDir, "init")
+	runGit(t, tmpDir, "config", "user.email", "test@test.com")
+	runGit(t, tmpDir, "config", "user.name", "Test User")
 
 	// Initial commit
 	err := os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "initial").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "initial")
 
 	// Get short SHA
 	out, err := exec.Command("git", "-C", tmpDir, "rev-parse", "--short", "HEAD").Output()
@@ -139,8 +139,8 @@ func TestGitBaseDiffSource_ShortSHA(t *testing.T) {
 	// Add another commit
 	err = os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n\nfunc main() {}"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "add main").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "add main")
 
 	source := NewGitBaseDiffSource(shortSHA, "", tmpDir)
 	output, err := source.GetDiff(context.Background())
@@ -155,15 +155,15 @@ func TestGitBaseDiffSource_WithExplicitCommit(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Initialize and configure
-	exec.Command("git", "-C", tmpDir, "init").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test User").Run()
+	runGit(t, tmpDir, "init")
+	runGit(t, tmpDir, "config", "user.email", "test@test.com")
+	runGit(t, tmpDir, "config", "user.name", "Test User")
 
 	// Create initial commit
 	err := os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "initial commit").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "initial commit")
 
 	// Get the initial commit SHA (base)
 	out, err := exec.Command("git", "-C", tmpDir, "rev-parse", "HEAD").Output()
@@ -173,8 +173,8 @@ func TestGitBaseDiffSource_WithExplicitCommit(t *testing.T) {
 	// Add second commit
 	err = os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n\nfunc foo() {}\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "add foo").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "add foo")
 
 	// Get the second commit SHA (commit)
 	out, err = exec.Command("git", "-C", tmpDir, "rev-parse", "HEAD").Output()
@@ -184,8 +184,8 @@ func TestGitBaseDiffSource_WithExplicitCommit(t *testing.T) {
 	// Add third commit
 	err = os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n\nfunc foo() {}\n\nfunc bar() {}\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "add bar").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "add bar")
 
 	// Test diff between base and second commit (should only show foo, not bar)
 	source := NewGitBaseDiffSource(baseSHA, secondSHA, tmpDir)
@@ -203,15 +203,15 @@ func TestGitBaseDiffSource_WithExplicitCommit_BranchNames(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Initialize and configure
-	exec.Command("git", "-C", tmpDir, "init").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test User").Run()
+	runGit(t, tmpDir, "init")
+	runGit(t, tmpDir, "config", "user.email", "test@test.com")
+	runGit(t, tmpDir, "config", "user.name", "Test User")
 
 	// Create initial commit
 	err := os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "initial commit").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "initial commit")
 
 	// Get the current branch name (could be main, master, etc.)
 	out, err := exec.Command("git", "-C", tmpDir, "rev-parse", "--abbrev-ref", "HEAD").Output()
@@ -219,11 +219,11 @@ func TestGitBaseDiffSource_WithExplicitCommit_BranchNames(t *testing.T) {
 	baseBranch := strings.TrimSpace(string(out))
 
 	// Create feature branch and add commit
-	exec.Command("git", "-C", tmpDir, "checkout", "-b", "feature").Run()
+	runGit(t, tmpDir, "checkout", "-b", "feature")
 	err = os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n\nfunc foo() {}\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "add foo").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "add foo")
 
 	// Test diff between base and feature branches
 	source := NewGitBaseDiffSource(baseBranch, "feature", tmpDir)

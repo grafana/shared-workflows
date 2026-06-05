@@ -20,24 +20,24 @@ func (f *TextFormatter) Format(result *coverage.AnalysisResult, w io.Writer) err
 	// Handle case where all lines are covered
 	if !result.HasUncoveredLines() {
 		if result.DiffAddedLines == 0 {
-			fmt.Fprintln(w, "No lines added in diff")
+			_, _ = fmt.Fprintln(w, "No lines added in diff")
 			return nil
 		}
-		fmt.Fprintln(w, "All added lines are covered!")
+		_, _ = fmt.Fprintln(w, "All added lines are covered!")
 		return nil
 	}
 
 	// Print header
-	fmt.Fprintln(w, "Uncovered lines in diff:")
-	fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w, "Uncovered lines in diff:")
+	_, _ = fmt.Fprintln(w)
 
 	// Print uncovered lines grouped by file (sorted alphabetically)
 	sortedFiles := result.GetSortedFiles()
 	for _, file := range sortedFiles {
 		lines := result.UncoveredByFile[file]
-		fmt.Fprintf(w, "%s\n", file)
-		fmt.Fprintf(w, "  Lines: %s\n", formatLineRanges(lines))
-		fmt.Fprintln(w)
+		_, _ = fmt.Fprintf(w, "%s\n", file)
+		_, _ = fmt.Fprintf(w, "  Lines: %s\n", formatLineRanges(lines))
+		_, _ = fmt.Fprintln(w)
 	}
 
 	// Print summary with percentage
@@ -47,7 +47,7 @@ func (f *TextFormatter) Format(result *coverage.AnalysisResult, w io.Writer) err
 	}
 
 	uncoveredCount := result.DiffAddedLines - result.DiffAddedCovered
-	fmt.Fprintf(w, "Summary: %d uncovered lines out of %d added lines (%.1f%% coverage)\n",
+	_, _ = fmt.Fprintf(w, "Summary: %d uncovered lines out of %d added lines (%.1f%% coverage)\n",
 		uncoveredCount, result.DiffAddedLines, coveragePercent)
 
 	return nil

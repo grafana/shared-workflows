@@ -166,9 +166,10 @@ func TestMergeProfiles(t *testing.T) {
 				// Find each file (order is deterministic but alphabetical)
 				var file1, file2 *Profile
 				for _, p := range merged {
-					if p.FileName == "file1.go" {
+					switch p.FileName {
+					case "file1.go":
 						file1 = p
-					} else if p.FileName == "file2.go" {
+					case "file2.go":
 						file2 = p
 					}
 				}

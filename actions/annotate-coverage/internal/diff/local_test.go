@@ -22,14 +22,14 @@ func TestLocalDiffSource_GetDiff(t *testing.T) {
 	require.NoError(t, cmd.Run())
 
 	// Configure git (needed for commits)
-	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test User").Run()
+	runGit(t, tmpDir, "config", "user.email", "test@test.com")
+	runGit(t, tmpDir, "config", "user.name", "Test User")
 
 	// Create initial commit
 	err := os.WriteFile(filepath.Join(tmpDir, "initial.txt"), []byte("initial"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "initial").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "initial")
 
 	tests := []struct {
 		name        string
@@ -73,8 +73,8 @@ func TestLocalDiffSource_GetDiff(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset repo state
-			exec.Command("git", "-C", tmpDir, "checkout", ".").Run()
-			exec.Command("git", "-C", tmpDir, "clean", "-fd").Run()
+			runGit(t, tmpDir, "checkout", ".")
+			runGit(t, tmpDir, "clean", "-fd")
 
 			tt.setup(t)
 

@@ -128,11 +128,9 @@ func ParseDiff(diffData []byte) ([]*FileDiff, error) {
 				currentLine++
 			}
 		case '-':
-			// This is a removed line (don't increment currentLine for new file)
-			// Skip --- file headers
-			if !strings.HasPrefix(line, "---") {
-				// Don't increment line number for deleted lines
-			}
+			// Removed line: don't advance currentLine (which tracks lines in the
+			// *new* file). The `--- a/<path>` header line is also a '-' here, but
+			// it has no impact since we never increment for this case anyway.
 		case ' ':
 			// This is a context line (present in both old and new)
 			currentLine++

@@ -112,7 +112,7 @@ func ParseProfilesFromZip(zipData []byte) ([]*Profile, error) {
 
 		// Read the contents
 		data, err := io.ReadAll(rc)
-		rc.Close()
+		_ = rc.Close()
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file %s from archive: %w", file.Name, err)
 		}
@@ -217,16 +217,20 @@ func SerializeProfiles(profiles []*Profile) ([]byte, error) {
 	if mode == "" {
 		mode = "set" // default mode
 	}
-	fmt.Fprintf(writer, "mode: %s\n", mode)
+	if _, err := fmt.Fprintf(writer, "mode: %s\n", mode); err != nil {
+		return nil, fmt.Errorf("failed to write coverage header: %w", err)
+	}
 
 	// Write each profile
 	for _, p := range profiles {
 		for _, b := range p.Blocks {
-			fmt.Fprintf(writer, "%s:%d.%d,%d.%d %d %d\n",
+			if _, err := fmt.Fprintf(writer, "%s:%d.%d,%d.%d %d %d\n",
 				p.FileName,
 				b.StartLine, b.StartCol,
 				b.EndLine, b.EndCol,
-				b.NumStmt, b.Count)
+				b.NumStmt, b.Count); err != nil {
+				return nil, fmt.Errorf("failed to write coverage block: %w", err)
+			}
 		}
 	}
 

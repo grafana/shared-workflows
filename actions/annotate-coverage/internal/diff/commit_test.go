@@ -17,21 +17,21 @@ func TestGitCommitDiffSource_GetDiff(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Initialize and configure
-	exec.Command("git", "-C", tmpDir, "init").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test User").Run()
+	runGit(t, tmpDir, "init")
+	runGit(t, tmpDir, "config", "user.email", "test@test.com")
+	runGit(t, tmpDir, "config", "user.name", "Test User")
 
 	// First commit
 	err := os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "first commit").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "first commit")
 
 	// Second commit with changes
 	err = os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main\n\nfunc main() {}\n"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "second commit").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "second commit")
 
 	// Get commit SHA
 	out, err := exec.Command("git", "-C", tmpDir, "rev-parse", "HEAD").Output()
@@ -115,14 +115,14 @@ func TestGitCommitDiffSource_ShortSHA(t *testing.T) {
 	// Test that short SHA works
 	tmpDir := t.TempDir()
 
-	exec.Command("git", "-C", tmpDir, "init").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "-C", tmpDir, "config", "user.name", "Test User").Run()
+	runGit(t, tmpDir, "init")
+	runGit(t, tmpDir, "config", "user.email", "test@test.com")
+	runGit(t, tmpDir, "config", "user.name", "Test User")
 
 	err := os.WriteFile(filepath.Join(tmpDir, "file.go"), []byte("package main"), 0644)
 	require.NoError(t, err)
-	exec.Command("git", "-C", tmpDir, "add", ".").Run()
-	exec.Command("git", "-C", tmpDir, "commit", "-m", "commit").Run()
+	runGit(t, tmpDir, "add", ".")
+	runGit(t, tmpDir, "commit", "-m", "commit")
 
 	// Get short SHA
 	out, err := exec.Command("git", "-C", tmpDir, "rev-parse", "--short", "HEAD").Output()
