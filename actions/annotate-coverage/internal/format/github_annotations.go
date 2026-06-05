@@ -20,10 +20,10 @@ func (f *GitHubAnnotationsFormatter) Format(result *coverage.AnalysisResult, w i
 	// Handle case where all lines are covered
 	if !result.HasUncoveredLines() {
 		if result.DiffAddedLines == 0 {
-			fmt.Fprintln(w, "::notice No lines added in diff")
+			fmt.Fprintln(w, "::notice::No lines added in diff")
 			return nil
 		}
-		fmt.Fprintln(w, "::notice All added lines are covered")
+		fmt.Fprintln(w, "::notice::All added lines are covered")
 		return nil
 	}
 

@@ -3,6 +3,7 @@ package local
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -137,8 +138,10 @@ func TestNewRunner(t *testing.T) {
 }
 
 func TestRunner_Run_Integration(t *testing.T) {
-	// Skip if we're not in a git repository
-	if _, err := os.Stat("../.git"); os.IsNotExist(err) {
+	// Skip if we're not in a git repository. The `.git` directory can live
+	// several levels above this package, so probe via `git rev-parse` instead
+	// of a fixed relative path.
+	if err := exec.Command("git", "rev-parse", "--is-inside-work-tree").Run(); err != nil {
 		t.Skip("Not in a git repository, skipping integration test")
 	}
 
@@ -159,6 +162,7 @@ github.com/grafana/shared-workflows/actions/annotate-coverage/internal/local/run
 
 	runner := NewRunner(Config{
 		CoveragePath: coverageDir,
+		Format:       "Text",
 	})
 
 	ctx := context.Background()

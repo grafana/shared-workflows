@@ -54,7 +54,7 @@ func TestGitHubAnnotationsFormatter_Format(t *testing.T) {
 				DiffAddedLines:   10,
 				DiffAddedCovered: 10, // all 10 covered
 			},
-			expectedOutput: "::notice All added lines are covered\n",
+			expectedOutput: "::notice::All added lines are covered\n",
 		},
 		{
 			name: "no lines added",
@@ -63,7 +63,7 @@ func TestGitHubAnnotationsFormatter_Format(t *testing.T) {
 				DiffAddedLines:   0,
 				DiffAddedCovered: 0,
 			},
-			expectedOutput: "::notice No lines added in diff\n",
+			expectedOutput: "::notice::No lines added in diff\n",
 		},
 		{
 			name: "consecutive lines grouped into ranges",

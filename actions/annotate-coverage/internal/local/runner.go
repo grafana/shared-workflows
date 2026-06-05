@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/grafana/shared-workflows/actions/annotate-coverage/internal/coverage"
 	"github.com/grafana/shared-workflows/actions/annotate-coverage/internal/diff"
@@ -48,8 +50,8 @@ func NewRunner(config Config, opts ...Option) *Runner {
 	return r
 }
 
-// Run executes the local coverage analysis workflow.
-// It returns an error if any step fails, but always exits with code 0 (as required).
+// Run executes the local coverage analysis workflow. It returns an error if
+// any step fails; the CLI propagates that error to a non-zero exit code.
 func (r *Runner) Run(ctx context.Context) error {
 	// Step 1: Get diff using the configured DiffSource
 	diffData, err := r.diffSource.GetDiff(ctx)
@@ -131,8 +133,8 @@ func (r *Runner) readAndMergeCoverageFiles() ([]*coverage.Profile, error) {
 			continue
 		}
 		name := entry.Name()
-		if len(name) > 4 && name[len(name)-4:] == ".out" {
-			coverageFiles = append(coverageFiles, fmt.Sprintf("%s/%s", r.config.CoveragePath, name))
+		if strings.HasSuffix(name, ".out") {
+			coverageFiles = append(coverageFiles, filepath.Join(r.config.CoveragePath, name))
 		}
 	}
 
