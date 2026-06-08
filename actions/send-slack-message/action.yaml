@@ -32,6 +32,7 @@ runs:
   using: composite
   steps:
     - name: Get a Slack token
+      id: get-secrets
       uses: grafana/shared-workflows/actions/get-vault-secrets@main
       with:
         common_secrets: |
@@ -45,4 +46,4 @@ runs:
         slack-message: ${{ inputs.slack-message }}
         update-ts: ${{ inputs.update-ts }}
       env:
-        SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}
+        SLACK_BOT_TOKEN: ${{ fromJSON(steps.get-secrets.outputs.secrets).SLACK_BOT_TOKEN }}
