@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.0.0](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.5...send-slack-message/v3.0.0) (2026-06-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957))
+
+### 🎉 Features
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957)) ([84e8abf](https://github.com/grafana/shared-workflows/commit/84e8abf0d3cd31cc8fa01d0e2c629a96864a108a))
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update slackapi/slack-github-action action to v3.0.3 ([#1921](https://github.com/grafana/shared-workflows/issues/1921)) ([860a297](https://github.com/grafana/shared-workflows/commit/860a2973c4503ce06a7aea9fc9f054bade901d1f))
+
 ## [2.0.5](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.4...send-slack-message/v2.0.5) (2026-05-04)
 
 
