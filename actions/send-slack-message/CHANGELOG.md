@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/grafana/shared-workflows/compare/send-slack-message/v3.0.0...send-slack-message/v3.0.1) (2026-06-08)
+
+
+### 🐛 Bug Fixes
+
+* **send-slack-message:** default payload-templated to false ([#2030](https://github.com/grafana/shared-workflows/issues/2030)) ([b020d35](https://github.com/grafana/shared-workflows/commit/b020d35e39552b691c35e02ec5cfcd4cda6159d7))
+
 ## [3.0.0](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.5...send-slack-message/v3.0.0) (2026-06-08)
 
 
