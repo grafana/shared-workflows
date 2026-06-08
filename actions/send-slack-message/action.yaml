@@ -11,6 +11,7 @@ inputs:
   payload-templated:
     description: "To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true"
     required: false
+    default: "false"
 outputs:
   time:
     value: ${{ steps.send-slack-message.outputs.time }}
