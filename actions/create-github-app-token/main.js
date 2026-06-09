@@ -6,9 +6,9 @@ const {
   saveState,
   info,
   setFailed,
-  sha256Hex,
   retry,
   fetchIdToken,
+  normalizeWorkflowRefSha,
 } = require("./lib.js");
 
 const VALID_VAULT_INSTANCES = new Set(["dev", "ops"]);
@@ -39,18 +39,6 @@ const parseInputs = () => {
   }
 
   return { permissionSet, vaultInstance, apps, repositoryName };
-};
-
-// `github.workflow_ref` looks like
-// `owner/repo/.github/workflows/file.yml@refs/heads/main`. Strip the
-// `owner/repo/` prefix and the `@ref` suffix, then sha256-hex the result.
-// Matches the legacy bash implementation byte-for-byte.
-const normalizeWorkflowRefSha = () => {
-  const workflowRef = process.env.GITHUB_WORKFLOW_REF || "";
-  const normalized = workflowRef
-    .replace(/^[^/]+\/[^/]+\//, "")
-    .replace(/@.*$/, "");
-  return sha256Hex(normalized);
 };
 
 const authenticateWithVault = async ({
@@ -135,8 +123,8 @@ const main = async () => {
   // github-actions-oidc method validates the audience against its configured
   // value).
   const vaultAudience = vaultUrl;
-
-  const refSha = normalizeWorkflowRefSha();
+  const workflowRef = process.env.GITHUB_WORKFLOW_REF || "";
+  const refSha = normalizeWorkflowRefSha(workflowRef);
   const role = `${repositoryName}-${refSha}-${permissionSet}`;
   info(`Vault role: ${role}`);
 
