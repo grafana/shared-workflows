@@ -115,6 +115,13 @@ const fetchIdToken = async (audience) => {
   return parsed.value;
 };
 
+const normalizeWorkflowRefSha = (workflowRef) => {
+  const normalized = workflowRef
+    .replace(/^[^/]+\/[^/]+\//, "")
+    .replace(/@.*$/, "");
+  return sha256Hex(normalized);
+};
+
 module.exports = {
   setSecret,
   setOutput,
@@ -124,8 +131,8 @@ module.exports = {
   warning,
   error,
   setFailed,
-  sha256Hex,
   sleep,
   retry,
   fetchIdToken,
+  normalizeWorkflowRefSha,
 };
