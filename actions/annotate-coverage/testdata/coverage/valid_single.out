@@ -1,0 +1,6 @@
+mode: set
+github.com/example/project/main.go:10.13,12.2 1 1
+github.com/example/project/main.go:14.15,16.2 1 0
+github.com/example/project/handler.go:20.30,22.16 2 1
+github.com/example/project/handler.go:26.2,28.12 3 1
+github.com/example/project/handler.go:22.16,24.3 1 0

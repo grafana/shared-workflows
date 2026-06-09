@@ -31,5 +31,6 @@
     "actions/component-change-detection": "1.0.1",
     "actions/socket-export-sbom": "0.1.1",
     "actions/issues-update-project-status": "0.2.0",
-    "actions/go-flaky-tests": "0.1.0"
+    "actions/go-flaky-tests": "0.1.0",
+    "actions/annotate-coverage": "0.1.0"
 }
