@@ -44,7 +44,6 @@ const revokeOnce = async ({ vaultUrl, vaultToken, proxyJwt }) => {
       headers: {
         "X-Vault-Token": vaultToken,
         "Proxy-Authorization-Token": `Bearer ${proxyJwt}`,
-        "Content-Length": "0",
       },
     });
     const body = await res.text();
