@@ -18,10 +18,6 @@ repos:
           - eslint
         entry: oven/bun:1.3.0@sha256:00cccad6e9c66bbacc250851f689168606aaea551ac473e908bbcf00a5645025
         files: \.[jt]s$
-        # The create-github-app-token action's JS files use Node.js globals
-        # (process, console, etc.) that the shared eslint config does not yet
-        # declare, so we exclude them.
-        exclude: "actions/create-github-app-token/.*\\.js$"
         language: docker_image
 
       - id: prettier
