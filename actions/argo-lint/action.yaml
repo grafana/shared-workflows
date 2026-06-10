@@ -15,22 +15,8 @@ runs:
   using: composite
 
   steps:
-    - name: Checkout
-      env:
-        # In a composite action, these two need to be indirected via the
-        # environment, as per the GitHub actions documentation:
-        # https://docs.github.com/en/actions/learn-github-actions/contexts
-        action_repo: "${{ github.action_repository || 'grafana/shared-workflows' }}"
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-argo-lint
-        persist-credentials: false
-
     - name: Setup Argo
-      uses: ./_shared-workflows-argo-lint/actions/setup-argo
+      uses: grafana/shared-workflows/actions/setup-argo@f02682926bde2aa45a1a8b74409c94508d8952ec # setup-argo/v1.2.0
       with:
         version: ${{ inputs.argo-version }}
 

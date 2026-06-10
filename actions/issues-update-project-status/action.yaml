@@ -30,27 +30,11 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout shared workflows
-      env:
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-issues-update-project-status
-        persist-credentials: false
-
     - id: get-token
-      uses: ./_shared-workflows-issues-update-project-status/actions/create-github-app-token
+      uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
       with:
         github_app: ${{ inputs.github-app }}
         permission_set: ${{ inputs.permission-set }}
-
-    - name: Remove shared workflows checkout
-      if: ${{ !cancelled() }}
-      shell: bash
-      run: rm -rf _shared-workflows-issues-update-project-status
 
     - name: Update project item status
       shell: bash
