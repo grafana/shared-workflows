@@ -29,7 +29,7 @@
     "actions/docker-export-digest": "0.1.4",
     "actions/docker-import-digests-push-manifest": "0.2.2",
     "actions/component-change-detection": "1.0.2",
-    "actions/socket-export-sbom": "0.1.1",
+    "actions/socket-export-sbom": "0.1.2",
     "actions/issues-update-project-status": "0.2.0",
     "actions/go-flaky-tests": "0.1.1",
     "actions/wait-for-docker-publish": "0.2.0"
