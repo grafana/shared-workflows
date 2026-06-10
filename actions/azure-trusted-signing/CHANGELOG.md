@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.2...azure-trusted-signing/v1.0.3) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-dotnet action to v5.3.0 ([#1985](https://github.com/grafana/shared-workflows/issues/1985)) ([e7fd9c6](https://github.com/grafana/shared-workflows/commit/e7fd9c64d09d25481485849fad6fd689aa274815))
+* **deps:** update dependency dotnet-sdk to v8.0.421 ([#1962](https://github.com/grafana/shared-workflows/issues/1962)) ([9387d4e](https://github.com/grafana/shared-workflows/commit/9387d4eb456a593ae9147c7de344f65e8f47aedc))
+* **deps:** update dependency sign to 0.9.1-beta.26227.3 ([#1916](https://github.com/grafana/shared-workflows/issues/1916)) ([4433c21](https://github.com/grafana/shared-workflows/commit/4433c21b3de16479cbc055126680ca18acdc5c80))
+* **deps:** update dependency sign to 0.9.1-beta.26301.2 ([#2038](https://github.com/grafana/shared-workflows/issues/2038)) ([6e7b27e](https://github.com/grafana/shared-workflows/commit/6e7b27e61dfc8beaee61ee6ff765309013559ad9))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.1...azure-trusted-signing/v1.0.2) (2026-05-04)
 
 
