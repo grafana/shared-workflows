@@ -41,6 +41,10 @@ inputs:
 
       [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)
     default: type=gha,mode=max
+  conftest-version:
+    description: |
+      Version of conftest to install for the Dockerfile hardening scan.
+    default: "0.55.0"
   context:
     description: |
       Path to the Docker build context.
@@ -60,6 +64,12 @@ inputs:
       DockerHub Repository to store docker images in.
       Default: github.repository
     default: ${{ github.repository }}
+  enforce-hardened-dockerfile:
+    description: |
+      The Dockerfile is always scanned for baseline hardening requirements.
+      When "true", policy violations fail the build. When "false" (the
+      default), violations are reported as warnings only.
+    default: "false"
   file:
     description: |
       The dockerfile to use.
@@ -180,6 +190,30 @@ runs:
         ref: ${{ env.action_ref }}
         path: _shared-workflows-docker-build-push-image
         persist-credentials: false
+
+    - name: Validate conftest-version
+      shell: bash
+      env:
+        CONFTEST_VERSION: ${{ inputs.conftest-version }}
+      run: |
+        set -euo pipefail
+        if ! [[ "${CONFTEST_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            printf "ERROR: invalid conftest-version: %q (expected semver x.y.z)\n" "${CONFTEST_VERSION}" >&2
+            exit 1
+        fi
+
+    - name: Setup Conftest
+      uses: ./_shared-workflows-docker-build-push-image/actions/setup-conftest
+      with:
+        version: ${{ inputs.conftest-version }}
+
+    - name: Harden Dockerfile
+      shell: bash
+      working-directory: ${{ github.workspace }}/_shared-workflows-docker-build-push-image/actions/docker-build-push-image
+      env:
+        DOCKERFILES: ${{ inputs.file != '' && inputs.file || format('{0}/Dockerfile', inputs.context) }}
+        STRICT: ${{ inputs.enforce-hardened-dockerfile }}
+      run: bash ./run-conftest.sh verify-dockerfiles
 
     - name: Set registries
       id: registries

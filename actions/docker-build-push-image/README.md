@@ -66,10 +66,12 @@ jobs:
 | `buildkitd-config-inline`     | String  | The buildkitd inline config to use. Passed to `docker/setup-buildx-action`.                                                                                                                                            |
 | `cache-from`                  | String  | Where cache should be fetched from. Passed to `docker/build-push-action`.                                                                                                                                              |
 | `cache-to`                    | String  | Where cache should be stored to. Passed to `docker/build-push-action`.                                                                                                                                                 |
+| `conftest-version`            | String  | Version of conftest to install for the Dockerfile hardening scan. Default: `0.55.0`.                                                                                                                                   |
 | `context`                     | String  | Path to the Docker build context. Passed to `docker/build-push-action`.                                                                                                                                                |
 | `docker-buildx-driver`        | String  | The driver to use for Docker Buildx. Passed to `docker/setup-buildx-action`.                                                                                                                                           |
 | `dockerhub-registry`          | String  | DockerHub Registry to store docker images in.                                                                                                                                                                          |
 | `dockerhub-repository`        | String  | DockerHub Repository to store docker images in. Default: github.repository                                                                                                                                             |
+| `enforce-hardened-dockerfile` | Boolean | When `true`, `conftest` policy violations fail the build; when `false` (the default), violations are reported as warnings.                                                                                             |
 | `file`                        | String  | The dockerfile to use. Passed to `docker/build-push-action`.                                                                                                                                                           |
 | `gar-delete-credentials-file` | Boolean | Delete the Google credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false.                                                                         |
 | `gar-environment`             | String  | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project (gar-project) to either `grafanalabs-dev` or `grafanalabs-global`.                                                            |
@@ -102,6 +104,48 @@ jobs:
 | `metadatajson` | String | Metadata JSON (from docker/metadata)                         |
 | `tags`         | String | Generated Docker tags (from docker/metadata-action)          |
 | `version`      | String | Generated Docker image version (from docker/metadata-action) |
+
+## Dockerfile hardening
+
+Before building, this action scans the target Dockerfile (resolved from `file`, or `<context>/Dockerfile` when `file` is unset) with [conftest](https://www.conftest.dev/) using the Rego policies under [`conftest/policy`](./conftest/policy). By default violations are reported as warnings and the build proceeds; set `enforce-hardened-dockerfile: true` to fail the build on any violation.
+
+These policies include (but are not limited to) the following checks:
+
+- Final image base must utilize a `scratch` or distroless image
+- All image references (`FROM` and `COPY --from=<image>`) must be pinned to a digest (`@sha256:`, `@sha512:`, or `@blake3:`).
+- `ADD` instructions must not fetch from a remote URL (`http://`, `https://`, `ftp://`) — supply chain risk; use `COPY` with a verified local file or `RUN curl` with explicit `sha256sum -c` verification
+- `RUN` must not pipe remote content directly into a shell (`curl ... | bash`, `wget ... | sh`, etc.) — remote code execution at build time with no verification
+- Container runtime must:
+  - have a `USER` instruction in the final stage
+  - not run as root (UID `0` or name `root`)
+  - not invoke `sudo`
+  - not `EXPOSE` a privileged port (`<1024`)
+  - not `chmod` to world-writable (octal `777`/`0777` or any symbolic form granting write to `other`)
+  - use exec form (JSON array) for `ENTRYPOINT` and `CMD` so the binary becomes PID 1 and receives signals
+
+Advisory checks (warnings, not failures):
+
+- `COPY .` in the final stage — may ship the source tree to the runtime image. Confirm the build context only contains intended artifacts (typical pattern: rely on `.dockerignore` or a curated build-context directory produced by an earlier CI step).
+
+### Local development of policies
+
+The `run-conftest.sh` script must be run from this action directory (`actions/docker-build-push-image/`).
+
+Verify one or more Dockerfiles (paths resolved relative to `$GITHUB_WORKSPACE`, or `$PWD` if unset). Set `STRICT=true` to fail on violations:
+
+```sh
+DOCKERFILES="path/to/Dockerfile" bash ./run-conftest.sh verify-dockerfiles
+DOCKERFILES=$'Dockerfile\nimages/api/Dockerfile' bash ./run-conftest.sh verify-dockerfiles
+bash ./run-conftest.sh verify-dockerfiles -f Dockerfile -f images/api/Dockerfile
+```
+
+Run the policy unit tests (smoke test plus the rego suite):
+
+```sh
+bash ./run-conftest.sh test-policies
+```
+
+To add a policy: add a `.rego` file under `conftest/policy/` (declare `package main` and `import rego.v1`), add a matching `<name>_test.rego` under `conftest/tests/` covering positive and negative cases, run `bash ./run-conftest.sh test-policies`, and update the policy list above. Shared helpers live in [`conftest/policy/common.rego`](./conftest/policy/common.rego).
 
 ## How we construct Google Artifact Registry Images
 

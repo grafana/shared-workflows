@@ -1,0 +1,59 @@
+name: Test Dockerfile Hardening Policies
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/docker-build-push-image/**
+      - .github/workflows/test-dockerfile-conftest-policy.yml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/docker-build-push-image/**
+      - .github/workflows/test-dockerfile-conftest-policy.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dockerfile-hardening-policy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    name: "Test Dockerfile Hardening Policies"
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            actions/docker-build-push-image
+            actions/setup-conftest
+
+      - name: Setup Conftest
+        uses: ./actions/setup-conftest
+
+      - name: Run Conftest policy tests
+        shell: bash
+        working-directory: actions/docker-build-push-image
+        run: bash ./run-conftest.sh test-policies
