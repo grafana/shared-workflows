@@ -170,17 +170,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Checkout shared-workflows
-      env:
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-docker-build-push-image
-        persist-credentials: false
-
     - name: Set registries
       id: registries
       shell: bash
@@ -207,8 +196,7 @@ runs:
         REGISTRY: ${{ inputs.gar-registry }}
         GH_REPO: ${{ github.repository }}
       run: |
-        chmod +x ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/gar-setup-project-vars.sh
-        ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/gar-setup-project-vars.sh
+        bash "${GITHUB_ACTION_PATH}/gar-setup-project-vars.sh"
 
     - name: Setup DockerHub variables
       if: ${{ steps.registries.outputs.include-dockerhub == 'true' }}
@@ -218,8 +206,7 @@ runs:
         DOCKERHUB_IMAGE: ${{ inputs.dockerhub-repository }}
         DOCKERHUB_REGISTRY: ${{ inputs.dockerhub-registry }}
       run: |
-        chmod +x ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/dockerhub-setup-project-vars.sh
-        ./_shared-workflows-docker-build-push-image/actions/docker-build-push-image/dockerhub-setup-project-vars.sh
+        bash "${GITHUB_ACTION_PATH}/dockerhub-setup-project-vars.sh"
 
     - name: Finalize build vars
       id: setup-vars
@@ -266,11 +253,11 @@ runs:
 
     - name: Login to GAR
       if: ${{ inputs.push == 'true' && steps.registries.outputs.include-gar == 'true' }}
-      uses: ./_shared-workflows-docker-build-push-image/actions/login-to-gar
+      uses: grafana/shared-workflows/actions/login-to-gar@12c87e5aa323694c820c1ff3d8e47e8237e05136 # login-to-gar/v1.0.2
 
     - name: Login to DockerHub
       if: ${{ inputs.push == 'true' && steps.registries.outputs.include-dockerhub == 'true' }}
-      uses: ./_shared-workflows-docker-build-push-image/actions/dockerhub-login
+      uses: grafana/shared-workflows/actions/dockerhub-login@ef3a62a3ca4c1a15505b4235a5a51493194da3c7 # dockerhub-login/v1.0.4
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
@@ -371,18 +358,6 @@ runs:
         ssh: ${{ inputs.ssh }}
         tags: ${{ inputs.include-tags-in-push == 'true' && steps.meta.outputs.tags || steps.setup-vars.outputs.images }}
         target: ${{ inputs.target }}
-
-    - name: Cleanup checkout directory
-      if: ${{ !cancelled() }}
-      shell: bash
-      run: |
-        # Check that the directory looks OK before removing it
-        if ! [ -d "_shared-workflows-docker-build-push-image/.git" ]; then
-          echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
-          exit 0
-        fi
-
-        rm -rf _shared-workflows-docker-build-push-image
 
     - name: Delete Google Application Credentials file
       if: ${{ always() && inputs.gar-delete-credentials-file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
