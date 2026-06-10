@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2](https://github.com/grafana/shared-workflows/compare/send-slack-message/v3.0.1...send-slack-message/v3.0.2) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* reference sibling actions directly instead of checkout ([#2032](https://github.com/grafana/shared-workflows/issues/2032)) ([614ae58](https://github.com/grafana/shared-workflows/commit/614ae58b964b32c08d190dde334a583cc8373723))
+
 ## [3.0.1](https://github.com/grafana/shared-workflows/compare/send-slack-message/v3.0.0...send-slack-message/v3.0.1) (2026-06-08)
 
 
