@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.4](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.3...docker-build-push-image/v0.3.4) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+* remove shared-workflows checkout from composite actions ([#2036](https://github.com/grafana/shared-workflows/issues/2036)) ([d6624ff](https://github.com/grafana/shared-workflows/commit/d6624ff13ea9c78935851225fd1ccabb23423be6))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v7.2.0 ([#2018](https://github.com/grafana/shared-workflows/issues/2018)) ([647de49](https://github.com/grafana/shared-workflows/commit/647de495fb2403f2261b034a1b4610904cb38bf2))
+* **deps:** update docker/metadata-action action to v6.1.0 ([#2021](https://github.com/grafana/shared-workflows/issues/2021)) ([ac9ad90](https://github.com/grafana/shared-workflows/commit/ac9ad908f81ccdceca9cb9f640c08a97e3073ba9))
+* **deps:** update docker/setup-buildx-action action to v4.1.0 ([#2022](https://github.com/grafana/shared-workflows/issues/2022)) ([e942a3a](https://github.com/grafana/shared-workflows/commit/e942a3a5775e102da33db1bcb193cfddb3a47a26))
+* **deps:** update docker/setup-qemu-action action to v4.1.0 ([#2023](https://github.com/grafana/shared-workflows/issues/2023)) ([4f49606](https://github.com/grafana/shared-workflows/commit/4f49606ee0350fdbbcbe95cd9a64486f89da32ae))
+
 ## [0.3.3](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.2...docker-build-push-image/v0.3.3) (2026-05-04)
 
 
