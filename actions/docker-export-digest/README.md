@@ -27,7 +27,7 @@ jobs:
       id-token: write
     steps:
       - name: Export and upload digest
-        uses: grafana/shared-workflows/actions/docker-export-digest@docker-export-digest/v0.1.3
+        uses: grafana/shared-workflows/actions/docker-export-digest@docker-export-digest/v0.1.4
         with:
           digest: ${{ steps.docker-build-push-image.outputs.digest }}
           platform: linux/arm64
