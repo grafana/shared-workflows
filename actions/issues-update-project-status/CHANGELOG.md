@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/issues-update-project-status/v0.2.0...issues-update-project-status/v0.2.1) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* reference sibling actions directly instead of checkout ([#2032](https://github.com/grafana/shared-workflows/issues/2032)) ([614ae58](https://github.com/grafana/shared-workflows/commit/614ae58b964b32c08d190dde334a583cc8373723))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/issues-update-project-status/v0.1.1...issues-update-project-status/v0.2.0) (2026-06-02)
 
 
