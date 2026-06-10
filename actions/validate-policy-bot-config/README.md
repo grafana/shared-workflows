@@ -31,7 +31,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate Policy Bot configuration
-        uses: grafana/shared-workflows/actions/validate-policy-bot-config@validate-policy-bot-config/v1.1.1
+        uses: grafana/shared-workflows/actions/validate-policy-bot-config@validate-policy-bot-config/v1.1.2
 ```
 
 <!-- x-release-please-end-version -->
