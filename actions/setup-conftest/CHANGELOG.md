@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/setup-conftest/v1.0.3...setup-conftest/v1.0.4) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/setup-conftest/v1.0.2...setup-conftest/v1.0.3) (2025-12-09)
 
 
