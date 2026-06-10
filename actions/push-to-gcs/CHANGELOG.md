@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.3.1...push-to-gcs/v0.3.2) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+* reference sibling actions directly instead of checkout ([#2032](https://github.com/grafana/shared-workflows/issues/2032)) ([614ae58](https://github.com/grafana/shared-workflows/commit/614ae58b964b32c08d190dde334a583cc8373723))
+
 ## [0.3.1](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.3.0...push-to-gcs/v0.3.1) (2026-05-04)
 
 
