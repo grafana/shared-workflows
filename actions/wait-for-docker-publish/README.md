@@ -42,7 +42,7 @@ jobs:
       digest: ${{ steps.push.outputs.digest }}
     steps:
       - id: push
-        uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.3.3
+        uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.2.0
         with:
           registries: "gar"
           push: true
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for DockerHub mirror
-        uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.1.0
+        uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.2.0
         with:
           image: grafana/myrepo@${{ needs.publish.outputs.digest }}
 ```
@@ -63,7 +63,7 @@ Tag-only example (sufficient when tags are not reused):
 
 ```yaml
 - name: Wait for DockerHub mirror
-  uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.1.0
+  uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.2.0
   with:
     image: grafana/myrepo:${{ github.sha }}
     timeout: 15m
