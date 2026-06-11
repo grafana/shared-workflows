@@ -40,8 +40,10 @@ teardown() {
 @test "ignore-paths excludes directories" {
 	SCANDIR="${FIXTURES}" IGNORE_PATHS="bad ignored" run "${SCRIPT}"
 	[ "$status" -eq 0 ]
-	! grep -q "/bad/" "${GITHUB_OUTPUT}"
-	! grep -q "/ignored/" "${GITHUB_OUTPUT}"
+	run grep -q "/bad/" "${GITHUB_OUTPUT}"
+	[ "$status" -ne 0 ]
+	run grep -q "/ignored/" "${GITHUB_OUTPUT}"
+	[ "$status" -ne 0 ]
 }
 
 @test "ignore-names excludes files by name" {
