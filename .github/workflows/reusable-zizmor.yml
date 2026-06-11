@@ -50,16 +50,7 @@ on:
       comment-missing-permissions:
         description: >
           Post a non-blocking PR comment when any workflow file in the
-          repository contains jobs that don't declare a `permissions:` block
-          at either the workflow or job level (the "default permissions used
-          due to no permissions: block" finding type from the
-          excessive-permissions audit). Such jobs run with the repository's
-          default `GITHUB_TOKEN` permissions, which can be far broader than
-          they need. The comment lists all affected files, whether or not the
-          pull request changes them, to give repository owners advance notice.
-          This check is purely advisory: it never affects the scan results,
-          the exit code, or fail-severity gating. Only applies to non-fork
-          pull requests. Set to false to opt out.
+          repository contains jobs that don't declare a `permissions:` block.
         required: false
         type: boolean
         default: true
