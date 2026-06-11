@@ -11,6 +11,7 @@ inputs:
   payload-templated:
     description: "To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true"
     required: false
+    default: "false"
 outputs:
   time:
     value: ${{ steps.send-slack-message.outputs.time }}
@@ -28,22 +29,13 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Checkout shared workflows
-      env:
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-slack
-        persist-credentials: false
-
-    - name: Get a Slack token
-      uses: ./_shared-workflows-slack/actions/get-vault-secrets
+    - id: get-secrets
+      name: Get a Slack token
+      uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
       with:
         common_secrets: |
           SLACK_BOT_TOKEN=slack-notifications:oauth-token
+
     - name: Send Slack Message
       id: send-slack-message
       uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
@@ -51,16 +43,4 @@ runs:
         payload-templated: ${{ inputs.payload-templated }}
         method: ${{ inputs.method }}
         payload: ${{ inputs.payload }}
-        token: ${{ env.SLACK_BOT_TOKEN }}
-
-    # Cleanup checkout directory
-    - name: Cleanup shared workflows checkout
-      if: ${{ !cancelled() }}
-      shell: bash
-      run: |
-        # Check that the directory looks OK before removing it
-        if ! [ -d "_shared-workflows-slack/.git" ]; then
-          echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
-          exit 0
-        fi
-        rm -rf _shared-workflows-slack
+        token: ${{ fromJSON(steps.get-secrets.outputs.secrets).SLACK_BOT_TOKEN }}

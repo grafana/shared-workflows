@@ -53,6 +53,22 @@ on:
         type: boolean
         default: true
 
+      auto-delete-dangerous-branches:
+        description: >
+          If true, automatically delete non-default branches on push events
+          when zizmor finds dangerous-triggers findings. Sends a Slack
+          notification before deletion. Caller must grant contents:write and
+          id-token:write permissions.
+        required: false
+        type: boolean
+        default: false
+
+      auto-delete-slack-channel-id:
+        description: Slack channel ID to notify before deleting a branch.
+        required: false
+        type: string
+        default: ""
+
 permissions: {}
 
 jobs:
@@ -84,7 +100,7 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -249,6 +265,9 @@ jobs:
 
     runs-on: ${{ inputs.runs-on }}
 
+    outputs:
+      has-dangerous-triggers: ${{ steps.check-dangerous-triggers.outputs.found }}
+
     permissions:
       actions: read
       contents: read
@@ -263,7 +282,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.24.1
+      ZIZMOR_VERSION: 1.25.2
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -271,7 +290,7 @@ jobs:
     steps:
       - name: Harden the runner (Audit all outbound calls)
         if: ${{ ! github.event.repository.private }}
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -384,7 +403,7 @@ jobs:
           fi
 
       - name: Setup UV
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           activate-environment: true
@@ -436,10 +455,31 @@ jobs:
           path: results.sarif
           retention-days: 5
 
+      - name: Check for dangerous-triggers findings
+        id: check-dangerous-triggers
+        if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
+        shell: bash
+        run: |
+          DANGEROUS=$(python3 -c "
+          import json
+          sarif = json.load(open('results.sarif'))
+          hits = [
+              r for run in sarif.get('runs', [])
+              for r in run.get('results', [])
+              if 'dangerous-triggers' in r.get('ruleId', '')
+          ]
+          print(len(hits))
+          ")
+          if [ "${DANGEROUS}" -gt 0 ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload to code-scanning
         id: upload-sarif
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@e46ed2cbd01164d986452f91f178727624ae40d7 # v4.35.3
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         continue-on-error: true
         with:
           sarif_file: results.sarif
@@ -517,13 +557,13 @@ jobs:
       - name: Hide any previous comments
         if: ${{ !cancelled() && steps.upload-sarif.outcome == 'failure' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
-        uses: int128/hide-comment-action@392bc214093dafaebdf99c7d6298245262832d15 # v1.58.0
+        uses: int128/hide-comment-action@42ef2bf9a7d8751219e33ff76f19752fee8decec # v1.61.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
         if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@49702e482c43a9789ce7925aff3208063dba4a11 # v1.59.0
+        uses: int128/comment-action@36914110eb9d2010cc18858459e9ad3e5694d9e8 # v1.63.0
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
@@ -592,7 +632,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Get Prometheus secrets from Vault
+      - id: get-secrets
+        name: Get Prometheus secrets from Vault
         uses: grafana/shared-workflows/actions/get-vault-secrets@4e6a096e033d00f25363adb1dc75b7e56ecdb7c6
         with:
           common_secrets: |
@@ -611,7 +652,10 @@ jobs:
           BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
           BENCH_SERVICE_VERSION: ${{ github.sha }}
           # renovate: datasource=github-releases packageName=grafana/grafana-bench
-          BENCH_VERSION: "v1.0.10"
+          BENCH_VERSION: "v1.0.11"
+          PROMETHEUS_URL: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_URL }}
+          PROMETHEUS_USER: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_USER }}
+          PROMETHEUS_PASSWORD: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_PASSWORD }}
         run: |
           BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
@@ -644,3 +688,124 @@ jobs:
             --log-level debug \
             --prometheus-metrics \
             "/tests/${SARIF_FILE#./}"
+
+  delete-vulnerable-branch:
+    name: Delete branch with dangerous-trigger vulnerability
+    needs: analysis
+    if: >-
+      always() &&
+      inputs.auto-delete-dangerous-branches &&
+      needs.analysis.outputs.has-dangerous-triggers == 'true' &&
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (github.event_name != 'push' || github.ref != format('refs/heads/{0}', github.event.repository.default_branch))
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Validate inputs
+        env:
+          SLACK_CHANNEL_ID: ${{ inputs.auto-delete-slack-channel-id }}
+        run: |
+          if [ -z "${SLACK_CHANNEL_ID}" ]; then
+            echo "::error::auto-delete-slack-channel-id must be set when auto-delete-dangerous-branches is true"
+            exit 1
+          fi
+
+      - name: Delete branch
+        id: delete-branch
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref) || github.ref }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh api -X DELETE "repos/${REPO}/git/${REF}"
+
+      - name: Build Slack notification payload
+        id: slack-payload
+        env:
+          REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          ACTOR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login || github.actor }}
+          SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_CHANNEL_ID: ${{ inputs.auto-delete-slack-channel-id }}
+          DELETE_OUTCOME: ${{ steps.delete-branch.outcome }}
+        run: |
+          python3 <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+
+          channel = os.environ["SLACK_CHANNEL_ID"]
+          repo = os.environ["REPO"]
+          ref_name = os.environ["REF_NAME"]
+          actor = os.environ["ACTOR"]
+          sha = os.environ["SHA"]
+          run_url = os.environ["RUN_URL"]
+          deleted = os.environ["DELETE_OUTCOME"] == "success"
+
+          def slack_escape(value):
+              return str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+          if deleted:
+              headline = ":white_check_mark: *Branch auto-deleted due to vulnerable GitHub Actions workflow*"
+              fallback = f"zizmor deleted branch {slack_escape(ref_name)} in {slack_escape(repo)} after finding a dangerous-trigger workflow vulnerability."
+              action_text = f"<{run_url}|Review the workflow run logs>, fix the workflow locally, then push the branch again."
+          else:
+              headline = ":rotating_light: *ACTION REQUIRED — failed to delete branch with dangerous workflow*"
+              fallback = f"zizmor found a dangerous-trigger vulnerability on branch {slack_escape(ref_name)} in {slack_escape(repo)} but could not delete it. Manual action required."
+              action_text = f"Automatic deletion failed. <{run_url}|Review the workflow run logs> and *manually delete the branch `{slack_escape(ref_name)}`* immediately."
+
+          payload = {
+              "channel": channel,
+              "text": fallback,
+              "blocks": [
+                  {
+                      "type": "section",
+                      "text": {"type": "mrkdwn", "text": headline},
+                  },
+                  {
+                      "type": "section",
+                      "fields": [
+                          {"type": "mrkdwn", "text": f"*Repository:*\n{slack_escape(repo)}"},
+                          {"type": "mrkdwn", "text": f"*Branch:*\n{slack_escape(ref_name)}"},
+                          {"type": "mrkdwn", "text": f"*Pushed by:*\n{slack_escape(actor)}"},
+                          {"type": "mrkdwn", "text": f"*Commit:*\n`{sha}`"},
+                      ],
+                  },
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": (
+                              "zizmor found a `dangerous-triggers` finding in a workflow on this branch. "
+                              "Triggers such as `pull_request_target`, `issue_comment`, `issues`, or "
+                              "`workflow_run` can be exploitable the moment they exist on any branch."
+                          ),
+                      },
+                  },
+                  {
+                      "type": "section",
+                      "text": {"type": "mrkdwn", "text": action_text},
+                  },
+              ],
+          }
+
+          print("payload<<EOF")
+          print(json.dumps(payload))
+          print("EOF")
+          PY
+
+      - name: Notify Slack
+        uses: grafana/shared-workflows/actions/send-slack-message@e288f43e2954fe65ce3dadfcc418dacb638cf7e1 # send-slack-message/v3.0.0
+        with:
+          method: chat.postMessage
+          payload: ${{ steps.slack-payload.outputs.payload }}
+          payload-templated: false
+
+      - name: Fail if branch deletion failed
+        if: steps.delete-branch.outcome == 'failure'
+        run: |
+          echo "::error::Branch deletion failed — Slack notification sent as action-required alert"
+          exit 1

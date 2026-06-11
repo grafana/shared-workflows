@@ -2,13 +2,6 @@
 
 From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub App using Vault.
 
-The action automatically registers a post-job step that revokes the Vault
-token used to issue the GitHub App token. Revoking the Vault token
-cascade-revokes every lease it created, which invalidates the GitHub App token
-as soon as the job finishes (regardless of whether earlier steps succeeded or
-failed). If revocation fails for any reason, the token still expires naturally
-when its Vault lease TTL elapses.
-
 ## Inputs
 
 | Name             | Type   | Description                 | Default Value | Required |
@@ -55,7 +48,7 @@ jobs:
 
     steps:
       - id: get-github-token
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.3
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.3.1
         with:
           github_app: github-app-name
 
@@ -86,7 +79,7 @@ jobs:
 
     steps:
       - id: get-github-token-read
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.3
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.3.1
         with:
           github_app: github-app-name
           permission_set: read-only-on-foo-repository
@@ -101,7 +94,7 @@ jobs:
             https://api.github.com/repos/grafana/foo-repository/assignees
 
       - id: get-github-token-write
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.2.3
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.3.1
         with:
           github_app: github-app-name
           permission_set: write-on-bar-repository

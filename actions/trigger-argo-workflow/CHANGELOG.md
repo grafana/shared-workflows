@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.3.0...trigger-argo-workflow/v2.0.0) (2026-06-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957))
+
+### 🎉 Features
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957)) ([84e8abf](https://github.com/grafana/shared-workflows/commit/84e8abf0d3cd31cc8fa01d0e2c629a96864a108a))
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+* remove shared-workflows checkout from composite actions ([#2036](https://github.com/grafana/shared-workflows/issues/2036)) ([d6624ff](https://github.com/grafana/shared-workflows/commit/d6624ff13ea9c78935851225fd1ccabb23423be6))
+
 ## [1.3.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.2.2...trigger-argo-workflow/v1.3.0) (2026-05-04)
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.1](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.3.0...cleanup-branches/v0.3.1) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.2.1...cleanup-branches/v0.3.0) (2026-06-01)
+
+
+### 🎉 Features
+
+* **cleanup-branches:** add `exclude-patterns` input ([#1972](https://github.com/grafana/shared-workflows/issues/1972)) ([325973e](https://github.com/grafana/shared-workflows/commit/325973e977dd9f6c4397da14a1c754a7f62da308))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/cleanup-branches/v0.2.0...cleanup-branches/v0.2.1) (2025-10-17)
 
 

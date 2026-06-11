@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.0.0](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v1.0.4...dockerhub-login/v2.0.0) (2026-06-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957))
+
+### 🎉 Features
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957)) ([84e8abf](https://github.com/grafana/shared-workflows/commit/84e8abf0d3cd31cc8fa01d0e2c629a96864a108a))
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+* reference sibling actions directly instead of checkout ([#2032](https://github.com/grafana/shared-workflows/issues/2032)) ([614ae58](https://github.com/grafana/shared-workflows/commit/614ae58b964b32c08d190dde334a583cc8373723))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/login-action action to v4.2.0 ([#2020](https://github.com/grafana/shared-workflows/issues/2020)) ([b2f47cf](https://github.com/grafana/shared-workflows/commit/b2f47cf9a22221fcb6fb816ffea2fd382971b218))
+
 ## [1.0.4](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v1.0.3...dockerhub-login/v1.0.4) (2026-05-05)
 
 

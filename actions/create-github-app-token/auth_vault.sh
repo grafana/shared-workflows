@@ -19,7 +19,13 @@ for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
         }" || true)
 
     if [[ "${RESPONSE}" -eq 200 ]]; then
-        TOKEN=$(jq -r '.auth.client_token' "${TEMP_FILE}")
+        # Avoid jq so this works inside minimal containers that don't ship it (e.g. grafana/docs-base).
+        # The Vault response shape is stable and client_token never contains quotes.
+        TOKEN=$(sed -n 's/.*"client_token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${TEMP_FILE}" | head -n1)
+        if [[ -z "${TOKEN}" ]]; then
+            echo "Failed to parse client_token from Vault response"
+            exit 1
+        fi
         echo "::add-mask::$TOKEN"
         echo "vault_token=${TOKEN}" >> "${GITHUB_OUTPUT}"
         echo "Vault auth done!"

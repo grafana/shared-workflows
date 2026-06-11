@@ -35,17 +35,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Checkout shared-workflows
-      env:
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-docker-import-digests-push-manifest
-        persist-credentials: false
-
     - name: Download digests
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
@@ -54,7 +43,7 @@ runs:
         merge-multiple: true
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
       with:
         driver: docker-container
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
@@ -110,15 +99,15 @@ runs:
 
     - name: Login to GAR
       if: ${{ steps.prepare-vars.outputs.include-gar == 'true' }}
-      uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/login-to-gar
+      uses: grafana/shared-workflows/actions/login-to-gar@12c87e5aa323694c820c1ff3d8e47e8237e05136 # login-to-gar/v1.0.2
 
     - name: Login to DockerHub
       if: ${{ steps.prepare-vars.outputs.include-dockerhub == 'true' }}
-      uses: ./_shared-workflows-docker-import-digests-push-manifest/actions/dockerhub-login
+      uses: grafana/shared-workflows/actions/dockerhub-login@ef3a62a3ca4c1a15505b4235a5a51493194da3c7 # dockerhub-login/v1.0.4
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
-      uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+      uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
       with:
         images: ${{ inputs.images }}
         tags: ${{ inputs.tags }}
@@ -172,7 +161,7 @@ runs:
       with:
         go-version: "1.25"
         cache: true
-        cache-dependency-path: _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest/go.sum
+        cache-dependency-path: ${{ github.action_path }}/go.sum
 
     - name: Generate manifest summary
       id: summary
@@ -181,7 +170,9 @@ runs:
       run: |
         set -euo pipefail
 
-        cd _shared-workflows-docker-import-digests-push-manifest/actions/docker-import-digests-push-manifest
+        # The runner downloads the full action repository into its actions
+        # cache; GITHUB_ACTION_PATH points at this action's directory there.
+        cd "${GITHUB_ACTION_PATH}"
 
         mapfile -t TAGS < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
 

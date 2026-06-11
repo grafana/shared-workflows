@@ -43,7 +43,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
       - name: Validate zizmor config
-        uses: grafana/shared-workflows/actions/validate-zizmor-config@validate-zizmor-config/v0.2.0
+        uses: grafana/shared-workflows/actions/validate-zizmor-config@validate-zizmor-config/v0.2.1
         with:
           config_path: .github/zizmor.yml
 ```

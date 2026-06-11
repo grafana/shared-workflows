@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.2.0...setup-argo/v1.2.1) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
 ## [1.2.0](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.1.0...setup-argo/v1.2.0) (2026-03-24)
 
 

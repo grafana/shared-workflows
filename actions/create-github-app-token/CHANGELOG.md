@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.1](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.3.0...create-github-app-token/v0.3.1) (2026-06-01)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** remove runtime dependency on jq ([#1948](https://github.com/grafana/shared-workflows/issues/1948)) ([065f38c](https://github.com/grafana/shared-workflows/commit/065f38c749ff01a40a8d6b63b08dbf7befae909e))
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.3...create-github-app-token/v0.3.0) (2026-05-29)
+
+
+### 🎉 Features
+
+* **create-github-app-token:** revoke token in post-job step ([#1946](https://github.com/grafana/shared-workflows/issues/1946)) ([07a8487](https://github.com/grafana/shared-workflows/commit/07a8487494dcc332debf98242d129ec8fbda1e56))
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** clarify the workflow permissions ([#1942](https://github.com/grafana/shared-workflows/issues/1942)) ([7ae8508](https://github.com/grafana/shared-workflows/commit/7ae85085c0bed854b41785ba266604b08e50abe0))
+
 ## [0.2.3](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.2...create-github-app-token/v0.2.3) (2026-05-05)
 
 

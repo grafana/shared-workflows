@@ -4,16 +4,13 @@ description: |
   Requires the calling job to have `id-token: write` permission for Vault authentication.
 
 inputs:
-  app-id-vault-secret:
+  github-app:
     description: |
-      Vault common secret path for the GitHub App ID.
-      (e.g. `grafana-federal-app:app-id`)
+      GitHub app name in Vault.
     required: true
-  private-key-vault-secret:
-    description: |
-      Vault common secret path for the GitHub App private key.
-      (e.g. `grafana-federal-app:private-key`)
-    required: true
+  permission-set:
+    description: Permission set name
+    default: default
   project-id:
     description: |
       The node ID of the GitHub Project (v2) board.
@@ -33,35 +30,11 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout shared workflows
-      env:
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-issues-update-project-status
-        persist-credentials: false
-
-    - name: Get vault secrets
-      uses: ./_shared-workflows-issues-update-project-status/actions/get-vault-secrets
-      with:
-        common_secrets: |
-          APP_ID=${{ inputs.app-id-vault-secret }}
-          PRIVATE_KEY=${{ inputs.private-key-vault-secret }}
-
-    - name: Remove shared workflows checkout
-      if: ${{ !cancelled() }}
-      shell: bash
-      run: rm -rf _shared-workflows-issues-update-project-status
-
     - id: get-token
-      uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
+      uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
       with:
-        app-id: ${{ env.APP_ID }}
-        private-key: ${{ env.PRIVATE_KEY }}
-        owner: ${{ github.repository_owner }}
+        github_app: ${{ inputs.github-app }}
+        permission_set: ${{ inputs.permission-set }}
 
     - name: Update project item status
       shell: bash
