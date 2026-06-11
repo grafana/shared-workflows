@@ -798,7 +798,7 @@ jobs:
           PY
 
       - name: Notify Slack
-        uses: grafana/shared-workflows/actions/send-slack-message@eb1fbd807f87aea8f40ff08dc9cd02872cad55b3 # send-slack-message/v2.0.5
+        uses: grafana/shared-workflows/actions/send-slack-message@e288f43e2954fe65ce3dadfcc418dacb638cf7e1 # send-slack-message/v3.0.0
         with:
           method: chat.postMessage
           payload: ${{ steps.slack-payload.outputs.payload }}
