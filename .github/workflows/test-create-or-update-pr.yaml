@@ -1,0 +1,53 @@
+name: Test create-or-update-pr action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/create-or-update-pr/**"
+      - ".github/workflows/test-create-or-update-pr.yaml"
+
+  pull_request:
+    paths:
+      - "actions/create-or-update-pr/**"
+      - ".github/workflows/test-create-or-update-pr.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+# The action creates/updates real pull requests, so it is exercised
+# hermetically through its underlying script with DRY_RUN=1 in the BATS suite
+# (no branches or PRs are created against this repository).
+jobs:
+  bats-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup BATS testing framework
+        uses: mig4/setup-bats@af9a00deb21b5d795cabfeaa8d9060410377686d # v1.2.0
+
+      - name: Run unit tests
+        run: |
+          cd actions/create-or-update-pr
+          ./create-or-update-pr.bats
