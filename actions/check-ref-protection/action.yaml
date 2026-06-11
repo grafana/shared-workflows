@@ -1,0 +1,79 @@
+name: Check ref protection
+description: |
+  Gate for prod publishing. Verifies the ref a workflow is publishing from meets
+  a minimum branch/tag protection bar (defined in policy.json) by reading the
+  GitHub ruleset rules that apply to that ref.
+
+  Disabled by default: with `enforce: false` it only reports (warn-only) and
+  never fails the job. Set `enforce: true` to block — the step fails when the
+  ref does not meet the bar.
+
+inputs:
+  repository:
+    description: "owner/repo to check. Defaults to the current repository."
+    default: ${{ github.repository }}
+  ref-type:
+    description: "'branch' or 'tag'. Auto-detected from github.ref when empty."
+    default: ""
+  ref-name:
+    description: "Ref name to check. Auto-detected from github.ref when empty."
+    default: ""
+  policy:
+    description: "Path to a policy.json. Defaults to the policy bundled with this action."
+    default: ""
+  enforce:
+    description: |
+      When 'true', the gate fails the job if the ref does not meet the bar.
+      When 'false' (default), it reports the result but never fails (warn-only).
+    default: "false"
+  github-token:
+    description: |
+      Token with read access to the repo's rules. The default GITHUB_TOKEN with
+      `contents: read` is sufficient for the rules-only checks.
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check ref protection
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        REPOSITORY: ${{ inputs.repository }}
+        REF_TYPE_IN: ${{ inputs.ref-type }}
+        REF_NAME_IN: ${{ inputs.ref-name }}
+        POLICY_IN: ${{ inputs.policy }}
+        ENFORCE: ${{ inputs.enforce }}
+      run: |
+        set -euo pipefail
+
+        # Auto-detect ref type/name from GITHUB_REF when not provided explicitly.
+        ref_type="$REF_TYPE_IN"
+        ref_name="$REF_NAME_IN"
+        if [ -z "$ref_type" ] || [ -z "$ref_name" ]; then
+          case "$GITHUB_REF" in
+            refs/tags/*)  ref_type="${ref_type:-tag}";    ref_name="${ref_name:-${GITHUB_REF#refs/tags/}}" ;;
+            refs/heads/*) ref_type="${ref_type:-branch}"; ref_name="${ref_name:-${GITHUB_REF#refs/heads/}}" ;;
+            *) echo "::error::cannot determine ref from '$GITHUB_REF'; pass ref-type and ref-name"; exit 2 ;;
+          esac
+        fi
+
+        policy="${POLICY_IN:-$GITHUB_ACTION_PATH/policy.json}"
+
+        set +e
+        "$GITHUB_ACTION_PATH/check-ref-protection.sh" "$REPOSITORY" "$ref_type" "$ref_name" "$policy"
+        rc=$?
+        set -e
+
+        case "$rc" in
+          0) exit 0 ;;
+          1)
+            if [ "$ENFORCE" = "true" ]; then
+              echo "::error::ref-protection gate ENABLED and '$ref_name' failed the bar — blocking publish."
+              exit 1
+            fi
+            echo "::warning::ref-protection gate DISABLED (enforce=false): '$ref_name' would have been blocked — continuing."
+            exit 0
+            ;;
+          *) echo "::error::ref-protection check errored (exit $rc)"; exit "$rc" ;;
+        esac

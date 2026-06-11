@@ -147,6 +147,11 @@
       "package-name": "create-github-app-token",
       "extra-files": ["README.md"]
     },
+    "actions/check-ref-protection": {
+      "package-name": "check-ref-protection",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/validate-renovate-config": {
       "package-name": "validate-renovate-config",
       "extra-files": ["README.md"],

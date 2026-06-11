@@ -1,0 +1,60 @@
+{
+  "branch": [
+    {
+      "id": "requires-pr",
+      "severity": "required",
+      "description": "Requires a pull request before merging",
+      "ruleType": "pull_request"
+    },
+    {
+      "id": "min-approvals",
+      "severity": "required",
+      "description": "Requires >= 1 approving review",
+      "ruleType": "pull_request",
+      "param": "required_approving_review_count",
+      "min": 1
+    },
+    {
+      "id": "dismiss-stale",
+      "severity": "required",
+      "description": "Dismisses stale approvals when new commits are pushed",
+      "ruleType": "pull_request",
+      "param": "dismiss_stale_reviews_on_push",
+      "equals": true
+    },
+    {
+      "id": "no-self-approve",
+      "severity": "required",
+      "description": "Requires approval of the most recent push (no self-approve)",
+      "ruleType": "pull_request",
+      "param": "require_last_push_approval",
+      "equals": true
+    },
+    {
+      "id": "block-force-push",
+      "severity": "required",
+      "description": "Blocks force-push",
+      "ruleType": "non_fast_forward"
+    },
+    {
+      "id": "block-deletion",
+      "severity": "required",
+      "description": "Blocks branch deletion",
+      "ruleType": "deletion"
+    }
+  ],
+  "tag": [
+    {
+      "id": "restrict-creation",
+      "severity": "required",
+      "description": "Restricts tag creation to bypass actors only",
+      "ruleType": "creation"
+    },
+    {
+      "id": "block-force-push",
+      "severity": "required",
+      "description": "Blocks force-push on the tag",
+      "ruleType": "non_fast_forward"
+    }
+  ]
+}
