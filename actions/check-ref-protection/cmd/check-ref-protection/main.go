@@ -16,6 +16,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	rp "github.com/grafana/shared-workflows/actions/check-ref-protection/pkg/refprotection"
 )
@@ -136,7 +137,7 @@ func reportSources(rules []rp.Rule, nonActive []rp.NonActiveRuleset) {
 	if len(nonActive) > 0 {
 		fmt.Printf("    %sNot hard-enforced%s (matching rulesets with enforcement != active — ignored for the bar):\n", yellow, reset)
 		for _, na := range nonActive {
-			fmt.Printf("      ⚠ %s [enforcement=%s] → rules: %s\n", na.Name, na.Enforcement, join(na.Rules))
+			fmt.Printf("      ⚠ %s [enforcement=%s] → rules: %s\n", na.Name, na.Enforcement, strings.Join(na.Rules, ", "))
 		}
 	}
 }
@@ -166,15 +167,4 @@ func render(results []rp.Result) (reqTotal, reqPassed int, failed bool) {
 		fmt.Printf("       %s↳ %s%s\n", dim, r.Reason, reset)
 	}
 	return reqTotal, reqPassed, failed
-}
-
-func join(s []string) string {
-	out := ""
-	for i, v := range s {
-		if i > 0 {
-			out += ", "
-		}
-		out += v
-	}
-	return out
 }
