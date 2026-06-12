@@ -34,6 +34,15 @@ on:
         required: false
         default: "false"
         type: string
+      enforce-ref-protection:
+        description: |
+          Gate publishing on ref protection. When "true", the build is blocked
+          unless the ref being published from meets the protection bar
+          (see actions/check-ref-protection). When "false" (default), the gate
+          runs in warn-only mode and never blocks.
+        required: false
+        default: "false"
+        type: string
 
       # The following inputs are identical to the inputs
       # found in `shared-workflows/actions/docker-build-push-image`
@@ -308,8 +317,19 @@ jobs:
           echo "runner-type-arm64=$ARM64_OUT" | tee -a "${GITHUB_OUTPUT}"
           echo "runner-type-manifest=$MANIFEST_OUT" | tee -a "${GITHUB_OUTPUT}"
 
+  ref-protection-gate:
+    runs-on: ${{ inputs.runner-type == 'self-hosted' && 'ubuntu-x64-small' || 'ubuntu-latest' }}
+    permissions:
+      contents: read # enough to read the ref's ruleset rules
+    steps:
+      # TODO: pin to a released version (check-ref-protection/vX.Y.Z) before merge.
+      - name: Verify ref protection
+        uses: grafana/shared-workflows/actions/check-ref-protection@nickange/check-ref-protection-go # zizmor: ignore[unpinned-uses]
+        with:
+          enforce: ${{ inputs.enforce-ref-protection }}
+
   build-and-push:
-    needs: prepare-matrix
+    needs: [prepare-matrix, ref-protection-gate]
     strategy:
       fail-fast: false
       matrix:
