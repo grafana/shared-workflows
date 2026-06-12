@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.3](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.3.2...push-to-gcs/v0.3.3) (2026-06-12)
+
+
+### 🔧 Miscellaneous Chores
+
+* **main:** release push-to-gcs 0.3.2 ([#2063](https://github.com/grafana/shared-workflows/issues/2063)) ([872ea72](https://github.com/grafana/shared-workflows/commit/872ea72d5d58e24fce5b9ce004dbd03b243efdf7))
+* **main:** release push-to-gcs 0.3.2 ([#2070](https://github.com/grafana/shared-workflows/issues/2070)) ([570b023](https://github.com/grafana/shared-workflows/commit/570b0238e7f3240cff9b4c6c4516a6b925688223))
+
 ## [0.3.2](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.3.1...push-to-gcs/v0.3.2) (2026-06-10)
 
 
