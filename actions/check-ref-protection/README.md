@@ -31,12 +31,12 @@ jobs:
 
 ## Inputs
 
-| Name           | Description                                                      | Default                |
-| -------------- | ---------------------------------------------------------------- | ---------------------- |
-| `enforce`      | `true` to fail on insufficient protection; `false` = warn-only. | `"false"`              |
-| `identity`     | Ref identity source: `oidc` (signed token) or `args` (testing). | `"oidc"`               |
-| `policy`       | Path to a `policy.json`. Defaults to the bundled policy.        | _(bundled)_            |
-| `github-token` | Token with read access to the repo's rules.                     | `${{ github.token }}`  |
+| Name           | Description                                                     | Default               |
+| -------------- | --------------------------------------------------------------- | --------------------- |
+| `enforce`      | `true` to fail on insufficient protection; `false` = warn-only. | `"false"`             |
+| `identity`     | Ref identity source: `oidc` (signed token) or `args` (testing). | `"oidc"`              |
+| `policy`       | Path to a `policy.json`. Defaults to the bundled policy.        | _(bundled)_           |
+| `github-token` | Token with read access to the repo's rules.                     | `${{ github.token }}` |
 
 ## Permissions
 
