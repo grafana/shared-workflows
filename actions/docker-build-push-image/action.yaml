@@ -159,7 +159,7 @@ outputs:
     value: ${{ steps.build.outputs.metadata }}
   metadatajson:
     description: "Metadata JSON (from docker/metadata)"
-    value: ${{ steps.meta.outputs.json }}s
+    value: ${{ steps.meta.outputs.json }}
   tags:
     description: "Generated Docker tags (from docker/metadata-action)"
     value: ${{ steps.meta.outputs.tags }}
