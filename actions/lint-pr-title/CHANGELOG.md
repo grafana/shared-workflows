@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.4](https://github.com/grafana/shared-workflows/compare/lint-pr-title/v1.2.3...lint-pr-title/v1.2.4) (2026-06-12)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update commitlint monorepo to v21 ([#2071](https://github.com/grafana/shared-workflows/issues/2071)) ([7338406](https://github.com/grafana/shared-workflows/commit/7338406d3dc8357e200385a94b95e2f2b0bfd5f5))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update typescript-eslint monorepo to v8.61.0 ([#2079](https://github.com/grafana/shared-workflows/issues/2079)) ([a8f4c63](https://github.com/grafana/shared-workflows/commit/a8f4c6350ca3f41fafeff7b4a01f774e5d336746))
+
 ## [1.2.3](https://github.com/grafana/shared-workflows/compare/lint-pr-title/v1.2.2...lint-pr-title/v1.2.3) (2026-06-10)
 
 
