@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.4...docker-build-push-image/v0.3.5) (2026-06-12)
+
+
+### 🐛 Bug Fixes
+
+* remove `s` from metadatajson ([#2086](https://github.com/grafana/shared-workflows/issues/2086)) ([8a16b96](https://github.com/grafana/shared-workflows/commit/8a16b96ee18c77596b132a2b8fac70dc6e30fd6b))
+
 ## [0.3.4](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.3...docker-build-push-image/v0.3.4) (2026-06-10)
 
 

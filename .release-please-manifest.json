@@ -25,7 +25,7 @@
     "actions/validate-renovate-config": "0.1.4",
     "actions/validate-zizmor-config": "0.2.1",
     "actions/cleanup-branches": "0.3.1",
-    "actions/docker-build-push-image": "0.3.4",
+    "actions/docker-build-push-image": "0.3.5",
     "actions/docker-export-digest": "0.1.4",
     "actions/docker-import-digests-push-manifest": "0.2.2",
     "actions/component-change-detection": "1.0.2",
