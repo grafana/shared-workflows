@@ -38,14 +38,18 @@ runs:
 
     - name: Check ref protection
       shell: bash
+      # Inputs are passed via env (not ${{ }} interpolation in the script) to
+      # avoid template-injection: a value reaches the shell as data, not code.
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        POLICY: ${{ inputs.policy }}
+        IDENTITY: ${{ inputs.identity }}
+        ENFORCE: ${{ inputs.enforce }}
       run: |
         set -euo pipefail
-        policy="${{ inputs.policy }}"
-        policy="${policy:-$GITHUB_ACTION_PATH/policy.json}"
+        policy="${POLICY:-$GITHUB_ACTION_PATH/policy.json}"
 
-        args=(-identity "${{ inputs.identity }}" -policy "$policy")
-        [ "${{ inputs.enforce }}" = "true" ] && args+=(-enforce)
+        args=(-identity "$IDENTITY" -policy "$policy")
+        [ "$ENFORCE" = "true" ] && args+=(-enforce)
 
         "$RUNNER_TEMP/check-ref-protection" "${args[@]}"
