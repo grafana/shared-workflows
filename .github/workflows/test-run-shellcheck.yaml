@@ -1,0 +1,162 @@
+name: Test run-shellcheck action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/run-shellcheck/**"
+      - ".github/workflows/test-run-shellcheck.yaml"
+
+  pull_request:
+    paths:
+      - "actions/run-shellcheck/**"
+      - ".github/workflows/test-run-shellcheck.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Clean scripts pass
+        id: clean
+        uses: ./actions/run-shellcheck
+        with:
+          scandir: ./actions/run-shellcheck/test-fixtures/scripts/good
+
+      - name: Verify clean scripts were checked
+        env:
+          FILES: ${{ steps.clean.outputs.files }}
+        run: |
+          echo "Checked: ${FILES}"
+          count=$(echo "${FILES}" | wc -w)
+          if [ "${count}" -lt 2 ]; then
+            echo "FAIL: expected at least 2 clean files, found ${count}"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Bad scripts fail
+        id: bad
+        uses: ./actions/run-shellcheck
+        continue-on-error: true
+        with:
+          scandir: ./actions/run-shellcheck/test-fixtures/scripts/bad
+
+      - name: Verify bad scripts failed
+        env:
+          OUTCOME: ${{ steps.bad.outcome }}
+        run: |
+          if [ "${OUTCOME}" != "failure" ]; then
+            echo "FAIL: expected shellcheck to fail on bad scripts, got ${OUTCOME}"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Ignore paths
+        id: ignore
+        uses: ./actions/run-shellcheck
+        with:
+          scandir: ./actions/run-shellcheck/test-fixtures/scripts
+          ignore-paths: "bad ignored"
+
+      - name: Verify ignored directories were excluded
+        env:
+          FILES: ${{ steps.ignore.outputs.files }}
+        run: |
+          echo "Checked: ${FILES}"
+          if echo "${FILES}" | grep -q "/bad/"; then
+            echo "FAIL: bad/ was not excluded"
+            exit 1
+          fi
+          if echo "${FILES}" | grep -q "/ignored/"; then
+            echo "FAIL: ignored/ was not excluded"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Severity filter still catches the error
+        id: severity
+        uses: ./actions/run-shellcheck
+        continue-on-error: true
+        with:
+          scandir: ./actions/run-shellcheck/test-fixtures/scripts/bad
+          severity: error
+
+      - name: Verify severity=error failed
+        env:
+          OUTCOME: ${{ steps.severity.outcome }}
+        run: |
+          if [ "${OUTCOME}" != "failure" ]; then
+            echo "FAIL: expected failure from the error-severity finding (SC2068)"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: TTY format on clean scripts
+        uses: ./actions/run-shellcheck
+        with:
+          scandir: ./actions/run-shellcheck/test-fixtures/scripts/good
+          format: tty
+
+      - name: Check all files together
+        uses: ./actions/run-shellcheck
+        with:
+          scandir: ./actions/run-shellcheck/test-fixtures/scripts/good
+          check-together: "true"
+
+      - name: Prepare an empty directory
+        run: mkdir -p "${RUNNER_TEMP}/empty"
+
+      - name: No shell scripts found exits cleanly
+        uses: ./actions/run-shellcheck
+        with:
+          scandir: ${{ runner.temp }}/empty
+
+  bats-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup BATS testing framework
+        uses: mig4/setup-bats@af9a00deb21b5d795cabfeaa8d9060410377686d # v1.2.0
+
+      - name: Run unit tests
+        run: |
+          cd actions/run-shellcheck
+          ./run-shellcheck.bats
