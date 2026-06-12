@@ -9,8 +9,8 @@ tamper-resistant) by checking the protection that applies to it against [`policy
 - **Tags** evaluate the **active** tag rulesets matching the tag (rulesets in
   `evaluate`/`disabled` mode are reported but never counted).
 
-The ref identity comes from a trusted source (runner env or the signed OIDC
-token), never caller inputs, so the gate can't be pointed at a different ref.
+The ref identity comes from the signed OIDC token, never caller inputs, so the
+gate can't be pointed at a different ref.
 
 <!-- x-release-please-start-version -->
 
@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # default identity=oidc reads the signed OIDC token
     steps:
       - uses: grafana/shared-workflows/actions/check-ref-protection@check-ref-protection/v0.1.0
         with:
@@ -33,17 +34,18 @@ jobs:
 | Name           | Description                                                      | Default                |
 | -------------- | ---------------------------------------------------------------- | ---------------------- |
 | `enforce`      | `true` to fail on insufficient protection; `false` = warn-only. | `"false"`              |
-| `identity`     | Ref identity source: `env` or `oidc`.                           | `"env"`                |
+| `identity`     | Ref identity source: `oidc` (signed token) or `args` (testing). | `"oidc"`               |
 | `policy`       | Path to a `policy.json`. Defaults to the bundled policy.        | _(bundled)_            |
 | `github-token` | Token with read access to the repo's rules.                     | `${{ github.token }}`  |
 
 ## Permissions
 
+- The default `identity: oidc` requires **`id-token: write`** on the job (to
+  read the signed GitHub OIDC token).
 - Branch rulesets need only `contents: read`.
 - Legacy branch protection and tag ruleset enumeration need **Administration:
   read** — otherwise those sources are skipped (fail-closed) with a warning;
   pass a GATB app token via `github-token` to include them.
-- `identity: oidc` also requires `id-token: write` on the job.
 
 ## Policy
 

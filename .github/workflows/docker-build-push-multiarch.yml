@@ -320,7 +320,8 @@ jobs:
   ref-protection-gate:
     runs-on: ${{ inputs.runner-type == 'self-hosted' && 'ubuntu-x64-small' || 'ubuntu-latest' }}
     permissions:
-      contents: read # enough to read the ref's ruleset rules
+      contents: read
+      id-token: write
     steps:
       # TODO: pin to a released version (check-ref-protection/vX.Y.Z) before merge.
       - name: Verify ref protection

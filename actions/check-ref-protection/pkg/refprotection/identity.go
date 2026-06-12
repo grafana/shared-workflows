@@ -12,8 +12,8 @@ import (
 )
 
 // Identity answers "what ref, in what repo, is publishing?" In the enforcement
-// path it must come from a signed OIDC token or the runner's GITHUB_* env,
-// never from caller input, so it can't be spoofed onto a different ref.
+// path it must come from the signed OIDC token, never from caller input, so it
+// can't be spoofed onto a different ref.
 type Identity struct {
 	Repository     string
 	RepositoryID   string
@@ -23,7 +23,7 @@ type Identity struct {
 	EventName      string
 	JobWorkflowRef string
 	RefProtected   bool
-	Source         string // "oidc" | "env" | "args"
+	Source         string // "oidc" | "args"
 }
 
 // GitHub sends some claims (including ref_protected) as strings.
@@ -64,22 +64,6 @@ func IdentityFromJWT(jwt string) (*Identity, error) {
 		Source:         "oidc",
 	}
 	if err := id.setRef(c.Ref); err != nil {
-		return nil, err
-	}
-	return id, nil
-}
-
-// IdentityFromEnv builds identity from the runner's GITHUB_* variables.
-func IdentityFromEnv() (*Identity, error) {
-	id := &Identity{
-		Repository:     os.Getenv("GITHUB_REPOSITORY"),
-		RepositoryID:   os.Getenv("GITHUB_REPOSITORY_ID"),
-		SHA:            os.Getenv("GITHUB_SHA"),
-		EventName:      os.Getenv("GITHUB_EVENT_NAME"),
-		JobWorkflowRef: os.Getenv("GITHUB_WORKFLOW_REF"),
-		Source:         "env",
-	}
-	if err := id.setRef(os.Getenv("GITHUB_REF")); err != nil {
 		return nil, err
 	}
 	return id, nil

@@ -14,9 +14,9 @@ inputs:
     default: "false"
   identity:
     description: |
-      Where the ref identity comes from: "env" (GITHUB_* vars, needs no extra
-      permission) or "oidc" (signed token, needs id-token: write on the job).
-    default: "env"
+      Where the ref identity comes from. "oidc" (default) reads the signed
+      GitHub OIDC token and requires id-token: write on the calling job.
+    default: "oidc"
   policy:
     description: "Path to a policy.json. Defaults to the policy bundled with this action."
     default: ""

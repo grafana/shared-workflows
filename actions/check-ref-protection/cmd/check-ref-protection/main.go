@@ -40,7 +40,7 @@ func run() int {
 	var (
 		policyPath = flag.String("policy", "policy.json", "path to policy.json")
 		enforce    = flag.Bool("enforce", false, "fail (exit 1) when the ref does not meet the bar")
-		identity   = flag.String("identity", "args", `identity source: "args" | "env" | "oidc"`)
+		identity   = flag.String("identity", "oidc", `identity source: "oidc" (default) | "args" (local testing)`)
 	)
 	flag.Parse()
 
@@ -103,8 +103,8 @@ func run() int {
 	return 0
 }
 
-// resolveIdentity picks the identity source. "oidc" and "env" derive a
-// non-spoofable identity from GitHub; "args" takes positional <repo> <type>
+// resolveIdentity picks the identity source. "oidc" derives a non-spoofable
+// identity from the signed GitHub token; "args" takes positional <repo> <type>
 // <name> for local/testing use only (never trust these in enforcement).
 func resolveIdentity(source string, args []string) (*rp.Identity, error) {
 	switch source {
@@ -114,18 +114,16 @@ func resolveIdentity(source string, args []string) (*rp.Identity, error) {
 			return nil, err
 		}
 		return rp.IdentityFromJWT(tok)
-	case "env":
-		return rp.IdentityFromEnv()
 	case "args":
 		if len(args) != 3 {
-			return nil, fmt.Errorf("usage: check-ref-protection [-identity oidc|env] | <owner/repo> <branch|tag> <ref-name>")
+			return nil, fmt.Errorf("usage: check-ref-protection [-identity oidc] | -identity args <owner/repo> <branch|tag> <ref-name>")
 		}
 		if args[1] != "branch" && args[1] != "tag" {
 			return nil, fmt.Errorf("ref type must be 'branch' or 'tag', got %q", args[1])
 		}
 		return &rp.Identity{Repository: args[0], RefType: args[1], RefName: args[2], Source: "args"}, nil
 	default:
-		return nil, fmt.Errorf("unknown identity source %q (use args|env|oidc)", source)
+		return nil, fmt.Errorf("unknown identity source %q (use oidc|args)", source)
 	}
 }
 
