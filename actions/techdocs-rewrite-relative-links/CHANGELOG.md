@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.5...techdocs-rewrite-relative-links/v1.0.6) (2026-06-12)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v6.0.3 ([#2027](https://github.com/grafana/shared-workflows/issues/2027)) ([42afded](https://github.com/grafana/shared-workflows/commit/42afdedfa0cfbe7d8d3d1bbc6fd2318145909947))
+
 ## [1.0.5](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.4...techdocs-rewrite-relative-links/v1.0.5) (2026-06-10)
 
 
