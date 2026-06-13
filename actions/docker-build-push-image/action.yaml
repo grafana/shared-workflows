@@ -257,7 +257,7 @@ runs:
 
     - name: Login to DockerHub
       if: ${{ inputs.push == 'true' && steps.registries.outputs.include-dockerhub == 'true' }}
-      uses: grafana/shared-workflows/actions/dockerhub-login@ef3a62a3ca4c1a15505b4235a5a51493194da3c7 # dockerhub-login/v1.0.4
+      uses: grafana/shared-workflows/actions/dockerhub-login@3ffeda28e54d6c8e02c3998594fafaf0a359328d # dockerhub-login/v2.0.0
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
