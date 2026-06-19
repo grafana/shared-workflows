@@ -47,6 +47,14 @@ on:
         type: string
         default: ""
 
+      comment-missing-permissions:
+        description: >
+          Post a non-blocking PR comment when any workflow file in the
+          repository contains jobs that don't declare a `permissions:` block.
+        required: false
+        type: boolean
+        default: true
+
       send-bench-metrics:
         description: If true, run Grafana Bench after analysis (Vault Prometheus creds). Job only runs for grafana org and non-fork PRs; fork PRs have no OIDC/Vault access.
         required: false
@@ -295,7 +303,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
@@ -403,7 +411,7 @@ jobs:
           fi
 
       - name: Setup UV
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
           activate-environment: true
@@ -414,7 +422,7 @@ jobs:
         id: validate-config
         continue-on-error: true
         if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs['repo-local-zizmor-config'] != '' }}
-        uses: grafana/shared-workflows/actions/validate-zizmor-config@84a7e1d935b2240eb5dcc3ee4dc0a6692057e94d # validate-zizmor-config/v0.2.0
+        uses: grafana/shared-workflows/actions/validate-zizmor-config@e181109698e53b4c68bd51fe27ba47c6adf27da7 # validate-zizmor-config/v0.2.1
         with:
           config_path: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           sarif_output: results.sarif
@@ -479,7 +487,7 @@ jobs:
       - name: Upload to code-scanning
         id: upload-sarif
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4.36.0
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         continue-on-error: true
         with:
           sarif_file: results.sarif
@@ -546,6 +554,71 @@ jobs:
 
           echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
 
+      # Comment on PRs when any workflow file in the repo doesn't declare a
+      # `permissions:` block at all. This finding type is Medium severity,
+      # so it is invisible to the main scan. This step re-runs zizmor without
+      # the severity filter and surfaces only the "default permissions used due
+      # to no permissions: block" finding type from the excessive-permissions check.
+      - name: Check for missing permissions blocks
+        id: missing-permissions
+        if: >-
+          inputs.comment-missing-permissions &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          steps.validate-config.outcome != 'failure'
+        continue-on-error: true
+        shell: bash
+        env:
+          NO_COLOR: 1
+          ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
+          ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
+        run: |
+          # Keep only the "default permissions used due to no permissions: block" finding
+          filtered="$(uvx zizmor@"${ZIZMOR_VERSION}" \
+            --format plain \
+            --no-exit-codes \
+            --cache-dir "${ZIZMOR_CACHE_DIR}" \
+            ${RUNNER_DEBUG:+"--verbose"} \
+            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
+            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
+            . \
+            | awk -v RS='' -v ORS='\n\n' \
+              '/\[excessive-permissions\]/ && /default permissions used due to no permissions: block/ && /--> \.\/\.github\/workflows\//')"
+
+          {
+            if [ -n "${filtered}" ]; then
+              echo "found=true"
+            else
+              echo "found=false"
+            fi
+            echo "results<<MISSING_PERMISSIONS_EOF"
+            printf '%s\n' "${filtered}"
+            echo "MISSING_PERMISSIONS_EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Hide previous missing-permissions comments
+        if: steps.missing-permissions.outcome == 'success'
+        id: hide-missing-permissions-comments
+        uses: int128/hide-comment-action@42ef2bf9a7d8751219e33ff76f19752fee8decec # v1.61.0
+        with:
+          ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }}/missing-permissions -->"
+
+      - name: Comment on missing permissions blocks
+        if: steps.missing-permissions.outputs.found == 'true'
+        uses: int128/comment-action@36914110eb9d2010cc18858459e9ad3e5694d9e8 # v1.63.0
+        with:
+          post: |
+            :warning: The workflow jobs listed below don't declare a `permissions:` block and may break when the organization's default `GITHUB_TOKEN` permissions are restricted to read-only.
+
+            <details>
+            <summary>Expand for findings</summary>
+
+            ```
+            ${{ steps.missing-permissions.outputs.results }}
+            ```
+            </details>
+            ${{ steps.hide-missing-permissions-comments.outputs.ends-with }}
+
       - name: Remove zizmor config
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
@@ -557,13 +630,13 @@ jobs:
       - name: Hide any previous comments
         if: ${{ !cancelled() && steps.upload-sarif.outcome == 'failure' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
-        uses: int128/hide-comment-action@392bc214093dafaebdf99c7d6298245262832d15 # v1.58.0
+        uses: int128/hide-comment-action@42ef2bf9a7d8751219e33ff76f19752fee8decec # v1.61.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
         if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@49702e482c43a9789ce7925aff3208063dba4a11 # v1.59.0
+        uses: int128/comment-action@36914110eb9d2010cc18858459e9ad3e5694d9e8 # v1.63.0
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
@@ -628,11 +701,12 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
-      - name: Get Prometheus secrets from Vault
+      - id: get-secrets
+        name: Get Prometheus secrets from Vault
         uses: grafana/shared-workflows/actions/get-vault-secrets@4e6a096e033d00f25363adb1dc75b7e56ecdb7c6
         with:
           common_secrets: |
@@ -651,7 +725,10 @@ jobs:
           BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
           BENCH_SERVICE_VERSION: ${{ github.sha }}
           # renovate: datasource=github-releases packageName=grafana/grafana-bench
-          BENCH_VERSION: "v1.0.10"
+          BENCH_VERSION: "v1.0.11"
+          PROMETHEUS_URL: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_URL }}
+          PROMETHEUS_USER: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_USER }}
+          PROMETHEUS_PASSWORD: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_PASSWORD }}
         run: |
           BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
@@ -794,7 +871,7 @@ jobs:
           PY
 
       - name: Notify Slack
-        uses: grafana/shared-workflows/actions/send-slack-message@eb1fbd807f87aea8f40ff08dc9cd02872cad55b3 # send-slack-message/v2.0.5
+        uses: grafana/shared-workflows/actions/send-slack-message@551bc8d50017d3e95d5da3f8a4826e733a208dc0 # send-slack-message/v3.0.2
         with:
           method: chat.postMessage
           payload: ${{ steps.slack-payload.outputs.payload }}

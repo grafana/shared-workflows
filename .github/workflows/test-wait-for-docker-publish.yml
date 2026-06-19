@@ -1,0 +1,158 @@
+name: Test wait-for-docker-publish action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/wait-for-docker-publish/**
+      - .github/workflows/test-wait-for-docker-publish.yml
+
+  pull_request:
+    paths:
+      - actions/wait-for-docker-publish/**
+      - .github/workflows/test-wait-for-docker-publish.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+permissions:
+  contents: read
+
+jobs:
+  success-after-retry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Pre-pull a small base image
+        run: docker pull hello-world:latest
+
+      - name: Tag image for ttl.sh
+        env:
+          TARGET: ttl.sh/wait-for-docker-publish-${{ github.run_id }}-${{ github.run_attempt }}:1h
+        run: docker tag hello-world:latest "${TARGET}"
+
+      - name: Schedule a delayed push to ttl.sh
+        env:
+          TARGET: ttl.sh/wait-for-docker-publish-${{ github.run_id }}-${{ github.run_attempt }}:1h
+        run: |
+          # 20s delay forces the action past its first two backoff sleeps (5s+10s).
+          # setsid -f detaches the pusher so it survives this step exit — GHA
+          # kills backgrounded subshells. ttl.sh is used (instead of registry:2
+          # on localhost) because `docker manifest inspect` defaults to HTTPS
+          # and won't fall back to HTTP.
+          setsid -f bash -c "sleep 20 && docker push '${TARGET}'" \
+            </dev/null >/tmp/pusher.log 2>&1
+
+      - name: Record start time
+        id: start
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Wait for the image
+        id: wait
+        uses: ./actions/wait-for-docker-publish
+        with:
+          image: ttl.sh/wait-for-docker-publish-${{ github.run_id }}-${{ github.run_attempt }}:1h
+          timeout: 2m
+
+      - name: Assert retry behaviour
+        env:
+          START: ${{ steps.start.outputs.epoch }}
+          OUTCOME: ${{ steps.wait.outcome }}
+        run: |
+          elapsed=$(( $(date +%s) - START ))
+          echo "elapsed=${elapsed}s outcome=${OUTCOME}"
+          [ "${OUTCOME}" = "success" ] || { echo "expected success, got ${OUTCOME}"; exit 1; }
+          # 5s + 10s = 15s of backoff before the push lands at t=20s.
+          # Allow 13s lower bound to absorb small scheduling skew.
+          [ "${elapsed}" -ge 13 ] || { echo "exited too quickly (${elapsed}s) — loop did not retry"; exit 1; }
+          [ "${elapsed}" -le 90 ] || { echo "took too long (${elapsed}s) — loop is misbehaving"; exit 1; }
+
+      - name: Show pusher log
+        if: always()
+        run: cat /tmp/pusher.log 2>/dev/null || echo "no pusher log"
+
+  timeout-path:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Record start time
+        id: start
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Wait for image that will never appear
+        id: wait
+        continue-on-error: true
+        uses: ./actions/wait-for-docker-publish
+        with:
+          image: library/hello-world:never-real-${{ github.run_id }}-${{ github.run_attempt }}
+          timeout: 20s
+
+      - name: Assert timeout behaviour
+        env:
+          START: ${{ steps.start.outputs.epoch }}
+          OUTCOME: ${{ steps.wait.outcome }}
+        run: |
+          elapsed=$(( $(date +%s) - START ))
+          echo "elapsed=${elapsed}s outcome=${OUTCOME}"
+          [ "${OUTCOME}" = "failure" ] || { echo "expected failure, got ${OUTCOME}"; exit 1; }
+          [ "${elapsed}" -ge 18 ] || { echo "exited too quickly: ${elapsed}s"; exit 1; }
+          [ "${elapsed}" -le 35 ] || { echo "took way too long: ${elapsed}s"; exit 1; }
+
+  rejects-untagged-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Record start time
+        id: start
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Wait with untagged image
+        id: wait
+        continue-on-error: true
+        uses: ./actions/wait-for-docker-publish
+        with:
+          image: grafana/grafana
+          # Big timeout so a broken implementation that ignores validation
+          # would visibly hang past our assertion's upper bound.
+          timeout: 5m
+
+      - name: Assert fast-fail
+        env:
+          START: ${{ steps.start.outputs.epoch }}
+          OUTCOME: ${{ steps.wait.outcome }}
+        run: |
+          elapsed=$(( $(date +%s) - START ))
+          echo "elapsed=${elapsed}s outcome=${OUTCOME}"
+          [ "${OUTCOME}" = "failure" ] || { echo "expected failure, got ${OUTCOME}"; exit 1; }
+          # Validation must fire in well under a second; allow 5s for harness overhead.
+          [ "${elapsed}" -le 5 ] || { echo "validation did not fast-fail (${elapsed}s)"; exit 1; }

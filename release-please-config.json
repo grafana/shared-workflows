@@ -197,6 +197,11 @@
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
     },
+    "actions/wait-for-docker-publish": {
+      "package-name": "wait-for-docker-publish",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/annotate-coverage": {
       "package-name": "annotate-coverage",
       "extra-files": ["README.md"],

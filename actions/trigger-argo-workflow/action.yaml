@@ -45,30 +45,16 @@ runs:
   using: composite
 
   steps:
-    - name: Checkout
-      env:
-        # In a composite action, these two need to be indirected via the
-        # environment, as per the GitHub actions documentation:
-        # https://docs.github.com/en/actions/learn-github-actions/contexts
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-trigger-argo-workflow
-        persist-credentials: false
-
     - name: Setup argo
-      uses: ./_shared-workflows-trigger-argo-workflow/actions/setup-argo
+      uses: grafana/shared-workflows/actions/setup-argo@21cbef8182ef0fc1c3ae8e68b9590af49ed10a5b # setup-argo/v1.2.1
 
     - name: Setup go
       uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
       with:
         check-latest: true
         cache-dependency-path: |
-          actions/trigger-argo-workflow/go.sum
-        go-version-file: "_shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow/go.mod"
+          ${{ github.action_path }}/go.sum
+        go-version-file: ${{ github.action_path }}/go.mod
 
     - name: Map cluster and vault instance from Argo WF instance
       id: argo-instance
@@ -97,7 +83,7 @@ runs:
 
     - name: Get Argo Token
       id: get-argo-token
-      uses: ./_shared-workflows-trigger-argo-workflow/actions/get-vault-secrets
+      uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
       with:
         vault_instance: ${{ steps.argo-instance.outputs.vault-instance }}
         repo_secrets: |
@@ -107,7 +93,7 @@ runs:
       id: run
       shell: bash
       env:
-        ARGO_TOKEN: ${{ env.ARGO_TOKEN }}
+        ARGO_TOKEN: ${{ fromJSON(steps.get-argo-token.outputs.secrets).ARGO_TOKEN }}
         EXTRA_ARGS: ${{ inputs.extra_args }}
         INSTANCE: ${{ inputs.instance }}
         LOG_LEVEL: ${{ inputs.log_level }}
@@ -115,7 +101,9 @@ runs:
         PARAMETERS: ${{ inputs.parameters }}
         WORKFLOW_TEMPLATE: ${{ inputs.workflow_template }}
       run: |
-        cd _shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow
+        # The runner downloads the full action repository into its actions
+        # cache; GITHUB_ACTION_PATH points at this action's directory there.
+        cd "${GITHUB_ACTION_PATH}"
 
         # Split the parameters into an array and pass them to the action as --parameter PARAM
         parameters=()

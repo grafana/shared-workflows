@@ -70,7 +70,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
@@ -87,14 +87,15 @@ jobs:
           # https://docs.github.com/en/actions/learn-github-actions/contexts
           action_repo: ${{ github.action_repository }}
           action_ref: ${{ github.action_ref }}
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           repository: ${{ env.action_repo }}
           ref: ${{ env.action_ref }}
           path: _shared-workflows-check-drone-signature
           persist-credentials: false
 
-      - name: Retrieve drone-signature-checker token
+      - id: get-secrets
+        name: Retrieve drone-signature-checker token
         uses: ./_shared-workflows-check-drone-signature/actions/get-vault-secrets
         with:
           common_secrets: |
@@ -116,6 +117,7 @@ jobs:
         env:
           DRONE_CONFIG_PATH: ${{ inputs.drone_config_path }}
           DRONE_SERVER: ${{ inputs.drone_server }}
+          DRONE_TOKEN: ${{ fromJSON(steps.get-secrets.outputs.secrets).DRONE_TOKEN }}
         run: |
           # Run drone sign command
           drone sign --save ${{ github.repository }} "${DRONE_CONFIG_PATH}"

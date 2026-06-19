@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.3](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.2.2...get-latest-workflow-artifact/v0.2.3) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @types/node to v24.13.1 ([#1961](https://github.com/grafana/shared-workflows/issues/1961)) ([a01f3ad](https://github.com/grafana/shared-workflows/commit/a01f3ad81771c9dab677e7890bbcbbbf8aae80d4))
+
 ## [0.2.2](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.2.1...get-latest-workflow-artifact/v0.2.2) (2026-05-04)
 
 
