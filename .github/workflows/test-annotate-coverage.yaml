@@ -58,3 +58,70 @@ jobs:
         shell: bash
         working-directory: actions/annotate-coverage
         run: go test -race -short ./...
+
+  # End-to-end: run the action against this module's own coverage and assert it
+  # annotates the intentionally-uncovered demo function. This exercises the full
+  # wiring (inputs -> flags -> git diff -> coverage intersection -> ::notice) and
+  # doubles as a live signal that the action still detects uncovered code.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write # needed for cache
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          check-latest: true
+          go-version-file: "actions/annotate-coverage/go.mod"
+          cache-dependency-path: "actions/annotate-coverage/go.sum"
+
+      - name: Generate coverage for this module
+        shell: bash
+        working-directory: actions/annotate-coverage
+        env:
+          COVERAGE_DIR: ${{ runner.temp }}/coverage
+        run: |
+          mkdir -p "${COVERAGE_DIR}"
+          go test ./... -covermode=set -coverprofile="${COVERAGE_DIR}/coverage.out"
+
+      - name: Present the demo fixture as an added file
+        shell: bash
+        # annotate-coverage only flags lines *added* in the diff. uncovered_demo.go
+        # is committed, so un-stage it to make it appear as a new file in the
+        # working-tree diff, mirroring a PR that adds uncovered code.
+        run: git rm --cached --quiet actions/annotate-coverage/internal/coverage/uncovered_demo.go
+
+      - name: Run annotate-coverage on its own coverage
+        uses: ./actions/annotate-coverage
+        with:
+          coverage-path: ${{ runner.temp }}/coverage
+          format: GitHubAnnotations
+
+      - name: Assert the uncovered demo function was annotated
+        shell: bash
+        env:
+          COVERAGE_DIR: ${{ runner.temp }}/coverage
+        # A composite action's stdout is not available to the caller, so re-run
+        # the binary the previous step built (action.yaml builds it into
+        # RUNNER_TEMP) and assert it flagged the deliberately-uncovered demo.
+        run: |
+          output="$("${RUNNER_TEMP}/annotate-coverage" --coverage "${COVERAGE_DIR}" --format GitHubAnnotations)"
+          echo "${output}"
+          if ! grep -q 'uncovered_demo.go' <<<"${output}"; then
+            echo "::error::annotate-coverage did not report uncovered_demo.go as uncovered"
+            exit 1
+          fi
+          echo "annotate-coverage reported the demo function as uncovered, as expected"
