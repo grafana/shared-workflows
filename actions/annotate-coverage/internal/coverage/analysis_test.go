@@ -10,13 +10,13 @@ import (
 
 func TestAnalyzeCoverage(t *testing.T) {
 	tests := []struct {
-		name                    string
-		profiles                []*Profile
-		addedLinesByFile        map[string][]int
-		expectedUncoveredByFile map[string][]int
-		expectedTotalLines      int
-		expectedTotalCovered    int
-		expectedDiffAddedLines  int
+		name                     string
+		profiles                 []*Profile
+		addedLinesByFile         map[string][]int
+		expectedUncoveredByFile  map[string][]int
+		expectedTotalLines       int
+		expectedTotalCovered     int
+		expectedDiffAddedLines   int
 		expectedDiffAddedCovered int
 	}{
 		{
@@ -155,6 +155,29 @@ func TestAnalyzeCoverage(t *testing.T) {
 			expectedTotalLines:       0,
 			expectedTotalCovered:     0,
 			expectedDiffAddedLines:   0,
+			expectedDiffAddedCovered: 0,
+		},
+		{
+			// Regression: a profile path must only match a diff file on a path
+			// boundary. "myhandler.go" must NOT match a diff entry for
+			// "handler.go", otherwise coverage gets attributed to the wrong file.
+			name: "suffix match respects path boundaries",
+			profiles: []*Profile{
+				{
+					FileName: "github.com/org/repo/myhandler.go",
+					Mode:     "set",
+					Blocks: []ProfileBlock{
+						{StartLine: 1, EndLine: 10, Count: 0}, // uncovered
+					},
+				},
+			},
+			addedLinesByFile: map[string][]int{
+				"handler.go": {5}, // different file; must not be attributed to myhandler.go
+			},
+			expectedUncoveredByFile:  map[string][]int{},
+			expectedTotalLines:       10,
+			expectedTotalCovered:     0,
+			expectedDiffAddedLines:   0, // no file match => nothing analyzed
 			expectedDiffAddedCovered: 0,
 		},
 		{
@@ -449,10 +472,10 @@ func TestAnalyzeCoverage_EdgeCases(t *testing.T) {
 		// Line 5 should be covered (end of first block)
 		// Line 6 should be uncovered (start of second block with Count=0)
 		assert.Equal(t, map[string][]int{"test.go": {6}}, result.UncoveredByFile)
-		assert.Equal(t, 10, result.TotalLines)       // 5 + 5 lines
-		assert.Equal(t, 5, result.TotalCovered)      // first block only
-		assert.Equal(t, 2, result.DiffAddedLines)    // 2 lines added
-		assert.Equal(t, 1, result.DiffAddedCovered)  // line 5 covered
+		assert.Equal(t, 10, result.TotalLines)      // 5 + 5 lines
+		assert.Equal(t, 5, result.TotalCovered)     // first block only
+		assert.Equal(t, 2, result.DiffAddedLines)   // 2 lines added
+		assert.Equal(t, 1, result.DiffAddedCovered) // line 5 covered
 	})
 
 	t.Run("single line block", func(t *testing.T) {

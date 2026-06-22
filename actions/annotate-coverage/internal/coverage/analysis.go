@@ -32,13 +32,13 @@ func findMatchingDiffFile(profile *Profile, addedLinesByFile map[string][]int) (
 		return profileFile, addedLines, true
 	}
 
-	// Try to find a diff file whose path is a suffix of the profile filename
-	// Coverage uses full module paths, diff uses relative paths
+	// Coverage uses full module paths while the diff uses repo-relative paths,
+	// so match when the diff path is a whole trailing path segment of the
+	// profile path. The leading "/" enforces a path boundary: a plain suffix
+	// check would wrongly match e.g. ".../myhandler.go" against a diff entry for
+	// "handler.go". The exact match covers files at the repo root.
 	for diffFile, addedLines := range addedLinesByFile {
-		if strings.HasSuffix(profileFile, diffFile) {
-			return diffFile, addedLines, true
-		}
-		if strings.HasSuffix(profileFile, "/"+diffFile) {
+		if profileFile == diffFile || strings.HasSuffix(profileFile, "/"+diffFile) {
 			return diffFile, addedLines, true
 		}
 	}
