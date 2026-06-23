@@ -19,7 +19,7 @@ runs:
     - name: Install bun package manager
       uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
       with:
-        bun-version-file: ${{ github.action_path }}/.bun-version
+        bun-version-file: ${{ github.action_path }}/../../.bun-version
 
     - name: Install dependencies
       shell: bash
@@ -32,16 +32,4 @@ runs:
       env:
         INPUT_MARKDOWN: ${{ inputs.markdown }}
         NODE_ENV: production
-      run: |
-        slack_text=$(bun run src/index.ts)
-        # Random delimiter per invocation so the output is not truncated if
-        # the converted text contains a line equal to a fixed sentinel —
-        # input is user-controlled markdown (release notes, changelog).
-        # Matches the pattern @actions/core uses internally.
-        delimiter="SLACK_MD_EOF_$(openssl rand -hex 16)"
-        {
-          echo "text<<${delimiter}"
-          printf "%s" "$slack_text"
-          echo ""
-          echo "${delimiter}"
-        } >> "$GITHUB_OUTPUT"
+      run: bun run src/index.ts
