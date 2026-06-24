@@ -1,0 +1,92 @@
+name: Download Branch Workflow Artifact
+description: Downloads an artifact from the last successful run of a workflow on a specific branch
+author: Grafana Labs
+
+inputs:
+  workflow:
+    description: "Workflow filename to download artifact from (e.g. deploy-prod.yml)"
+    required: true
+  artifact-name:
+    description: "Name of the artifact to download"
+    required: true
+  branch:
+    description: "Branch to filter workflow runs by"
+    required: false
+    default: "main"
+  path:
+    description: "Directory to download the artifact to"
+    required: false
+    default: "."
+  github-token:
+    description: "GitHub token with actions:read permission"
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  found:
+    description: "Whether the artifact was found and downloaded (true/false)"
+    value: ${{ steps.check.outputs.found }}
+  run-id:
+    description: "The workflow run ID the artifact was downloaded from (empty if not found)"
+    value: ${{ steps.find-run.outputs.run-id }}
+  download-path:
+    description: "Path where the artifact was downloaded"
+    value: ${{ inputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Find last successful workflow run
+      id: find-run
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        INPUT_WORKFLOW: ${{ inputs.workflow }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          try {
+            const { data: { workflow_runs } } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: process.env.INPUT_WORKFLOW,
+              branch: process.env.INPUT_BRANCH,
+              status: 'success',
+              per_page: 1
+            });
+            if (workflow_runs.length > 0) {
+              core.setOutput('run-id', workflow_runs[0].id);
+              console.log(`Found last successful run: ${workflow_runs[0].id}`);
+            } else {
+              core.setOutput('run-id', '');
+              console.log('No successful workflow runs found');
+            }
+          } catch (error) {
+            core.setOutput('run-id', '');
+            console.log(`Failed to query workflow runs: ${error.message}`);
+          }
+
+    - name: Download artifact
+      id: download
+      if: steps.find-run.outputs.run-id != ''
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.path }}
+        run-id: ${{ steps.find-run.outputs.run-id }}
+        github-token: ${{ inputs.github-token }}
+      continue-on-error: true
+
+    - name: Check download result
+      id: check
+      shell: bash
+      env:
+        DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}
+      run: |
+        if [ "$DOWNLOAD_OUTCOME" = "success" ]; then
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "Artifact downloaded successfully"
+        else
+          echo "found=false" >> "$GITHUB_OUTPUT"
+          echo "Artifact not found or download failed"
+        fi
