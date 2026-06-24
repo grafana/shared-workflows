@@ -27,6 +27,7 @@
     "bun-version",
     "custom.regex",
     "github-actions",
+    "gomod",
     "npm",
   ],
   forkProcessing: "enabled",
@@ -68,6 +69,7 @@
     },
   ],
   platformCommit: "enabled",
+  postUpdateOptions: ["gomodTidy"],
   rebaseWhen: "behind-base-branch",
   vulnerabilityAlerts: {
     automerge: true,
