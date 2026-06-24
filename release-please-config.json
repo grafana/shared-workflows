@@ -192,6 +192,21 @@
       "extra-files": ["README.md"],
       "initial-version": "1.0.0"
     },
+    "actions/create-or-update-pr": {
+      "package-name": "create-or-update-pr",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/git-auto-commit": {
+      "package-name": "git-auto-commit",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/run-shellcheck": {
+      "package-name": "run-shellcheck",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/issues-update-project-status": {
       "package-name": "issues-update-project-status",
       "extra-files": ["README.md"],
