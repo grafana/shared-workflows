@@ -201,6 +201,11 @@
       "package-name": "wait-for-docker-publish",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/markdown-to-slack-mrkdwn": {
+      "package-name": "markdown-to-slack-mrkdwn",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
