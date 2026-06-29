@@ -34,6 +34,15 @@ on:
         required: false
         default: "false"
         type: string
+      ref-protection:
+        description: |
+          Gate publishing on ref protection (see actions/check-ref-protection):
+            "off"     (default) the gate does not run.
+            "warn"    the gate runs and reports, but never blocks the build.
+            "enforce" the build is blocked unless the ref meets the protection bar.
+        required: false
+        default: "off"
+        type: string
 
       # The following inputs are identical to the inputs
       # found in `shared-workflows/actions/docker-build-push-image`
@@ -308,8 +317,25 @@ jobs:
           echo "runner-type-arm64=$ARM64_OUT" | tee -a "${GITHUB_OUTPUT}"
           echo "runner-type-manifest=$MANIFEST_OUT" | tee -a "${GITHUB_OUTPUT}"
 
+  ref-protection-gate:
+    # Only gate prod publishes (matches the WIF CEL, which only restricts prod).
+    if: ${{ inputs.ref-protection != 'off' && inputs.gar-environment == 'prod' }}
+    runs-on: ${{ inputs.runner-type == 'self-hosted' && 'ubuntu-x64-small' || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      # TODO: pin to a released version (check-ref-protection/vX.Y.Z) before merge.
+      - name: Verify ref protection
+        uses: grafana/shared-workflows/actions/check-ref-protection@nickange/check-ref-protection-go # zizmor: ignore[unpinned-uses]
+        with:
+          enforce: ${{ inputs.ref-protection == 'enforce' }}
+
   build-and-push:
-    needs: prepare-matrix
+    needs: [prepare-matrix, ref-protection-gate]
+    # Proceed when the gate passed OR was skipped (ref-protection: off); a gate
+    # failure (enforce mode) propagates as failure() and blocks the build.
+    if: ${{ !cancelled() && !failure() }}
     strategy:
       fail-fast: false
       matrix:
