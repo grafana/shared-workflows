@@ -1,5 +1,5 @@
 {
-    "actions/lint-pr-title": "1.2.3",
+    "actions/lint-pr-title": "1.2.4",
     "actions/get-vault-secrets": "2.0.0",
     "actions/dockerhub-login": "2.0.0",
     "actions/send-slack-message": "3.0.2",
