@@ -2,6 +2,7 @@
 
 .release-please-manifest.json
 **/CHANGELOG.md
+**/dist
 
 # Generated file
 catalog-info.yaml

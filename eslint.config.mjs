@@ -3,9 +3,10 @@ import eslintPluginJest from "eslint-plugin-jest";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
+  globalIgnores(["**/node_modules/", "**/dist/", "**/coverage/"]),
   js.configs.recommended,
   eslint.configs.recommended,
   tseslint.configs.strict,
@@ -41,8 +42,5 @@ export default defineConfig([
   {
     files: ["test/**/*.ts"],
     ...eslintPluginJest.configs["flat/recommended"],
-  },
-  {
-    ignores: ["coverage/", "dist/", "node_modules/"],
   },
 ]);
