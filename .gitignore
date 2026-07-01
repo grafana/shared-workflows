@@ -14,4 +14,7 @@ node_modules/
 
 coverage/
 
+dist/
+!actions/signed-commits-info/dist/
+
 .*.bun-build
