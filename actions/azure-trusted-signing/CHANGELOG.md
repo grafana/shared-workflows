@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.3...azure-trusted-signing/v1.0.4) (2026-07-01)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dotnet monorepo to v8.0.422 ([#2080](https://github.com/grafana/shared-workflows/issues/2080)) ([bac5784](https://github.com/grafana/shared-workflows/commit/bac57843a247c882c96089efd777e1752caa31b8))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.2...azure-trusted-signing/v1.0.3) (2026-06-10)
 
 
