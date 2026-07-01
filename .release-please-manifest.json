@@ -1,6 +1,6 @@
 {
     "actions/lint-pr-title": "1.2.3",
-    "actions/get-vault-secrets": "2.0.0",
+    "actions/get-vault-secrets": "2.0.1",
     "actions/dockerhub-login": "2.0.0",
     "actions/send-slack-message": "3.0.2",
     "actions/aws-auth": "1.0.4",
