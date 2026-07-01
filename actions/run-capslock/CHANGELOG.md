@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.4](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.3...run-capslock/v0.2.4) (2026-07-01)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v6.0.3 ([#2027](https://github.com/grafana/shared-workflows/issues/2027)) ([42afded](https://github.com/grafana/shared-workflows/commit/42afdedfa0cfbe7d8d3d1bbc6fd2318145909947))
+* **deps:** update actions/checkout action to v7 ([#2106](https://github.com/grafana/shared-workflows/issues/2106)) ([f20c37c](https://github.com/grafana/shared-workflows/commit/f20c37c69d2a3c8817fd343f9bde32e11183b467))
+
 ## [0.2.3](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.2...run-capslock/v0.2.3) (2026-06-10)
 
 
