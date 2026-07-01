@@ -207,7 +207,7 @@
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
     },
-    "actions/annotate-coverage": {
+    "actions/signed-commits-info": {
       "package-name": "signed-commits-info",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
