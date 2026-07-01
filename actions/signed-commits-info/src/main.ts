@@ -44,6 +44,7 @@ async function run(): Promise<unknown> {
   const unverified = commits.filter((c) => !c.commit.verification?.verified);
 
   buildSummary(commits.length, unverified, pr.base.ref, pr.head.ref);
+  await core.summary.write();
 
   const existing = await findExistingMarkerComment(
     octokit,
@@ -67,8 +68,6 @@ async function run(): Promise<unknown> {
     );
     await upsertComment(octokit, owner, repo, pr.number, body, existing);
   }
-
-  return core.summary.write();
 }
 
 async function findExistingMarkerComment(

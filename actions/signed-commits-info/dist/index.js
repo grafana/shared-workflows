@@ -22324,6 +22324,7 @@ async function run() {
   });
   const unverified = commits.filter((c) => !c.commit.verification?.verified);
   buildSummary(commits.length, unverified, pr.base.ref, pr.head.ref);
+  await summary.write();
   const existing = await findExistingMarkerComment(octokit, owner, repo, pr.number);
   if (unverified.length > 0) {
     const body = buildCommentBody(unverified, commits.length, pr.base.ref, pr.head.ref);
@@ -22332,7 +22333,6 @@ async function run() {
     const body = buildAllVerifiedCommentBody(commits.length, pr.base.ref, pr.head.ref);
     await upsertComment(octokit, owner, repo, pr.number, body, existing);
   }
-  return summary.write();
 }
 async function findExistingMarkerComment(octokit, owner, repo, issueNumber) {
   const comments = await octokit.paginate(octokit.rest.issues.listComments, {
