@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/grafana/shared-workflows/compare/argo-lint/v1.1.1...argo-lint/v1.1.2) (2026-07-01)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update grafana/shared-workflows/setup-argo action to v1.2.1 ([#2095](https://github.com/grafana/shared-workflows/issues/2095)) ([8483e85](https://github.com/grafana/shared-workflows/commit/8483e856baf8ecdeb4b178504eb879b3e41a46cb))
+
 ## [1.1.1](https://github.com/grafana/shared-workflows/compare/argo-lint/v1.1.0...argo-lint/v1.1.1) (2026-06-10)
 
 
