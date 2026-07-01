@@ -1,10 +1,10 @@
-name: 'Signed Commits Info'
-description: 'Reports pull-request commits that lack a verified signature'
+name: "Signed Commits Info"
+description: "Reports pull-request commits that lack a verified signature"
 inputs:
   github-token:
-    description: 'Token used to call the GitHub API'
+    description: "Token used to call the GitHub API"
     required: false
     default: ${{ github.token }}
 runs:
-  using: 'node24'
-  main: 'dist/index.js'
+  using: "node24"
+  main: "dist/index.js"
