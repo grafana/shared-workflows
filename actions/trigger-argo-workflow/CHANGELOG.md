@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v2.0.0...trigger-argo-workflow/v2.0.1) (2026-07-01)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update grafana/shared-workflows/setup-argo action to v1.2.1 ([#2095](https://github.com/grafana/shared-workflows/issues/2095)) ([8483e85](https://github.com/grafana/shared-workflows/commit/8483e856baf8ecdeb4b178504eb879b3e41a46cb))
+* **trigger-argo-workflow:** bump go version to 1.26 ([#2103](https://github.com/grafana/shared-workflows/issues/2103)) ([364647a](https://github.com/grafana/shared-workflows/commit/364647ab68297cdb061a62142f041e122c68859f)), closes [#2017](https://github.com/grafana/shared-workflows/issues/2017)
+
 ## [2.0.0](https://github.com/grafana/shared-workflows/compare/trigger-argo-workflow/v1.3.0...trigger-argo-workflow/v2.0.0) (2026-06-10)
 
 
