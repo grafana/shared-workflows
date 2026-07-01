@@ -47,16 +47,15 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - parallel:
-        - name: Run tests
-          run: bun run test
+      - name: Run tests
+        run: bun run test
 
-        - name: Run typecheck
-          run: bun run typecheck
+      - name: Run typecheck
+        run: bun run typecheck
 
-        - name: Check for drift
-          run: |
-            set -e
-            bun run build
-            git diff --exit-code dist/
+      - name: Check for drift
+        run: |
+          set -e
+          bun run build
+          git diff --exit-code dist/
 
