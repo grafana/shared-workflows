@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.4](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.3...dependabot-auto-triage/v1.1.4) (2026-07-01)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update eslint monorepo to v10.5.0 ([#2101](https://github.com/grafana/shared-workflows/issues/2101)) ([849fabd](https://github.com/grafana/shared-workflows/commit/849fabda9b23ba8862563b4a15b979954d80e928))
+* **deps:** update typescript-eslint monorepo to v8.61.0 ([#2079](https://github.com/grafana/shared-workflows/issues/2079)) ([a8f4c63](https://github.com/grafana/shared-workflows/commit/a8f4c6350ca3f41fafeff7b4a01f774e5d336746))
+
 ## [1.1.3](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.2...dependabot-auto-triage/v1.1.3) (2026-06-10)
 
 
