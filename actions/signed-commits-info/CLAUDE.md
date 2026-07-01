@@ -35,4 +35,3 @@ Single-entrypoint Node action. `src/main.ts`:
    no need to diff refs manually or call the list-commits endpoint separately.
 4. Filters commits where `commit.verification.verified !== true` and renders
    them in a table via `core.summary` + generates a pull request comment.
-
