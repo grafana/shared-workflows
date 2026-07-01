@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.5](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.4...docker-build-push-image/v0.3.5) (2026-07-01)
+
+
+### 🐛 Bug Fixes
+
+* remove `s` from metadatajson ([#2086](https://github.com/grafana/shared-workflows/issues/2086)) ([8a16b96](https://github.com/grafana/shared-workflows/commit/8a16b96ee18c77596b132a2b8fac70dc6e30fd6b))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update grafana/shared-workflows/dockerhub-login action to v2.0.0 ([#2096](https://github.com/grafana/shared-workflows/issues/2096)) ([b9bd9af](https://github.com/grafana/shared-workflows/commit/b9bd9af9d088e4a7abca2fdc75b0ca10f7aae9de))
+* **deps:** update grafana/shared-workflows/login-to-gar action to v1.0.3 ([#2091](https://github.com/grafana/shared-workflows/issues/2091)) ([80f6a4e](https://github.com/grafana/shared-workflows/commit/80f6a4efd0f3f38df47e42816a261e95fad0c4a8))
+
 ## [0.3.4](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.3...docker-build-push-image/v0.3.4) (2026-06-10)
 
 
