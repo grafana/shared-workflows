@@ -206,6 +206,11 @@
       "package-name": "annotate-coverage",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/annotate-coverage": {
+      "package-name": "signed-commits-info",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
