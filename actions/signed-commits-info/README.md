@@ -11,6 +11,7 @@ commit could not be verified — it is informational only.
 ## Usage
 
 <!-- x-release-please-start-version -->
+
 ```yaml
 name: Signed commits
 
@@ -32,6 +33,7 @@ jobs:
       - uses: grafana/shared-workflows/actions/signed-commits-info@signed-commits-info/v0.1.0
         continue-on-error: true
 ```
+
 <!-- x-release-please-end-version -->
 
 ## Development
