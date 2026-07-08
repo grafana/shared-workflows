@@ -1,0 +1,55 @@
+name: Check ref protection
+description: |
+  Gate for prod publishing. Verifies the ref a workflow publishes from meets a
+  minimum branch/tag protection bar (policy.json). Identity is derived from the
+  signed OIDC token or the runner environment — never from caller inputs — so it
+  cannot be pointed at a different (protected) ref than the one running.
+
+  Disabled by default: with enforce=false it only reports (warn-only). Set
+  enforce=true to block — the step fails when the ref does not meet the bar.
+
+inputs:
+  enforce:
+    description: "true to fail the job when the ref does not meet the bar; false = warn-only."
+    default: "false"
+  identity:
+    description: |
+      Where the ref identity comes from. "oidc" (default) reads the signed
+      GitHub OIDC token and requires id-token: write on the calling job.
+    default: "oidc"
+  policy:
+    description: "Path to a policy.json. Defaults to the policy bundled with this action."
+    default: ""
+  github-token:
+    description: "Token with read access to the repo's rules (Administration: read for tags/legacy)."
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+        cache: false # stdlib-only module, no go.sum to cache
+
+    - name: Build
+      shell: bash
+      run: go build -C "$GITHUB_ACTION_PATH" -o "$RUNNER_TEMP/check-ref-protection" ./cmd/check-ref-protection
+
+    - name: Check ref protection
+      shell: bash
+      # Inputs are passed via env (not ${{ }} interpolation in the script) to
+      # avoid template-injection: a value reaches the shell as data, not code.
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        POLICY: ${{ inputs.policy }}
+        IDENTITY: ${{ inputs.identity }}
+        ENFORCE: ${{ inputs.enforce }}
+      run: |
+        set -euo pipefail
+        policy="${POLICY:-$GITHUB_ACTION_PATH/policy.json}"
+
+        args=(-identity "$IDENTITY" -policy "$policy")
+        [ "$ENFORCE" = "true" ] && args+=(-enforce)
+
+        "$RUNNER_TEMP/check-ref-protection" "${args[@]}"
