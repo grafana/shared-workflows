@@ -173,3 +173,17 @@ jobs:
           gh attestation verify "oci://${IMAGE}" \
             --repo "${REPO}" \
             --signer-workflow grafana/shared-workflows/.github/workflows/sign-and-attest.yml
+
+      - name: Remove static registry credentials
+        # Remove the auth entry added above, keeping login-to-gar's
+        # credential-helper config in the same file intact.
+        if: always()
+        env:
+          REGISTRY: ${{ inputs.registry }}
+        run: |
+          cfg="${HOME}/.docker/config.json"
+          if [[ -f "$cfg" ]]; then
+            tmp="$(mktemp)"
+            jq --arg reg "$REGISTRY" 'del(.auths[$reg])' "$cfg" > "$tmp"
+            mv "$tmp" "$cfg"
+          fi
