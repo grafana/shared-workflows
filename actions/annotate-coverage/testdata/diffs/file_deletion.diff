@@ -1,0 +1,16 @@
+diff --git a/deprecated.go b/deprecated.go
+deleted file mode 100644
+index 1234567..0000000
+--- a/deprecated.go
++++ /dev/null
+@@ -1,10 +0,0 @@
+-package main
+-
+-func DeprecatedFunc() {
+-	println("This is deprecated")
+-}
+-
+-func AnotherOldFunc() {
+-	println("Also deprecated")
+-}
+-

@@ -46,7 +46,7 @@ runs:
 
   steps:
     - name: Setup argo
-      uses: grafana/shared-workflows/actions/setup-argo@f02682926bde2aa45a1a8b74409c94508d8952ec # setup-argo/v1.2.0
+      uses: grafana/shared-workflows/actions/setup-argo@21cbef8182ef0fc1c3ae8e68b9590af49ed10a5b # setup-argo/v1.2.1
 
     - name: Setup go
       uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
