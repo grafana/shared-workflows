@@ -57,7 +57,8 @@ jobs:
     # the org get a clean skip instead of a WIF failure. (Reusable workflows
     # can't have a workflow-level `if`, so this lives on the job.)
     if: github.repository_owner == 'grafana'
-    runs-on: ubuntu-24.04
+    # Self-hosted so the signing job is covered by our runtime security monitoring.
+    runs-on: ubuntu-x64-small
     permissions:
       contents: read
       id-token: write # keyless cosign OIDC, provenance signing, and WIF auth to GAR
@@ -67,9 +68,14 @@ jobs:
         id: image
         env:
           IMAGE: ${{ inputs.image }}
+          REGISTRY: ${{ inputs.registry }}
         run: |
-          if [[ "${IMAGE}" != *"@sha256:"* ]]; then
-            echo "::error::image must be digest-pinned (contain @sha256:), got: ${IMAGE}"
+          if [[ "${REGISTRY}" != *.pkg.dev ]]; then
+            echo "::error::registry must be a GAR host (*.pkg.dev), got: ${REGISTRY}"
+            exit 1
+          fi
+          if [[ "${IMAGE}" != "${REGISTRY}/"*"@sha256:"* ]]; then
+            echo "::error::image must be a digest-pinned ref under ${REGISTRY}/, got: ${IMAGE}"
             exit 1
           fi
           # Split "<name>@sha256:<hex>" into the registry path and the digest,

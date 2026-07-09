@@ -53,10 +53,10 @@ therefore rejects refs without `@sha256:`.
 
 ## Inputs
 
-| Name       | Type   | Description                                                                                                   |
-| ---------- | ------ | ------------------------------------------------------------------------------------------------------------- |
-| `image`    | string | **Required.** Digest-pinned image reference (must contain `@sha256:`), e.g. `us-docker.pkg.dev/…@sha256:…`    |
-| `registry` | string | GAR hostname to authenticate against when writing the signature and attestation. Default: `us-docker.pkg.dev` |
+| Name       | Type   | Description                                                                                       |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------- |
+| `image`    | string | **Required.** Digest-pinned image reference under `registry`, e.g. `us-docker.pkg.dev/…@sha256:…` |
+| `registry` | string | GAR hostname (`*.pkg.dev`) to authenticate against and sign in. Default: `us-docker.pkg.dev`      |
 
 ## Required caller permissions
 
