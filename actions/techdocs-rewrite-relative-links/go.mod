@@ -2,7 +2,7 @@ module github.com/grafana/shared-workflows/actions/techdocs-rewrite-relative-lin
 
 go 1.25.0
 
-toolchain go1.25.11
+toolchain go1.25.12
 
 require (
 	github.com/aymanbagabas/go-udiff v0.3.1
