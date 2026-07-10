@@ -67,9 +67,10 @@ calling workflow is itself reusable):
 
 ```yaml
 permissions:
+  artifact-metadata: write # Write storage record for GitHub attestation
+  attestations: write # Write to the GitHub attestations store
   contents: read
-  id-token: write # keyless cosign OIDC, provenance signing, WIF auth to GAR
-  attestations: write # write to the GitHub attestations store
+  id-token: write # Keyless cosign OIDC, provenance signing, and WIF auth to GAR
 ```
 
 ## Verification identity contract

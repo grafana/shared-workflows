@@ -50,9 +50,10 @@ on:
         default: ""
 
 permissions:
+  artifact-metadata: write # Write storage record for GitHub attestation
+  attestations: write # Write the SLSA provenance attestation to the GitHub attestations store
   contents: read
-  id-token: write # keyless cosign OIDC, provenance signing, and WIF auth to GAR
-  attestations: write # write the SLSA provenance attestation to the GitHub attestations store
+  id-token: write # Keyless cosign OIDC, provenance signing, and WIF auth to GAR
 
 jobs:
   sign-and-attest:
