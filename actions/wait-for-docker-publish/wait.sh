@@ -73,6 +73,7 @@ while true; do
   : > "$err_file"
   if docker manifest inspect "$IMAGE" >/dev/null 2>"$err_file"; then
     echo "image found after $(( SECONDS - start ))s on attempt ${attempt}"
+    echo "::notice::Image published to DockerHub: https://hub.docker.com/r/${IMAGE}/tags"
     exit 0
   fi
 
