@@ -32,7 +32,7 @@
     "actions/socket-export-sbom": "0.1.2",
     "actions/issues-update-project-status": "0.2.1",
     "actions/go-flaky-tests": "0.1.1",
-    "actions/wait-for-docker-publish": "0.2.0",
+    "actions/wait-for-docker-publish": "0.3.0",
     "actions/download-branch-workflow-artifact": "0.1.0",
     "actions/annotate-coverage": "0.1.0",
     "actions/signed-commits-info": "0.1.0"
