@@ -73,7 +73,15 @@ while true; do
   : > "$err_file"
   if docker manifest inspect "$IMAGE" >/dev/null 2>"$err_file"; then
     echo "image found after $(( SECONDS - start ))s on attempt ${attempt}"
-    echo "::notice::Image published to DockerHub: https://hub.docker.com/r/${IMAGE}/tags"
+    image_ref="${IMAGE%%@*}"
+    repo="$image_ref"
+    after_slash="${repo##*/}"
+    if [[ "$after_slash" == *":"* ]]; then
+      repo="${repo%:*}"
+    fi
+    repo="${repo#docker.io/}"
+    repo="${repo#index.docker.io/}"
+    echo "::notice::Image published to Docker Hub: https://hub.docker.com/r/${repo}/tags"
     exit 0
   fi
 
