@@ -47,7 +47,7 @@ on:
         description: "Cosign release tag to install (e.g. v3.1.1). Defaults to the workflow's pinned version."
         required: false
         type: string
-        default: ''
+        default: ""
 
 permissions:
   contents: read
