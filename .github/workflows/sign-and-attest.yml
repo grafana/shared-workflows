@@ -43,6 +43,11 @@ on:
         required: false
         type: string
         default: us-docker.pkg.dev
+      cosign-version:
+        description: "Version of cosign to use for signing and attesting."
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -127,8 +132,11 @@ jobs:
 
       - name: Install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        env:
+          # renovate: datasource=github-releases depName=cosign packageName=sigstore/cosign
+          COSIGN_VERSION: v3.1.1
         with:
-          cosign-release: v3.1.1
+          cosign-release: ${{ inputs.cosign-version || env.COSIGN_VERSION }}
 
       - name: Sign image
         # Signs the image index by digest. Uploads to the public Rekor
