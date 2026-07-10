@@ -53,10 +53,11 @@ therefore rejects refs without `@sha256:`.
 
 ## Inputs
 
-| Name       | Type   | Description                                                                                       |
-| ---------- | ------ | ------------------------------------------------------------------------------------------------- |
-| `image`    | string | **Required.** Digest-pinned image reference under `registry`, e.g. `us-docker.pkg.dev/…@sha256:…` |
-| `registry` | string | GAR hostname (`*.pkg.dev`) to authenticate against and sign in. Default: `us-docker.pkg.dev`      |
+| Name             | Type   | Description                                                                                       |
+| ---------------- | ------ | ------------------------------------------------------------------------------------------------- |
+| `image`          | string | **Required.** Digest-pinned image reference under `registry`, e.g. `us-docker.pkg.dev/…@sha256:…` |
+| `registry`       | string | GAR hostname (`*.pkg.dev`) to authenticate against and sign in. Default: `us-docker.pkg.dev`      |
+| `cosign-version` | string | Cosign release tag to install (e.g. `v3.1.1`). Defaults to the workflow's pinned version.         |
 
 ## Required caller permissions
 
@@ -66,9 +67,10 @@ calling workflow is itself reusable):
 
 ```yaml
 permissions:
+  artifact-metadata: write # Write storage record for GitHub attestation
+  attestations: write # Write to the GitHub attestations store
   contents: read
-  id-token: write # keyless cosign OIDC, provenance signing, WIF auth to GAR
-  attestations: write # write to the GitHub attestations store
+  id-token: write # Keyless cosign OIDC, provenance signing, and WIF auth to GAR
 ```
 
 ## Verification identity contract
