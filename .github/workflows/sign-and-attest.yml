@@ -44,7 +44,7 @@ on:
         type: string
         default: us-docker.pkg.dev
       cosign-version:
-        description: "Version of cosign to use for signing and attesting."
+        description: "Cosign release tag to install (e.g. v3.1.1). Defaults to the workflow's pinned version."
         required: false
         type: string
         default: ''
