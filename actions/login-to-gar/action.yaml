@@ -42,7 +42,7 @@ runs:
           exit 1
         fi
 
-        echo "::notice::Moving credentials out of GitHub workspace"
+        echo "::debug::Moving credentials out of GitHub workspace"
         mv "${ORIGINAL_CREDS_PATH}" "${TEMP_CREDS_PATH}"
 
         # Update environment for subsequent steps
@@ -50,7 +50,7 @@ runs:
         echo "GOOGLE_APPLICATION_CREDENTIALS=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
         echo "GOOGLE_GHA_CREDS_PATH=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
 
-        echo "::notice::Credentials stored in ${TEMP_CREDS_PATH}"
+        echo "::debug::Credentials stored in ${TEMP_CREDS_PATH}"
 
     - name: Setup `gcloud` CLI
       if: ${{ !steps.check_if_gcloud_is_installed.outputs.gcloud-installed }}

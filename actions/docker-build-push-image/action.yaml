@@ -365,7 +365,7 @@ runs:
       run: |
         if [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
           rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
-          echo "::notice::Successfully deleted credentials file"
+          echo "::debug::Successfully deleted credentials file"
         else
           echo "::warning::Credentials file not found at ${GOOGLE_APPLICATION_CREDENTIALS}"
         fi
