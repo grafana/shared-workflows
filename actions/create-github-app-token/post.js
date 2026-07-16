@@ -70,6 +70,7 @@ const revokeOnce = async ({ vaultUrl, vaultToken, proxyJwt }) => {
 };
 
 const revokeVaultToken = async ({ vaultUrl, vaultToken, proxyJwt }) => {
+  // using custom retry insted of the lib.js to include 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const { status, body } = await revokeOnce({
       vaultUrl,
@@ -77,7 +78,7 @@ const revokeVaultToken = async ({ vaultUrl, vaultToken, proxyJwt }) => {
       proxyJwt,
     });
 
-    if (status >= 200 && status < 300) {
+    if (status == 200 || status == 204) {
       info(`Vault token revoked (HTTP ${status}).`);
       return;
     }
