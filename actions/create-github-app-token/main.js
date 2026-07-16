@@ -171,6 +171,9 @@ const main = async () => {
     });
   });
   setSecret(githubToken);
+  // Save the token to state so the post-job step can confirm it was actually
+  // revoked once the Vault token (and its lease) is torn down.
+  saveState("github_token", githubToken);
   setOutput("token", githubToken);
   info("GitHub App token created.");
 };
