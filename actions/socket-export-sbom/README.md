@@ -10,7 +10,7 @@ A good use case is including this sbom as part of a public repo's release artifa
 | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------- | -------- |
 | `socket_api_token` | `string` | API Key used to authenticate to socket.dev, requires repo: list, repo:read, full-scan:list, report:list scopes | `none`                        | true     |
 | `socket_base_url`  | `string` | Base URL of the socket api endpoint.                                                                           | `"https://api.socket.dev/v0"` | false    |
-| `socket_org_name`  | `string` | Name of the socket org.                                                                                        | `"grafana"`                   | true     |
+| `socket_org`       | `string` | Name of the socket org.                                                                                        | `"grafana"`                   | true     |
 | `output_file`      | `string` | Name of the file to save the socket sbom on the runner.                                                        | `"spdx.json"`                 | false    |
 
 ## Examples
@@ -90,30 +90,55 @@ jobs:
       contents: write # to create the draft release and upload the SBOM as a release asset
       id-token: write # to authenticate to Vault
     steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v0.1.2
-
+      - name: "Resolve release tag and repo name"
+        id: meta
+        env:
+          DISPATCH_TAG: ${{ inputs.tag }}
+          REF_TAG: ${{ github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          echo "tag=${DISPATCH_TAG:-$REF_TAG}" >> "$GITHUB_OUTPUT"
+          echo "repo=${GH_REPO##*/}" >> "$GITHUB_OUTPUT"
       - name: "Get Socket API token from Vault"
         id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v0.1.2
+        uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
         with:
           common_secrets: |
             SOCKET_API_TOKEN=socket:SOCKET_API_KEY
 
       - name: "Export SPDX SBOM from Socket"
         id: export-sbom
-        uses: grafana/shared-workflows/actions/socket-export-sbom@socket-export-sbom/v0.1.2
+        uses: grafana/shared-workflows/actions/socket-export-sbom@ff9aaa53f25716fcd6dde39f6d4e41c4e16fb5e1 # socket-export-sbom/v0.1.2
         with:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           socket_org: grafana
           output_file: ${{ steps.meta.outputs.repo }}-${{ steps.meta.outputs.tag }}.spdx.json
 
-      - name: Upload SBOM artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v0.1.2
-        with:
-          name: "sbom"
-          path: ${{ steps.export-sbom.outputs.path }}
-          retention-days: 30
+      # Immutable releases lock assets at publish time, so the SBOM must be attached while the
+      # release is still a draft. Draft creation does not trigger workflows, so we create the
+      # draft here (on tag push) and let a human review and publish it afterwards.
+      - name: "Create draft release"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; will attach SBOM to it."
+          else
+            PRERELEASE=""
+            # Version convention: v0.x or any -suffix (-alpha/-beta/-rcN) is a pre-release
+            if [[ "$TAG" == v0.* || "$TAG" == *-* ]]; then PRERELEASE="--prerelease"; fi
+            gh release create "$TAG" --draft --generate-notes --title "$TAG" $PRERELEASE
+          fi
+
+      - name: "Upload SBOM to draft release"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          SBOM_PATH: ${{ steps.export-sbom.outputs.path }}
+        run: gh release upload "$TAG" "$SBOM_PATH" --clobber
 ```
 
 <!-- x-release-please-end-version -->
