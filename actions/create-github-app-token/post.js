@@ -70,7 +70,7 @@ const revokeOnce = async ({ vaultUrl, vaultToken, proxyJwt }) => {
 };
 
 const revokeVaultToken = async ({ vaultUrl, vaultToken, proxyJwt }) => {
-  // using custom retry insted of the lib.js to include 
+  // using custom retry insted of the lib.js to include
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const { status, body } = await revokeOnce({
       vaultUrl,
@@ -91,7 +91,7 @@ const revokeVaultToken = async ({ vaultUrl, vaultToken, proxyJwt }) => {
 
     warning(
       `Vault token revoke attempt ${attempt}/${MAX_ATTEMPTS} ` +
-      `failed (HTTP ${status}): ${body}`,
+        `failed (HTTP ${status}): ${body}`,
     );
 
     if (attempt < MAX_ATTEMPTS) {
@@ -101,7 +101,7 @@ const revokeVaultToken = async ({ vaultUrl, vaultToken, proxyJwt }) => {
 
   warning(
     `Failed to revoke Vault token after ${MAX_ATTEMPTS} attempts. ` +
-    "The GitHub App token will still expire naturally when its TTL elapses.",
+      "The GitHub App token will still expire naturally when its TTL elapses.",
   );
 };
 
@@ -141,14 +141,14 @@ const confirmGithubTokenRevoked = async (githubToken) => {
     if (status >= 200 && status < 300) {
       warning(
         `GitHub App token still valid (HTTP ${status}) on check ` +
-        `${attempt}/${CONFIRM_MAX_ATTEMPTS}; revocation may not have ` +
-        "propagated yet.",
+          `${attempt}/${CONFIRM_MAX_ATTEMPTS}; revocation may not have ` +
+          "propagated yet.",
       );
     } else {
       warning(
         `GitHub App token revocation check inconclusive on check ` +
-        `${attempt}/${CONFIRM_MAX_ATTEMPTS} ` +
-        `(HTTP ${status}${error ? `: ${error}` : ""}).`,
+          `${attempt}/${CONFIRM_MAX_ATTEMPTS} ` +
+          `(HTTP ${status}${error ? `: ${error}` : ""}).`,
       );
     }
 
@@ -159,7 +159,7 @@ const confirmGithubTokenRevoked = async (githubToken) => {
 
   warning(
     "Could not confirm the GitHub App token was revoked. It will still " +
-    "expire naturally when its Vault lease TTL elapses.",
+      "expire naturally when its Vault lease TTL elapses.",
   );
 };
 
@@ -172,7 +172,7 @@ const main = async () => {
   if (!vaultUrl || !vaultToken || !proxyAudience) {
     info(
       "No cleanup state present (token creation likely failed); " +
-      "skipping Vault token revocation.",
+        "skipping Vault token revocation.",
     );
     return;
   }
@@ -193,7 +193,7 @@ const main = async () => {
   } catch (err) {
     warning(
       `Failed to mint proxy JWT for Vault revoke-self: ${err.message}. ` +
-      "The Vault token will expire naturally when its TTL elapses.",
+        "The Vault token will expire naturally when its TTL elapses.",
     );
     return;
   }
@@ -207,7 +207,7 @@ const main = async () => {
   } else {
     info(
       "No GitHub App token in state; skipping revocation verification " +
-      "(token was likely never created).",
+        "(token was likely never created).",
     );
   }
 };
