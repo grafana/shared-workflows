@@ -158,8 +158,8 @@ const confirmGithubTokenRevoked = async (githubToken) => {
   }
 
   warning(
-    "Could not confirm the GitHub App token was revoked. It will still " +
-      "expire naturally when its Vault lease TTL elapses.",
+    "Could not confirm the GitHub App token was revoked. revocation may not have " +
+      "propagated yet.",
   );
 };
 
