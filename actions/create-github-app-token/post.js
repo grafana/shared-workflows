@@ -45,8 +45,8 @@ const RETRY_BASE_DELAY_MS = 2000;
 // Confirming the GitHub App token was revoked can race with Vault propagating
 // the lease revocation to GitHub, so retry the check a few times before giving
 // up.
-const CONFIRM_MAX_ATTEMPTS = 10;
-const CONFIRM_BASE_DELAY_MS = 2000;
+const CONFIRM_MAX_ATTEMPTS = 5;
+const CONFIRM_BASE_DELAY_MS = 10000;
 
 // GitHub Actions always sets GITHUB_API_URL; fall back to the public API host
 // for safety (e.g. when running this file outside of Actions).
