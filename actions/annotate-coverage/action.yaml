@@ -1,0 +1,63 @@
+name: "Annotate Coverage"
+description: "Annotate uncovered lines in a PR diff using Go coverage data"
+author: "Grafana Labs"
+
+inputs:
+  coverage-path:
+    description: "Directory containing Go coverage files (*.out)"
+    required: false
+    default: ".coverage"
+  format:
+    description: "Output format: Text, Markdown, or GitHubAnnotations"
+    required: false
+    default: "GitHubAnnotations"
+  base-ref:
+    description: "Base ref to compare against (e.g., the PR base branch). When set, diff is computed as <base-ref>..<commit-sha or HEAD>."
+    required: false
+    default: ""
+  commit-sha:
+    description: "Commit ref to compare to. With base-ref, diff is <base-ref>..<commit-sha>. Without base-ref, diff is the changes introduced by <commit-sha>. Defaults to HEAD when used with base-ref."
+    required: false
+    default: ""
+  repository-directory:
+    description: "Path to the git repository to analyze"
+    required: false
+    default: ${{ github.workspace }}
+  go-version:
+    description: "Go version to use when building the binary"
+    required: false
+    default: "1.25"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      with:
+        go-version: ${{ inputs.go-version }}
+
+    - name: Build annotate-coverage
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        cd "${ACTION_PATH}"
+        go build -o "${RUNNER_TEMP}/annotate-coverage" ./cmd/annotate-coverage
+
+    - name: Run annotate-coverage
+      shell: bash
+      working-directory: ${{ inputs.repository-directory }}
+      env:
+        COVERAGE_PATH: ${{ inputs.coverage-path }}
+        FORMAT: ${{ inputs.format }}
+        BASE_REF: ${{ inputs.base-ref }}
+        COMMIT_SHA: ${{ inputs.commit-sha }}
+      run: |
+        args=(--coverage "${COVERAGE_PATH}" --format "${FORMAT}")
+        if [[ -n "${BASE_REF}" ]]; then
+          args+=(--base "${BASE_REF}")
+        fi
+        if [[ -n "${COMMIT_SHA}" ]]; then
+          args+=(--commit "${COMMIT_SHA}")
+        fi
+        "${RUNNER_TEMP}/annotate-coverage" "${args[@]}"

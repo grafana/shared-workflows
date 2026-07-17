@@ -282,7 +282,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.25.2
+      ZIZMOR_VERSION: 1.26.1
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -295,7 +295,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
@@ -403,7 +403,7 @@ jobs:
           fi
 
       - name: Setup UV
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           enable-cache: true
           activate-environment: true
@@ -414,7 +414,7 @@ jobs:
         id: validate-config
         continue-on-error: true
         if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs['repo-local-zizmor-config'] != '' }}
-        uses: grafana/shared-workflows/actions/validate-zizmor-config@84a7e1d935b2240eb5dcc3ee4dc0a6692057e94d # validate-zizmor-config/v0.2.0
+        uses: grafana/shared-workflows/actions/validate-zizmor-config@e181109698e53b4c68bd51fe27ba47c6adf27da7 # validate-zizmor-config/v0.2.1
         with:
           config_path: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           sarif_output: results.sarif
@@ -479,7 +479,7 @@ jobs:
       - name: Upload to code-scanning
         id: upload-sarif
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         continue-on-error: true
         with:
           sarif_file: results.sarif
@@ -563,7 +563,7 @@ jobs:
 
       - name: Comment with zizmor results
         if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@36914110eb9d2010cc18858459e9ad3e5694d9e8 # v1.63.0
+        uses: int128/comment-action@6178a0317dc0dc698ddbed82176419f7b3effd3d # v1.66.0
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
@@ -628,7 +628,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
@@ -652,7 +652,7 @@ jobs:
           BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
           BENCH_SERVICE_VERSION: ${{ github.sha }}
           # renovate: datasource=github-releases packageName=grafana/grafana-bench
-          BENCH_VERSION: "v1.0.11"
+          BENCH_VERSION: "v1.0.12"
           PROMETHEUS_URL: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_URL }}
           PROMETHEUS_USER: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_USER }}
           PROMETHEUS_PASSWORD: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_PASSWORD }}
@@ -798,7 +798,7 @@ jobs:
           PY
 
       - name: Notify Slack
-        uses: grafana/shared-workflows/actions/send-slack-message@e288f43e2954fe65ce3dadfcc418dacb638cf7e1 # send-slack-message/v3.0.0
+        uses: grafana/shared-workflows/actions/send-slack-message@551bc8d50017d3e95d5da3f8a4826e733a208dc0 # send-slack-message/v3.0.2
         with:
           method: chat.postMessage
           payload: ${{ steps.slack-payload.outputs.payload }}

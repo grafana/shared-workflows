@@ -76,7 +76,7 @@ runs:
         echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
     - name: Login to GCS
       id: login-to-gcs
-      uses: grafana/shared-workflows/actions/login-to-gcs@6a97ef28077dbb66da3582aad604aef980cd1787 # login-to-gcs/v0.3.0
+      uses: grafana/shared-workflows/actions/login-to-gcs@1f02013f3a8a0c29e3cb7dc6793158defe914569 # login-to-gcs/v0.3.1
       with:
         bucket: ${{ inputs.bucket }}
         environment: ${{ inputs.environment }}
@@ -112,7 +112,7 @@ runs:
       run: |
         if [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
           rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
-          echo "::notice::Successfully deleted credentials file"
+          echo "::debug::Successfully deleted credentials file"
         else
           echo "::warning::Credentials file not found at ${GOOGLE_APPLICATION_CREDENTIALS}"
         fi

@@ -1,0 +1,107 @@
+name: Test download-branch-workflow-artifact action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/download-branch-workflow-artifact/**"
+      - ".github/workflows/test-download-branch-workflow-artifact.yaml"
+
+  pull_request:
+    paths:
+      - "actions/download-branch-workflow-artifact/**"
+      - ".github/workflows/test-download-branch-workflow-artifact.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  # No successful run exists for a nonexistent workflow, so the action should
+  # report found=false with an empty run-id. Fully hermetic (read-only).
+  test-no-runs-found:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Download from a nonexistent workflow
+        id: dl
+        uses: ./actions/download-branch-workflow-artifact
+        with:
+          workflow: this-workflow-does-not-exist.yml
+          artifact-name: nonexistent-artifact
+
+      - name: Verify nothing was found
+        env:
+          FOUND: ${{ steps.dl.outputs.found }}
+          RUN_ID: ${{ steps.dl.outputs.run-id }}
+        run: |
+          if [ "${FOUND}" != "false" ]; then
+            echo "FAIL: expected found=false, got '${FOUND}'"
+            exit 1
+          fi
+          if [ -n "${RUN_ID}" ]; then
+            echo "FAIL: expected an empty run-id, got '${RUN_ID}'"
+            exit 1
+          fi
+          echo "PASS: nonexistent workflow -> found=false, run-id empty"
+
+  # An existing workflow with successful runs, but a missing artifact name:
+  # the download step fails and the action reports found=false gracefully.
+  # Asserting only found=false keeps this robust regardless of run history.
+  test-missing-artifact:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Download a missing artifact from an existing workflow
+        id: dl
+        uses: ./actions/download-branch-workflow-artifact
+        with:
+          workflow: pre-commit.yaml
+          artifact-name: this-artifact-does-not-exist
+
+      - name: Verify graceful not-found
+        env:
+          FOUND: ${{ steps.dl.outputs.found }}
+          RUN_ID: ${{ steps.dl.outputs.run-id }}
+        run: |
+          echo "run-id resolved to: ${RUN_ID:-<none>}"
+          if [ "${FOUND}" != "false" ]; then
+            echo "FAIL: expected found=false for a missing artifact, got '${FOUND}'"
+            exit 1
+          fi
+          echo "PASS: existing workflow + missing artifact -> found=false (graceful)"
