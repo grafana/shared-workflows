@@ -557,7 +557,7 @@ jobs:
       - name: Hide any previous comments
         if: ${{ !cancelled() && steps.upload-sarif.outcome == 'failure' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
-        uses: int128/hide-comment-action@42ef2bf9a7d8751219e33ff76f19752fee8decec # v1.61.0
+        uses: int128/hide-comment-action@7938621b1746abfe9727d44c8f6c47d5485192ca # v1.65.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
