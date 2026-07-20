@@ -3,7 +3,7 @@ module github.com/grafana/shared-workflows/scripts/generate-catalog-info
 go 1.24.2
 
 require (
-	github.com/hairyhenderson/go-codeowners v0.7.0
+	github.com/hairyhenderson/go-codeowners v0.7.1
 	k8s.io/apimachinery v0.34.1
 	sigs.k8s.io/yaml v1.6.0
 )
