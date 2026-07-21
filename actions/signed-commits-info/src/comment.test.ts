@@ -152,7 +152,7 @@ describe("buildCommentBody", () => {
   test("links to GitHub docs on signature verification", () => {
     const body = buildCommentBody([makeCommit({})], 1, "main", "feat");
     expect(body).toContain(
-      "https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification",
+      "https://docs.github.com/authentication/managing-commit-signature-verification/about-commit-signature-verification",
     );
   });
 });

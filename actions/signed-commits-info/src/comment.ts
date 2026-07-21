@@ -27,7 +27,7 @@ export function buildCommentBody(
     "| --- | --- | --- | --- |",
     ...rows,
     "",
-    "This repository requires all commits to be signed. See [GitHub docs on commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification).",
+    "This repository requires all commits to be signed. See [GitHub docs on commit signature verification](https://docs.github.com/authentication/managing-commit-signature-verification/about-commit-signature-verification).",
   ].join("\n");
 }
 
