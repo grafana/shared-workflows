@@ -563,7 +563,7 @@ jobs:
 
       - name: Comment with zizmor results
         if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@6178a0317dc0dc698ddbed82176419f7b3effd3d # v1.66.0
+        uses: int128/comment-action@8a8f706e54cee412df11b9d08f1decd8a69aba07 # v1.67.0
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
