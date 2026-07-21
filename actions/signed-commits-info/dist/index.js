@@ -22263,7 +22263,7 @@ function buildSummary(total, unverified, baseRef, headRef) {
     ...unverified.map((c) => [...buildSummaryTableRow(c)])
   ]);
   summary2.addBreak();
-  summary2.addRaw('This repository requires all commits to be signed. You can learn more about signing your commits at <a href="https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification">docs.github.com</a>.', true);
+  summary2.addRaw('This repository requires all commits to be signed. You can learn more about signing your commits at <a href="https://docs.github.com/authentication/managing-commit-signature-verification/about-commit-signature-verification">docs.github.com</a>.', true);
 }
 
 // src/comment.ts
@@ -22284,7 +22284,7 @@ function buildCommentBody(unverified, total, baseRef, headRef) {
     "| --- | --- | --- | --- |",
     ...rows,
     "",
-    "This repository requires all commits to be signed. See [GitHub docs on commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)."
+    "This repository requires all commits to be signed. See [GitHub docs on commit signature verification](https://docs.github.com/authentication/managing-commit-signature-verification/about-commit-signature-verification)."
   ].join(`
 `);
 }
