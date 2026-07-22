@@ -513,7 +513,7 @@ jobs:
 
           if [ "${VALIDATE_CONFIG_OUTCOME}" = "failure" ]; then
             echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
-            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}."
+            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}." >> "${GITHUB_OUTPUT}"
             if [ -f results.sarif ]; then
               python3 - <<'PY' | tee -a "${GITHUB_OUTPUT}"
           import json
