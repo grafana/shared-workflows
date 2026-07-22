@@ -532,7 +532,6 @@ jobs:
 
           python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" plain-github-output --batch-size 400
 
-
       - name: Remove zizmor config
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
