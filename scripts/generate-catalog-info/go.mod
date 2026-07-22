@@ -11,6 +11,6 @@ require (
 require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	k8s.io/klog/v2 v2.130.1 // indirect
+	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397 // indirect
 )
