@@ -84,13 +84,13 @@ def _merge_sarif_parts(parts: list[Path], dst: Path) -> None:
 
 
 def _run_sarif(paths: list[str] | None, batch: int, out: Path) -> int:
+    out.parent.mkdir(parents=True, exist_ok=True)
     if paths is None:
         out.write_text(json.dumps(_EMPTY_SARIF), encoding="utf-8")
         return 0
 
     chunks = list(batched(paths, batch))
     if len(chunks) == 1:
-        out.parent.mkdir(parents=True, exist_ok=True)
         with out.open("wb") as fh:
             rc = subprocess.run(_zizmor_cmd("sarif", list(chunks[0])), stdout=fh, check=False).returncode
         return _zizmor_rc(rc)
