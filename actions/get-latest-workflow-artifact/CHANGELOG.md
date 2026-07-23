@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.4](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.2.3...get-latest-workflow-artifact/v0.2.4) (2026-07-23)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @types/node to v24.13.2 ([#2100](https://github.com/grafana/shared-workflows/issues/2100)) ([d9b64f0](https://github.com/grafana/shared-workflows/commit/d9b64f01fa9319cdbe272ce50d03f8f61e7fa247))
+* **deps:** update dependency @types/node to v26 ([#2109](https://github.com/grafana/shared-workflows/issues/2109)) ([f22a58f](https://github.com/grafana/shared-workflows/commit/f22a58ff015a206ffeaccf4764144bedd8aecd54))
+
 ## [0.2.3](https://github.com/grafana/shared-workflows/compare/get-latest-workflow-artifact/v0.2.2...get-latest-workflow-artifact/v0.2.3) (2026-06-10)
 
 
