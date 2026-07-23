@@ -219,14 +219,10 @@ jobs:
 
             const AUDIENCE = 'zizmor-job-workflow-ref';
 
-            // Fork PRs (and some other contexts) have no OIDC token. Detect that
-            // up front and use fallback without throwing, so the step succeeds
-            // and the log stays clear.
+            // Fork PRs have no OIDC token, so we can't detect the workflow ref. Use main.
             const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL'];
             if (!runtimeUrl) {
-              core.info(
-                "No OIDC token available (e.g. pull request from a fork). Using fallback: grafana/shared-workflows@main for default config."
-              );
+              core.info("No OIDC token (e.g. fork PR). Using grafana/shared-workflows@main for default config.");
               core.setOutput('owner', 'grafana');
               core.setOutput('repo', 'shared-workflows');
               core.setOutput('sha', 'main');
@@ -298,6 +294,31 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
+
+      # .github/zizmor-collection-ignore (optional) — see reusable-zizmor.md
+      - name: Checkout shared-workflows (zizmor helper scripts)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: ${{ needs.job-workflow-ref.outputs.owner }}/${{ needs.job-workflow-ref.outputs.repo }}
+          ref: ${{ needs.job-workflow-ref.outputs.sha }}
+          path: _shared-workflows-zizmor
+          persist-credentials: false
+
+      - name: Zizmor paths + helper_root
+        id: zizmor-helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="${GITHUB_WORKSPACE}/_shared-workflows-zizmor/actions/zizmor-collection-paths"
+          if [ ! -f "${ROOT}/run_zizmor.py" ]; then
+            echo "::error::zizmor helper missing at ${ROOT} (pin reusable-zizmor.yml to a SHA that includes actions/zizmor-collection-paths)." >&2
+            exit 1
+          fi
+          echo "helper_root=${ROOT}" >> "${GITHUB_OUTPUT}"
+          python3 "${ROOT}/collection_paths.py" \
+            --repo-root "${GITHUB_WORKSPACE}" \
+            --ignore-file "${GITHUB_WORKSPACE}/.github/zizmor-collection-ignore" \
+            --paths-out "${RUNNER_TEMP}/zizmor-explicit-inputs.txt"
 
       - name: Restore config from cache
         id: cache-config
@@ -430,22 +451,12 @@ jobs:
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-        shell: sh
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
+        shell: bash
         run: |
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format sarif \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            > results.sarif
-          exit_code=$?
-          # Only fail on exit code 1 (zizmor crash). 0 = no findings, 10-14 = findings by severity.
-          if [ "${exit_code}" -eq 1 ]; then exit 1; fi
-          exit 0
+          set -euo pipefail
+          python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" sarif --batch-size 400 --out results.sarif
 
       - name: Upload artifact
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
@@ -495,13 +506,14 @@ jobs:
           REPO_LOCAL_ZIZMOR_CONFIG: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
         run: |
-          set -o pipefail
-
-          echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
+          set -euo pipefail
 
           if [ "${VALIDATE_CONFIG_OUTCOME}" = "failure" ]; then
-            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}."
+            echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
+            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}." >> "${GITHUB_OUTPUT}"
             if [ -f results.sarif ]; then
               python3 - <<'PY' | tee -a "${GITHUB_OUTPUT}"
           import json
@@ -518,33 +530,7 @@ jobs:
             exit 0
           fi
 
-          # Run zizmor again with plain output for human-readable logs.
-          # Don't fail the build here - we capture the exit code for the
-          # "Fail the build" step to evaluate against fail-severity.
-          # Output is also captured for the fallback PR comment when
-          # Code Scanning is unavailable.
-          set +e
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format plain \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            | tee -a "${GITHUB_OUTPUT}"
-          zizmor_exit_code=$?
-          set -e
-          echo "EOF" >> "${GITHUB_OUTPUT}"
-
-          # Error 1 is a failure of zizmor itself
-          if [ "${zizmor_exit_code}" -eq 1 ]; then
-            echo "zizmor itself failed - check the above output. failing the workflow."
-            exit 1
-          fi
-
-          echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
+          python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" plain-github-output --batch-size 400
 
       - name: Remove zizmor config
         env:
@@ -558,12 +544,14 @@ jobs:
         if: ${{ !cancelled() && steps.upload-sarif.outcome == 'failure' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
         uses: int128/hide-comment-action@8cd375395d4b1630f8b70d17b802501a15d32561 # v1.66.0
+
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
         if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
         uses: int128/comment-action@9448863881c42b4c69f213d9a67c8b37e7c0f105 # v1.68.0
+
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
@@ -619,7 +607,6 @@ jobs:
 
   grafana-bench:
     name: Send zizmor metrics to Prometheus via Grafana Bench
-    continue-on-error: true
     needs: [analysis, job-workflow-ref]
     # Only run for grafana org and non-fork PRs (fork PRs have no OIDC/Vault access).
     if: ${{ github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
@@ -656,6 +643,7 @@ jobs:
           PROMETHEUS_URL: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_URL }}
           PROMETHEUS_USER: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_USER }}
           PROMETHEUS_PASSWORD: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_PASSWORD }}
+
         run: |
           BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
