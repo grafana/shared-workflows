@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/grafana/shared-workflows/compare/go-flaky-tests/v0.1.1...go-flaky-tests/v0.1.2) (2026-07-23)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v6.5.0 ([#2145](https://github.com/grafana/shared-workflows/issues/2145)) ([67f1fea](https://github.com/grafana/shared-workflows/commit/67f1fea99eb1c85cc97bb621d3b3130381f623a9))
+* **deps:** update module github.com/rogpeppe/go-internal to v1.15.0 ([#2189](https://github.com/grafana/shared-workflows/issues/2189)) ([dc18119](https://github.com/grafana/shared-workflows/commit/dc1811986e78895b6e2951be3dbbf0a14cf7f2ac))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/go-flaky-tests/v0.1.0...go-flaky-tests/v0.1.1) (2026-06-10)
 
 
