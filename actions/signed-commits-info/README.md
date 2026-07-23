@@ -30,7 +30,7 @@ jobs:
       (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
     steps:
-      - uses: grafana/shared-workflows/actions/signed-commits-info@signed-commits-info/v0.1.0
+      - uses: grafana/shared-workflows/actions/signed-commits-info@signed-commits-info/v0.1.1
         continue-on-error: true
 ```
 
