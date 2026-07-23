@@ -4,7 +4,7 @@
     "actions/dockerhub-login": "2.0.0",
     "actions/send-slack-message": "3.0.2",
     "actions/aws-auth": "1.0.4",
-    "actions/login-to-gar": "1.0.3",
+    "actions/login-to-gar": "1.0.4",
     "actions/login-to-gcs": "0.3.1",
     "actions/argo-lint": "1.1.1",
     "actions/setup-conftest": "1.0.4",
