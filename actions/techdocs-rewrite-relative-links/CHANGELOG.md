@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.0.6](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.5...techdocs-rewrite-relative-links/v1.0.6) (2026-07-23)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update module github.com/lmittmann/tint to v1.1.3 ([#2141](https://github.com/grafana/shared-workflows/issues/2141)) ([30170fb](https://github.com/grafana/shared-workflows/commit/30170fbbff24f8c542be7e22ea10a5c103d048ea))
+* **security/unknown/actions/techdocs-rewrite-relative-links:** update go toolchain directive to v1.25.12 [security] ([#2137](https://github.com/grafana/shared-workflows/issues/2137)) ([6320a77](https://github.com/grafana/shared-workflows/commit/6320a7729e80f361e2e3dcc407fa5dfd677a88f3))
+* **security/unknown/actions/techdocs-rewrite-relative-links:** update module github.com/yuin/goldmark to v1.7.17 [security] ([d2bf265](https://github.com/grafana/shared-workflows/commit/d2bf265f30e27e0c4a8029a9441bee803379203d))
+* **security/unknown/actions/techdocs-rewrite-relative-links:** update module golang.org/x/sys to v0.44.0 [security] ([02cedbd](https://github.com/grafana/shared-workflows/commit/02cedbd7851ac248a362aef128a066c0c9b41627))
+* **security/unknown/actions/techdocs-rewrite-relative-links:** update security actions/techdocs-rewrite-relative-links go to v1.25.11 [security] ([d7ed729](https://github.com/grafana/shared-workflows/commit/d7ed72954247e2b60483d84624edcc6378a6b4e5))
+* **techdocs-rewrite-relative-links:** update go toolchain to v1.25.11 [security] ([#2115](https://github.com/grafana/shared-workflows/issues/2115)) ([d7ed729](https://github.com/grafana/shared-workflows/commit/d7ed72954247e2b60483d84624edcc6378a6b4e5))
+* **techdocs-rewrite-relative-links:** update module github.com/yuin/goldmark to v1.7.17 [security] ([#2129](https://github.com/grafana/shared-workflows/issues/2129)) ([d2bf265](https://github.com/grafana/shared-workflows/commit/d2bf265f30e27e0c4a8029a9441bee803379203d))
+* **techdocs-rewrite-relative-links:** update module golang.org/x/sys to v0.44.0 [security] ([#2116](https://github.com/grafana/shared-workflows/issues/2116)) ([02cedbd](https://github.com/grafana/shared-workflows/commit/02cedbd7851ac248a362aef128a066c0c9b41627))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v6.0.3 ([#2027](https://github.com/grafana/shared-workflows/issues/2027)) ([42afded](https://github.com/grafana/shared-workflows/commit/42afdedfa0cfbe7d8d3d1bbc6fd2318145909947))
+* **deps:** update actions/checkout action to v7 ([#2106](https://github.com/grafana/shared-workflows/issues/2106)) ([f20c37c](https://github.com/grafana/shared-workflows/commit/f20c37c69d2a3c8817fd343f9bde32e11183b467))
+* **deps:** update actions/setup-go action to v6.5.0 ([#2145](https://github.com/grafana/shared-workflows/issues/2145)) ([67f1fea](https://github.com/grafana/shared-workflows/commit/67f1fea99eb1c85cc97bb621d3b3130381f623a9))
+* **deps:** update golang.org/x/exp digest to 764159d ([#2198](https://github.com/grafana/shared-workflows/issues/2198)) ([750e4fb](https://github.com/grafana/shared-workflows/commit/750e4fb7d992378269fb692972e7988df846c6fc))
+* **deps:** update golang.org/x/exp digest to 9ea1abe ([#2162](https://github.com/grafana/shared-workflows/issues/2162)) ([9f5085f](https://github.com/grafana/shared-workflows/commit/9f5085fd590069927c3093e0946d9ffbbf95e0a5))
+* **deps:** update golang.org/x/exp digest to c48552f ([#2119](https://github.com/grafana/shared-workflows/issues/2119)) ([671af1c](https://github.com/grafana/shared-workflows/commit/671af1c8f4c70aee2c157d0b7f6d61d696af5192))
+* **deps:** update golang.org/x/xerrors digest to 7835f81 ([#2120](https://github.com/grafana/shared-workflows/issues/2120)) ([3337940](https://github.com/grafana/shared-workflows/commit/3337940847527a55ad99e382e68d2370274b749a))
+* **deps:** update module github.com/fatih/color to v1.19.0 ([#2183](https://github.com/grafana/shared-workflows/issues/2183)) ([da1b16b](https://github.com/grafana/shared-workflows/commit/da1b16be54c4eb5dad32bf4d72f0199e49711e71))
+* **deps:** update module github.com/goccy/go-yaml to v1.19.2 ([#2188](https://github.com/grafana/shared-workflows/issues/2188)) ([4418cba](https://github.com/grafana/shared-workflows/commit/4418cba5ecf0999055129273c9cf199d576b5aea))
+* **deps:** update module github.com/mattn/go-colorable to v0.1.15 ([#2134](https://github.com/grafana/shared-workflows/issues/2134)) ([7cb8b3b](https://github.com/grafana/shared-workflows/commit/7cb8b3b10259b7f68110c1808fe4d5abede90ddb))
+* **deps:** update module github.com/mattn/go-isatty to v0.0.22 ([#2135](https://github.com/grafana/shared-workflows/issues/2135)) ([919fbe9](https://github.com/grafana/shared-workflows/commit/919fbe9b0e3c6eee7c48c8a688d9f8b1bd7ed983))
+* **deps:** update module github.com/mattn/go-isatty to v0.0.23 ([#2174](https://github.com/grafana/shared-workflows/issues/2174)) ([d5b32bc](https://github.com/grafana/shared-workflows/commit/d5b32bce027d0fa5c30f49ee29be18ef68c630db))
+* **deps:** update module golang.org/x/sys to v0.47.0 ([#2190](https://github.com/grafana/shared-workflows/issues/2190)) ([2c4cdd9](https://github.com/grafana/shared-workflows/commit/2c4cdd9de50f69bdca8c24eac1f3b81951e54cd4))
+* **deps:** update module gopkg.in/check.v1 to v1.0.0-20201130134442-10cb98267c6c ([#2139](https://github.com/grafana/shared-workflows/issues/2139)) ([9baafd6](https://github.com/grafana/shared-workflows/commit/9baafd64d89e7af180d5b81b69ac5f93df15c482))
+
 ## [1.0.5](https://github.com/grafana/shared-workflows/compare/techdocs-rewrite-relative-links/v1.0.4...techdocs-rewrite-relative-links/v1.0.5) (2026-06-10)
 
 
