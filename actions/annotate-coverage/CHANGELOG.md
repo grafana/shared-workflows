@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/annotate-coverage/v0.2.0...annotate-coverage/v0.2.1) (2026-07-23)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update module github.com/rogpeppe/go-internal to v1.15.0 ([#2189](https://github.com/grafana/shared-workflows/issues/2189)) ([dc18119](https://github.com/grafana/shared-workflows/commit/dc1811986e78895b6e2951be3dbbf0a14cf7f2ac))
+
 ## [0.2.0](https://github.com/grafana/shared-workflows/compare/annotate-coverage/v0.1.0...annotate-coverage/v0.2.0) (2026-07-14)
 
 
