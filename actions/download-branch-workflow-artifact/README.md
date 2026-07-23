@@ -44,7 +44,7 @@ jobs:
 
       - name: Download previous deployment state
         id: previous
-        uses: grafana/shared-workflows/actions/download-branch-workflow-artifact@download-branch-workflow-artifact/v0.1.0
+        uses: grafana/shared-workflows/actions/download-branch-workflow-artifact@download-branch-workflow-artifact/v0.2.0
         with:
           workflow: deploy-prod.yml
           artifact-name: component-tags
