@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/grafana/shared-workflows/compare/login-to-gcs/v0.3.1...login-to-gcs/v0.3.2) (2026-07-23)
+
+
+### 🐛 Bug Fixes
+
+* avoid noisy notice messages ([#2158](https://github.com/grafana/shared-workflows/issues/2158)) ([e3d8e4f](https://github.com/grafana/shared-workflows/commit/e3d8e4fc93c11a792dd548a113679a85d5b78493))
+
 ## [0.3.1](https://github.com/grafana/shared-workflows/compare/login-to-gcs/v0.3.0...login-to-gcs/v0.3.1) (2026-06-10)
 
 
