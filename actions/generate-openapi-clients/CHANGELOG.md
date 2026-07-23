@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients/v1.1.1...generate-openapi-clients/v1.1.2) (2026-07-23)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update stefanzweifel/git-auto-commit-action action to v7.2.0 ([#2194](https://github.com/grafana/shared-workflows/issues/2194)) ([87f28f1](https://github.com/grafana/shared-workflows/commit/87f28f11dadb56791da38d3f05b15377f948d951))
+
 ## [1.1.1](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients/v1.1.0...generate-openapi-clients/v1.1.1) (2026-06-10)
 
 
