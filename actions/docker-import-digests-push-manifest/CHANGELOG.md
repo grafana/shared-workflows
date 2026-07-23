@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.3](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.2.2...docker-import-digests-push-manifest/v0.2.3) (2026-07-23)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v6.5.0 ([#2145](https://github.com/grafana/shared-workflows/issues/2145)) ([67f1fea](https://github.com/grafana/shared-workflows/commit/67f1fea99eb1c85cc97bb621d3b3130381f623a9))
+* **deps:** update docker/metadata-action action to v6.2.0 ([#2176](https://github.com/grafana/shared-workflows/issues/2176)) ([be284f2](https://github.com/grafana/shared-workflows/commit/be284f249b3191b688878dc5650d49285eb22dc1))
+* **deps:** update docker/setup-buildx-action action to v4.2.0 ([#2177](https://github.com/grafana/shared-workflows/issues/2177)) ([9a77f1c](https://github.com/grafana/shared-workflows/commit/9a77f1cb3ac7b80c354c626541aae402de36681e))
+* **deps:** update grafana/shared-workflows/dockerhub-login action to v2.0.0 ([#2096](https://github.com/grafana/shared-workflows/issues/2096)) ([b9bd9af](https://github.com/grafana/shared-workflows/commit/b9bd9af9d088e4a7abca2fdc75b0ca10f7aae9de))
+* **deps:** update grafana/shared-workflows/login-to-gar action to v1.0.3 ([#2091](https://github.com/grafana/shared-workflows/issues/2091)) ([80f6a4e](https://github.com/grafana/shared-workflows/commit/80f6a4efd0f3f38df47e42816a261e95fad0c4a8))
+
 ## [0.2.2](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.2.1...docker-import-digests-push-manifest/v0.2.2) (2026-06-10)
 
 
