@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v2.0.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v2.0.1
         with:
           # Secrets placed in the ci/common/<path> path in Vault
           common_secrets: |
