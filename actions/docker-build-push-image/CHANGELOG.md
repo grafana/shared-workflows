@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.5](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.4...docker-build-push-image/v0.3.5) (2026-07-23)
+
+
+### 🐛 Bug Fixes
+
+* avoid noisy notice messages ([#2158](https://github.com/grafana/shared-workflows/issues/2158)) ([e3d8e4f](https://github.com/grafana/shared-workflows/commit/e3d8e4fc93c11a792dd548a113679a85d5b78493))
+* remove `s` from metadatajson ([#2086](https://github.com/grafana/shared-workflows/issues/2086)) ([8a16b96](https://github.com/grafana/shared-workflows/commit/8a16b96ee18c77596b132a2b8fac70dc6e30fd6b))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/build-push-action action to v7.3.0 ([#2167](https://github.com/grafana/shared-workflows/issues/2167)) ([0148978](https://github.com/grafana/shared-workflows/commit/0148978cad395f466aea349566e5fca83f0a2e9d))
+* **deps:** update docker/metadata-action action to v6.2.0 ([#2176](https://github.com/grafana/shared-workflows/issues/2176)) ([be284f2](https://github.com/grafana/shared-workflows/commit/be284f249b3191b688878dc5650d49285eb22dc1))
+* **deps:** update docker/setup-buildx-action action to v4.2.0 ([#2177](https://github.com/grafana/shared-workflows/issues/2177)) ([9a77f1c](https://github.com/grafana/shared-workflows/commit/9a77f1cb3ac7b80c354c626541aae402de36681e))
+* **deps:** update docker/setup-qemu-action action to v4.2.0 ([#2178](https://github.com/grafana/shared-workflows/issues/2178)) ([517b969](https://github.com/grafana/shared-workflows/commit/517b9699e0d5ab2797fb519976b72c12f7c3fcd7))
+* **deps:** update grafana/shared-workflows/dockerhub-login action to v2.0.0 ([#2096](https://github.com/grafana/shared-workflows/issues/2096)) ([b9bd9af](https://github.com/grafana/shared-workflows/commit/b9bd9af9d088e4a7abca2fdc75b0ca10f7aae9de))
+* **deps:** update grafana/shared-workflows/login-to-gar action to v1.0.3 ([#2091](https://github.com/grafana/shared-workflows/issues/2091)) ([80f6a4e](https://github.com/grafana/shared-workflows/commit/80f6a4efd0f3f38df47e42816a261e95fad0c4a8))
+
 ## [0.3.4](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.3...docker-build-push-image/v0.3.4) (2026-06-10)
 
 
