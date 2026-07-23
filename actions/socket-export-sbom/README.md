@@ -39,14 +39,14 @@ jobs:
     steps:
       - name: "Get Socket API token from Vault"
         id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v0.1.3
         with:
           common_secrets: |
             SOCKET_API_TOKEN=socket:SOCKET_API_KEY
 
       - name: "Export SPDX SBOM from Socket"
         id: export-sbom
-        uses: grafana/shared-workflows/actions/socket-export-sbom@ff9aaa53f25716fcd6dde39f6d4e41c4e16fb5e1 # socket-export-sbom/v0.1.2
+        uses: grafana/shared-workflows/actions/socket-export-sbom@ff9aaa53f25716fcd6dde39f6d4e41c4e16fb5e1 # socket-export-sbom/v0.1.3
         with:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           socket_org: grafana
@@ -101,14 +101,14 @@ jobs:
           echo "repo=${GH_REPO##*/}" >> "$GITHUB_OUTPUT"
       - name: "Get Socket API token from Vault"
         id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v0.1.3
         with:
           common_secrets: |
             SOCKET_API_TOKEN=socket:SOCKET_API_KEY
 
       - name: "Export SPDX SBOM from Socket"
         id: export-sbom
-        uses: grafana/shared-workflows/actions/socket-export-sbom@ff9aaa53f25716fcd6dde39f6d4e41c4e16fb5e1 # socket-export-sbom/v0.1.2
+        uses: grafana/shared-workflows/actions/socket-export-sbom@ff9aaa53f25716fcd6dde39f6d4e41c4e16fb5e1 # socket-export-sbom/v0.1.3
         with:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           socket_org: grafana
