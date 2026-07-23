@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.4](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.3...run-capslock/v0.2.4) (2026-07-23)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update module google.golang.org/protobuf to v1.36.11 ([#2142](https://github.com/grafana/shared-workflows/issues/2142)) ([66d186f](https://github.com/grafana/shared-workflows/commit/66d186f890e84ae1e26fcf55f25103f242eccb1e))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v6.0.3 ([#2027](https://github.com/grafana/shared-workflows/issues/2027)) ([42afded](https://github.com/grafana/shared-workflows/commit/42afdedfa0cfbe7d8d3d1bbc6fd2318145909947))
+* **deps:** update actions/checkout action to v7 ([#2106](https://github.com/grafana/shared-workflows/issues/2106)) ([f20c37c](https://github.com/grafana/shared-workflows/commit/f20c37c69d2a3c8817fd343f9bde32e11183b467))
+* **deps:** update actions/setup-go action to v6.5.0 ([#2145](https://github.com/grafana/shared-workflows/issues/2145)) ([67f1fea](https://github.com/grafana/shared-workflows/commit/67f1fea99eb1c85cc97bb621d3b3130381f623a9))
+* **deps:** update marocchino/sticky-pull-request-comment action to v3.0.5 ([#2131](https://github.com/grafana/shared-workflows/issues/2131)) ([4ec290f](https://github.com/grafana/shared-workflows/commit/4ec290f77301d5c87dced804a4a74b2be27d6aae))
+
 ## [0.2.3](https://github.com/grafana/shared-workflows/compare/run-capslock/v0.2.2...run-capslock/v0.2.3) (2026-06-10)
 
 
