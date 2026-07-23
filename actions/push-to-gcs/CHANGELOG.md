@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.3](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.3.2...push-to-gcs/v0.3.3) (2026-07-23)
+
+
+### 🐛 Bug Fixes
+
+* avoid noisy notice messages ([#2158](https://github.com/grafana/shared-workflows/issues/2158)) ([e3d8e4f](https://github.com/grafana/shared-workflows/commit/e3d8e4fc93c11a792dd548a113679a85d5b78493))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update grafana/shared-workflows/login-to-gcs action to v0.3.1 ([#2094](https://github.com/grafana/shared-workflows/issues/2094)) ([6d9951c](https://github.com/grafana/shared-workflows/commit/6d9951c9b47c3b4d659c9ef227fc4c154acf2b02))
+* **main:** release push-to-gcs 0.3.2 ([#2063](https://github.com/grafana/shared-workflows/issues/2063)) ([872ea72](https://github.com/grafana/shared-workflows/commit/872ea72d5d58e24fce5b9ce004dbd03b243efdf7))
+* **main:** release push-to-gcs 0.3.2 ([#2070](https://github.com/grafana/shared-workflows/issues/2070)) ([570b023](https://github.com/grafana/shared-workflows/commit/570b0238e7f3240cff9b4c6c4516a6b925688223))
+
 ## [0.3.2](https://github.com/grafana/shared-workflows/compare/push-to-gcs/v0.3.1...push-to-gcs/v0.3.2) (2026-06-10)
 
 
