@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/component-change-detection/v1.0.2...component-change-detection/v1.1.0) (2026-07-23)
+
+
+### 🎉 Features
+
+* replace dawidd6/action-download-artifact with first-party GitHub actions ([#1955](https://github.com/grafana/shared-workflows/issues/1955)) ([e378ca0](https://github.com/grafana/shared-workflows/commit/e378ca000c6166a44060ed3a3c987a53da14128d))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-go action to v6.5.0 ([#2145](https://github.com/grafana/shared-workflows/issues/2145)) ([67f1fea](https://github.com/grafana/shared-workflows/commit/67f1fea99eb1c85cc97bb621d3b3130381f623a9))
+* **deps:** update module github.com/go-logfmt/logfmt to v0.6.1 ([#2185](https://github.com/grafana/shared-workflows/issues/2185)) ([0e76b00](https://github.com/grafana/shared-workflows/commit/0e76b0012f40d2ce5798f06eb14824b95276a183))
+
 ## [1.0.2](https://github.com/grafana/shared-workflows/compare/component-change-detection/v1.0.1...component-change-detection/v1.0.2) (2026-06-10)
 
 
