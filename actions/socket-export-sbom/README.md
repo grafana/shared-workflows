@@ -1,17 +1,20 @@
 # socket-export-sbom
 
-Composite action (step) to get the latest scan id for a repo enrolled in the socket.dev GitHub App and then fetch the spdx sbom from socket using the latest scan id.
+Composite action (step) that triggers a fresh Socket full scan for a given repo/branch and then fetches the resulting SBOM in SPDX format from socket.dev.
 
 A good use case is including this sbom as part of a public repo's release artifacts when creating a new release. If the release is immutable, then the steps for this workflow need to be incorporated into the release action.
 
+> **Breaking change:** this action now _creates_ a new Socket full scan for the `branch` you specify, rather than reading whatever scan the Socket GitHub App already recorded for the repo's default branch. Because the Socket CLI scans the manifest files on disk, the calling workflow **must check out the target branch's source tree before invoking this action**. Previously no checkout was required. See the updated examples below.
+
 ## Inputs
 
-| Name               | Type     | Description                                                                                                    | Default Value                 | Required |
-| ------------------ | -------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------- | -------- |
-| `socket_api_token` | `string` | API Key used to authenticate to socket.dev, requires repo: list, repo:read, full-scan:list, report:list scopes | `none`                        | true     |
-| `socket_base_url`  | `string` | Base URL of the socket api endpoint.                                                                           | `"https://api.socket.dev/v0"` | false    |
-| `socket_org`       | `string` | Name of the socket org.                                                                                        | `"grafana"`                   | true     |
-| `output_file`      | `string` | Name of the file to save the socket sbom on the runner.                                                        | `"spdx.json"`                 | false    |
+| Name               | Type     | Description                                                                                                                                                                                                                          | Default Value                 | Required |
+| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- | -------- |
+| `socket_api_token` | `string` | API Key used to authenticate to socket.dev, requires repo: list, repo:read, full-scan:list, report:list scopes                                                                                                                       | `none`                        | true     |
+| `socket_base_url`  | `string` | Base URL of the socket api endpoint.                                                                                                                                                                                                 | `"https://api.socket.dev/v0"` | false    |
+| `socket_org`       | `string` | Name of the socket org.                                                                                                                                                                                                              | `"grafana"`                   | true     |
+| `branch`           | `string` | Branch to scan and export the SBOM for. The caller must have already checked out this branch's source tree before invoking this action, since the Socket CLI scans the local manifest files rather than reading a pre-existing scan. | `none`                        | true     |
+| `output_file`      | `string` | Name of the file to save the socket sbom on the runner.                                                                                                                                                                              | `"spdx.json"`                 | false    |
 
 ## Examples
 
@@ -44,12 +47,18 @@ jobs:
           common_secrets: |
             SOCKET_API_TOKEN=socket:SOCKET_API_KEY
 
+      - name: "Checkout"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.ref_name }}
+
       - name: "Export SPDX SBOM from Socket"
         id: export-sbom
         uses: grafana/shared-workflows/actions/socket-export-sbom@ff9aaa53f25716fcd6dde39f6d4e41c4e16fb5e1 # socket-export-sbom/v0.1.2
         with:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           socket_org: grafana
+          branch: ${{ github.ref_name }}
           output_file: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.spdx.json
 
       - name: "Upload SBOM to release"
@@ -106,12 +115,18 @@ jobs:
           common_secrets: |
             SOCKET_API_TOKEN=socket:SOCKET_API_KEY
 
+      - name: "Checkout"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ steps.meta.outputs.tag }}
+
       - name: "Export SPDX SBOM from Socket"
         id: export-sbom
         uses: grafana/shared-workflows/actions/socket-export-sbom@ff9aaa53f25716fcd6dde39f6d4e41c4e16fb5e1 # socket-export-sbom/v0.1.2
         with:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           socket_org: grafana
+          branch: ${{ steps.meta.outputs.tag }}
           output_file: ${{ steps.meta.outputs.repo }}-${{ steps.meta.outputs.tag }}.spdx.json
 
       # Immutable releases lock assets at publish time, so the SBOM must be attached while the
