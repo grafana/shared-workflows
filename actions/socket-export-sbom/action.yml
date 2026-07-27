@@ -19,6 +19,10 @@ inputs:
   output_file:
     description: "Name of the file to save the sbom"
     required: false
+  export_timeout_seconds:
+    description: "Max seconds to wait for the SBOM export to become available after scan creation. The full scan report is generated lazily, so the export endpoint may 404 for a while after `socket scan create` returns. 180s comfortably covers grafana/grafana (our largest repo), which took up to 85s in testing."
+    required: false
+    default: "180"
 
 outputs:
   path:
@@ -74,13 +78,41 @@ runs:
         FULL_SCAN_ID: ${{ steps.create-scan.outputs.full_scan_id }}
         OUTPUT_FILE: ${{ inputs.output_file }}
         ACTION_PATH: ${{ github.action_path }}
+        TIMEOUT_SECONDS: ${{ inputs.export_timeout_seconds }}
       run: |
         # Extract basename if output_file is provided (handles both filenames and paths)
         if [[ -n "$OUTPUT_FILE" ]]; then
           OUTPUT_FILE=$(basename "$OUTPUT_FILE")
         fi
-        curl --silent --fail-with-body \
-          --header "Authorization: Bearer $SOCKET_API_TOKEN" \
-          "$SOCKET_BASE_URL/orgs/$SOCKET_ORG/export/spdx/$FULL_SCAN_ID" \
-          --output "$ACTION_PATH/$OUTPUT_FILE"
-        echo "path=$ACTION_PATH/$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
+        DEST="$ACTION_PATH/$OUTPUT_FILE"
+        URL="$SOCKET_BASE_URL/orgs/$SOCKET_ORG/export/spdx/$FULL_SCAN_ID"
+
+        # The full scan report is generated lazily by Socket, so this endpoint
+        # can 404/empty for a while after `socket scan create` returns. Poll
+        # with backoff until it's ready or TIMEOUT_SECONDS elapses.
+        START=$(date +%s)
+        DELAY=5
+        ATTEMPT=0
+        while true; do
+          ATTEMPT=$((ATTEMPT + 1))
+          HTTP_CODE=$(curl --silent --output "$DEST" --write-out "%{http_code}" \
+            --header "Authorization: Bearer $SOCKET_API_TOKEN" "$URL") || HTTP_CODE="curl_error"
+
+          if [[ "$HTTP_CODE" == "200" ]] && jq -e . "$DEST" >/dev/null 2>&1; then
+            echo "SBOM ready after ${ATTEMPT} attempt(s)"
+            break
+          fi
+
+          ELAPSED=$(($(date +%s) - START))
+          if ((ELAPSED >= TIMEOUT_SECONDS)); then
+            echo "SBOM export not ready after ${ELAPSED}s (last HTTP $HTTP_CODE):" >&2
+            cat "$DEST" >&2
+            exit 1
+          fi
+
+          echo "SBOM not ready yet (HTTP $HTTP_CODE), retrying in ${DELAY}s... (${ELAPSED}s/${TIMEOUT_SECONDS}s elapsed)"
+          sleep "$DELAY"
+          DELAY=$((DELAY * 2 > 30 ? 30 : DELAY * 2))
+        done
+
+        echo "path=$DEST" >> "$GITHUB_OUTPUT"
