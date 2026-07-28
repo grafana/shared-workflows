@@ -10,11 +10,11 @@ A good use case is including this sbom as part of a public repo's release artifa
 
 | Name                     | Type     | Description                                                                                                                                                                                                                          | Default Value                 | Required |
 | ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- | -------- |
-| `socket_api_token`       | `string` | API Key used to authenticate to socket.dev, requires repo: list, repo:read, full-scan:list, report:list scopes                                                                                                                       | `none`                        | true     |
+| `socket_api_token`       | `string` | API Key used to authenticate to socket.dev, requires the `full-scans:create` (for `socket scan create`) and `report:read` (for the SPDX export) scopes                                                                               | `none`                        | true     |
 | `socket_base_url`        | `string` | Base URL of the socket api endpoint.                                                                                                                                                                                                 | `"https://api.socket.dev/v0"` | false    |
 | `socket_org`             | `string` | Name of the socket org.                                                                                                                                                                                                              | `"grafana"`                   | true     |
 | `branch`                 | `string` | Branch to scan and export the SBOM for. The caller must have already checked out this branch's source tree before invoking this action, since the Socket CLI scans the local manifest files rather than reading a pre-existing scan. | `none`                        | true     |
-| `output_file`            | `string` | Name of the file to save the socket sbom on the runner.                                                                                                                                                                              | `"spdx.json"`                 | false    |
+| `output_file`            | `string` | Name of the file to save the socket sbom on the runner. Defaults to `<repo>-<branch>.spdx.json`, e.g. `grafana-v1.2.3.spdx.json`.                                                                                                    | `none`                        | false    |
 | `export_timeout_seconds` | `string` | Max seconds to wait, with backoff, for the SBOM export to become available after scan creation. The full scan report is generated lazily by Socket, so raise this for repos larger than grafana/grafana.                             | `"180"`                       | false    |
 
 ## Examples
@@ -60,7 +60,6 @@ jobs:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           socket_org: grafana
           branch: ${{ github.ref_name }}
-          output_file: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.spdx.json
 
       - name: "Upload SBOM to release"
         env:
@@ -100,15 +99,12 @@ jobs:
       contents: write # to create the draft release and upload the SBOM as a release asset
       id-token: write # to authenticate to Vault
     steps:
-      - name: "Resolve release tag and repo name"
+      - name: "Resolve release tag"
         id: meta
         env:
           DISPATCH_TAG: ${{ inputs.tag }}
           REF_TAG: ${{ github.ref_name }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          echo "tag=${DISPATCH_TAG:-$REF_TAG}" >> "$GITHUB_OUTPUT"
-          echo "repo=${GH_REPO##*/}" >> "$GITHUB_OUTPUT"
+        run: echo "tag=${DISPATCH_TAG:-$REF_TAG}" >> "$GITHUB_OUTPUT"
       - name: "Get Socket API token from Vault"
         id: vault-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
@@ -128,7 +124,6 @@ jobs:
           socket_api_token: ${{ fromJSON(steps.vault-secrets.outputs.secrets).SOCKET_API_TOKEN }}
           socket_org: grafana
           branch: ${{ steps.meta.outputs.tag }}
-          output_file: ${{ steps.meta.outputs.repo }}-${{ steps.meta.outputs.tag }}.spdx.json
 
       # Immutable releases lock assets at publish time, so the SBOM must be attached while the
       # release is still a draft. Draft creation does not trigger workflows, so we create the

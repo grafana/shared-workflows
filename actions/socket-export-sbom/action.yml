@@ -17,7 +17,7 @@ inputs:
     description: "Branch to scan and export the SBOM for. The caller must have already checked out this branch before invoking this action."
     required: true
   output_file:
-    description: "Name of the file to save the sbom"
+    description: "Name of the file to save the sbom. Defaults to '<repo>-<branch>.spdx.json' if not set."
     required: false
   export_timeout_seconds:
     description: "Max seconds to wait for the SBOM export to become available after scan creation. The full scan report is generated lazily, so the export endpoint may 404 for a while after `socket scan create` returns. 180s comfortably covers grafana/grafana (our largest repo), which took up to 85s in testing."
@@ -67,6 +67,7 @@ runs:
           exit 1
         fi
         echo "full_scan_id=$FULL_SCAN_ID" >> "$GITHUB_OUTPUT"
+        echo "repo_name=$REPO_NAME" >> "$GITHUB_OUTPUT"
 
     - name: Export SPDX SBOM from Socket.dev
       id: export-sbom
@@ -76,13 +77,18 @@ runs:
         SOCKET_BASE_URL: ${{ inputs.socket_base_url }}
         SOCKET_ORG: ${{ inputs.socket_org }}
         FULL_SCAN_ID: ${{ steps.create-scan.outputs.full_scan_id }}
+        REPO_NAME: ${{ steps.create-scan.outputs.repo_name }}
+        BRANCH: ${{ inputs.branch }}
         OUTPUT_FILE: ${{ inputs.output_file }}
         ACTION_PATH: ${{ github.action_path }}
         TIMEOUT_SECONDS: ${{ inputs.export_timeout_seconds }}
       run: |
-        # Extract basename if output_file is provided (handles both filenames and paths)
         if [[ -n "$OUTPUT_FILE" ]]; then
+          # Extract basename in case a path was provided
           OUTPUT_FILE=$(basename "$OUTPUT_FILE")
+        else
+          # e.g. "grafana" + "feature/foo" -> "grafana-feature-foo.spdx.json"
+          OUTPUT_FILE="${REPO_NAME}-${BRANCH//\//-}.spdx.json"
         fi
         DEST="$ACTION_PATH/$OUTPUT_FILE"
         URL="$SOCKET_BASE_URL/orgs/$SOCKET_ORG/export/spdx/$FULL_SCAN_ID"
@@ -95,7 +101,7 @@ runs:
         ATTEMPT=0
         while true; do
           ATTEMPT=$((ATTEMPT + 1))
-          HTTP_CODE=$(curl --silent --output "$DEST" --write-out "%{http_code}" \
+          HTTP_CODE=$(curl --silent --max-time 30 --output "$DEST" --write-out "%{http_code}" \
             --header "Authorization: Bearer $SOCKET_API_TOKEN" "$URL") || HTTP_CODE="curl_error"
 
           if [[ "$HTTP_CODE" == "200" ]] && jq -e . "$DEST" >/dev/null 2>&1; then
