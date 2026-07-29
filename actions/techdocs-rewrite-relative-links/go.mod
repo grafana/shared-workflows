@@ -14,7 +14,7 @@ require (
 	github.com/urfave/cli/v3 v3.10.1
 	github.com/willabides/actionslog v0.5.1
 	github.com/yuin/goldmark v1.7.17
-	go.yaml.in/yaml/v3 v3.0.4
+	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/term v0.37.0
 )
 
