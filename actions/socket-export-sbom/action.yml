@@ -8,14 +8,21 @@ inputs:
   socket_base_url:
     description: "Socket base url"
     required: false
-    default: "https://api.socket.dev/v0"
+    default: "https://api.socket.dev/v0/"
   socket_org:
     description: "Socket org name"
     required: true
     default: "grafana"
+  branch:
+    description: "Branch to scan and export the SBOM for. The caller must have already checked out this branch before invoking this action."
+    required: true
   output_file:
-    description: "Name of the file to save the sbom"
+    description: "Name of the file to save the sbom. Defaults to '<repo>-<branch>.spdx.json' if not set."
     required: false
+  export_timeout_seconds:
+    description: "Max seconds to wait for the SBOM export to become available after scan creation. The full scan report is generated lazily, so the export endpoint may 404 for a while after `socket scan create` returns. 180s comfortably covers grafana/grafana (our largest repo), which took up to 85s in testing."
+    required: false
+    default: "180"
 
 outputs:
   path:
@@ -25,17 +32,42 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup Go
-      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+    - name: Setup Node
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
-        go-version: "1.25.5"
+        node-version: "22"
 
-    - name: Extract repository name
-      id: repo-name
+    - name: Install Socket CLI
       shell: bash
+      env:
+        # renovate: datasource=npm depName=@socketsecurity/cli
+        SOCKET_CLI_VERSION: 1.1.102
+      run: npm install -g "@socketsecurity/cli@${SOCKET_CLI_VERSION}"
+
+    - name: Create full scan for branch
+      id: create-scan
+      shell: bash
+      env:
+        SOCKET_CLI_API_TOKEN: ${{ inputs.socket_api_token }}
+        SOCKET_CLI_API_BASE_URL: ${{ inputs.socket_base_url }}
+        SOCKET_ORG: ${{ inputs.socket_org }}
+        GITHUB_REPO_SLUG: ${{ github.repository }}
+        BRANCH: ${{ inputs.branch }}
       run: |
-        REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-        echo "name=$REPO_NAME" >> $GITHUB_OUTPUT
+        REPO_NAME="${GITHUB_REPO_SLUG##*/}"
+        if ! SCAN_RESULT=$(socket scan create --no-interactive --org="$SOCKET_ORG" --repo="$REPO_NAME" --branch="$BRANCH" --json .); then
+          echo "socket scan create failed:" >&2
+          echo "$SCAN_RESULT" >&2
+          exit 1
+        fi
+        FULL_SCAN_ID=$(jq -r '.data.id // empty' <<<"$SCAN_RESULT")
+        if [[ -z "$FULL_SCAN_ID" ]]; then
+          echo "socket scan create succeeded but returned no scan ID:" >&2
+          echo "$SCAN_RESULT" >&2
+          exit 1
+        fi
+        echo "full_scan_id=$FULL_SCAN_ID" >> "$GITHUB_OUTPUT"
+        echo "repo_name=$REPO_NAME" >> "$GITHUB_OUTPUT"
 
     - name: Export SPDX SBOM from Socket.dev
       id: export-sbom
@@ -44,14 +76,49 @@ runs:
         SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
         SOCKET_BASE_URL: ${{ inputs.socket_base_url }}
         SOCKET_ORG: ${{ inputs.socket_org }}
-        REPO_NAME: ${{ steps.repo-name.outputs.name }}
+        FULL_SCAN_ID: ${{ steps.create-scan.outputs.full_scan_id }}
+        REPO_NAME: ${{ steps.create-scan.outputs.repo_name }}
+        BRANCH: ${{ inputs.branch }}
         OUTPUT_FILE: ${{ inputs.output_file }}
         ACTION_PATH: ${{ github.action_path }}
+        TIMEOUT_SECONDS: ${{ inputs.export_timeout_seconds }}
       run: |
-        # Extract basename if output_file is provided (handles both filenames and paths)
         if [[ -n "$OUTPUT_FILE" ]]; then
+          # Extract basename in case a path was provided
           OUTPUT_FILE=$(basename "$OUTPUT_FILE")
+        else
+          # e.g. "grafana" + "feature/foo" -> "grafana-feature-foo.spdx.json"
+          OUTPUT_FILE="${REPO_NAME}-${BRANCH//\//-}.spdx.json"
         fi
-        cd "$ACTION_PATH"
-        go run ./cmd/export-sbom/ "$REPO_NAME" "${ACTION_PATH}/${OUTPUT_FILE}"
-        echo "path=$ACTION_PATH/$OUTPUT_FILE" >> $GITHUB_OUTPUT
+        DEST="$ACTION_PATH/$OUTPUT_FILE"
+        URL="$SOCKET_BASE_URL/orgs/$SOCKET_ORG/export/spdx/$FULL_SCAN_ID"
+
+        # The full scan report is generated lazily by Socket, so this endpoint
+        # can 404/empty for a while after `socket scan create` returns. Poll
+        # with backoff until it's ready or TIMEOUT_SECONDS elapses.
+        START=$(date +%s)
+        DELAY=5
+        ATTEMPT=0
+        while true; do
+          ATTEMPT=$((ATTEMPT + 1))
+          HTTP_CODE=$(curl --silent --max-time 30 --output "$DEST" --write-out "%{http_code}" \
+            --header "Authorization: Bearer $SOCKET_API_TOKEN" "$URL") || HTTP_CODE="curl_error"
+
+          if [[ "$HTTP_CODE" == "200" ]] && jq -e . "$DEST" >/dev/null 2>&1; then
+            echo "SBOM ready after ${ATTEMPT} attempt(s)"
+            break
+          fi
+
+          ELAPSED=$(($(date +%s) - START))
+          if ((ELAPSED >= TIMEOUT_SECONDS)); then
+            echo "SBOM export not ready after ${ELAPSED}s (last HTTP $HTTP_CODE):" >&2
+            cat "$DEST" >&2
+            exit 1
+          fi
+
+          echo "SBOM not ready yet (HTTP $HTTP_CODE), retrying in ${DELAY}s... (${ELAPSED}s/${TIMEOUT_SECONDS}s elapsed)"
+          sleep "$DELAY"
+          DELAY=$((DELAY * 2 > 30 ? 30 : DELAY * 2))
+        done
+
+        echo "path=$DEST" >> "$GITHUB_OUTPUT"
