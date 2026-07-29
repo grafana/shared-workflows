@@ -5,10 +5,6 @@ import os
 import sys
 from pathlib import Path
 
-# reusable-zizmor.yml checks out shared-workflows here
-_HELPER_CHECKOUT_DIR = "_shared-workflows-zizmor"
-_SKIP_TOP_LEVEL_DIRS = frozenset({_HELPER_CHECKOUT_DIR})
-
 
 def _unsafe_prefix_reason(rel: str) -> str | None:
     if not rel:
@@ -47,9 +43,6 @@ def normalize_prefix_line(line: str) -> str | None:
 def parse_prefixes_from_ignore(content: str) -> list[str]:
     prefixes = []
     for line in content.splitlines():
-        line = line.strip()
-        if not line or line.lstrip().startswith("#"):
-            continue
         p = normalize_prefix_line(line)
         if p:
             prefixes.append(p)
@@ -61,6 +54,15 @@ def excluded(path: Path, roots: list[Path]) -> bool:
 
 
 def want_file(path: Path, repo_root: Path) -> bool:
+    """Return True if path is a zizmor input under repo_root.
+
+    Mirrors zizmor 1.28.0 input collection (workflow YAML under
+    .github/workflows/, action.yml/action.yaml, and root
+    .github/dependabot.yml). Re-check when bumping ZIZMOR_VERSION.
+
+    Symlinked workflows that resolve outside repo_root are skipped
+    (relative_to raises ValueError).
+    """
     try:
         rel = path.resolve().relative_to(repo_root)
     except ValueError:
@@ -90,11 +92,7 @@ def collect_paths(repo_root: Path, prefixes: list[str], out: Path) -> int:
 
     for dirpath, dirnames, filenames in os.walk(repo_root, topdown=True):
         here = Path(dirpath).resolve()
-        pruned = [
-            d
-            for d in dirnames
-            if d not in _SKIP_TOP_LEVEL_DIRS and not excluded((here / d).resolve(), skip)
-        ]
+        pruned = [d for d in dirnames if not excluded((here / d).resolve(), skip)]
         dirnames[:] = pruned
         for fn in filenames:
             f = (here / fn).resolve()

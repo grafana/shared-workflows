@@ -69,17 +69,32 @@ def _zizmor_rc(rc: int) -> int:
 
 def _merge_sarif_parts(parts: list[Path], dst: Path) -> None:
     docs = [json.loads(p.read_text(encoding="utf-8")) for p in parts]
-    if len(docs) == 1:
-        merged = docs[0]
-    else:
-        runs = []
-        for doc in docs:
-            runs.extend(doc.get("runs") or [])
-        merged = {
-            "$schema": docs[0].get("$schema"),
-            "version": docs[0].get("version"),
-            "runs": runs,
-        }
+    runs = [run for doc in docs for run in (doc.get("runs") or [])]
+    # Code scanning rejects multiple runs with the same tool and category:
+    # fold every batch into the first run, remapping ruleIndex.
+    if len(runs) > 1:
+        base = runs[0]
+        rules = base.setdefault("tool", {}).setdefault("driver", {}).setdefault("rules", [])
+        index_by_id = {r.get("id"): i for i, r in enumerate(rules)}
+        for run in runs[1:]:
+            run_rules = run.get("tool", {}).get("driver", {}).get("rules") or []
+            for result in run.get("results") or []:
+                rule_id = result.get("ruleId")
+                if rule_id is not None and rule_id not in index_by_id:
+                    old = result.get("ruleIndex")
+                    rule = run_rules[old] if old is not None and old < len(run_rules) else {"id": rule_id}
+                    index_by_id[rule_id] = len(rules)
+                    rules.append(rule)
+                if "ruleIndex" in result and rule_id in index_by_id:
+                    result["ruleIndex"] = index_by_id[rule_id]
+                base.setdefault("results", []).append(result)
+        runs = [base]
+    merged = {
+        "$schema": docs[0].get("$schema"),
+        "version": docs[0].get("version"),
+        "runs": runs,
+    }
+    dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(merged), encoding="utf-8")
 
 
@@ -118,25 +133,27 @@ def _run_plain(paths: list[str] | None, batch: int) -> int:
     with open(gh, "a", encoding="utf-8") as fh:
         fh.write("zizmor-results<<EOF\n")
         code = 0
-        if paths is not None:
-            for chunk in batched(paths, batch):
-                proc = subprocess.Popen(
-                    _zizmor_cmd("plain", list(chunk)),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                )
-                if proc.stdout is None:
-                    return 1
-                fh.write(proc.stdout.read())
-                rc = proc.wait()
-                if rc == 1:
-                    print("zizmor crashed; see output above.", file=sys.stderr)
-                    return 1
-                code = max(code, rc)
-        fh.write("EOF\n")
-        fh.write(f"zizmor-exit-code={code}\n")
-    return 0
+        crashed = False
+        try:
+            if paths is not None:
+                for chunk in batched(paths, batch):
+                    proc = subprocess.run(
+                        _zizmor_cmd("plain", list(chunk)),
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        check=False,
+                    )
+                    fh.write(proc.stdout or "")
+                    if proc.returncode == 1:
+                        print("zizmor crashed; see output above.", file=sys.stderr)
+                        crashed = True
+                        break
+                    code = max(code, proc.returncode)
+        finally:
+            fh.write("EOF\n")
+            fh.write(f"zizmor-exit-code={1 if crashed else code}\n")
+    return 1 if crashed else 0
 
 
 def main(argv: list[str]) -> int:

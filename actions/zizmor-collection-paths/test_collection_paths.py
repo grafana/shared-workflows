@@ -61,19 +61,6 @@ class CollectPathsTests(unittest.TestCase):
         body = out.read_text(encoding="utf-8")
         self.assertIn("./.github/workflows/ci.yml", body)
 
-    def test_skips_helper_checkout_tree(self) -> None:
-        self._write(".github/workflows/ci.yml")
-        self._write(
-            "_shared-workflows-zizmor/actions/example/action.yaml",
-            "name: x\nruns:\n  using: composite\n  steps: []\n",
-        )
-        out = self.tmp / "out.txt"
-        n = collection_paths.collect_paths(self.tmp, [], out)
-        body = out.read_text(encoding="utf-8")
-        self.assertIn("./.github/workflows/ci.yml", body)
-        self.assertNotIn("_shared-workflows-zizmor", body)
-        self.assertEqual(n, 1)
-
     def test_skips_nested_workflow_under_prefix(self) -> None:
         self._write(".github/workflows/ci.yml")
         self._write("ksonnet/vendor/pkg/.github/workflows/nested.yml")
