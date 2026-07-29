@@ -115,7 +115,7 @@ jobs:
         env:
           # Keep this updated in a simpler way than needing a full package.json.
           # renovate: datasource=npm depName=jose
-          JOSE_VERSION: 6.2.3
+          JOSE_VERSION: 6.2.4
         run: npm install "jose@${JOSE_VERSION}"
 
       - id: get-job-workflow-ref
@@ -219,10 +219,14 @@ jobs:
 
             const AUDIENCE = 'zizmor-job-workflow-ref';
 
-            // Fork PRs have no OIDC token, so we can't detect the workflow ref. Use main.
+            // Fork PRs (and some other contexts) have no OIDC token. Detect that
+            // up front and use fallback without throwing, so the step succeeds
+            // and the log stays clear.
             const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL'];
             if (!runtimeUrl) {
-              core.info("No OIDC token (e.g. fork PR). Using grafana/shared-workflows@main for default config.");
+              core.info(
+                "No OIDC token available (e.g. pull request from a fork). Using fallback: grafana/shared-workflows@main for default config."
+              );
               core.setOutput('owner', 'grafana');
               core.setOutput('repo', 'shared-workflows');
               core.setOutput('sha', 'main');
@@ -278,7 +282,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.27.0
+      ZIZMOR_VERSION: 1.28.0
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -296,29 +300,9 @@ jobs:
           persist-credentials: false
 
       # .github/zizmor-collection-ignore (optional) — see reusable-zizmor.md
-      - name: Checkout shared-workflows (zizmor helper scripts)
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          repository: ${{ needs.job-workflow-ref.outputs.owner }}/${{ needs.job-workflow-ref.outputs.repo }}
-          ref: ${{ needs.job-workflow-ref.outputs.sha }}
-          path: _shared-workflows-zizmor
-          persist-credentials: false
-
-      - name: Zizmor paths + helper_root
+      - name: Collect zizmor paths
         id: zizmor-helper
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="${GITHUB_WORKSPACE}/_shared-workflows-zizmor/actions/zizmor-collection-paths"
-          if [ ! -f "${ROOT}/run_zizmor.py" ]; then
-            echo "::error::zizmor helper missing at ${ROOT} (pin reusable-zizmor.yml to a SHA that includes actions/zizmor-collection-paths)." >&2
-            exit 1
-          fi
-          echo "helper_root=${ROOT}" >> "${GITHUB_OUTPUT}"
-          python3 "${ROOT}/collection_paths.py" \
-            --repo-root "${GITHUB_WORKSPACE}" \
-            --ignore-file "${GITHUB_WORKSPACE}/.github/zizmor-collection-ignore" \
-            --paths-out "${RUNNER_TEMP}/zizmor-explicit-inputs.txt"
+        uses: grafana/shared-workflows/actions/zizmor-collection-paths@8e6ceaffac6e92e59a9f90e6a414cb7413ad2503 # zizmor-collection-paths/v0.1.0
 
       - name: Restore config from cache
         id: cache-config
@@ -453,10 +437,11 @@ jobs:
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
           USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
           PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
+          HELPER_ROOT: ${{ steps.zizmor-helper.outputs.helper_root }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" sarif --batch-size 400 --out results.sarif
+          python3 "${HELPER_ROOT}/run_zizmor.py" sarif --batch-size 400 --out results.sarif
 
       - name: Upload artifact
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
@@ -508,6 +493,7 @@ jobs:
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
           USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
           PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
+          HELPER_ROOT: ${{ steps.zizmor-helper.outputs.helper_root }}
         run: |
           set -euo pipefail
 
@@ -530,7 +516,7 @@ jobs:
             exit 0
           fi
 
-          python3 "${{ steps.zizmor-helper.outputs.helper_root }}/run_zizmor.py" plain-github-output --batch-size 400
+          python3 "${HELPER_ROOT}/run_zizmor.py" plain-github-output --batch-size 400
 
       - name: Remove zizmor config
         env:
@@ -544,14 +530,12 @@ jobs:
         if: ${{ !cancelled() && steps.upload-sarif.outcome == 'failure' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
         uses: int128/hide-comment-action@8cd375395d4b1630f8b70d17b802501a15d32561 # v1.66.0
-
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
         if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
         uses: int128/comment-action@9448863881c42b4c69f213d9a67c8b37e7c0f105 # v1.68.0
-
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
@@ -607,6 +591,7 @@ jobs:
 
   grafana-bench:
     name: Send zizmor metrics to Prometheus via Grafana Bench
+    continue-on-error: true
     needs: [analysis, job-workflow-ref]
     # Only run for grafana org and non-fork PRs (fork PRs have no OIDC/Vault access).
     if: ${{ github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
@@ -643,7 +628,6 @@ jobs:
           PROMETHEUS_URL: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_URL }}
           PROMETHEUS_USER: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_USER }}
           PROMETHEUS_PASSWORD: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_PASSWORD }}
-
         run: |
           BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
           SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)

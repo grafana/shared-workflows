@@ -225,4 +225,4 @@ ksonnet/vendor
 terraform/modules/github.com/github-aws-runners
 ```
 
-Path collection and batched runs are implemented in `actions/zizmor-collection-paths`. The scripts run from the OIDC-pinned `shared-workflows` checkout at `_shared-workflows-zizmor/`; that directory is not scanned.
+Path collection and batched runs are implemented by the composite action [`actions/zizmor-collection-paths`](../../actions/zizmor-collection-paths), **hash-pinned** in `reusable-zizmor.yml` (bump that SHA when you change the action). It runs from the Actions cache, so nothing lands in the caller workspace.
