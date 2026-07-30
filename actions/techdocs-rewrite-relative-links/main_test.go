@@ -51,6 +51,13 @@ func TestUpdateRelativeLinks(t *testing.T) {
 			expectedFileContent: "Hello world [inside](./README.md) [outside](../README.md)",
 			dryRun:              true,
 		},
+		"external-ref-links": {
+			testDirectorySetup: func(fs afero.Fs, rootDir string) {
+				_ = afero.WriteFile(fs, filepath.Join(rootDir, "docs/README.md"), []byte("Hello world [external][ext]\n\n[ext]: https://example.org"), 0600)
+			},
+			fileUnderTest:       "docs/README.md",
+			expectedFileContent: "Hello world [external][ext]\n\n[ext]: https://example.org",
+		},
 	}
 
 	for testName, test := range tests {
