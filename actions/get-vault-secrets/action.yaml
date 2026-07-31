@@ -64,11 +64,37 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
+          // The request to GitHub's OIDC endpoint intermittently times out, and
+          // @actions/http-client does not retry socket timeouts. A job without
+          // `id-token: write` has no endpoint to call at all, so fails immediately
+          // rather than burning the retries on a misconfiguration.
+          const hasOidcCredentials = Boolean(
+            process.env.ACTIONS_ID_TOKEN_REQUEST_URL && process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
+          );
+          const maxAttempts = hasOidcCredentials ? 3 : 1;
+
           let jwt;
-          try {
-            jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
-          } catch (error) {
-            core.setFailed(`❌ Failed to get OIDC token: ${error.message}`);
+          let lastError;
+
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+              jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+              break;
+            } catch (error) {
+              lastError = error;
+
+              if (attempt < maxAttempts) {
+                const delayMs = 1000 * 2 ** (attempt - 1);
+                core.warning(
+                  `Attempt ${attempt}/${maxAttempts} to get the OIDC token failed: ${error.message}. Retrying in ${delayMs}ms.`
+                );
+                await new Promise((resolve) => setTimeout(resolve, delayMs));
+              }
+            }
+          }
+
+          if (jwt === undefined) {
+            core.setFailed(`❌ Failed to get OIDC token after ${maxAttempts} attempt(s): ${lastError.message}`);
 
             // Provide helpful suggestions
             core.error(`
