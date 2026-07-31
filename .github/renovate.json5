@@ -67,6 +67,14 @@
       schedule: "* 0-4 * * 1",
       matchDepNames: ["renovate"],
     },
+    {
+      description: [
+        "Hold goldmark below v1.8 until goldmark-markdown supports it",
+      ],
+      matchManagers: ["gomod"],
+      matchPackageNames: ["github.com/yuin/goldmark"],
+      allowedVersions: "<1.8.0",
+    },
   ],
   platformCommit: "enabled",
   postUpdateOptions: ["gomodTidy"],
