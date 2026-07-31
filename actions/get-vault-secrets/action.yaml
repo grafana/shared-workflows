@@ -64,21 +64,64 @@ runs:
         VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          // The request to GitHub's OIDC endpoint intermittently times out, and
-          // @actions/http-client does not retry socket timeouts. A job without
-          // `id-token: write` has no endpoint to call at all, so fails immediately
-          // rather than burning the retries on a misconfiguration.
-          const hasOidcCredentials = Boolean(
-            process.env.ACTIONS_ID_TOKEN_REQUEST_URL && process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
-          );
-          const maxAttempts = hasOidcCredentials ? 3 : 1;
+          // The request to GitHub's OIDC endpoint intermittently stalls. core.getIDToken()
+          // waits three minutes on a dead socket and does not retry, so a single stall costs
+          // the whole job. Call the endpoint directly to bound each attempt, then retry.
+          const REQUEST_TIMEOUT_MS = 30000;
+          const MAX_ATTEMPTS = 3;
+
+          const requestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
+          const requestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+          const audience = `vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`;
+
+          // Native fetch ignores the proxy variables that @actions/http-client honours, so
+          // proxied runners keep the old unbounded call.
+          const proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
+
+          async function requestIDToken() {
+            if (!requestUrl || !requestToken) {
+              throw new Error("Unable to get ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN env variables");
+            }
+
+            if (proxy) {
+              return core.getIDToken(audience);
+            }
+
+            let response;
+            try {
+              response = await fetch(`${requestUrl}&audience=${encodeURIComponent(audience)}`, {
+                headers: { authorization: `Bearer ${requestToken}` },
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+              });
+            } catch (error) {
+              if (error.name === "TimeoutError") {
+                throw new Error(`the OIDC endpoint did not respond within ${REQUEST_TIMEOUT_MS}ms`);
+              }
+              throw error;
+            }
+
+            if (!response.ok) {
+              throw new Error(`the OIDC endpoint returned ${response.status} ${response.statusText}`);
+            }
+
+            const { value } = await response.json();
+            if (!value) {
+              throw new Error("the OIDC endpoint returned no token");
+            }
+
+            core.setSecret(value);
+            return value;
+          }
+
+          // Without these the job is missing `id-token: write`, which no retry can fix.
+          const maxAttempts = requestUrl && requestToken ? MAX_ATTEMPTS : 1;
 
           let jwt;
           let lastError;
 
           for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-              jwt = await core.getIDToken(`vault-github-actions-grafana-${process.env.VAULT_INSTANCE}`);
+              jwt = await requestIDToken();
               break;
             } catch (error) {
               lastError = error;
