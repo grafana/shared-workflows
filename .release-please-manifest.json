@@ -36,5 +36,5 @@
     "actions/download-branch-workflow-artifact": "0.1.0",
     "actions/annotate-coverage": "0.2.0",
     "actions/signed-commits-info": "0.1.0",
-    "actions/zizmor-collection-paths": "0.1.0"
+    "actions/zizmor-collection-paths": "0.2.0"
 }
