@@ -299,6 +299,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # .github/zizmor-collection-ignore (optional) — see reusable-zizmor.md
+      - name: Collect zizmor paths
+        id: zizmor-helper
+        uses: grafana/shared-workflows/actions/zizmor-collection-paths@8e6ceaffac6e92e59a9f90e6a414cb7413ad2503 # zizmor-collection-paths/v0.1.0
+
       - name: Restore config from cache
         id: cache-config
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -430,22 +435,13 @@ jobs:
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-        shell: sh
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
+          HELPER_ROOT: ${{ steps.zizmor-helper.outputs.helper_root }}
+        shell: bash
         run: |
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format sarif \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            > results.sarif
-          exit_code=$?
-          # Only fail on exit code 1 (zizmor crash). 0 = no findings, 10-14 = findings by severity.
-          if [ "${exit_code}" -eq 1 ]; then exit 1; fi
-          exit 0
+          set -euo pipefail
+          python3 "${HELPER_ROOT}/run_zizmor.py" sarif --batch-size 400 --out results.sarif
 
       - name: Upload artifact
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
@@ -495,13 +491,15 @@ jobs:
           REPO_LOCAL_ZIZMOR_CONFIG: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
+          HELPER_ROOT: ${{ steps.zizmor-helper.outputs.helper_root }}
         run: |
-          set -o pipefail
-
-          echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
+          set -euo pipefail
 
           if [ "${VALIDATE_CONFIG_OUTCOME}" = "failure" ]; then
-            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}."
+            echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
+            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}." >> "${GITHUB_OUTPUT}"
             if [ -f results.sarif ]; then
               python3 - <<'PY' | tee -a "${GITHUB_OUTPUT}"
           import json
@@ -518,33 +516,7 @@ jobs:
             exit 0
           fi
 
-          # Run zizmor again with plain output for human-readable logs.
-          # Don't fail the build here - we capture the exit code for the
-          # "Fail the build" step to evaluate against fail-severity.
-          # Output is also captured for the fallback PR comment when
-          # Code Scanning is unavailable.
-          set +e
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format plain \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            | tee -a "${GITHUB_OUTPUT}"
-          zizmor_exit_code=$?
-          set -e
-          echo "EOF" >> "${GITHUB_OUTPUT}"
-
-          # Error 1 is a failure of zizmor itself
-          if [ "${zizmor_exit_code}" -eq 1 ]; then
-            echo "zizmor itself failed - check the above output. failing the workflow."
-            exit 1
-          fi
-
-          echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
+          python3 "${HELPER_ROOT}/run_zizmor.py" plain-github-output --batch-size 400
 
       - name: Remove zizmor config
         env:

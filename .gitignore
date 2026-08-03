@@ -12,6 +12,9 @@ yarn-error.log*
 
 node_modules/
 
+__pycache__/
+*.py[cod]
+
 coverage/
 
 dist/

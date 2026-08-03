@@ -215,3 +215,14 @@ files can be ignored][zizmor-ignore-config].
 
 [zizmor-config]: https://woodruffw.github.io/zizmor/configuration/
 [zizmor-ignore-config]: https://woodruffw.github.io/zizmor/usage/#with-zizmoryml
+
+## Skipping vendored workflow trees ([security-appsec#326](https://github.com/grafana/security-appsec/issues/326))
+
+Vendored trees can still contain `.github/workflows/`. Add **`.github/zizmor-collection-ignore`** at the repo root with one directory prefix per line. Lines like `ksonnet/vendor/**/*` work (a trailing `/**` is stripped). Do not use `..` or absolute paths. Comments (`#`) and blank lines are OK. Without this file, zizmor still scans `.`.
+
+```text
+ksonnet/vendor
+terraform/modules/github.com/github-aws-runners
+```
+
+Path collection and batched runs are implemented by the composite action [`actions/zizmor-collection-paths`](../../actions/zizmor-collection-paths), **hash-pinned** in `reusable-zizmor.yml` (bump that SHA when you change the action). It runs from the Actions cache, so nothing lands in the caller workspace.
