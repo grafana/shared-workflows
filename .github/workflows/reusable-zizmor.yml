@@ -302,7 +302,7 @@ jobs:
       # .github/zizmor-collection-ignore (optional) — see reusable-zizmor.md
       - name: Collect zizmor paths
         id: zizmor-helper
-        uses: grafana/shared-workflows/actions/zizmor-collection-paths@8e6ceaffac6e92e59a9f90e6a414cb7413ad2503 # zizmor-collection-paths/v0.1.0
+        uses: grafana/shared-workflows/actions/zizmor-collection-paths@0488ac5c8514affaad8206148e57f8c44a4e9a27 # zizmor-collection-paths/v0.2.0
 
       - name: Restore config from cache
         id: cache-config
