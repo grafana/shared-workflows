@@ -40,6 +40,36 @@ export default defineConfig([
     ...tseslint.configs.disableTypeChecked,
   },
   {
+    // The create-github-app-token action ships as a plain node24 action that
+    // runs straight from a git checkout with no bundler, so its sources must
+    // use CommonJS (require/module.exports) and rely on Node.js runtime
+    // globals. Declare those here instead of excluding the files from linting.
+    files: ["actions/create-github-app-token/**/*.js"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: {
+        require: "readonly",
+        module: "writable",
+        exports: "writable",
+        __dirname: "readonly",
+        __filename: "readonly",
+        process: "readonly",
+        console: "readonly",
+        Buffer: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        fetch: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  {
     files: ["test/**/*.ts"],
     ...eslintPluginJest.configs["flat/recommended"],
   },
