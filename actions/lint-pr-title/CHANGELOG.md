@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.5](https://github.com/grafana/shared-workflows/compare/lint-pr-title/v1.2.4...lint-pr-title/v1.2.5) (2026-08-06)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency eslint to v10.8.0 ([#2217](https://github.com/grafana/shared-workflows/issues/2217)) ([2ec03f8](https://github.com/grafana/shared-workflows/commit/2ec03f807c17d47646a87c03051e9caea8267029))
+* **deps:** update dependency eslint-plugin-jest to v29.16.0 ([#2215](https://github.com/grafana/shared-workflows/issues/2215)) ([976b8f7](https://github.com/grafana/shared-workflows/commit/976b8f76f63d9d3654c89f877a1ca67c55a6ecfa))
+* **deps:** update dependency prettier to v3.9.6 ([#2208](https://github.com/grafana/shared-workflows/issues/2208)) ([43a1b7b](https://github.com/grafana/shared-workflows/commit/43a1b7b96e93d6cfa5cd1dd053f20b1e7b1f1b9e))
+* **deps:** update dependency typescript-eslint to v8.65.0 ([#2216](https://github.com/grafana/shared-workflows/issues/2216)) ([1dbcae6](https://github.com/grafana/shared-workflows/commit/1dbcae6151956b0b33776825f16f5a6db3d46b86))
+
 ## [1.2.4](https://github.com/grafana/shared-workflows/compare/lint-pr-title/v1.2.3...lint-pr-title/v1.2.4) (2026-07-21)
 
 
