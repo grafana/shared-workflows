@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/grafana/shared-workflows/compare/setup-conftest/v1.0.4...setup-conftest/v1.0.5) (2026-08-06)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v6 ([#2227](https://github.com/grafana/shared-workflows/issues/2227)) ([ddc2a23](https://github.com/grafana/shared-workflows/commit/ddc2a23ec2ab41811bb9ba72e26afc7ed72466b0))
+
 ## [1.0.4](https://github.com/grafana/shared-workflows/compare/setup-conftest/v1.0.3...setup-conftest/v1.0.4) (2026-06-10)
 
 
