@@ -197,7 +197,7 @@ describe("getIDToken", () => {
     expect(core.warning).not.toHaveBeenCalled();
     expect(core.setOutput).not.toHaveBeenCalled();
     expect(core.setFailed.mock.calls[0][0]).toBe(
-      "❌ Failed to get OIDC token after 1 attempt(s): Unable to get ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN env variables",
+      "❌ Failed to get OIDC token after 1 attempt(s): Unable to get ACTIONS_ID_TOKEN_REQUEST_URL or ACTIONS_ID_TOKEN_REQUEST_TOKEN env variables",
     );
     expect(core.error.mock.calls[0][0]).toContain("id-token: write");
   });

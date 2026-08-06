@@ -45,7 +45,7 @@ async function requestIDToken({ core, env, fetch, audience }) {
 
   if (!requestUrl || !requestToken) {
     throw new Error(
-      "Unable to get ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN env variables",
+      "Unable to get ACTIONS_ID_TOKEN_REQUEST_URL or ACTIONS_ID_TOKEN_REQUEST_TOKEN env variables",
     );
   }
 
