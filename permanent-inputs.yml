@@ -1,0 +1,20 @@
+on:
+  workflow_call:
+    inputs:
+      # THE FOLLOWING INPUTS ARE UNIQUE TO THIS WORKFLOW
+      # MULTIARCH CONFIGS
+      server-size:
+        description: "Size of the hosted runner"
+        required: false
+        default: "small"
+        type: string
+      pre-build-script:
+        description: "A script to run before docker build"
+        required: false
+        default: ""
+        type: string
+      post-build-script: # TODO: BUild this in
+        description: "A script to run after docker build"
+        required: false
+        default: ""
+        type: string
