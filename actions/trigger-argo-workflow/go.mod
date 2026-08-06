@@ -3,7 +3,7 @@ module github.com/grafana/shared-workflows/actions/trigger-argo-workflow
 go 1.26
 
 require (
-	github.com/cenkalti/backoff/v5 v5.0.3
+	github.com/cenkalti/backoff/v7 v7.0.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lmittmann/tint v1.1.3
 	github.com/stretchr/testify v1.11.1
