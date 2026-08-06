@@ -13,7 +13,7 @@
     "actions/push-to-gcs": "0.3.2",
     "actions/techdocs-rewrite-relative-links": "1.0.5",
     "actions/validate-policy-bot-config": "1.1.2",
-    "actions/trigger-argo-workflow": "2.0.0",
+    "actions/trigger-argo-workflow": "2.0.1",
     "actions/setup-jrsonnet": "1.0.3",
     "actions/find-pr-for-commit": "1.0.3",
     "actions/remove-checkout-credentials": "0.1.1",
