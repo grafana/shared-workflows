@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v2.0.0...get-vault-secrets/v2.0.1) (2026-08-06)
+
+
+### 🐛 Bug Fixes
+
+* **get-vault-secrets:** bound and retry the OIDC token request ([#2249](https://github.com/grafana/shared-workflows/issues/2249)) ([69f2c01](https://github.com/grafana/shared-workflows/commit/69f2c01cf9bfe3826caec182978372a8df2f37cb))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update hashicorp/vault-action action to v4 ([#2045](https://github.com/grafana/shared-workflows/issues/2045)) ([753db01](https://github.com/grafana/shared-workflows/commit/753db0190710a686e3e5cf11175c50b175fb8661))
+
 ## [2.0.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v1.3.2...get-vault-secrets/v2.0.0) (2026-06-08)
 
 
