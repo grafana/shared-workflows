@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v2.0.0...dockerhub-login/v2.0.1) (2026-08-06)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/login-action action to v4.4.0 ([#2168](https://github.com/grafana/shared-workflows/issues/2168)) ([21536e4](https://github.com/grafana/shared-workflows/commit/21536e4603262dd7882584949c2da3c8d01cba45))
+* **deps:** update docker/login-action action to v4.5.1 ([#2219](https://github.com/grafana/shared-workflows/issues/2219)) ([e7c5c20](https://github.com/grafana/shared-workflows/commit/e7c5c2014724b9102771f725b87c28d8f0246e1a))
+
 ## [2.0.0](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v1.0.4...dockerhub-login/v2.0.0) (2026-06-10)
 
 
