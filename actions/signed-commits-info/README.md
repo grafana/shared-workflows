@@ -49,4 +49,4 @@ bun run typecheck
 The bundled `dist/index.js` must be committed — GitHub Actions execute it
 directly.
 
-[verification]: https://docs.github.com/en/rest/commits/commits#list-commits
+[verification]: https://docs.github.com/rest/commits/commits#list-commits

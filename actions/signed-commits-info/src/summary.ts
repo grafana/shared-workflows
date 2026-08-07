@@ -56,7 +56,7 @@ export function buildSummary(
   ]);
   summary.addBreak();
   summary.addRaw(
-    'This repository requires all commits to be signed. You can learn more about signing your commits at <a href="https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification">docs.github.com</a>.',
+    'This repository requires all commits to be signed. You can learn more about signing your commits at <a href="https://docs.github.com/authentication/managing-commit-signature-verification/about-commit-signature-verification">docs.github.com</a>.',
     true,
   );
 }
