@@ -8,6 +8,9 @@ repos:
     rev: 3.0.0
     hooks:
       - id: shellcheck
+        # run-shellcheck ships fixtures that intentionally fail shellcheck so
+        # the action's tests can assert on failures; skip them here.
+        exclude: "^actions/run-shellcheck/test-fixtures/"
 
   - repo: local
     hooks:

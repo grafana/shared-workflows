@@ -1,0 +1,267 @@
+name: Test git-auto-commit action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "actions/git-auto-commit/**"
+      - ".github/workflows/test-git-auto-commit.yaml"
+
+  pull_request:
+    paths:
+      - "actions/git-auto-commit/**"
+      - ".github/workflows/test-git-auto-commit.yaml"
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+# All jobs run with `skip-push: true` and `branch: ""`, so the action only
+# commits locally inside the ephemeral runner checkout. Nothing is ever pushed
+# to a remote and no branch is created.
+jobs:
+  test-no-changes:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run on a clean working tree
+        id: ac
+        uses: ./actions/git-auto-commit
+        with:
+          commit-message: "Should not happen"
+          branch: ""
+          skip-push: "true"
+
+      - name: Verify no changes were detected
+        env:
+          CHANGES: ${{ steps.ac.outputs.changes-detected }}
+        run: |
+          if [ "${CHANGES}" != "false" ]; then
+            echo "FAIL: expected changes-detected=false, got ${CHANGES}"
+            exit 1
+          fi
+          echo "PASS"
+
+  test-commit:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Create a file
+        run: echo "generated ${GITHUB_RUN_ID}" >generated.txt
+
+      - name: Commit locally
+        id: ac
+        uses: ./actions/git-auto-commit
+        with:
+          commit-message: "test: add generated file"
+          branch: ""
+          skip-push: "true"
+
+      - name: Verify outputs
+        env:
+          CHANGES: ${{ steps.ac.outputs.changes-detected }}
+          HASH: ${{ steps.ac.outputs.commit-hash }}
+        run: |
+          if [ "${CHANGES}" != "true" ]; then
+            echo "FAIL: expected changes-detected=true"
+            exit 1
+          fi
+          if ! echo "${HASH}" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "FAIL: commit-hash '${HASH}' is not a valid SHA"
+            exit 1
+          fi
+          if [ "$(git rev-parse HEAD)" != "${HASH}" ]; then
+            echo "FAIL: HEAD does not match the reported commit-hash"
+            exit 1
+          fi
+          echo "PASS"
+
+  test-file-pattern:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Create two files
+        run: |
+          echo "one" >file-one.txt
+          echo "two" >file-two.txt
+
+      - name: Commit only file-one.txt
+        uses: ./actions/git-auto-commit
+        with:
+          commit-message: "Only file-one.txt"
+          file-pattern: "file-one.txt"
+          branch: ""
+          skip-push: "true"
+
+      - name: Verify only file-one.txt was committed
+        run: |
+          committed=$(git diff-tree --no-commit-id --name-only -r HEAD)
+          echo "Committed: ${committed}"
+          if ! echo "${committed}" | grep -q "file-one.txt"; then
+            echo "FAIL: file-one.txt not in commit"
+            exit 1
+          fi
+          if echo "${committed}" | grep -q "file-two.txt"; then
+            echo "FAIL: file-two.txt should not be in commit"
+            exit 1
+          fi
+          if [ -z "$(git status --porcelain file-two.txt)" ]; then
+            echo "FAIL: file-two.txt should still be uncommitted"
+            exit 1
+          fi
+          echo "PASS"
+
+  test-commit-options:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Create a file
+        run: echo "no-verify" >file.txt
+
+      - name: Commit with --no-verify
+        id: ac
+        uses: ./actions/git-auto-commit
+        with:
+          commit-message: "With --no-verify"
+          commit-options: "--no-verify"
+          branch: ""
+          skip-push: "true"
+
+      - name: Verify commit succeeded
+        env:
+          CHANGES: ${{ steps.ac.outputs.changes-detected }}
+        run: |
+          if [ "${CHANGES}" != "true" ]; then
+            echo "FAIL: expected changes-detected=true"
+            exit 1
+          fi
+          echo "PASS"
+
+  test-custom-identity:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Create a file
+        run: echo "identity" >file.txt
+
+      - name: Commit with a custom identity
+        uses: ./actions/git-auto-commit
+        with:
+          commit-message: "Custom identity commit"
+          git-user-name: "test-bot"
+          git-user-email: "test-bot@example.com"
+          branch: ""
+          skip-push: "true"
+
+      - name: Verify identity
+        run: |
+          author=$(git log -1 --format='%an <%ae>')
+          committer=$(git log -1 --format='%cn <%ce>')
+          echo "Author: ${author}"
+          echo "Committer: ${committer}"
+          if [ "${author}" != "test-bot <test-bot@example.com>" ]; then
+            echo "FAIL: author mismatch"
+            exit 1
+          fi
+          if [ "${committer}" != "test-bot <test-bot@example.com>" ]; then
+            echo "FAIL: committer mismatch"
+            exit 1
+          fi
+          echo "PASS"
+
+  bats-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup BATS testing framework
+        uses: mig4/setup-bats@af9a00deb21b5d795cabfeaa8d9060410377686d # v1.2.0
+
+      - name: Run unit tests
+        run: |
+          cd actions/git-auto-commit
+          ./git-auto-commit.bats

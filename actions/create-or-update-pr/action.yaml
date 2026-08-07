@@ -1,0 +1,74 @@
+name: Create or update Pull Request
+description: |
+  Creates or updates a pull request from file changes in the working tree.
+  Assumes actions/checkout has already been called.
+
+inputs:
+  branch:
+    required: true
+    description: "Branch name to push to (e.g. updater/my-update)"
+  commit-message:
+    required: true
+    description: "Commit message for the change"
+  title:
+    required: true
+    description: "Pull request title"
+  body:
+    required: true
+    description: "Pull request body (markdown)"
+  add-paths:
+    required: true
+    description: >
+      A comma, newline, or space-separated list of file paths to commit.
+      Paths follow git's pathspec syntax (e.g. '*.json', 'docs/*.md').
+  base-branch:
+    default: "main"
+    description: "Base branch for the PR"
+  token:
+    default: ${{ github.token }}
+    description: "GitHub token for push and PR creation (contents: write, pull-requests: write)"
+  git-user-name:
+    default: "github-actions[bot]"
+    description: "Git user name for the commit (used as both author and committer)"
+  git-user-email:
+    default: "41898282+github-actions[bot]@users.noreply.github.com"
+    description: "Git user email for the commit (used as both author and committer)"
+  labels:
+    description: "A comma or newline-separated list of labels to add to the pull request"
+  reviewers:
+    description: "A comma or newline-separated list of GitHub usernames to request review from"
+  draft:
+    default: "false"
+    description: "Create a draft pull request (true/false)"
+
+outputs:
+  pull-request-number:
+    description: "The pull request number"
+    value: ${{ steps.create-or-update-pr.outputs.pull-request-number }}
+  pull-request-url:
+    description: "The URL of the pull request"
+    value: ${{ steps.create-or-update-pr.outputs.pull-request-url }}
+  pull-request-operation:
+    description: "The operation performed by the action: created, updated, or none"
+    value: ${{ steps.create-or-update-pr.outputs.pull-request-operation }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create or update PR
+      id: create-or-update-pr
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        PR_BRANCH: ${{ inputs.branch }}
+        COMMIT_MSG: ${{ inputs.commit-message }}
+        PR_TITLE: ${{ inputs.title }}
+        PR_BODY: ${{ inputs.body }}
+        ADD_PATHS: ${{ inputs.add-paths }}
+        BASE_BRANCH: ${{ inputs.base-branch }}
+        GIT_USER_NAME: ${{ inputs.git-user-name }}
+        GIT_USER_EMAIL: ${{ inputs.git-user-email }}
+        LABELS: ${{ inputs.labels }}
+        REVIEWERS: ${{ inputs.reviewers }}
+        DRAFT: ${{ inputs.draft }}
+      run: ${GITHUB_ACTION_PATH}/create-or-update-pr.sh
