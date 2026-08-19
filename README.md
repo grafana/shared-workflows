@@ -60,11 +60,11 @@ version of the action, even if the action's maintainers release a new version or
 if the tag itself is updated.
 
 Dependabot can update these SHA references when there are new versions. If you
-include a tag in a commend after the SHA, it can update the comment too. For
-example:
+include the complete tag name in a comment after the SHA, it can update the
+comment too. For example:
 
 ```yaml
-- uses: action/foo@abcdef0123456789abcdef0123456789 # foo-action/v1.2.3
+- uses: grafana/shared-workflows/actions/foo@0123456789abcdef0123456789abcdef01234567 # foo/v1.2.3
 ```
 
 [hardening]: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
@@ -135,7 +135,7 @@ run: ./echo-success.bash
 
 When working with `shared-workflows`, it's essential to avoid breaking backwards compatibility. To ensure this, we must provide releasable actions for engineers to review incoming changes. This also helps automated update tools like `dependabot` and `renovate` to work effectively.
 
-Upon push to main, a draft PR with updates in the CHANGELOG.md will be updated or created. This can be undrafted and merged at any time to create the next tagged release. Since we're a monorepo, one PR will be created for each action/reusable workflow that has been updated. They can be released individually and tags will be of the form `<name>-<semver version>`.
+Upon push to main, a draft PR with updates in the CHANGELOG.md will be updated or created. This can be undrafted and merged at any time to create the next tagged release. Since we're a monorepo, one PR will be created for each action/reusable workflow that has been updated. They can be released individually and tags will be of the form `<name>/v<semver version>`.
 
 In order for the release action to work properly, which means to generate a CHANGELOG for the current release, the pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This means that the PR should start with a `type` followed by a colon, and then a `subject` - all in lowercase.
 
