@@ -80,7 +80,7 @@ runs:
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       with:
         # renovate: datasource=dotnet-version depName=dotnet-sdk
-        dotnet-version: "8.0.423"
+        dotnet-version: "8.0.424"
 
     - name: Install Sign CLI tool
       id: install-sign-tool
