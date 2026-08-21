@@ -41,7 +41,7 @@ runs:
       shell: bash
       env:
         # renovate: datasource=npm depName=@socketsecurity/cli
-        SOCKET_CLI_VERSION: 1.1.102
+        SOCKET_CLI_VERSION: 1.1.158
       run: npm install -g "@socketsecurity/cli@${SOCKET_CLI_VERSION}"
 
     - name: Create full scan for branch
