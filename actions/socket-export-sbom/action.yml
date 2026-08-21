@@ -6,7 +6,7 @@ inputs:
     description: "Socket API token for authentication"
     required: true
   socket_base_url:
-    description: "Socket base url"
+    description: "Socket base url. Must end in a trailing slash: the Socket CLI appends endpoint paths to it without adding a separator, so a base of `https://api.socket.dev/v0` requests `/v0report/supported` and 404s."
     required: false
     default: "https://api.socket.dev/v0/"
   socket_org:
@@ -69,9 +69,13 @@ runs:
         echo "full_scan_id=$FULL_SCAN_ID" >> "$GITHUB_OUTPUT"
         echo "repo_name=$REPO_NAME" >> "$GITHUB_OUTPUT"
 
+    # The export runs in JS rather than curl: curl sends no User-Agent, which we
+    # suspect trips the bot protection in front of the Socket API, and the shell
+    # loop could not tell a 403 from a 404 so it retried both for the full
+    # timeout. See export-sbom.js.
     - name: Export SPDX SBOM from Socket.dev
       id: export-sbom
-      shell: bash
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
         SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
         SOCKET_BASE_URL: ${{ inputs.socket_base_url }}
@@ -82,43 +86,9 @@ runs:
         OUTPUT_FILE: ${{ inputs.output_file }}
         ACTION_PATH: ${{ github.action_path }}
         TIMEOUT_SECONDS: ${{ inputs.export_timeout_seconds }}
-      run: |
-        if [[ -n "$OUTPUT_FILE" ]]; then
-          # Extract basename in case a path was provided
-          OUTPUT_FILE=$(basename "$OUTPUT_FILE")
-        else
-          # e.g. "grafana" + "feature/foo" -> "grafana-feature-foo.spdx.json"
-          OUTPUT_FILE="${REPO_NAME}-${BRANCH//\//-}.spdx.json"
-        fi
-        DEST="$ACTION_PATH/$OUTPUT_FILE"
-        URL="$SOCKET_BASE_URL/orgs/$SOCKET_ORG/export/spdx/$FULL_SCAN_ID"
-
-        # The full scan report is generated lazily by Socket, so this endpoint
-        # can 404/empty for a while after `socket scan create` returns. Poll
-        # with backoff until it's ready or TIMEOUT_SECONDS elapses.
-        START=$(date +%s)
-        DELAY=5
-        ATTEMPT=0
-        while true; do
-          ATTEMPT=$((ATTEMPT + 1))
-          HTTP_CODE=$(curl --silent --max-time 30 --output "$DEST" --write-out "%{http_code}" \
-            --header "Authorization: Bearer $SOCKET_API_TOKEN" "$URL") || HTTP_CODE="curl_error"
-
-          if [[ "$HTTP_CODE" == "200" ]] && jq -e . "$DEST" >/dev/null 2>&1; then
-            echo "SBOM ready after ${ATTEMPT} attempt(s)"
-            break
-          fi
-
-          ELAPSED=$(($(date +%s) - START))
-          if ((ELAPSED >= TIMEOUT_SECONDS)); then
-            echo "SBOM export not ready after ${ELAPSED}s (last HTTP $HTTP_CODE):" >&2
-            cat "$DEST" >&2
-            exit 1
-          fi
-
-          echo "SBOM not ready yet (HTTP $HTTP_CODE), retrying in ${DELAY}s... (${ELAPSED}s/${TIMEOUT_SECONDS}s elapsed)"
-          sleep "$DELAY"
-          DELAY=$((DELAY * 2 > 30 ? 30 : DELAY * 2))
-        done
-
-        echo "path=$DEST" >> "$GITHUB_OUTPUT"
+      with:
+        # ACTION_PATH, not GITHUB_ACTION_PATH: inside a `uses:` step the latter points
+        # at github-script's own directory rather than this action's.
+        script: |
+          const exportSBOM = require(`${process.env.ACTION_PATH}/export-sbom.js`);
+          await exportSBOM({ core });
