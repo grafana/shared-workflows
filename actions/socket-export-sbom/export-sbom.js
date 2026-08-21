@@ -129,7 +129,7 @@ async function fetchSBOM({ fetch, url, token }) {
   } catch (error) {
     return {
       retryable: true,
-      reason: `Socket returned 200 with a body that is not valid JSON: ${error.message}`,
+      reason: `Socket returned 200 with a body that is not valid JSON (${error.message})${bodySnippet(body)}`,
     };
   }
 
