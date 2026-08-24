@@ -1,0 +1,20 @@
+# Built binary at the action root
+/annotate-coverage
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test binaries
+*.test
+
+# Coverage output for local runs (testdata/ fixtures are still tracked)
+/.coverage/
+
+# Re-allow tracked source/fixture directories named `coverage/` (repo root
+# .gitignore excludes `coverage/` to ignore coverage-output artifacts).
+!internal/coverage/
+!internal/coverage/**
+!testdata/coverage/
+!testdata/coverage/**

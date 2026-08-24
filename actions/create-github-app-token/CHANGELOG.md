@@ -1,0 +1,62 @@
+# Changelog
+
+## [0.3.1](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.3.0...create-github-app-token/v0.3.1) (2026-06-01)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** remove runtime dependency on jq ([#1948](https://github.com/grafana/shared-workflows/issues/1948)) ([065f38c](https://github.com/grafana/shared-workflows/commit/065f38c749ff01a40a8d6b63b08dbf7befae909e))
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.3...create-github-app-token/v0.3.0) (2026-05-29)
+
+
+### 🎉 Features
+
+* **create-github-app-token:** revoke token in post-job step ([#1946](https://github.com/grafana/shared-workflows/issues/1946)) ([07a8487](https://github.com/grafana/shared-workflows/commit/07a8487494dcc332debf98242d129ec8fbda1e56))
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** clarify the workflow permissions ([#1942](https://github.com/grafana/shared-workflows/issues/1942)) ([7ae8508](https://github.com/grafana/shared-workflows/commit/7ae85085c0bed854b41785ba266604b08e50abe0))
+
+## [0.2.3](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.2...create-github-app-token/v0.2.3) (2026-05-05)
+
+
+### 📝 Documentation
+
+* **create-github-app-token:** fix some errors in readme ([#1558](https://github.com/grafana/shared-workflows/issues/1558)) ([0a7a2fc](https://github.com/grafana/shared-workflows/commit/0a7a2fc07560de0f2fe500ed9fd1f53ec7d86d33))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/github-script action to v9 ([#1866](https://github.com/grafana/shared-workflows/issues/1866)) ([e5b7989](https://github.com/grafana/shared-workflows/commit/e5b7989c92b55fe3ac6dd006d6de49082ba8c507))
+
+## [0.2.2](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.1...create-github-app-token/v0.2.2) (2025-10-31)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** use temporary file w/ trap for oidc response ([#1477](https://github.com/grafana/shared-workflows/issues/1477)) ([580590a](https://github.com/grafana/shared-workflows/commit/580590a644e82e79bb2598bdaba0be245a14dda0))
+
+## [0.2.1](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.2.0...create-github-app-token/v0.2.1) (2025-10-31)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** use temporary file w/ trap for token response ([#1474](https://github.com/grafana/shared-workflows/issues/1474)) ([47da0d2](https://github.com/grafana/shared-workflows/commit/47da0d2eed9947d70b296109aa3ff93af31ca738))
+
+## [0.2.0](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.1.0...create-github-app-token/v0.2.0) (2025-09-16)
+
+
+### 🎉 Features
+
+* **create-github-app-token:** added retries and test workflow ([#1294](https://github.com/grafana/shared-workflows/issues/1294)) ([2c842d9](https://github.com/grafana/shared-workflows/commit/2c842d90ec0e332485acf7d7afe9f03d03f68f7b))
+* **create-github-app-token:** adding create-github-app-token action ([#1144](https://github.com/grafana/shared-workflows/issues/1144)) ([7c748d7](https://github.com/grafana/shared-workflows/commit/7c748d77ca1ccc01af4281ea72c7ec9d2b3d9129))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/github-script action to v7.1.0 ([#1306](https://github.com/grafana/shared-workflows/issues/1306)) ([31b0c57](https://github.com/grafana/shared-workflows/commit/31b0c573abbbd9b56060318f7327ae8bb3ec041e))
+* **deps:** update actions/github-script action to v8 ([#1307](https://github.com/grafana/shared-workflows/issues/1307)) ([078c4a8](https://github.com/grafana/shared-workflows/commit/078c4a8af09e06d646077550f9e0f68171d5881e))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))

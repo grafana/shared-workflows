@@ -1,0 +1,4 @@
+mode: atomic
+github.com/example/project/concurrent.go:10.20,12.2 1 100
+github.com/example/project/concurrent.go:14.25,16.2 1 50
+github.com/example/project/concurrent.go:18.30,20.2 1 0

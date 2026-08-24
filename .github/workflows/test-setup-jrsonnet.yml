@@ -1,0 +1,75 @@
+name: Test Setup Jrsonnet
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/setup-jrsonnet/**
+      - .github/workflows/test-setup-jrsonnet.yml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/setup-jrsonnet/**
+      - .github/workflows/test-setup-jrsonnet.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  setup-jrsonnet:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write # needed for cache
+    env:
+      # generate a unique cache prefix for each test run, so we can test cache behaviour
+      CACHE_PREFIX: jrsonnet-${{ github.run_id }}-${{ github.run_attempt }}
+
+    strategy:
+      matrix:
+        cache-hit: [false, true]
+      max-parallel: 1
+
+    name: "Setup Jrsonnet (cache hit: ${{ matrix.cache-hit }})"
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            actions/setup-jrsonnet
+
+      - name: "Setup Jrsonnet (cache: ${{ matrix.cache-hit }})"
+        id: setup-jrsonnet
+        uses: ./actions/setup-jrsonnet
+        with:
+          cache-prefix: ${{ env.CACHE_PREFIX }}
+          version: 0.5.0-pre96-test
+
+      - name: Assert cache
+        if: fromJson(steps.setup-jrsonnet.outputs.cache-hit) != matrix.cache-hit
+        run: |
+          echo "Expected cache hit: '${{ matrix.cache-hit }}' but got '${{ fromJson(steps.setup-jrsonnet.outputs.cache-hit) }}'"
+          exit 1
+
+      - name: Check Jrsonnet CLI works
+        run: jrsonnet --version

@@ -1,0 +1,94 @@
+name: Export SPDX SBOM from Socket.dev API
+description: Export SPDX SBOM from Socket.dev API for a given repository.
+
+inputs:
+  socket_api_token:
+    description: "Socket API token for authentication"
+    required: true
+  socket_base_url:
+    description: "Socket base url. Must end in a trailing slash: the Socket CLI appends endpoint paths to it without adding a separator, so a base of `https://api.socket.dev/v0` requests `/v0report/supported` and 404s."
+    required: false
+    default: "https://api.socket.dev/v0/"
+  socket_org:
+    description: "Socket org name"
+    required: true
+    default: "grafana"
+  branch:
+    description: "Branch to scan and export the SBOM for. The caller must have already checked out this branch before invoking this action."
+    required: true
+  output_file:
+    description: "Name of the file to save the sbom. Defaults to '<repo>-<branch>.spdx.json' if not set."
+    required: false
+  export_timeout_seconds:
+    description: "Max seconds to wait for the SBOM export to become available after scan creation. The full scan report is generated lazily, so the export endpoint may 404 for a while after `socket scan create` returns. 180s comfortably covers grafana/grafana (our largest repo), which took up to 85s in testing."
+    required: false
+    default: "180"
+
+outputs:
+  path:
+    description: "Path to the exported sbom file"
+    value: ${{ steps.export-sbom.outputs.path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: "22"
+
+    - name: Install Socket CLI
+      shell: bash
+      env:
+        # renovate: datasource=npm depName=@socketsecurity/cli
+        SOCKET_CLI_VERSION: 1.1.158
+      run: npm install -g "@socketsecurity/cli@${SOCKET_CLI_VERSION}"
+
+    - name: Create full scan for branch
+      id: create-scan
+      shell: bash
+      env:
+        SOCKET_CLI_API_TOKEN: ${{ inputs.socket_api_token }}
+        SOCKET_CLI_API_BASE_URL: ${{ inputs.socket_base_url }}
+        SOCKET_ORG: ${{ inputs.socket_org }}
+        GITHUB_REPO_SLUG: ${{ github.repository }}
+        BRANCH: ${{ inputs.branch }}
+      run: |
+        REPO_NAME="${GITHUB_REPO_SLUG##*/}"
+        if ! SCAN_RESULT=$(socket scan create --no-interactive --org="$SOCKET_ORG" --repo="$REPO_NAME" --branch="$BRANCH" --json .); then
+          echo "socket scan create failed:" >&2
+          echo "$SCAN_RESULT" >&2
+          exit 1
+        fi
+        FULL_SCAN_ID=$(jq -r '.data.id // empty' <<<"$SCAN_RESULT")
+        if [[ -z "$FULL_SCAN_ID" ]]; then
+          echo "socket scan create succeeded but returned no scan ID:" >&2
+          echo "$SCAN_RESULT" >&2
+          exit 1
+        fi
+        echo "full_scan_id=$FULL_SCAN_ID" >> "$GITHUB_OUTPUT"
+        echo "repo_name=$REPO_NAME" >> "$GITHUB_OUTPUT"
+
+    # The export runs in JS rather than curl: curl sends no User-Agent, which we
+    # suspect trips the bot protection in front of the Socket API, and the shell
+    # loop could not tell a 403 from a 404 so it retried both for the full
+    # timeout. See export-sbom.js.
+    - name: Export SPDX SBOM from Socket.dev
+      id: export-sbom
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        SOCKET_API_TOKEN: ${{ inputs.socket_api_token }}
+        SOCKET_BASE_URL: ${{ inputs.socket_base_url }}
+        SOCKET_ORG: ${{ inputs.socket_org }}
+        FULL_SCAN_ID: ${{ steps.create-scan.outputs.full_scan_id }}
+        REPO_NAME: ${{ steps.create-scan.outputs.repo_name }}
+        BRANCH: ${{ inputs.branch }}
+        OUTPUT_FILE: ${{ inputs.output_file }}
+        ACTION_PATH: ${{ github.action_path }}
+        TIMEOUT_SECONDS: ${{ inputs.export_timeout_seconds }}
+      with:
+        # ACTION_PATH, not GITHUB_ACTION_PATH: inside a `uses:` step the latter points
+        # at github-script's own directory rather than this action's.
+        script: |
+          const exportSBOM = require(`${process.env.ACTION_PATH}/export-sbom.js`);
+          await exportSBOM({ core });

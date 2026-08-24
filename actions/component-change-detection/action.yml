@@ -1,0 +1,117 @@
+name: Component Change Detection
+description: Detects which components changed based on component dependencies configuration
+author: Grafana Labs
+
+inputs:
+  config-file:
+    description: "Path to component dependencies YAML file"
+    required: true
+  previous-tags-source:
+    description: "Workflow name to get previous tags from"
+    required: true
+  target-ref:
+    description: "Git ref to compare against"
+    required: false
+    default: "HEAD"
+  force-rebuild-all:
+    description: "Force rebuild all components"
+    required: false
+    default: "false"
+  force-components:
+    description: "Force rebuild specific components (comma-separated)"
+    required: false
+    default: ""
+
+outputs:
+  # Generic outputs for any component set
+  changes_json:
+    description: 'All component changes as JSON object (e.g., {"apiserver": true, "controller": false})'
+    value: ${{ steps.detect.outputs.changes_json }}
+  components_json:
+    description: 'List of all components as JSON array (e.g., ["apiserver", "controller"])'
+    value: ${{ steps.extract-components.outputs.components_json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Extract component list from config
+      id: extract-components
+      shell: bash
+      env:
+        CONFIG_FILE: ${{ inputs.config-file }}
+      run: ${{ github.action_path }}/scripts/extract-components.sh
+
+    # Download previous component tags from the source workflow
+    - name: Find last successful workflow run
+      id: find-previous-run
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        INPUT_WORKFLOW: ${{ inputs.previous-tags-source }}
+      with:
+        script: |
+          try {
+            const { data: { workflow_runs } } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: process.env.INPUT_WORKFLOW,
+              branch: 'main',
+              status: 'success',
+              per_page: 1
+            });
+            if (workflow_runs.length > 0) {
+              core.setOutput('run-id', workflow_runs[0].id);
+              console.log(`Found last successful run: ${workflow_runs[0].id}`);
+            } else {
+              core.setOutput('run-id', '');
+              console.log('No successful workflow runs found');
+            }
+          } catch (error) {
+            core.setOutput('run-id', '');
+            console.log(`Failed to query workflow runs: ${error.message}`);
+          }
+
+    - name: Download previous component tags
+      if: steps.find-previous-run.outputs.run-id != ''
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: component-tags
+        path: .
+        run-id: ${{ steps.find-previous-run.outputs.run-id }}
+        github-token: ${{ github.token }}
+      continue-on-error: true
+
+    - name: Check if artifact was found
+      id: check-tags-artifact
+      shell: bash
+      run: ${{ github.action_path }}/scripts/check-artifact.sh
+
+    - name: Prepare previous SHAs for comparison
+      shell: bash
+      env:
+        COMPONENTS_JSON: ${{ steps.extract-components.outputs.components_json }}
+      run: ${{ github.action_path }}/scripts/prepare-previous-tags.sh
+
+    - name: Setup Go
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      with:
+        go-version-file: "${{ github.action_path }}/go.mod"
+        cache-dependency-path: "${{ github.action_path }}/go.sum"
+
+    - name: Build change detector
+      shell: bash
+      run: ${{ github.action_path }}/scripts/build-detector.sh
+
+    - name: Detect changes
+      id: detect
+      shell: bash
+      env:
+        FORCE_REBUILD_ALL: ${{ inputs.force-rebuild-all }}
+        FORCE_COMPONENTS: ${{ inputs.force-components }}
+        COMPONENTS_JSON: ${{ steps.extract-components.outputs.components_json }}
+        TARGET_REF: ${{ inputs.target-ref }}
+        CONFIG_FILE: ${{ inputs.config-file }}
+        # Use actual PR commit SHA, not the temporary merge commit
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        REPO_ROOT: ${{ github.workspace }}
+        BINARY_PATH: ${{ github.action_path }}/changed-components
+      run: ${{ github.action_path }}/scripts/detect-changes --github-output

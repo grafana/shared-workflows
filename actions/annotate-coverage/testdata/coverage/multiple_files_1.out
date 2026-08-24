@@ -1,0 +1,4 @@
+mode: set
+github.com/example/project/file1.go:10.13,12.2 1 1
+github.com/example/project/file1.go:14.15,16.2 1 1
+github.com/example/project/file2.go:5.20,7.2 1 0

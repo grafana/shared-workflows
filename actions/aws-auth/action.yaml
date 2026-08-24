@@ -22,6 +22,8 @@ inputs:
     default: "3600"
     required: false
     description: "Role duration in seconds"
+  checkout-actions-repository-path:
+    description: "The path in the filesystem where this repository has been checked out. This is mandatory for setups where executing this action inside a local clone of the repository."
 
 outputs:
   aws_access_key_id:
@@ -57,29 +59,16 @@ runs:
         chain-pass-claims: "${{ inputs.pass-claims }}"
         chain-set-in-environment: "${{ inputs.set-creds-in-environment }}"
 
-    - id: aws_region # Pulled from catnekaise/cognito-idpool-auth/action.yml
+    - id: aws_region
       shell: bash
       env:
         AWS_REGION: "${{ inputs.aws-region }}"
         AWS_DEFAULT_REGION: "${{ inputs.aws-region }}"
+        REPOSITORY_PATH: "${{ inputs.checkout-actions-repository-path }}"
       run: |
-        value=""
-
-        if [ ! -z "${AWS_REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then
-          value="$AWS_REGION"
+        if [[ ! -z "${REPOSITORY_PATH}" ]]; then
+          cd ${REPOSITORY_PATH}/actions/aws-auth
+        else
+          cd "${GITHUB_ACTION_PATH}"
         fi
-
-        if [ -z "$value" ]; then
-          echo "Unable to resolve what AWS Region to use"
-          exit 1
-        fi
-
-        # Some-effort validation of aws region
-        if echo "$value" | grep -Eqv "^[a-z]{2}-[a-z]{4,9}-[0-9]$"; then
-          echo "Resolved value for AWS Region is invalid"
-          exit 1
-        fi
-
-        echo "value=$value" >> "$GITHUB_OUTPUT"
-        echo "AWS_REGION=${AWS_REGION}" >> "$GITHUB_ENV"
-        echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> "$GITHUB_ENV"
+        ./resolve-aws-region.sh

@@ -1,0 +1,21 @@
+diff --git a/server.go b/server.go
+index 1111111..2222222 100644
+--- a/server.go
++++ b/server.go
+@@ -10,6 +10,7 @@ import (
+
+ func StartServer() {
+ 	http.HandleFunc("/", handleRoot)
++	http.HandleFunc("/health", handleHealth)
+ 	log.Fatal(http.ListenAndServe(":8080", nil))
+ }
+
+@@ -20,3 +21,8 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
+ func logRequest(r *http.Request) {
+ 	log.Printf("Request: %s %s", r.Method, r.URL.Path)
+ }
++
++func handleHealth(w http.ResponseWriter, r *http.Request) {
++	w.WriteHeader(http.StatusOK)
++	w.Write([]byte("OK"))
++}

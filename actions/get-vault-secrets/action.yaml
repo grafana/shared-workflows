@@ -27,53 +27,50 @@ inputs:
       The Vault instance to use (`dev` or `ops`). Defaults to `ops`.
     default: ops
 
+  ignore_missing:
+    description: |
+      When set to true, prevents the action from failing when a secret does not exist.
+    default: "false"
+
+outputs:
+  secrets:
+    description: "JSON object containing all the secrets"
+    value: ${{ toJSON(steps.import-secrets.outputs) }}
+
 runs:
   using: composite
   steps:
     - id: check-vault-instance
       if: inputs.vault_instance != 'dev' && inputs.vault_instance != 'ops'
       shell: sh
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
       run: |
-        echo "Invalid value for vault_instance input: ${{ inputs.vault_instance }}. Must be 'dev' or 'ops'."
+        echo "Invalid value for vault_instance input: ${VAULT_INSTANCE}. Must be 'dev' or 'ops'."
         exit 1
-    - id: vault-iap-auth
-      uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
-      with:
-        # Note that these aren't secrets, login is secured through Github's OIDC integrations with GCP and Vault.
-        # Get with:
-        #   gcloud iam workload-identity-pools list --project=grafanalabs-workload-identity --location="global"
-        #   gcloud iam workload-identity-pools providers list --workload-identity-pool=<POOL>
-        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-        service_account: "github-vault-actions-${{ inputs.vault_instance }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
-        token_format: id_token
-        # Get with:
-        #   gcloud alpha iap oauth-brands list --project=ops-tools-1203 (or grafanalabs-dev for dev)
-        #   gcloud alpha iap oauth-clients list <BRAND_NAME>
-        id_token_audience: ${{ inputs.vault_instance == 'ops' && '398738203898-b4pffihghfj5aec08rg9n87hnnqn513k.apps.googleusercontent.com' || '1040409107725-0epub52fk3fmqtsst39dqi8na02rco6a.apps.googleusercontent.com' }}
-        id_token_include_email: true
-        create_credentials_file: false
 
     # Translate the secrets into a format that the Vault action can understand
     - id: translate-secrets
       shell: bash
-      run: "${GITHUB_ACTION_PATH}/translate-secrets.sh"
+      run: "${GITHUB_ACTION_PATH}/translate-secrets.bash"
       env:
         REPO_SECRETS: ${{ inputs.repo_secrets }}
         COMMON_SECRETS: ${{ inputs.common_secrets }}
         REPO: ${{ github.repository }}
 
     - id: get-github-jwt-token
-      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        VAULT_INSTANCE: ${{ inputs.vault_instance }}
       with:
         script: |
-          const jwt = await core.getIDToken("vault-github-actions-grafana-${{ inputs.vault_instance }}");
-          core.setSecret(jwt);
-          core.setOutput("github-jwt",jwt);
+          const getIDToken = require(`${process.env.GITHUB_ACTION_PATH}/get-id-token.js`);
+          await getIDToken({ core });
 
       # Get the secrets
     - name: Import Secrets
       id: import-secrets
-      uses: hashicorp/vault-action@d1720f055e0635fd932a1d2a48f87a666a57906c # v3.0.0
+      uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
       with:
         url: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net/"
         role: vault-github-actions
@@ -81,7 +78,8 @@ runs:
         method: jwt
         jwtGithubAudience: "https://vault-github-actions.grafana-${{ inputs.vault_instance }}.net"
         extraHeaders: |
-          Proxy-Authorization: Bearer ${{ steps.vault-iap-auth.outputs.id_token }}
           Proxy-Authorization-Token: Bearer ${{ steps.get-github-jwt-token.outputs.github-jwt }}
         secrets: |
           ${{ steps.translate-secrets.outputs.secrets }}
+        exportEnv: false # Never expose secrets as environment variables, as they can be stolen by malicious code
+        ignoreNotFound: ${{ inputs.ignore_missing }}

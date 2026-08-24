@@ -4,9 +4,9 @@
 # someone opens a pull request.
 * @grafana/platform-productivity
 
-# Owned by the Grafana department's Infra O11y Frontend squad
-.github/workflows/build-lint-pr.yml  @grafana/infra-o11y-frontend
-/actions/lint-pr-title/              @grafana/infra-o11y-frontend @grafana/platform-productivity
+# Owned by the O11y department's Frontend squad
+.github/workflows/build-lint-pr.yml  @grafana/o11y-frontend
+/actions/lint-pr-title/              @grafana/o11y-frontend @grafana/platform-productivity
 
 # Platform CAT
 /actions/generate-openapi-clients @grafana/platform-cat
@@ -14,5 +14,11 @@
 # Platform productivity
 /.github/workflows/publish-techdocs.yaml @grafana/platform-productivity
 
-# Platform Security
-/actions/syft-sbom-report @grafana/platform-security
+# Observability
+/actions/azure-trusted-signing/ @grafana/o11y-dept
+
+# Platform Infrasec
+/actions/create-github-app-token @grafana/platform-infrasec
+
+# Mimir
+actions/go-flaky-tests/cmd/go-flaky-tests @grafana/mimir-maintainers

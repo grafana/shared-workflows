@@ -1,0 +1,103 @@
+# Changelog
+
+## [3.0.2](https://github.com/grafana/shared-workflows/compare/send-slack-message/v3.0.1...send-slack-message/v3.0.2) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* reference sibling actions directly instead of checkout ([#2032](https://github.com/grafana/shared-workflows/issues/2032)) ([614ae58](https://github.com/grafana/shared-workflows/commit/614ae58b964b32c08d190dde334a583cc8373723))
+
+## [3.0.1](https://github.com/grafana/shared-workflows/compare/send-slack-message/v3.0.0...send-slack-message/v3.0.1) (2026-06-08)
+
+
+### 🐛 Bug Fixes
+
+* **send-slack-message:** default payload-templated to false ([#2030](https://github.com/grafana/shared-workflows/issues/2030)) ([b020d35](https://github.com/grafana/shared-workflows/commit/b020d35e39552b691c35e02ec5cfcd4cda6159d7))
+
+## [3.0.0](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.5...send-slack-message/v3.0.0) (2026-06-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957))
+
+### 🎉 Features
+
+* **get-vault-secrets:** remove export_env option, use JSON output always ([#1957](https://github.com/grafana/shared-workflows/issues/1957)) ([84e8abf](https://github.com/grafana/shared-workflows/commit/84e8abf0d3cd31cc8fa01d0e2c629a96864a108a))
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update slackapi/slack-github-action action to v3.0.3 ([#1921](https://github.com/grafana/shared-workflows/issues/1921)) ([860a297](https://github.com/grafana/shared-workflows/commit/860a2973c4503ce06a7aea9fc9f054bade901d1f))
+
+## [2.0.5](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.4...send-slack-message/v2.0.5) (2026-05-04)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v5.0.1 ([#1541](https://github.com/grafana/shared-workflows/issues/1541)) ([773f5b1](https://github.com/grafana/shared-workflows/commit/773f5b1eb7b717c5c89a2718c1c4322a45f2ed7f))
+* **deps:** update actions/checkout action to v6 ([#1570](https://github.com/grafana/shared-workflows/issues/1570)) ([af4d9df](https://github.com/grafana/shared-workflows/commit/af4d9dfcfa9da2582544cd2a6e6dcf06e516f9ea))
+* **deps:** update actions/checkout action to v6.0.1 ([#1590](https://github.com/grafana/shared-workflows/issues/1590)) ([2425a5f](https://github.com/grafana/shared-workflows/commit/2425a5fe46fb39d1d282caad59150165323e29a6))
+* **deps:** update actions/checkout action to v6.0.2 ([#1672](https://github.com/grafana/shared-workflows/issues/1672)) ([3105e25](https://github.com/grafana/shared-workflows/commit/3105e251e687194e9b2b4b456cb2846a761e0df0))
+* **deps:** update slackapi/slack-github-action action to v3 ([#1809](https://github.com/grafana/shared-workflows/issues/1809)) ([ae4a89e](https://github.com/grafana/shared-workflows/commit/ae4a89e4d3bc15c355480ed6aa51b1fd7e5d5158))
+* **deps:** update slackapi/slack-github-action action to v3.0.2 ([#1902](https://github.com/grafana/shared-workflows/issues/1902)) ([3f06e5e](https://github.com/grafana/shared-workflows/commit/3f06e5ea575feea21335d788ba4a18473f434355))
+
+## [2.0.4](https://github.com/grafana/shared-workflows/compare/send-slack-message/v2.0.3...send-slack-message/v2.0.4) (2025-10-03)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/checkout action to v4.3.0 ([#1221](https://github.com/grafana/shared-workflows/issues/1221)) ([17ab531](https://github.com/grafana/shared-workflows/commit/17ab531bf2c16c79af38988e7caf7a3d8a37634b))
+* **deps:** update actions/checkout action to v5 ([#1227](https://github.com/grafana/shared-workflows/issues/1227)) ([fd79c02](https://github.com/grafana/shared-workflows/commit/fd79c02730e0629f728e2f5c3d614545269208a9))
+* **deps:** update slackapi/slack-github-action action to v2.1.0 ([#1078](https://github.com/grafana/shared-workflows/issues/1078)) ([88f8afc](https://github.com/grafana/shared-workflows/commit/88f8afc06316e7124c952557a87a42a3776a8b26))
+* **deps:** update slackapi/slack-github-action action to v2.1.1 ([#1122](https://github.com/grafana/shared-workflows/issues/1122)) ([254923a](https://github.com/grafana/shared-workflows/commit/254923a5562af3a1909a2093c6d897f288b53f1e))
+
+## [2.0.3](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.2...send-slack-message/v2.0.3) (2025-06-04)
+
+
+### 📝 Documentation
+
+* **send-slack-notification:** remove outdated docs, url update ([#982](https://github.com/grafana/shared-workflows/issues/982)) ([d408247](https://github.com/grafana/shared-workflows/commit/d4082475390936b2952dcea4921ae423e2ce6395))
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
+## [2.0.2](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.1...send-slack-message-v2.0.2) (2025-05-08)
+
+
+### 🐛 Bug Fixes
+
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+
+
+### 🔧 Miscellaneous Chores
+
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
+## [2.0.1](https://github.com/grafana/shared-workflows/compare/send-slack-message-v2.0.0...send-slack-message-v2.0.1) (2025-01-29)
+
+
+### 📝 Documentation
+
+* update instructions after slack action v2 update ([#658](https://github.com/grafana/shared-workflows/issues/658)) ([077bbfe](https://github.com/grafana/shared-workflows/commit/077bbfebaf982b30cd01297eca94f9e3f02ccff9))
+
+## [2.0.0](https://github.com/grafana/shared-workflows/compare/send-slack-message-v1.0.0...send-slack-message-v2.0.0) (2024-12-17)
+
+### BREAKING CHANGE
+
+* **deps:** update slackapi/slack-github-action action to v2 ([#534](https://github.com/grafana/shared-workflows/issues/534)) ([338682a](https://github.com/grafana/shared-workflows/commit/338682acb95238001a1ea995e660d229e78d4e20))
+
+### 🔧 Miscellaneous Chores
+
+* update readme when a new release is available ([#548](https://github.com/grafana/shared-workflows/issues/548)) ([9bf9163](https://github.com/grafana/shared-workflows/commit/9bf9163126c44247bcee6b6b9390eb488f9ead53))
+
+## 1.0.0 (2024-11-26)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update slackapi/slack-github-action action to v1.27.0 ([#264](https://github.com/grafana/shared-workflows/issues/264)) ([f790e79](https://github.com/grafana/shared-workflows/commit/f790e799f029dcfa2174d59263dbe7ff2a51452b))
+* **deps:** update slackapi/slack-github-action action to v1.27.1 ([#533](https://github.com/grafana/shared-workflows/issues/533)) ([1a854a0](https://github.com/grafana/shared-workflows/commit/1a854a06dcab7421c2436ae585cf18af09112803))

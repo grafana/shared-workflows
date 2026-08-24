@@ -1,0 +1,43 @@
+name: Remove checkout credentials
+description: This action removes credentials stored by the actions/checkout action
+
+inputs:
+  path:
+    description: Path of the checkout
+
+runs:
+  using: composite
+  steps:
+    - name: Remove credentials
+      shell: bash
+      env:
+        CHECKOUT_PATH: "${{ inputs.path || '.' }}"
+      run: |
+        cd "${CHECKOUT_PATH}"
+
+        set +e
+        git config get --name-only --local core.sshCommand 2> /dev/null
+        if [ "$?" == "0" ]; then
+          export DELETE_SSH=true
+        else
+          export DELETE_SSH=false
+        fi
+        git config get --name-only --local http.https://github.com/.extraheader 2> /dev/null
+        if [ "$?" == "0" ]; then
+          export DELETE_HTTP=true
+        else
+          export DELETE_HTTP=false
+        fi
+        set -e
+
+        # Delete the GITHUB_TOKEN if it's configured
+        if [ "${DELETE_HTTP}" == "true" ]; then
+          echo "::notice::Removing HTTP config"
+          git config unset --local http.https://github.com/.extraheader && echo "::notice::HTTP config removed"
+        fi
+
+        # Delete the sshCommand if it's configured
+        if [ "${DELETE_SSH}" == "true" ]; then
+        echo "::notice::Removing SSH config"
+          git config unset --local core.sshCommand && echo "::notice::SSH config removed"
+        fi

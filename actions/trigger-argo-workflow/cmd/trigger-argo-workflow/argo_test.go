@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"testing"
@@ -70,8 +71,8 @@ Namespace:           argo
 ServiceAccount:      unset
 Status:              Pending
 Created:             Wed Dec 13 00:00:00 +0000 (now)
-Progress:            
-Parameters:          
+Progress:
+Parameters:
   message:           world
 `
 
@@ -114,9 +115,12 @@ Parameters:
 			a.instance = tt.instance
 			a.namespace = "argo"
 
-			uri, _ := a.outputWithURI(bytes.NewBuffer([]byte(tt.input)))
+			reader := bytes.NewBufferString(tt.input)
+			uri, out, err := a.outputWithURI(reader)
+			require.NoError(t, err, "unexpected error reading command output")
 
 			require.Equal(t, tt.expected, uri)
+			require.Equal(t, tt.input, out)
 		})
 	}
 }
@@ -150,6 +154,37 @@ func TestSetURIAsJobOutput(t *testing.T) {
 			a.setURIAsJobOutput(tt.uri, &buf)
 
 			require.Equal(t, tt.expectedOutput, buf.String())
+		})
+	}
+}
+
+func TestIsFatalError(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{
+			name:     "nil error",
+			err:      nil,
+			expected: false,
+		},
+		{
+			name:     "error without 'AlreadyExists'",
+			err:      errors.New("rpc error: code = InvalidName desc = workflows.argoproj.io \"my-workflow-@#$#$\" is invalid name"),
+			expected: false,
+		},
+		{
+			name:     "error containing 'AlreadyExists'",
+			err:      errors.New("rpc error: code = AlreadyExists desc = workflows.argoproj.io \"my-workflow-1\" already exists"),
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isFatalError(tt.err)
+			require.Equal(t, result, tt.expected)
 		})
 	}
 }

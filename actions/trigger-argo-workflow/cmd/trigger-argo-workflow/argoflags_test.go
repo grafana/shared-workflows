@@ -2,7 +2,6 @@ package main
 
 import (
 	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -30,6 +29,21 @@ func TestBuildCommand(t *testing.T) {
 				"GITHUB_ACTOR":      "actor",
 				"GITHUB_REPOSITORY": "owner/repo",
 				"GITHUB_EVENT_NAME": "event",
+			},
+		},
+		{
+			name:           "Override actor with OVERRIDE_ACTOR",
+			command:        "submit",
+			addCILabels:    true,
+			logLevel:       "info",
+			expectedOutput: []string{"--labels", "trigger-build-number=1,trigger-commit=abc,trigger-commit-author=override_actor,trigger-repo-name=repo,trigger-repo-owner=owner,trigger-event=event", "--loglevel", "info", "submit"},
+			envVars: map[string]string{
+				"GITHUB_RUN_NUMBER": "1",
+				"GITHUB_SHA":        "abc",
+				"GITHUB_ACTOR":      "actor",
+				"GITHUB_REPOSITORY": "owner/repo",
+				"GITHUB_EVENT_NAME": "event",
+				"OVERRIDE_ACTOR":    "override_actor",
 			},
 		},
 		{
@@ -65,8 +79,7 @@ func TestBuildCommand(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			for k, v := range tc.envVars {
-				os.Setenv(k, v)
-				defer os.Unsetenv(k)
+				t.Setenv(k, v)
 			}
 
 			level, err := parseLogLevel(tc.logLevel)

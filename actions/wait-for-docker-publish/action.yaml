@@ -1,0 +1,32 @@
+name: Wait for Docker publish
+description: >-
+  Poll an OCI registry until the given image reference is published, or fail
+  after a timeout. Designed for waiting on the DockerHub side of Grafana's
+  async GAR→DockerHub mirror.
+
+inputs:
+  image:
+    description: >-
+      Full image reference. Must include a :tag or @sha256:... digest
+    required: true
+  timeout:
+    description: Total wall-clock budget (e.g. 10m, 600s, 1h).
+    default: "10m"
+  initial-interval:
+    description: First sleep after a miss (e.g. 5s).
+    default: "5s"
+  max-interval:
+    description: Upper bound on the backoff (e.g. 60s).
+    default: "60s"
+
+runs:
+  using: composite
+  steps:
+    - name: Wait for image
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        TIMEOUT: ${{ inputs.timeout }}
+        INITIAL_INTERVAL: ${{ inputs.initial-interval }}
+        MAX_INTERVAL: ${{ inputs.max-interval }}
+      run: ${{ github.action_path }}/wait.sh

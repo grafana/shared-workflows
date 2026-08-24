@@ -21,4 +21,3 @@ then
     go install golang.org/x/tools/cmd/goimports@latest
 fi
 find "${GO_DIR}" -name \*.go -exec goimports -w {} \;
-

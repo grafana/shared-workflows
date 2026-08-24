@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -57,6 +58,11 @@ func NewGitHubActionsMetadata() (GitHubActionsMetadata, error) {
 	if err != nil {
 		return m, fmt.Errorf("failed to parse environment variables: %w", err)
 	}
+
+	if author, ok := os.LookupEnv("OVERRIDE_ACTOR"); ok {
+		m.CommitAuthor = sanitisedString(author)
+	}
+
 	return m, nil
 }
 

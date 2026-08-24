@@ -33,29 +33,31 @@ The `actions/` directory contains composite actions. Refer to the [GitHub docume
 
 ## Contribution Guidelines
 
-1. **Fork the Repository:** Start by forking the repository to your GitHub account.
+1. Fork the Repository: Start by forking the repository to your GitHub account.
 
-2. **Clone the Fork:** Clone your forked repository to your local machine.
+2. Clone the Fork: Clone your forked repository to your local machine.
 
-3. **Create a Branch:** Create a new branch for your contribution. Use a descriptive name related to the changes you're making.
+3. Install Pre-commit: Install [pre-commit](https://pre-commit.com/), a tool that runs checks before each commit. Run `pre-commit install` to set up git hooks defined in our [.pre-commit-config.yaml](.pre-commit-config.yaml) file.
 
-4. **Make Changes:** Make your desired changes to the codebase.
+4. Create a Branch: Create a new branch for your contribution. Use a descriptive name related to the changes you're making.
 
-5. **Write Tests:** Where it makes sense, please add tests. See `actions/techdocs-rewrite-relative-links` as an example.
+5. Make Changes: Make your desired changes to the codebase.
 
-6. **Document Changes:** Document your changes in a `README.md` file. Try to follow the examples set forward in other READMEs.
+6. Write Tests: Where it makes sense, please add tests. See `actions/techdocs-rewrite-relative-links` as an example.
 
-7. **Commit Changes:** Commit your changes with clear and concise commit messages.
+7. Document Changes: Document your changes in a `README.md` file. Try to follow the examples set forward in other READMEs.
 
-8. **Push Changes:** Push your changes to your forked repository.
+8. Commit Changes: Commit your changes with clear and concise commit messages.
 
-9. **Submit a Pull Request:** Submit a pull request to the main repository. Ensure that your pull request is detailed and includes information about the changes made.
+9. Push Changes: Push your changes to your forked repository.
 
-10. **Check CI:** Check your pull request to verify that any CI processes are passing.
+10. Submit a Pull Request: Submit a pull request to the main repository. Ensure that your pull request is detailed and includes information about the changes made.
 
-11. **Review Process:** Your pull request will be reviewed by the Grafana Labs' platform-productivity squad. Make any requested changes or address any feedback during this process.
+11. Check CI: Check your pull request to verify that any CI processes are passing.
 
-12. **Contributor License Agreement (CLA):** Before we can accept your pull request, you need to sign [Grafana's CLA](https://grafana.com/docs/grafana/latest/developers/cla/). If you haven't, our CLA assistant prompts you to when you create your pull request.
+12. Review Process: Your pull request will be reviewed by the Grafana Labs' platform-productivity squad. Make any requested changes or address any feedback during this process.
+
+13. Contributor License Agreement (CLA): Before we can accept your pull request, you need to sign [Grafana's CLA](https://grafana.com/docs/grafana/latest/developers/cla/). If you haven't, our CLA assistant prompts you to when you create your pull request.
 
 ## Code of Conduct
 

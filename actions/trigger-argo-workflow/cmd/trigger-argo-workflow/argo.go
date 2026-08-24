@@ -1,7 +1,9 @@
 package main
 
 import (
-	"bytes"
+	"bufio"
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -11,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
+	"github.com/cenkalti/backoff/v5"
 )
 
 type App struct {
@@ -32,10 +34,39 @@ type App struct {
 	retries uint64
 }
 
+type FullConfig struct {
+	ArgoToken             string
+	LogLevel              *slog.LevelVar
+	AddCILabels           bool
+	Command               string
+	ExtraArgs             []string
+	Instance              string
+	Namespace             string
+	Retries               uint64
+	WorkflowTemplate      string
+	GitHubActionsMetadata GitHubActionsMetadata
+}
+
+func (a App) PrintConfig(w io.Writer, md GitHubActionsMetadata) error {
+	cfg := FullConfig{
+		ArgoToken:             a.argoToken,
+		LogLevel:              a.levelVar,
+		Command:               a.command,
+		WorkflowTemplate:      a.workflowTemplate,
+		Instance:              a.instance,
+		Namespace:             a.namespace,
+		Retries:               a.retries,
+		ExtraArgs:             a.extraArgs,
+		GitHubActionsMetadata: md,
+	}
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(cfg)
+}
+
 var instanceToHost = map[string]string{
-	"dev":     "argo-workflows-dev.grafana.net:443",
-	"ops":     "argo-workflows.grafana.net:443",
-	"ops-aws": "argo-workflows-aws.grafana.net:443",
+	"dev": "argo-workflows-dev.grafana.net:443",
+	"ops": "argo-workflows.grafana.net:443",
 }
 
 func (a App) server() string {
@@ -59,41 +90,63 @@ func (a App) env() []string {
 
 var nameRe = regexp.MustCompile(`^Name:\s+(.+)`)
 
-func (a App) outputWithURI(input *bytes.Buffer) (string, string) {
-	output := strings.TrimSuffix(input.String(), "\n")
+func (a App) outputWithURI(reader io.Reader) (string, string, error) {
+	scanner := bufio.NewScanner(reader)
 
-	matches := nameRe.FindStringSubmatch(output)
+	var uri string
+	var outputBuilder strings.Builder
 
-	if len(matches) != 2 {
-		a.logger.Warn("Couldn't find workflow name in output - can't construct URI for launched workflow")
-		return "", output
+	for scanner.Scan() {
+		line := scanner.Text()
+		outputBuilder.WriteString(line + "\n")
+
+		if uri == "" {
+			matches := nameRe.FindStringSubmatch(line)
+			if len(matches) == 2 {
+				uri = fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+				a.logger.With("uri", uri).Info("workflow URI")
+			}
+		}
 	}
 
-	uri := fmt.Sprintf("https://%s/workflows/%s/%s", a.server(), a.namespace, matches[1])
+	if err := scanner.Err(); err != nil {
+		return uri, outputBuilder.String(), fmt.Errorf("error reading command output: %w", err)
+	}
 
-	return uri, output
+	return uri, outputBuilder.String(), nil
 }
 
 func (a App) runCmd(md GitHubActionsMetadata) (string, string, error) {
 	args := a.args(md)
 
 	cmd := exec.Command("argo", args...)
-	cmdOutput := &bytes.Buffer{}
-
 	cmd.Env = a.env()
-	cmd.Stdout = cmdOutput
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get stdout pipe: %w", err)
+	}
+
 	cmd.Stderr = os.Stderr
 
 	a.logger.With("executable", "argo", "command", cmd.Args, "retries", a.retries).Debug("running command")
 
-	err := cmd.Run()
-	if err != nil {
-		return "", "", err
+	if err := cmd.Start(); err != nil {
+		return "", "", fmt.Errorf("failed to start command: %w", err)
 	}
 
-	uri, output := a.outputWithURI(cmdOutput)
+	uri, out, scanErr := a.outputWithURI(stdoutPipe)
+	if scanErr != nil {
+		_ = stdoutPipe.Close()
+		_ = cmd.Wait()
+		return uri, out, scanErr
+	}
 
-	return uri, output, nil
+	if err := cmd.Wait(); err != nil {
+		return uri, out, fmt.Errorf("command failed: %w", err)
+	}
+
+	return uri, out, nil
 }
 
 func (a *App) setURIAsJobOutput(uri string, writer io.Writer) {
@@ -102,7 +155,7 @@ func (a *App) setURIAsJobOutput(uri string, writer io.Writer) {
 		return
 	}
 
-	_, err := writer.Write([]byte(fmt.Sprintf("uri=%s\n", uri)))
+	_, err := fmt.Fprintf(writer, "uri=%s\n", uri)
 	if err != nil {
 		a.logger.With("error", err).Error("failed to write to file, won't set job output")
 	}
@@ -127,30 +180,51 @@ func (a *App) openGitHubOutput() io.WriteCloser {
 	return f
 }
 
-func (a *App) Run(md GitHubActionsMetadata) error {
-	bo := backoff.WithMaxRetries(backoff.NewExponentialBackOff(), a.retries)
+var fatalErrors = []string{
+	"AlreadyExists",
+}
 
-	var uri string
+func isFatalError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	for _, fatalError := range fatalErrors {
+		if strings.Contains(err.Error(), fatalError) {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *App) Run(ctx context.Context, md GitHubActionsMetadata) error {
+	bo := backoff.NewExponentialBackOff()
+
 	var out string
 
-	run := func() error {
+	run := func() (string, error) {
+		var uri string
 		var err error
 		uri, out, err = a.runCmd(md)
 
-		return err
+		if isFatalError(err) {
+			return uri, backoff.Permanent(err)
+		}
+
+		return uri, err
 	}
 
-	err := backoff.RetryNotify(run, bo, func(err error, t time.Duration) {
+	uri, err := backoff.Retry(ctx, run, backoff.WithBackOff(bo), backoff.WithMaxTries(uint(a.retries)), backoff.WithNotify(func(err error, t time.Duration) {
 		a.logger.With("error", err, "retry_in", t).Error("failed to run command, retrying")
-	})
+	}))
 	if err != nil {
 		return err
 	}
 
-	a.logger.With("uri", uri).Info("workflow URI")
-
 	writer := a.openGitHubOutput()
-	defer writer.Close()
+	defer func() {
+		_ = writer.Close()
+	}()
 
 	if writer != nil && uri != "" {
 		a.setURIAsJobOutput(uri, writer)

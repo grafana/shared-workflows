@@ -1,0 +1,132 @@
+name: Drone CI Signature Check
+
+on:
+  workflow_call:
+    inputs:
+      drone_config_path:
+        description: "Path to the Drone CI configuration file"
+        type: string
+        default: ".drone.yml"
+      drone_server:
+        description: "Drone CI server URL"
+        type: string
+        default: "https://drone.grafana.net"
+
+permissions:
+  contents: read
+
+jobs:
+  # This job checks if we should run the drone signature check.
+  # If the repository is under the "grafana" org, we will run the signature check.
+  # If the repository is a fork, we will skip the signature check, as secrets
+  # needed for the validation are not available in forked repos.
+  check-fork:
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    outputs:
+      isFork: ${{ steps.check-if-fork.outputs.isFork }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        if: ${{ ! github.event.repository.private }}
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Check if forked repository
+        id: check-if-fork
+        run: |
+          REPO_FULLNAME="${{ github.repository }}"
+          REPO_OWNER="${REPO_FULLNAME%/*}"
+
+          if [ "$REPO_OWNER" = "${{ github.repository_owner }}" ]; then
+            echo "isFork=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "isFork=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Post PR message about fork
+        if: steps.check-if-fork.outputs.isFork == true && github.event_name == 'pull_request'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Skipping Drone CI config signature check, as this is a forked repository. A user with the proper repo permissions will need to sign the Drone CI configuration file.'
+            })
+
+  check-drone-signature:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    needs: check-fork
+    if: needs.check-fork.outputs.isFork == 'false'
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Drone CLI
+        run: |
+          VERSION=v1.8.0
+          curl -L https://github.com/harness/drone-cli/releases/download/$VERSION/drone_linux_amd64.tar.gz | tar zx
+          sudo install -t /usr/local/bin drone
+
+      - name: Checkout shared workflows
+        env:
+          # In a composite action, these two need to be indirected via the
+          # environment, as per the GitHub actions documentation:
+          # https://docs.github.com/en/actions/learn-github-actions/contexts
+          action_repo: ${{ github.action_repository }}
+          action_ref: ${{ github.action_ref }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ env.action_repo }}
+          ref: ${{ env.action_ref }}
+          path: _shared-workflows-check-drone-signature
+          persist-credentials: false
+
+      - id: get-secrets
+        name: Retrieve drone-signature-checker token
+        uses: ./_shared-workflows-check-drone-signature/actions/get-vault-secrets
+        with:
+          common_secrets: |
+            DRONE_TOKEN=drone-sign-check-machine-user:token
+
+      - name: Remove shared workflows
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          # Check that the directory looks OK before removing it
+          if ! [ -d "_shared-workflows-check-drone-signature/.git" ]; then
+            echo "::warning Not removing shared workflows directory: doesn't look like a git repository"
+            exit 0
+          fi
+
+          rm -rf _shared-workflows-check-drone-signature
+
+      - name: Check Drone signature
+        env:
+          DRONE_CONFIG_PATH: ${{ inputs.drone_config_path }}
+          DRONE_SERVER: ${{ inputs.drone_server }}
+          DRONE_TOKEN: ${{ fromJSON(steps.get-secrets.outputs.secrets).DRONE_TOKEN }}
+        run: |
+          # Run drone sign command
+          drone sign --save ${{ github.repository }} "${DRONE_CONFIG_PATH}"
+
+          # Check if there are any changes to the Drone config file
+          if git diff --quiet "${DRONE_CONFIG_PATH}"; then
+            echo "Drone CI configuration signature is valid."
+          else
+            echo "Drone CI configuration signature was updated."
+            echo "Please sign the updated .drone.yml file and commit."
+            exit 1
+          fi

@@ -1,0 +1,84 @@
+# Changelog
+
+## [1.2.1](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.2.0...setup-argo/v1.2.1) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **create-github-app-token:** trigger release-please for reverted gatb change ([#1988](https://github.com/grafana/shared-workflows/issues/1988)) ([e6c8753](https://github.com/grafana/shared-workflows/commit/e6c875364b041be8288bcb1bee15f79cea31ffb1))
+
+## [1.2.0](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.1.0...setup-argo/v1.2.0) (2026-03-24)
+
+
+### 🎉 Features
+
+* **trigger-argo-workflows:** update default argo-cli version to 4.0.3 ([#1827](https://github.com/grafana/shared-workflows/issues/1827)) ([e53f729](https://github.com/grafana/shared-workflows/commit/e53f7299a1dcda82d5e0f5444264621b94062207))
+
+## [1.1.0](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.0.3...setup-argo/v1.1.0) (2026-03-19)
+
+
+### 🎉 Features
+
+* **argo:** bump default Argo CLI to 3.7.10 and make version configurable in argo-lint ([f684d78](https://github.com/grafana/shared-workflows/commit/f684d7826a961af39afa358f2e3f041fab0f5595))
+* **argo:** bump default Argo CLI to 3.7.10, make version configurable ([#1814](https://github.com/grafana/shared-workflows/issues/1814)) ([f684d78](https://github.com/grafana/shared-workflows/commit/f684d7826a961af39afa358f2e3f041fab0f5595))
+
+## [1.0.3](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.0.2...setup-argo/v1.0.3) (2025-12-10)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v4.2.4 ([#1201](https://github.com/grafana/shared-workflows/issues/1201)) ([25cf7e3](https://github.com/grafana/shared-workflows/commit/25cf7e34e371246a9a9843bade599df92fca88ae))
+* **deps:** update actions/cache action to v4.3.0 ([#1346](https://github.com/grafana/shared-workflows/issues/1346)) ([bcfe5a0](https://github.com/grafana/shared-workflows/commit/bcfe5a09ced411b395d8601ea24d64266ba8188c))
+
+## [1.0.2](https://github.com/grafana/shared-workflows/compare/setup-argo-v1.0.1...setup-argo/v1.0.2) (2025-06-04)
+
+
+### 🐛 Bug Fixes
+
+* **everything:** fix all things for zizmor ([af9b0c5](https://github.com/grafana/shared-workflows/commit/af9b0c52635d39023136fb9312a354f91d9b2bfd))
+
+
+### 📝 Documentation
+
+* **multiple-actions:** move permissions to job level in workflow examples ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* **multiple-actions:** move permissions to job level in workflows ([#969](https://github.com/grafana/shared-workflows/issues/969)) ([49c90b1](https://github.com/grafana/shared-workflows/commit/49c90b10fcbce463983bed45932cf468b8bd06ce))
+* update all readmes to replace hyphen with slash ([#1008](https://github.com/grafana/shared-workflows/issues/1008)) ([472df76](https://github.com/grafana/shared-workflows/commit/472df76fb1cbb92a17fb9e055bdf0d1399109ee3))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v4.2.1 ([#788](https://github.com/grafana/shared-workflows/issues/788)) ([e26a7f2](https://github.com/grafana/shared-workflows/commit/e26a7f265ddef3a68c322a94a716e6453f656cba))
+* **deps:** update actions/cache action to v4.2.2 ([#822](https://github.com/grafana/shared-workflows/issues/822)) ([0c036cd](https://github.com/grafana/shared-workflows/commit/0c036cdbfb4c912c287f0023073c4c07c10a76e7))
+* **deps:** update actions/cache action to v4.2.3 ([#858](https://github.com/grafana/shared-workflows/issues/858)) ([bc9486e](https://github.com/grafana/shared-workflows/commit/bc9486e0e7cbe24b54d0dcdf8be459eb777567b0))
+* **main:** release push-to-gar-docker 0.3.0 ([#794](https://github.com/grafana/shared-workflows/issues/794)) ([a7bc536](https://github.com/grafana/shared-workflows/commit/a7bc5367c4a91c389526d58839d8f6224dba4dcc))
+
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/setup-argo-v1.0.0...setup-argo-v1.0.1) (2025-01-29)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v4.2.0 ([#636](https://github.com/grafana/shared-workflows/issues/636)) ([c4422fc](https://github.com/grafana/shared-workflows/commit/c4422fc4a4fa6cddae3862c7df7b4ec5f251053f))
+* update readme when a new release is available ([#548](https://github.com/grafana/shared-workflows/issues/548)) ([9bf9163](https://github.com/grafana/shared-workflows/commit/9bf9163126c44247bcee6b6b9390eb488f9ead53))
+
+## 1.0.0 (2024-11-28)
+
+
+### 🐛 Bug Fixes
+
+* **setup-argo:** less fragile OS/ARCH selection ([#222](https://github.com/grafana/shared-workflows/issues/222)) ([e9775f3](https://github.com/grafana/shared-workflows/commit/e9775f3ace2ef954b81548720476fb42ebde52e8))
+* **setup-argo:** use amd64 as arch ([#217](https://github.com/grafana/shared-workflows/issues/217)) ([7a0ba14](https://github.com/grafana/shared-workflows/commit/7a0ba14ec0596297d38441c7829cbe8eb30fb036))
+* **setup-argo:** use bash, fix idempotency, only restore if needed ([#221](https://github.com/grafana/shared-workflows/issues/221)) ([1e75822](https://github.com/grafana/shared-workflows/commit/1e75822620b1413e97deb7d60b10cad9ebf0fdeb))
+* wrong linked action in argo docs ([#538](https://github.com/grafana/shared-workflows/issues/538)) ([170f6ab](https://github.com/grafana/shared-workflows/commit/170f6abb2b5e83be95d6b885c1f3a8e3e5200b57))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v4.1.0 ([#441](https://github.com/grafana/shared-workflows/issues/441)) ([e583f36](https://github.com/grafana/shared-workflows/commit/e583f3676b58bba1b3a278be432b4220800abf2f))
+* **deps:** update actions/cache action to v4.1.1 ([#448](https://github.com/grafana/shared-workflows/issues/448)) ([db270ac](https://github.com/grafana/shared-workflows/commit/db270ac9e0cd900940a87e7187c1d4863a997568))
+* **deps:** update actions/cache action to v4.1.2 ([#494](https://github.com/grafana/shared-workflows/issues/494)) ([0f7e124](https://github.com/grafana/shared-workflows/commit/0f7e1244ff37782aaca907e8287d73173776646f))
+* **deps:** update dsaltares/fetch-gh-release-asset action to v1.1.2 ([#247](https://github.com/grafana/shared-workflows/issues/247)) ([cfd4f70](https://github.com/grafana/shared-workflows/commit/cfd4f702bf0e979fe1f3d074154ab1616a7c4d75))
+
+
+### ♻️ Code Refactoring
+
+* **setup-argo:** refactor following feedback ([#215](https://github.com/grafana/shared-workflows/issues/215)) ([64a196a](https://github.com/grafana/shared-workflows/commit/64a196a127bcfe135cf6152a387db2024efc3044))

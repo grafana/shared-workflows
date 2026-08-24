@@ -54,51 +54,176 @@
   "include-v-in-tag": true,
   "packages": {
     "actions/argo-lint": {
-      "package-name": "argo-lint"
+      "package-name": "argo-lint",
+      "extra-files": ["README.md"]
     },
     "actions/aws-auth": {
-      "package-name": "aws-auth"
+      "package-name": "aws-auth",
+      "extra-files": ["README.md"]
     },
-    "actions/build-push-to-dockerhub": {
-      "package-name": "build-push-to-dockerhub"
+    "actions/azure-trusted-signing": {
+      "package-name": "azure-trusted-signing",
+      "extra-files": ["README.md"]
     },
     "actions/dockerhub-login": {
-      "package-name": "dockerhub-login"
+      "package-name": "dockerhub-login",
+      "extra-files": ["README.md"]
     },
     "actions/find-pr-for-commit": {
-      "package-name": "find-pr-for-commit"
+      "package-name": "find-pr-for-commit",
+      "extra-files": ["README.md"]
     },
     "actions/generate-openapi-clients": {
-      "package-name": "generate-openapi-clients"
+      "package-name": "generate-openapi-clients",
+      "extra-files": ["README.md"]
     },
     "actions/get-vault-secrets": {
-      "package-name": "get-vault-secrets"
+      "package-name": "get-vault-secrets",
+      "extra-files": ["README.md"]
     },
     "actions/lint-pr-title": {
-      "package-name": "lint-pr-title"
+      "package-name": "lint-pr-title",
+      "extra-files": ["README.md"]
     },
     "actions/login-to-gar": {
-      "package-name": "login-to-gar"
+      "package-name": "login-to-gar",
+      "extra-files": ["README.md"]
     },
     "actions/login-to-gcs": {
-      "package-name": "login-to-gcs"
-    },
-    "actions/push-to-gar-docker": {
-      "package-name": "push-to-gar-docker"
+      "package-name": "login-to-gcs",
+      "extra-files": ["README.md"]
     },
     "actions/push-to-gcs": {
-      "package-name": "push-to-gcs"
+      "package-name": "push-to-gcs",
+      "extra-files": ["README.md"]
+    },
+    "actions/remove-checkout-credentials": {
+      "package-name": "remove-checkout-credentials",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     },
     "actions/send-slack-message": {
-      "package-name": "send-slack-message"
+      "package-name": "send-slack-message",
+      "extra-files": ["README.md"]
     },
     "actions/setup-argo": {
-      "package-name": "setup-argo"
+      "package-name": "setup-argo",
+      "extra-files": ["README.md"]
+    },
+    "actions/setup-jrsonnet": {
+      "package-name": "setup-jrsonnet",
+      "extra-files": ["README.md"]
     },
     "actions/setup-conftest": {
-      "package-name": "setup-conftest"
+      "package-name": "setup-conftest",
+      "extra-files": ["README.md"]
+    },
+    "actions/techdocs-rewrite-relative-links": {
+      "package-name": "techdocs-rewrite-relative-links",
+      "extra-files": ["README.md"]
+    },
+    "actions/trigger-argo-workflow": {
+      "package-name": "trigger-argo-workflow",
+      "extra-files": ["README.md"]
+    },
+    "actions/validate-policy-bot-config": {
+      "package-name": "validate-policy-bot-config",
+      "extra-files": ["README.md"]
+    },
+    "actions/dependabot-auto-triage": {
+      "package-name": "dependabot-auto-triage",
+      "extra-files": ["README.md"]
+    },
+    "actions/get-latest-workflow-artifact": {
+      "package-name": "get-latest-workflow-artifact",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/run-capslock": {
+      "package-name": "run-capslock",
+      "extra-files": ["README.md"]
+    },
+    "actions/create-github-app-token": {
+      "package-name": "create-github-app-token",
+      "extra-files": ["README.md"]
+    },
+    "actions/validate-renovate-config": {
+      "package-name": "validate-renovate-config",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/validate-zizmor-config": {
+      "package-name": "validate-zizmor-config",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/zizmor-collection-paths": {
+      "package-name": "zizmor-collection-paths",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/cleanup-branches": {
+      "package-name": "cleanup-branches",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/go-flaky-tests": {
+      "package-name": "go-flaky-tests",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/docker-build-push-image": {
+      "package-name": "docker-build-push-image",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/docker-export-digest": {
+      "package-name": "docker-export-digest",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/socket-export-sbom": {
+      "package-name": "socket-export-sbom",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/docker-import-digests-push-manifest": {
+      "package-name": "docker-import-digests-push-manifest",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/component-change-detection": {
+      "package-name": "component-change-detection",
+      "extra-files": ["README.md"],
+      "initial-version": "1.0.0"
+    },
+    "actions/download-branch-workflow-artifact": {
+      "package-name": "download-branch-workflow-artifact",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/issues-update-project-status": {
+      "package-name": "issues-update-project-status",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/wait-for-docker-publish": {
+      "package-name": "wait-for-docker-publish",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/annotate-coverage": {
+      "package-name": "annotate-coverage",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
+    "actions/signed-commits-info": {
+      "package-name": "signed-commits-info",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
+  "tag-separator": "/",
   "separate-pull-requests": true
 }

@@ -2,18 +2,16 @@ name: Send Slack Message
 description: Composite action to send a Slack message
 
 inputs:
-  channel-id:
-    description: "Name or ID of the channel to send to"
-    required: true
   payload:
-    description: "JSON payload to send. Use `payload` or `slack-message`, but not both"
+    description: "JSON payload to send"
     required: false
-  slack-message:
-    description: "Plain text message to send. Use `payload` or `slack-message`, but not both"
+  method:
+    description: "The Slack API method to call"
+    required: true
+  payload-templated:
+    description: "To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true"
     required: false
-  update-ts:
-    description: "The timestamp of a previous message posted. Used to update or reply to existing messages"
-    required: false
+    default: "false"
 outputs:
   time:
     value: ${{ steps.send-slack-message.outputs.time }}
@@ -31,18 +29,18 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Get a Slack token
-      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+    - id: get-secrets
+      name: Get a Slack token
+      uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
       with:
         common_secrets: |
           SLACK_BOT_TOKEN=slack-notifications:oauth-token
+
     - name: Send Slack Message
       id: send-slack-message
-      uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
+      uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc # v3.0.5
       with:
-        channel-id: ${{ inputs.channel-id }}
+        payload-templated: ${{ inputs.payload-templated }}
+        method: ${{ inputs.method }}
         payload: ${{ inputs.payload }}
-        slack-message: ${{ inputs.slack-message }}
-        update-ts: ${{ inputs.update-ts }}
-      env:
-        SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}
+        token: ${{ fromJSON(steps.get-secrets.outputs.secrets).SLACK_BOT_TOKEN }}

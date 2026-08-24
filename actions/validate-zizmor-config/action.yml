@@ -1,0 +1,31 @@
+name: Validate repo-local zizmor config
+description: >-
+  Enforces Grafana policy on a repo-local zizmor.yml (used from reusable-zizmor before running zizmor).
+inputs:
+  config_path:
+    description: Path to the zizmor config file relative to the workspace (e.g. zizmor.yml).
+    required: true
+  sarif_output:
+    description: >-
+      Optional path for a SARIF report written when validation fails (used by reusable-zizmor
+      so Grafana Bench and Loki ingestion still receive results).
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Run policy validator
+      shell: bash
+      run: |
+        set -euo pipefail
+        args=("${GITHUB_ACTION_PATH}/validate_zizmor_config.py" "${CONFIG_PATH}")
+        if [ -n "${SARIF_OUTPUT}" ]; then
+          args+=(--sarif-output "${SARIF_OUTPUT}")
+        fi
+        uv run --with "pyyaml==${PYYAML_VERSION}" python3 "${args[@]}"
+      env:
+        CONFIG_PATH: ${{ inputs.config_path }}
+        SARIF_OUTPUT: ${{ inputs.sarif_output }}
+        # renovate: datasource=pypi depName=pyyaml
+        PYYAML_VERSION: "6.0.3"

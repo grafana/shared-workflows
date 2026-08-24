@@ -1,0 +1,27 @@
+diff --git a/calculator.go b/calculator.go
+index 1234567..abcdefg 100644
+--- a/calculator.go
++++ b/calculator.go
+@@ -5,12 +5,18 @@ func Add(a, b int) int {
+ }
+
+ func Subtract(a, b int) int {
+-	return a - b
++	result := a - b
++	return result
+ }
+
+ func Multiply(a, b int) int {
+ 	return a * b
+ }
+
+-func Divide(a, b int) int {
+-	return a / b
++func Divide(a, b float64) float64 {
++	if b == 0 {
++		return 0
++	}
++	return a / b
+ }
++
++const Pi = 3.14159

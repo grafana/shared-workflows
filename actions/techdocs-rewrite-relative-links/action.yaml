@@ -49,13 +49,16 @@ runs:
   steps:
     - id: workflow-ref
       name: Determine workflow ref
+      env:
+        WORKFLOW_REF: ${{ github.workflow_ref }}
+        HEAD_REF: ${{ github.head_ref }}
       if: ${{ inputs.checkout-action-repository == 'true' }}
       shell: bash
       run: |
-        ref=$(echo "${{ github.workflow_ref }}" | awk '{split($0,a,"@");printf "%s",a[2]}')
+        ref=$(echo "${WORKFLOW_REF}" | awk '{split($0,a,"@");printf "%s",a[2]}')
         # pull request refs cannot be checked out, so we need to fall back:
         if [[ "${ref}" =~ ^refs/pull/ ]]; then
-          printf "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          printf "ref=${HEAD_REF}" >> $GITHUB_OUTPUT
         else
           printf "ref=%s" $ref >> $GITHUB_OUTPUT
         fi
@@ -70,14 +73,15 @@ runs:
         # so we need to fall back:
         action_repo: ${{ github.action_repository || 'grafana/shared-workflows' }}
         action_ref: ${{ github.action_ref || 'main' }}
-      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ${{ env.action_repo }}
         ref: ${{ env.action_ref }}
         path: ${{ inputs.checkout-action-repository-path }}
+        persist-credentials: false
 
     - name: Setup go
-      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         check-latest: true
         cache-dependency-path: |
@@ -86,17 +90,29 @@ runs:
 
     - name: Run
       id: run
+      env:
+        WORKING_DIR: ${{ inputs.working-directory }}
+        CHECKOUT_PATH: ${{ inputs.checkout-action-repository-path }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        REPO_URL: ${{ inputs.repo-url }}
+        # Safely handle boolean flags
+        DRY_RUN_FLAG: ${{ inputs.dry-run == 'true' && '--dry-run' || '' }}
+        DEBUG_FLAG: ${{ inputs.debug == 'true' && '--debug' || '' }}
+        VERBOSE_FLAG: ${{ inputs.verbose == 'true' && '--verbose' || '' }}
       shell: bash
       run: |
-        root_dir=$(realpath ${{ inputs.working-directory }})
-        cd ${{ inputs.checkout-action-repository-path }}/actions/techdocs-rewrite-relative-links
+        root_dir=$(realpath "${WORKING_DIR}")
+        cd "${CHECKOUT_PATH}"/actions/techdocs-rewrite-relative-links
         go run . \
-        --root-dir=${root_dir} \
-        --default-branch=${{inputs.default-branch}} \
-        --repo-url=${{inputs.repo-url}} ${{ inputs.dry-run == 'true' && '--dry-run' || '' }} ${{ inputs.debug == 'true' && '--debug' || '' }} ${{ inputs.verbose == 'true' && '--verbose' || '' }}
+        --root-dir="${root_dir}" \
+        --default-branch="${DEFAULT_BRANCH}" \
+        --repo-url="${REPO_URL}" \
+        ${DRY_RUN_FLAG} ${DEBUG_FLAG} ${VERBOSE_FLAG}
 
     - name: Cleanup
-      if: ${{ always() && inputs.checkout-action-repository == 'true' }}
+      env:
+        CHECKOUT_PATH: ${{ inputs.checkout-action-repository-path }}
+      if: ${{ !cancelled() && inputs.checkout-action-repository == 'true' }}
       shell: bash
       run: |
-        rm -rf ${{ inputs.checkout-action-repository-path }}
+        rm -rf "${CHECKOUT_PATH}"

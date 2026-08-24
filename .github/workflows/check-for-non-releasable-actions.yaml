@@ -1,0 +1,64 @@
+name: Check for non-releasable actions
+on:
+  pull_request:
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  check-for-non-releasable-actions:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            ./actions
+            ./release-please-config.json
+
+      - name: Check for non-releasable actions
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const fs = require('fs/promises');
+            const releasePleaseConfig = JSON.parse(await fs.readFile('release-please-config.json', 'utf-8'));
+
+            const configuredPackageNames = new Set(Object.keys(releasePleaseConfig.packages));
+            const packageNames = new Set();
+
+            const folders = await fs.readdir('actions', { withFileTypes: true });
+            for (const folder of folders) {
+              if (folder.isDirectory()) {
+                packageNames.add('actions/' + folder.name);
+              }
+            }
+
+            const missingConfigurations = [...packageNames].filter(pkg => !configuredPackageNames.has(pkg));
+
+            if (missingConfigurations.length > 0) {
+              console.log('The following actions are missing from the release-please-config.json file and thus won\'t be automatically released:');
+              console.log(missingConfigurations.join('\n'));
+              console.log('Please add them in release-please-config.json!');
+            } else {
+              console.log('All actions are releasable!');
+            }

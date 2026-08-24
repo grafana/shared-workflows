@@ -1,0 +1,14 @@
+diff --git a/oldname.go b/newname.go
+similarity index 85%
+rename from oldname.go
+rename to newname.go
+index 1234567..abcdefg 100644
+--- a/oldname.go
++++ b/newname.go
+@@ -1,5 +1,6 @@
+ package main
+
+ func OldFunction() {
++	// New comment added
+ 	return
+ }

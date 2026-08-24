@@ -4,7 +4,7 @@ description: Trigger an Argo workflow in the Grafana Labs Argo Workflows instanc
 inputs:
   instance:
     description: |
-      The instance to use (`dev`, `ops` or `ops-aws`). Defaults to `ops`.
+      The instance to use (`dev` or `ops`). Defaults to `ops`.
     default: ops
   namespace:
     description: |
@@ -29,6 +29,11 @@ inputs:
     description: |
       The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.
     default: info
+  output_summary:
+    description: |
+      If `true`, write the triggered workflow URL to the GitHub job summary.
+      Defaults to `false`.
+    default: "false"
 
 outputs:
   uri:
@@ -40,50 +45,35 @@ runs:
   using: composite
 
   steps:
-    - name: Checkout
-      env:
-        # In a composite action, these two need to be indirected via the
-        # environment, as per the GitHub actions documentation:
-        # https://docs.github.com/en/actions/learn-github-actions/contexts
-        action_repo: ${{ github.action_repository }}
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-trigger-argo-workflow
-
     - name: Setup argo
-      uses: ./_shared-workflows-trigger-argo-workflow/actions/setup-argo
+      uses: grafana/shared-workflows/actions/setup-argo@21cbef8182ef0fc1c3ae8e68b9590af49ed10a5b # setup-argo/v1.2.1
 
     - name: Setup go
-      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         check-latest: true
         cache-dependency-path: |
-          actions/trigger-argo-workflow/go.sum
-        go-version-file: "_shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow/go.mod"
+          ${{ github.action_path }}/go.sum
+        go-version-file: ${{ github.action_path }}/go.mod
 
     - name: Map cluster and vault instance from Argo WF instance
       id: argo-instance
+      env:
+        INSTANCE: ${{ inputs.instance }}
       shell: sh
       run: |
         # Map the instance to the cluster name to get the correct secret
-        case "${{ inputs.instance }}" in
+        case "${INSTANCE}" in
           dev)
             cluster="dev-us-east-0"
             vault_instance="dev"
             ;;
           ops)
-            cluster="ops-us-east-0"
-            vault_instance="ops"
-            ;;
-          ops-aws)
             cluster="ops-eu-south-0"
             vault_instance="ops"
             ;;
           *)
-            echo "unknown instance '${{ inputs.instance }}'"
+            echo "unknown instance '${INSTANCE}'"
             exit 1
             ;;
         esac
@@ -93,7 +83,7 @@ runs:
 
     - name: Get Argo Token
       id: get-argo-token
-      uses: ./_shared-workflows-trigger-argo-workflow/actions/get-vault-secrets
+      uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
       with:
         vault_instance: ${{ steps.argo-instance.outputs.vault-instance }}
         repo_secrets: |
@@ -102,28 +92,50 @@ runs:
     - name: Run
       id: run
       shell: bash
+      env:
+        ARGO_TOKEN: ${{ fromJSON(steps.get-argo-token.outputs.secrets).ARGO_TOKEN }}
+        EXTRA_ARGS: ${{ inputs.extra_args }}
+        INSTANCE: ${{ inputs.instance }}
+        LOG_LEVEL: ${{ inputs.log_level }}
+        NAMESPACE: ${{ inputs.namespace }}
+        PARAMETERS: ${{ inputs.parameters }}
+        WORKFLOW_TEMPLATE: ${{ inputs.workflow_template }}
       run: |
-        cd _shared-workflows-trigger-argo-workflow/actions/trigger-argo-workflow
+        # The runner downloads the full action repository into its actions
+        # cache; GITHUB_ACTION_PATH points at this action's directory there.
+        cd "${GITHUB_ACTION_PATH}"
 
         # Split the parameters into an array and pass them to the action as --parameter PARAM
+        parameters=()
         while read -r line; do
           if [ -z "${line}" ]; then
             continue
           fi
 
           parameters+=("--parameter" "$line")
-        done <<< "${{ inputs.parameters }}"
+        done <<< "${PARAMETERS}"
 
-        if [ -n "${{ inputs.workflow_template }}" ]; then
-          parameters+=("--workflow-template" "${{ inputs.workflow_template }}")
+        if [ -n "${WORKFLOW_TEMPLATE}" ]; then
+          parameters+=("--workflow-template" "${WORKFLOW_TEMPLATE}")
         fi
 
+        # Explicitly disable Go workspace support in case the repo uses that:
+        export GOWORK=off
+
         go run github.com/grafana/shared-workflows/actions/trigger-argo-workflow/cmd/trigger-argo-workflow \
-          --log-level "${{ inputs.log_level }}" \
-          --namespace "${{ inputs.namespace }}" \
-          --instance "${{ inputs.instance }}" \
+          --log-level "${LOG_LEVEL}" \
+          --namespace "${NAMESPACE}" \
+          --instance "${INSTANCE}" \
           "${parameters[@]}" \
           submit \
-          ${{ inputs.extra_args }}
+          ${EXTRA_ARGS}
+
+    - name: Write workflow URL to job summary
+      if: ${{ inputs.output_summary == 'true' }}
+      shell: bash
       env:
-        ARGO_TOKEN: ${{ env.ARGO_TOKEN }}
+        WORKFLOW_URI: ${{ steps.run.outputs.uri }}
+      run: |
+        echo "### Argo Workflow" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "Triggered workflow: [${WORKFLOW_URI}](${WORKFLOW_URI})" >> "$GITHUB_STEP_SUMMARY"

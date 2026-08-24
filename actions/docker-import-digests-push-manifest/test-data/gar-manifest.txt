@@ -1,0 +1,26 @@
+Name:      us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs
+MediaType: application/vnd.oci.image.index.v1+json
+Digest:    sha256:eec7b9d9edcc920bafac273b7feee1ea53292a34a44c413fb8b91e2ed646a904
+
+Manifests:
+  Name:        us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:ce31c6dfb3a05558a79966fdd2a3e20371ec37101747e3f04a8f2604bfa1f4fc
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    linux/amd64
+
+  Name:        us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:dcaac863923cbb8ca6e885b7f987d53f4c1b85ffa4c87f7374bcc714e9910c54
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    unknown/unknown
+  Annotations:
+    vnd.docker.reference.digest: sha256:ce31c6dfb3a05558a79966fdd2a3e20371ec37101747e3f04a8f2604bfa1f4fc
+    vnd.docker.reference.type:   attestation-manifest
+
+  Name:        us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:1592db1fa12a206f24527658cf37f8b9463f9ba7a5e7588061eb4503cfdcf4b6
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    linux/arm64
+
+  Name:        us-docker.pkg.dev/grafanalabs-dev/docker-cicd-test-dev/cicd-test:rickytest-manifest-outputs@sha256:099c17feae0128ef83ee3662bcde0a7cf24239f2af3927d384d929dccfd9ffe8
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    unknown/unknown
+  Annotations:
+    vnd.docker.reference.digest: sha256:1592db1fa12a206f24527658cf37f8b9463f9ba7a5e7588061eb4503cfdcf4b6
+    vnd.docker.reference.type:   attestation-manifest

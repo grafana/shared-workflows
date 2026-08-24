@@ -1,0 +1,65 @@
+name: Capslock compare
+description: Capslock compare
+
+inputs:
+  go-version:
+    default: "1.24.6"
+    required: true
+    description: "Go version used"
+  capslock-version:
+    default: "v0.2.8"
+    required: true
+    description: "Capslock version used"
+  scope:
+    default: ""
+    required: true
+    description: "The scope of analysis"
+  main-branch:
+    default: "main"
+    required: true
+    description: "Name of the main branch"
+  output-place:
+    default: "pr-comment"
+    required: true
+    description: "Output place"
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: true
+    - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      with:
+        go-version: "${{ inputs.go-version }}"
+    - name: Cache capslock
+      id: capslock-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/go
+        key: ${{ runner.os }}-${{ runner.arch }}-capslock-${{ inputs.capslock-version }}
+    - shell: bash
+      if: steps.capslock-cache.outputs.cache-hit != 'true'
+      id: capslock-install
+      env:
+        CAPSLOCK_VERSION: ${{ inputs.capslock-version }}
+      run: |
+        go install "github.com/google/capslock/cmd/capslock@${CAPSLOCK_VERSION}"
+    - shell: bash
+      id: capslock-run
+      env:
+        MAIN_BRANCH: ${{ inputs.main-branch }}
+        SCOPE: ${{ inputs.scope }}
+        CAPSLOCKTOOLSTMPDIR: ${{ runner.temp }}
+        OUTPUT_PLACE: ${{ inputs.output-place }}
+      run: |
+        ${GITHUB_ACTION_PATH}/capslock.sh
+      # Remove checkout credentials
+    - uses: grafana/shared-workflows/actions/remove-checkout-credentials@2c55567fed8874f47886e035f4e91f79f6039149 # v0.1.0
+    - uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+      if: steps.capslock-run.outputs.output != ''
+      with:
+        hide_and_recreate: true
+        hide_classify: "OUTDATED"
+        message: |
+          ${{steps.capslock-run.outputs.output}}

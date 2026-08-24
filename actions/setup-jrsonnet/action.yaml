@@ -1,0 +1,53 @@
+name: Setup jrsonnet
+description: Setup jrsonnet CLI and add it to the PATH, this action will pull the binary from GitHub releases and store it in cache for the next run.
+
+inputs:
+  cache-prefix:
+    description: Prefix for the cache key.
+    default: jrsonnet
+
+  version:
+    description: |
+      Version of the jrsonnet CLI to install.
+    default: 0.5.0-pre96-test
+
+outputs:
+  cache-hit:
+    description: Whether the cache was hit or not.
+    value: ${{ steps.cache.outputs.cache-hit || 'false' }}
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup cache
+      id: cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: /usr/local/bin/jrsonnet
+        key: ${{ inputs.cache-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+
+    - name: Map OS and ARCH to jrsonnet release artifact
+      id: os-arch
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: sh
+      run: |
+        echo "OS=$(go env GOOS)" | tee -a "${GITHUB_OUTPUT}"
+        echo "ARCH=$(go env GOARCH)" | tee -a "${GITHUB_OUTPUT}"
+
+    - name: Fetch GitHub Release Asset
+      id: fetch_asset
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: dsaltares/fetch-gh-release-asset@aa2ab1243d6e0d5b405b973c89fa4d06a2d0fff7 # 1.1.2
+      with:
+        repo: "CertainLach/jrsonnet"
+        version: "tags/v${{ inputs.version }}"
+        file: "jrsonnet-${{ steps.os-arch.outputs.OS }}-${{ steps.os-arch.outputs.ARCH }}"
+        target: /usr/local/bin/jrsonnet
+
+    - name: make executable
+      id: executable
+      if: steps.fetch_asset.outcome == 'success'
+      shell: sh
+      run: |
+        chmod +x /usr/local/bin/jrsonnet

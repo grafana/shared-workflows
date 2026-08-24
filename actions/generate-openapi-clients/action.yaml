@@ -21,12 +21,24 @@ inputs:
     description: The commit message to use when committing the changes
     required: false
     default: "Update clients and publish"
+  commit-author:
+    description: Specify the author for the commit
+    required: false
+    default: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+  commit-user-name:
+    description: Use a different username for the commit
+    required: false
+    default: github-actions[bot]
+  commit-user-email:
+    description: Use a different email address for the commit
+    required: false
+    default: 41898282+github-actions[bot]@users.noreply.github.com
   package-name:
     description: The name of the package to generate
     required: true
   modify-spec-script:
     description: |
-      The path to an executable script that modifies the OpenAPI spec before generating the client. 
+      The path to an executable script that modifies the OpenAPI spec before generating the client.
       The spec will be piped into the script and the script should output the modified spec to stdout.
       Note: This is used as a workaround for the OpenAPI generator not supporting certain features. By using
       this feature, the spec will be modified temporarily, and the changes will not be committed.
@@ -36,37 +48,40 @@ inputs:
 runs:
   using: composite
   steps:
-    # Get the repository name
-    - shell: bash
-      run: echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
-
     # Get openapi-generator
     - id: openapi-generator-cache
-      uses: actions/cache/restore@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         key: openapi-generator-${{ inputs.generator-version }}
         path: openapi-generator-cli.jar
-    - shell: bash
+
+    - name: Download openapi-generator
+      shell: bash
       if: steps.openapi-generator-cache.outputs.cache-hit != 'true'
+      env:
+        GENERATOR_VERSION: ${{ inputs.generator-version }}
       run: |
-        wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${{ inputs.generator-version }}/openapi-generator-cli-${{ inputs.generator-version }}.jar" -O ./openapi-generator-cli.jar
-    - uses: actions/cache/save@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
+        wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${GENERATOR_VERSION}/openapi-generator-cli-${GENERATOR_VERSION}.jar" -O ./openapi-generator-cli.jar
+    - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       if: steps.openapi-generator-cache.outputs.cache-hit != 'true'
       with:
         key: openapi-generator-${{ inputs.generator-version }}
         path: openapi-generator-cli.jar
 
     # Modify the spec if a script is provided
-    - shell: bash
-      run: |
-        if [ -n "${{ inputs.modify-spec-script }}" ]; then
-          cat "${{ inputs.spec-path }}" | "${{ inputs.modify-spec-script }}" > temp-spec.txt
-          echo "SPEC_PATH=temp-spec.txt" >> $GITHUB_ENV
-        else
-          echo "SPEC_PATH=${{ inputs.spec-path }}" >> $GITHUB_ENV
-        fi
+    - name: Modify spec
+      id: modify-spec
+      shell: bash
       env:
+        MODIFY_SCRIPT: ${{ inputs.modify-spec-script }}
         SPEC_PATH: ${{ inputs.spec-path }}
+      run: |
+        if [ -n "${MODIFY_SCRIPT}" ]; then
+          cat "${SPEC_PATH}" | "${MODIFY_SCRIPT}" > temp-spec.txt
+          echo "spec-path=temp-spec.txt" | tee -a "${GITHUB_OUTPUT}"
+        else
+          echo "spec-path=${SPEC_PATH}" | tee -a "${GITHUB_OUTPUT}"
+        fi
 
     # Generate the client
     - shell: bash
@@ -74,17 +89,25 @@ runs:
       env:
         OUTPUT_DIR: ${{ inputs.output-dir }}
         PACKAGE_NAME: ${{ inputs.package-name }}
+        SPEC_PATH: ${{ steps.modify-spec.outputs.spec-path }}
 
     # Cleanup files that shouldn't be committed
-    - shell: bash
+    - name: Cleanup
+      shell: bash
+      env:
+        MODIFY_SCRIPT: ${{ inputs.modify-spec-script }}
       run: |
         rm openapi-generator-cli.jar
-        if [ -n "${{ inputs.modify-spec-script }}" ]; then
+
+        if [ -n "${MODIFY_SCRIPT}" ]; then
           rm temp-spec.txt
         fi
 
     # Commit the changes
-    - uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+    - uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
       if: ${{ inputs.commit-changes == 'true' }}
       with:
         commit_message: ${{ inputs.commit-message }}
+        commit_author: ${{ inputs.commit-author}}
+        commit_user_name: ${{ inputs.commit-user-name}}
+        commit_user_email: ${{ inputs.commit-email }}

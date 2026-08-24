@@ -1,0 +1,60 @@
+name: Test validate-zizmor-config action
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/validate-zizmor-config/**
+      - .github/workflows/test-validate-zizmor-config.yml
+      - .github/workflows/reusable-zizmor.yml
+
+  pull_request:
+    paths:
+      - actions/validate-zizmor-config/**
+      - .github/workflows/test-validate-zizmor-config.yml
+      - .github/workflows/reusable-zizmor.yml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Unit tests
+        env:
+          # renovate: datasource=pypi depName=pyyaml
+          PYYAML_VERSION: "6.0.3"
+        run: |
+          cd actions/validate-zizmor-config
+          uv run --with "pyyaml==${PYYAML_VERSION}" python3 -m unittest discover -v
+
+      - name: Integration smoke (action on repo default zizmor)
+        uses: ./actions/validate-zizmor-config
+        with:
+          config_path: .github/zizmor.yml

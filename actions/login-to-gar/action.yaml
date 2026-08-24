@@ -5,30 +5,69 @@ inputs:
     description: |
       Google Artifact Registry to authenticate against.
     default: "us-docker.pkg.dev"
-  environment:
+
+  workspace_credentials:
     description: |
-      Environment for pushing artifacts (can be either dev or prod).
-    default: dev
+      Keep credentials file in workspace for Docker action compatibility. When
+      false (default), credentials are moved to a temporary location so they
+      aren't in the working directory where they can be accidentally committed
+      or printed. Set to true if you need to use Docker-based GitHub Actions that
+      require workspace access in a later step.
+    default: "false"
 
 runs:
   using: composite
   steps:
-    - name: Construct service account
-      id: construct-service-account
+    - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+      name: Auth with direct WIF
+      id: auth_with_direct_wif
+      with:
+        project_id: "grafanalabs-workload-identity"
+        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
+        create_credentials_file: true
+
+    - name: "Move credentials to temporary location"
+      if: inputs.workspace_credentials == 'false'
+      shell: sh
+      env:
+        ORIGINAL_CREDS_PATH: ${{ steps.auth_with_direct_wif.outputs.credentials_file_path }}
+      # `github-env` is firing for our additions in here. We create this
+      # direcotry and populate it, so this should be as safe as we can make it.
+      run: | # zizmor: ignore[github-env]
+        TEMP_CREDS_DIR="$(mktemp -d -p "${RUNNER_TEMP}")"
+        TEMP_CREDS_PATH="${TEMP_CREDS_DIR}/gcp-credentials.json"
+
+        if ! [ -f "${ORIGINAL_CREDS_PATH}" ]; then
+          echo "::error::Expected credentials file not found at ${ORIGINAL_CREDS_PATH}"
+          exit 1
+        fi
+
+        echo "::debug::Moving credentials out of GitHub workspace"
+        mv "${ORIGINAL_CREDS_PATH}" "${TEMP_CREDS_PATH}"
+
+        # Update environment for subsequent steps
+        echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
+        echo "GOOGLE_APPLICATION_CREDENTIALS=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
+        echo "GOOGLE_GHA_CREDS_PATH=${TEMP_CREDS_PATH}" | tee -a "${GITHUB_ENV}"
+
+        echo "::debug::Credentials stored in ${TEMP_CREDS_PATH}"
+
+    - name: Setup `gcloud` CLI
+      if: ${{ !steps.check_if_gcloud_is_installed.outputs.gcloud-installed }}
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      with:
+        # Accept any version
+        version:
+
+    - name: Configure Docker
+      shell: sh
+      env:
+        REGISTRY: ${{ inputs.registry }}
+      run: gcloud auth configure-docker "${REGISTRY}"
+
+    - name: "Workspace credentials mode enabled"
+      if: inputs.workspace_credentials == 'true'
       shell: sh
       run: |
-        SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}@grafanalabs-workload-identity.iam.gserviceaccount.com"
-        echo "service_account=${SERVICE_ACCOUNT}" >> ${GITHUB_OUTPUT}
-    - uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
-      id: gcloud-auth
-      with:
-        token_format: access_token
-        workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
-        service_account: ${{ steps.construct-service-account.outputs.service_account }}
-        create_credentials_file: false
-    - name: Login to GAR
-      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-      with:
-        registry: ${{ inputs.registry }}
-        username: oauth2accesstoken
-        password: ${{ steps.gcloud-auth.outputs.access_token }}
+        echo "::notice::Credentials kept in workspace for Docker action compatibility"
+        echo "::warning::Remember to add 'gha-creds-*.json' to your .gitignore to prevent accidental commits"

@@ -6,26 +6,19 @@ inputs:
     description: |
       Path to files for linting.
     required: true
+  argo-version:
+    description: |
+      Version of the Argo CLI to use for linting.
+    default: "3.7.10"
 
 runs:
   using: composite
 
   steps:
-    - name: Checkout
-      env:
-        # In a composite action, these two need to be indirected via the
-        # environment, as per the GitHub actions documentation:
-        # https://docs.github.com/en/actions/learn-github-actions/contexts
-        action_repo: "${{ github.action_repository || 'grafana/shared-workflows' }}"
-        action_ref: ${{ github.action_ref }}
-      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      with:
-        repository: ${{ env.action_repo }}
-        ref: ${{ env.action_ref }}
-        path: _shared-workflows-argo-lint
-
     - name: Setup Argo
-      uses: ./_shared-workflows-argo-lint/actions/setup-argo
+      uses: grafana/shared-workflows/actions/setup-argo@21cbef8182ef0fc1c3ae8e68b9590af49ed10a5b # setup-argo/v1.2.1
+      with:
+        version: ${{ inputs.argo-version }}
 
     - name: Run
       env:

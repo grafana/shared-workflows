@@ -9,6 +9,20 @@ inputs:
     description: |
       Environment for uploading objects (can be either dev or prod).
     default: dev
+  service_account:
+    description: |
+      Custom service account to use for authentication.
+    default: ""
+  delete_credentials_file:
+    description: |
+      Delete the credentials file after the action is finished.
+      If you want to keep the credentials file for a later step, set this to false.
+    default: "false"
+  use_wif_auth:
+    description: |
+      Use WIF for authentication instead of service account.
+    required: false
+    default: "false"
 
 outputs:
   bucket:
@@ -22,15 +36,17 @@ runs:
       id: resolve-project
       shell: bash
       run: |
-        if [[ "${{ inputs.environment }}" == "dev" ]]; then
+        if [[ "${ENVIRONMENT}" == "dev" ]]; then
           PROJECT="grafanalabs-dev"
-        elif [[ "${{ inputs.environment }}" == "prod" ]]; then
+        elif [[ "${ENVIRONMENT}" == "prod" ]]; then
           PROJECT="grafanalabs-global"
         else
           echo "Invalid environment. Valid environment variable inputs: dev, prod"
           exit 1
         fi
         echo "project=${PROJECT}" | tee -a ${GITHUB_OUTPUT}
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
     - name: Construct dynamic account vars
       id: construct-account-vars
       shell: bash
@@ -40,18 +56,43 @@ runs:
         echo "repo_name=${REPO_NAME}" | tee -a ${GITHUB_OUTPUT}
 
         # Construct bucket name
-        if [[ "${{ inputs.bucket }}" == "" ]]; then
-          BUCKET="grafanalabs-${REPO_NAME}-${{ inputs.environment }}"
+        if [[ "${BUCKET}" == "" ]]; then
+          BUCKET="grafanalabs-${REPO_NAME}-${ENVIRONMENT}"
         else
-          BUCKET="${{ inputs.bucket }}"
+          BUCKET="${BUCKET}"
         fi
         echo "bucket=${BUCKET}" | tee -a ${GITHUB_OUTPUT}
 
-        # Construct service account
-        SERVICE_ACCOUNT="github-${{ github.repository_id }}-${{ inputs.environment }}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
-        echo "service_account=${SERVICE_ACCOUNT}" | tee -a ${GITHUB_OUTPUT}
-    - uses: google-github-actions/auth@8254fb75a33b976a221574d287e93919e6a36f70 # v2.1.6
+        # set up a service account only if we're NOT using WIF auth.
+        if [[ "${USE_WIF_AUTH}" != "true" ]]; then
+          # Construct service account
+          if [[ "${SERVICE_ACCOUNT}" == "" ]]; then
+            SERVICE_ACCOUNT="github-${{ github.repository_id }}-${ENVIRONMENT}-gcs@grafanalabs-workload-identity.iam.gserviceaccount.com"
+          fi
+          echo "service_account=${SERVICE_ACCOUNT}" | tee -a ${GITHUB_OUTPUT}
+        else
+          echo "service_account=" | tee -a ${GITHUB_OUTPUT}
+        fi
+      env:
+        BUCKET: ${{ inputs.bucket }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        SERVICE_ACCOUNT: ${{ inputs.service_account }}
+        USE_WIF_AUTH: ${{ inputs.use_wif_auth }}
+    - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
       id: gcloud-auth
       with:
+        project_id: "grafanalabs-workload-identity"
         workload_identity_provider: "projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider"
         service_account: ${{ steps.construct-account-vars.outputs.service_account }}
+    - name: Delete Google Application Credentials file
+      if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
+      shell: sh
+      run: |
+        if [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
+          rm -f "${GOOGLE_APPLICATION_CREDENTIALS}"
+          echo "::debug::Successfully deleted credentials file"
+        else
+          echo "::warning::Credentials file not found at ${GOOGLE_APPLICATION_CREDENTIALS}"
+        fi
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}

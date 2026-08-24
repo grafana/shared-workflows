@@ -3,28 +3,9 @@
 This is a composite GitHub Action used to send Slack messages to the Grafana workspace.
 You do not need to set up Slack webhooks in order to use this action.
 
-See the docs for the [slackapi/slack-github-action workflow](https://github.com/slackapi/slack-github-action/blob/main/README.md#technique-2-slack-app) for more info. Our installation is via Slack App.
+See the docs for the [slackapi/slack-github-action workflow](https://tools.slack.dev/slack-github-action/sending-techniques/sending-data-slack-api-method/#usage) for more info.
 
-```yaml
-name: Send And Update a Slack plain text message
-jobs:
-  send-and-update-slack-message:
-    name: Send and update Slack message
-    steps:
-      - name: Send Slack Message
-        id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@main
-        with:
-          channel-id: "Channel Name or ID"
-          slack-message: "We are testing, testing, testing all day long"
-
-      - name: Update Slack Message
-        uses: grafana/shared-workflows/actions/send-slack-message@main
-        with:
-          channel-id: ${{ steps.slack.outputs.channel_id }} # Channel ID is required when updating a message
-          slack-message: "This is the updated message"
-          update-ts: ${{ steps.slack.outputs.ts }}
-```
+<!-- x-release-please-start-version -->
 
 ```yaml
 name: Send And Update a Slack message using JSON payload
@@ -34,11 +15,12 @@ jobs:
     steps:
       - name: Send Slack Message via Payload
         id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v3.0.2
         with:
-          channel-id: "Channel Name or ID"
+          method: chat.postMessage
           payload: |
             {
+              "channel": "Channel ID",
               "text": "Deployment started (In Progress)",
               "attachments": [
                 {
@@ -56,12 +38,15 @@ jobs:
             }
 
       - name: Update Slack Message via Payload
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v3.0.2
         with:
-          channel-id: ${{ steps.slack.outputs.channel_id }}
+          method: chat.update
+          payload-templated: true
           payload: |
             {
+              "channel": ${{ steps.slack.outputs.channel_id }},
               "text": "Deployment finished (Completed)",
+              "ts": ${{ steps.slack.outputs.ts }},
               "attachments": [
                 {
                   "pretext": "Deployment finished",
@@ -76,8 +61,6 @@ jobs:
                 }
               ]
             }
-
-          update-ts: ${{ steps.slack.outputs.ts }}
 ```
 
 ```yaml
@@ -88,32 +71,36 @@ jobs:
     steps:
       - name: Post to a Slack channel
         id: slack
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v3.0.2
         with:
-          channel-id: "Channel Name or ID"
+          method: chat.postMessage
           payload: |
             {
+              "channel": "Channel ID",
               "text": "Deployment started (In Progress)"
             }
       - name: Respond to Slack Message
-        uses: grafana/shared-workflows/actions/send-slack-message@main
+        uses: grafana/shared-workflows/actions/send-slack-message@send-slack-message/v3.0.2
         with:
-          channel-id: ${{ steps.slack.outputs.channel_id }}
+          method: chat.postMessage
+          payload-templated: true
           payload: |
             {
+              "channel": "Channel ID",
               "thread_ts": "${{ steps.slack.outputs.ts }}",
               "text": "Deployment finished (Completed)"
             }
 ```
 
+<!-- x-release-please-end-version -->
+
 ## Inputs
 
-| Name            | Type   | Description                                                                               |
-| --------------- | ------ | ----------------------------------------------------------------------------------------- |
-| `channel-id`    | String | Name or ID of the channel to send to.                                                     |
-| `payload`       | String | JSON payload to send. Use `payload` or `slack-message`, but not both.                     |
-| `slack-message` | String | Plain text message to send. Use `payload` or `slack-message`, but not both.               |
-| `update-ts`     | String | The timestamp of a previous message posted. Used to update or reply to previous messages. |
+| Name                | Type   | Description                                                                                                                                        |
+| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `payload`           | String | JSON payload to send.                                                                                                                              |
+| `method`            | String | The Slack API method to call.                                                                                                                      |
+| `payload-templated` | String | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true. |
 
 ## Outputs
 

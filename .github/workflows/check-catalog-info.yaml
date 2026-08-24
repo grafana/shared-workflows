@@ -1,0 +1,34 @@
+name: Check catalog-info.yaml for drift
+on:
+  pull_request: {}
+
+permissions:
+  contents: read
+
+jobs:
+  check-catalog-info-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+
+      - name: Regenerate catalog-info.yaml
+        run: |
+          make catalog-info.yaml
+
+      - name: Check for drift
+        run: |
+          if ! git diff --staged --exit-code; then
+            echo "catalog-info.yaml is not up-to-date, please run \`make catalog-info.yaml\` to update this file."
+            exit 1
+          fi
