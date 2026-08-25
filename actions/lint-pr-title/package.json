@@ -28,6 +28,7 @@
     "@commitlint/load": "21.0.2",
     "@octokit/core": "7.0.6",
     "@octokit/graphql": "9.0.3",
+    "globals": "^17.11.0",
     "tmp": "0.2.7"
   },
   "devDependencies": {
