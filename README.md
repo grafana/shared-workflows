@@ -2,9 +2,8 @@
 
 [![OpenSSF Scorecard][scorecard image]][scorecard]
 
-A public-facing, centralized place to store reusable GitHub workflows and action
-used by Grafana Labs. See the `actions/` directory for the individual actions
-themselves.
+A public-facing, centralized place to store reusable workflows and GitHub Actions used by Grafana Labs.
+Refer to the [`actions/`](./actions) directory for the individual actions themselves.
 
 > **Note:** As of May 4th 2026, all action releases are immutable. Once a version tag is created, it will not be moved or overwritten.
 
@@ -37,11 +36,10 @@ While Dependabot can update references to these actions, Renovate can't do it ou
 
 ### Configure your IDE to run Prettier
 
-[Prettier] will run in CI to ensure that files are formatted correctly. To ensure
-that your code is formatted correctly before you commit, set up your IDE to run
-Prettier on save.
+[Prettier][] runs in CI to ensure that files are formatted correctly.
+To format your code correctly before you commit, set up your IDE to run Prettier on save.
 
-Or from the commandline, you can run Prettier using [`npx`][npx]:
+Or from the command line, you can run Prettier using [`npx`][npx]:
 
 ```sh
 npx prettier --check .
@@ -54,14 +52,12 @@ Or, of course, install it in any other way you want.
 
 ### Pin versions
 
-When referencing third-party actions, [always pin the version to a specific
-commit hash][hardening]. This ensures that the workflow will always use the same
-version of the action, even if the action's maintainers release a new version or
-if the tag itself is updated.
+When using third-party actions, [always pin the version to a specific commit hash][hardening].
+This ensures that the workflow always uses the same version of the action, even if the action's maintainers release a new version or update the Git tag.
 
-Dependabot can update these SHA references when there are new versions. If you
-include the complete tag name in a comment after the SHA, it can update the
-comment too. For example:
+Dependabot can update these SHA references when there are new versions.
+If you include the complete tag name in a comment after the SHA, it can update the comment too.
+For example:
 
 ```yaml
 - uses: grafana/shared-workflows/actions/foo@0123456789abcdef0123456789abcdef01234567 # foo/v1.2.3
@@ -69,10 +65,11 @@ comment too. For example:
 
 [hardening]: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
 
-### Refer to other `shared-workflows` actions using relative paths
+### Use other `shared-workflows` actions with relative paths
 
-When referencing other actions in this repository, use a relative path. This
-will ensure actions in this repo are always used at the same commit. To do this:
+When using other actions in this repository, use a relative path.
+This means that workflows always use actions at the same commit.
+To do this:
 
 ```yaml
 - name: Checkout
@@ -86,9 +83,9 @@ will ensure actions in this repo are always used at the same commit. To do this:
   with:
     repository: ${{ env.action_repo }}
     ref: ${{ env.action_ref }}
-    # substitute your-action with a unique name (within `shared-repos` for your
+    # Substitute your-action with a unique name (within `shared-repos` for your
     # action), so if multiple actions check `shared-workflows` out, they don't
-    # overwrite each other
+    # overwrite each other.
     path: _shared-workflows-your-action
     persist-credentials: false
 
@@ -131,29 +128,37 @@ shell: bash
 run: ./echo-success.bash
 ```
 
-### Releasing a version of a component in shared-workflows
+### Version actions and reusable workflows
 
-When working with `shared-workflows`, it's essential to avoid breaking backwards compatibility. To ensure this, we must provide releasable actions for engineers to review incoming changes. This also helps automated update tools like `dependabot` and `renovate` to work effectively.
+To avoid breaking compatibility, each action or reusable workflow is versioned so that engineers consuming the component can review incoming changes.
+This also helps automated update tools like Dependabot and Renovate to work effectively.
 
-Upon push to main, a draft PR with updates in the CHANGELOG.md will be updated or created. This can be undrafted and merged at any time to create the next tagged release. Since we're a monorepo, one PR will be created for each action/reusable workflow that has been updated. They can be released individually and tags will be of the form `<name>/v<semver version>`.
+For every push to `main`, Release Please creates or updates a draft pull request with updates in `CHANGELOG.md`.
+Since this repository is a monorepo, it creates one pull request for each action or reusable workflow that changed.
+Users with write access can mark the pull request ready for review and merge it to create the next tagged release.
+Each action is released individually and uses tags of the form `<name>/v<semver version>`.
 
-In order for the release action to work properly, which means to generate a CHANGELOG for the current release, the pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This means that the PR should start with a `type` followed by a colon, and then a `subject` - all in lowercase.
+To generate the CHANGELOG for the current release, all pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/).
+This means that the PR should start with a _type_ followed by a colon, and then a _subject_, all in lowercase.
 
-Minor version bumps are indicated by new features: `feat: add support for eating lollipops`. Major version bumps are indicated by an `!` after the type in the commit message/description, for example: `feat!: rename foo input to bar`.
+Pull request titles with the `feat` type, like `feat: add support for eating lollipops`, cause minor version bumps.
 
-Also, the PR description needs to be filled and should never be empty.
+Pull request titles that include an exclamation mark (`!`) after the type, like `feat!: rename foo input to bar`, cause major version bumps.
 
-Failing to follow any of the aforementioned necessary steps, will lead to CI failing on your pull request.
+Each pull request must also have a description that explains the change.
 
-More about how the upstream action works can be found [here](https://github.com/googleapis/release-please-action).
+CI enforces the use of conventional pull request titles and non-empty pull request descriptions.
 
-### Add new components to Release Please config file
+For more information about Release Please, refer to the [release-please-action repository](https://github.com/googleapis/release-please-action).
 
-In order for components to be released, they must be in the [release-please-config.json](./release-please-config.json) file. Always ensure new components are added to this file.
+### Add new components to the Release Please configuration file
+
+In order for components to be released, they must be in the [`release-please-config.json`](./release-please-config.json) file.
+Always ensure new components are added to this file.
 
 `README` files for each component should have embedded versions updated every time there is a new release.
 
-Add a new entry which looks like this:
+Add a new entry that looks like this:
 
 ```json
   "packages": {
@@ -164,7 +169,7 @@ Add a new entry which looks like this:
   }
 ```
 
-Also, the following block should be added in the README file which will be responsible for updating the version with a new one:
+Also add the following block in the README file to update the embedded version:
 
 `README.md`:
 
@@ -192,12 +197,15 @@ jobs:
 <!-- x-release-please-end-version -->
 ````
 
-Every semver-like string between the `x-release-please-start-version` and `x-release-please-end-version` comments will be updated with the new version whenever the component is released.
+Every semver-like string between the `x-release-please-start-version` and `x-release-please-end-version` comments is updated with the new version whenever the component is released.
 
-### Deprecating Shared Workflows
+### Deprecating shared workflows
 
-When deprecating a shared-workflow, follow this procedure:
+When deprecating a shared workflow, follow this procedure:
 
-1. Post a deprecation notice and warning in the affected action. Also provide a migration guide. Use [this commit](https://github.com/grafana/shared-workflows/commit/b6c252dc86cb65eaf2d8344d6d51ca07436214a2) as an example.
-2. Once you've merged the changes from step 1, release the affected action so that the latest version includes the deprecation notice. Renovate will automatically start to roll this version out.
-3. On the agreed upon date, delete the action from `main`.
+1. Post a deprecation notice and warning in the affected action.
+   Also provide a migration guide.
+   Use [this commit](https://github.com/grafana/shared-workflows/commit/b6c252dc86cb65eaf2d8344d6d51ca07436214a2) as an example.
+2. Once step 1 is merged, release the affected action so the latest version includes the deprecation notice.
+   Renovate will automatically start to roll this version out.
+3. On the agreed date, delete the action from `main`.
