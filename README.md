@@ -2,7 +2,7 @@
 
 [![OpenSSF Scorecard][scorecard image]][scorecard]
 
-A public-facing, centralized place to store reusable workflows and GitHub Actions used by Grafana Labs.
+A centralized place to store reusable workflows and GitHub Actions used by Grafana Labs.
 Refer to the [`actions/`](./actions) directory for the individual actions themselves.
 
 > **Note:** As of May 4th 2026, all action releases are immutable. Once a version tag is created, it will not be moved or overwritten.
