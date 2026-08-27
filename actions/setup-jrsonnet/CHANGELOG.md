@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/setup-jrsonnet/v1.0.3...setup-jrsonnet/v1.0.4) (2026-08-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v6 ([#2227](https://github.com/grafana/shared-workflows/issues/2227)) ([ddc2a23](https://github.com/grafana/shared-workflows/commit/ddc2a23ec2ab41811bb9ba72e26afc7ed72466b0))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/setup-jrsonnet/v1.0.2...setup-jrsonnet/v1.0.3) (2026-06-10)
 
 
