@@ -1,3 +1,8 @@
+# Deliberately NOT named action.yaml: lint-shared-workflows.yaml runs
+# `find . -name action.yaml -o -name action.yml` over the whole repo and
+# validates each hit against GitHub's action schema. This fixture holds shapes
+# that schema rejects -- an unquoted boolean default, for one -- because the
+# parser has to survive them, so it must not look like a real action.
 name: Test action
 description: A composite action fixture covering the shapes the parser has to handle.
 

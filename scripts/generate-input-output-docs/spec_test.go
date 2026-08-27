@@ -7,7 +7,7 @@ import (
 )
 
 func TestParseCompositeAction(t *testing.T) {
-	spec, err := ParseFile(filepath.Join("testdata", "action.yaml"), KindCompositeAction)
+	spec, err := ParseFile(filepath.Join("testdata", "composite-action.yaml"), KindCompositeAction)
 	if err != nil {
 		t.Fatalf("ParseFile: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestParseCompositeAction(t *testing.T) {
 }
 
 func TestParseRequiredAndDefault(t *testing.T) {
-	spec, err := ParseFile(filepath.Join("testdata", "action.yaml"), KindCompositeAction)
+	spec, err := ParseFile(filepath.Join("testdata", "composite-action.yaml"), KindCompositeAction)
 	if err != nil {
 		t.Fatalf("ParseFile: %v", err)
 	}

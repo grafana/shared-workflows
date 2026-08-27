@@ -21,7 +21,7 @@ func newTestFormatter(t *testing.T) *Formatter {
 func TestFormatIsAPrettierFixedPoint(t *testing.T) {
 	formatter := newTestFormatter(t)
 
-	spec, err := ParseFile("testdata/action.yaml", KindCompositeAction)
+	spec, err := ParseFile("testdata/composite-action.yaml", KindCompositeAction)
 	if err != nil {
 		t.Fatalf("ParseFile: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestFormatIsAPrettierFixedPoint(t *testing.T) {
 func TestRenderDocIsIdempotent(t *testing.T) {
 	formatter := newTestFormatter(t)
 
-	spec, err := ParseFile("testdata/action.yaml", KindCompositeAction)
+	spec, err := ParseFile("testdata/composite-action.yaml", KindCompositeAction)
 	if err != nil {
 		t.Fatalf("ParseFile: %v", err)
 	}
