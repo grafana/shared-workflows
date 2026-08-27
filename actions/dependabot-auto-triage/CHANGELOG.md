@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.1.4](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.3...dependabot-auto-triage/v1.1.4) (2026-08-27)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency minimatch to v10.2.6 ([#2241](https://github.com/grafana/shared-workflows/issues/2241)) ([1c912fa](https://github.com/grafana/shared-workflows/commit/1c912fa9adb848a1839c7e7303d284117dfbfdaf))
+* **deps:** update octokit monorepo ([#2271](https://github.com/grafana/shared-workflows/issues/2271)) ([782f572](https://github.com/grafana/shared-workflows/commit/782f5721018875662580acdf7ecf4510424abe62))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency eslint to v10.7.0 ([#2155](https://github.com/grafana/shared-workflows/issues/2155)) ([8284f00](https://github.com/grafana/shared-workflows/commit/8284f008365a5703c954f4a1dd72c908563c14fe))
+* **deps:** update dependency eslint to v10.8.0 ([#2217](https://github.com/grafana/shared-workflows/issues/2217)) ([2ec03f8](https://github.com/grafana/shared-workflows/commit/2ec03f807c17d47646a87c03051e9caea8267029))
+* **deps:** update dependency eslint to v10.9.0 ([#2261](https://github.com/grafana/shared-workflows/issues/2261)) ([fc97070](https://github.com/grafana/shared-workflows/commit/fc9707096d8f5edd2e7260031fbf2026488386c6))
+* **deps:** update dependency eslint-plugin-jest to v29.15.4 ([#2126](https://github.com/grafana/shared-workflows/issues/2126)) ([a6402b5](https://github.com/grafana/shared-workflows/commit/a6402b5f7d1781ace3d511393908ce50b0baf340))
+* **deps:** update dependency eslint-plugin-jest to v29.16.0 ([#2215](https://github.com/grafana/shared-workflows/issues/2215)) ([976b8f7](https://github.com/grafana/shared-workflows/commit/976b8f76f63d9d3654c89f877a1ca67c55a6ecfa))
+* **deps:** update dependency eslint-plugin-jest to v29.16.1 ([#2262](https://github.com/grafana/shared-workflows/issues/2262)) ([692a0fa](https://github.com/grafana/shared-workflows/commit/692a0fac7ee40fc3ec23b413148eb690be61bac0))
+* **deps:** update dependency typescript-eslint to v8.62.1 ([#2105](https://github.com/grafana/shared-workflows/issues/2105)) ([3ba0929](https://github.com/grafana/shared-workflows/commit/3ba09292e05edb23ef21265eaaaf2267f33f853b))
+* **deps:** update dependency typescript-eslint to v8.63.0 ([#2160](https://github.com/grafana/shared-workflows/issues/2160)) ([86e65f7](https://github.com/grafana/shared-workflows/commit/86e65f7130d6e52d79f4b56a925b431c4aaea359))
+* **deps:** update dependency typescript-eslint to v8.64.0 ([#2171](https://github.com/grafana/shared-workflows/issues/2171)) ([9c30359](https://github.com/grafana/shared-workflows/commit/9c30359d4fed0f1b4d1fc728bd61890d273cccc9))
+* **deps:** update dependency typescript-eslint to v8.65.0 ([#2216](https://github.com/grafana/shared-workflows/issues/2216)) ([1dbcae6](https://github.com/grafana/shared-workflows/commit/1dbcae6151956b0b33776825f16f5a6db3d46b86))
+* **deps:** update eslint monorepo to v10.5.0 ([#2101](https://github.com/grafana/shared-workflows/issues/2101)) ([849fabd](https://github.com/grafana/shared-workflows/commit/849fabda9b23ba8862563b4a15b979954d80e928))
+* **deps:** update typescript-eslint monorepo to v8.61.0 ([#2079](https://github.com/grafana/shared-workflows/issues/2079)) ([a8f4c63](https://github.com/grafana/shared-workflows/commit/a8f4c6350ca3f41fafeff7b4a01f774e5d336746))
+
 ## [1.1.3](https://github.com/grafana/shared-workflows/compare/dependabot-auto-triage/v1.1.2...dependabot-auto-triage/v1.1.3) (2026-06-10)
 
 
