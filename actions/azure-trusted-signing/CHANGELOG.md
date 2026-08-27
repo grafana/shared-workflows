@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.3...azure-trusted-signing/v1.0.4) (2026-08-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/setup-dotnet action to v5.4.0 ([#2143](https://github.com/grafana/shared-workflows/issues/2143)) ([62b69d8](https://github.com/grafana/shared-workflows/commit/62b69d891d126422abb91076e061e21ed7394fa6))
+* **deps:** update actions/setup-dotnet action to v6 ([#2231](https://github.com/grafana/shared-workflows/issues/2231)) ([83f97e5](https://github.com/grafana/shared-workflows/commit/83f97e5f21a12f04721ef95936a1408c231da363))
+* **deps:** update azure/login action to v3.0.1 ([#2256](https://github.com/grafana/shared-workflows/issues/2256)) ([80dff28](https://github.com/grafana/shared-workflows/commit/80dff288c7a16a9716958721b9a4e79953fe0eee))
+* **deps:** update dependency dotnet-sdk to v8.0.423 ([#2169](https://github.com/grafana/shared-workflows/issues/2169)) ([f9457fa](https://github.com/grafana/shared-workflows/commit/f9457fa36af500816a432cecec60a48cb6a7391e))
+* **deps:** update dependency dotnet-sdk to v8.0.424 ([#2260](https://github.com/grafana/shared-workflows/issues/2260)) ([c45c3eb](https://github.com/grafana/shared-workflows/commit/c45c3eb30ba05fc70986dcf8db46ca92388b14f7))
+* **deps:** update dotnet monorepo to v8.0.422 ([#2080](https://github.com/grafana/shared-workflows/issues/2080)) ([bac5784](https://github.com/grafana/shared-workflows/commit/bac57843a247c882c96089efd777e1752caa31b8))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.2...azure-trusted-signing/v1.0.3) (2026-06-10)
 
 
