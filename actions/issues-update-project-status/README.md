@@ -6,13 +6,17 @@ The calling job must have `id-token: write` permission for Vault authentication.
 
 ## Inputs
 
-| Name                      | Type   | Description                                                                                                  | Default   | Required |
-| ------------------------- | ------ | ------------------------------------------------------------------------------------------------------------ | --------- | -------- |
-| `github-app`              | String | The required GitHub app name                                                                                 |           | Yes      |
-| `permission-set`          | String | The optional permission set name. Defaults to `default`                                                      | `default` | Yes      |
-| `project-id`              | String | Node ID of the GitHub Project (v2). Retrieve with: `gh project view <projNum> --owner <org> --format json`   |           | Yes      |
-| `status-field-id`         | String | Node ID of the Status field. Retrieve with: `gh project field-list <projNum> --owner <org> --format json`    |           | Yes      |
-| `target-status-option-id` | String | ID of the status option to set. Retrieve with: `gh project field-list <projNum> --owner <org> --format json` |           | Yes      |
+<!-- BEGIN_INPUTS -->
+
+| Name                      | Type   | Required | Default   | Description                                                                                                                                                                |
+| ------------------------- | ------ | -------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-app`              | String | Yes      |           | GitHub app name in Vault.                                                                                                                                                  |
+| `permission-set`          | String | No       | `default` | Permission set name                                                                                                                                                        |
+| `project-id`              | String | Yes      |           | The node ID of the GitHub Project (v2) board. Retrieve with: gh project view &lt;number> --owner &lt;org> --format json                                                    |
+| `status-field-id`         | String | Yes      |           | The node ID of the Status field on the project board. Retrieve with: gh project field-list &lt;number> --owner &lt;org> --format json                                      |
+| `target-status-option-id` | String | Yes      |           | The ID of the status option to set on the project item (e.g. the "In Progress" option ID). Retrieve with: gh project field-list &lt;number> --owner &lt;org> --format json |
+
+<!-- END_INPUTS -->
 
 ## Filtering by label
 

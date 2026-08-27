@@ -41,7 +41,7 @@ outputs:
     description: ID of the considered workflow run
     value: ${{ steps.get-artifact.outputs.workflow-run-id }}
   workflow-run-status:
-    description: Status of the workflow run containing the artifact
+    description: Status of the workflow run containing the artifact (`in_progress` or `completed`)
     value: ${{ steps.get-artifact.outputs.workflow-run-status }}
 
 runs:

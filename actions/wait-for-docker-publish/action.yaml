@@ -7,7 +7,7 @@ description: >-
 inputs:
   image:
     description: >-
-      Full image reference. Must include a :tag or @sha256:... digest
+      Full image reference. Must include a `:tag` or `@sha256:...` digest (or both)
     required: true
   timeout:
     description: Total wall-clock budget (e.g. 10m, 600s, 1h).

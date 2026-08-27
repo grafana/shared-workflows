@@ -15,6 +15,7 @@ inputs:
   generate-summary:
     description: |
       Generates both a markdown summary and outputs the env variable OCI_MANIFEST_OUTPUT_JSON.
+      Only runs when `push` is also `true`.
     default: "false"
   push:
     description: |
@@ -26,10 +27,10 @@ inputs:
     required: true
 outputs:
   image-digests:
-    description: CSV list of image digests.
+    description: Newline-separated list of image digests in the format `<image>:<tag>@<digest>`. Empty unless both `push` and `generate-summary` are `true`.
     value: ${{ steps.summary.outputs.image-digests }}
   oci-manifest-output-json:
-    description: JSON array of manifests with tag, indexDigest, and per-platform digest information.
+    description: JSON array of manifests with tag, indexDigest, and per-platform digest information. Empty unless both `push` and `generate-summary` are `true`.
     value: ${{ steps.summary.outputs.oci-manifest-output-json }}
 
 runs:

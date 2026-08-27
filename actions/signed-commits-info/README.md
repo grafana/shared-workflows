@@ -36,6 +36,16 @@ jobs:
 
 <!-- x-release-please-end-version -->
 
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name           | Type   | Required | Default               | Description                       |
+| -------------- | ------ | -------- | --------------------- | --------------------------------- |
+| `github-token` | String | No       | `${{ github.token }}` | Token used to call the GitHub API |
+
+<!-- END_INPUTS -->
+
 ## Development
 
 This project uses the [bun](https://bun.sh) toolchain.

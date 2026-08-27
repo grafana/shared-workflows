@@ -13,3 +13,24 @@ with:
 ```
 
 <!-- x-release-please-end-version -->
+
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name           | Type   | Required | Default            | Description                             |
+| -------------- | ------ | -------- | ------------------ | --------------------------------------- |
+| `cache-prefix` | String | No       | `jrsonnet`         | Prefix for the cache key.               |
+| `version`      | String | No       | `0.5.0-pre96-test` | Version of the jrsonnet CLI to install. |
+
+<!-- END_INPUTS -->
+
+## Outputs
+
+<!-- BEGIN_OUTPUTS -->
+
+| Name        | Description                       |
+| ----------- | --------------------------------- |
+| `cache-hit` | Whether the cache was hit or not. |
+
+<!-- END_OUTPUTS -->

@@ -4,17 +4,25 @@ From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub
 
 ## Inputs
 
-| Name             | Type   | Description                 | Default Value | Required |
-| ---------------- | ------ | --------------------------- | ------------- | -------- |
-| `permission_set` | String | The required permission set | `default`     | Yes      |
-| `github_app`     | String | The required GitHub app     |               | Yes      |
-| `vault_instance` | String | Vault instance to point     | `ops`         | No       |
+<!-- BEGIN_INPUTS -->
+
+| Name             | Type   | Required | Default   | Description                                                                                             |
+| ---------------- | ------ | -------- | --------- | ------------------------------------------------------------------------------------------------------- |
+| `github_app`     | String | No       |           | GitHub app name in Vault. You can define mutiple app to do a loadbalancing in a comma separated format. |
+| `permission_set` | String | No       | `default` | Permission set name                                                                                     |
+| `vault_instance` | String | No       | `ops`     | The Vault instance to use (`dev` or `ops`). Defaults to `ops`.                                          |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name    | Type   | Description                |
-| ------- | ------ | -------------------------- |
-| `token` | String | The generated GitHub token |
+<!-- BEGIN_OUTPUTS -->
+
+| Name    | Description                      |
+| ------- | -------------------------------- |
+| `token` | GitHub installation access token |
+
+<!-- END_OUTPUTS -->
 
 ## Action Permissions
 

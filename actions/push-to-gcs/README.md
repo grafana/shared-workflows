@@ -115,26 +115,33 @@ jobs:
 
 ## Inputs
 
-| Name                      | Type    | Description                                                                                                                                                                                  |
-| ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bucket`                  | String  | (Required) Name of bucket to upload to. Can be gathered from `login-to-gcs` action.                                                                                                          |
-| `path`                    | String  | (Required) The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
-| `bucket_path`             | String  | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                                      |
-| `environment`             | String  | Environment for pushing artifacts (can be either dev or prod).                                                                                                                               |
-| `service_account`         | String  | Service account to use for authentication, different than the default one. Used only when bucket input is not empty (i.e. when the bucket is not the default one).                           |
-| `glob`                    | String  | Glob pattern.                                                                                                                                                                                |
-| `parent`                  | String  | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                              |
-| `predefinedAcl`           | String  | Predefined ACL applied to the uploaded objects. Default is `projectPrivate`. See [Google Documentation][gcs-docs-upload-options] for a list of available options.                            |
-| `delete_credentials_file` | Boolean | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. (Default: `true`)                                    |
-| `use_wif_auth`            | Boolean | Use WIF authentication. Overrides the `service_account` input.                                                                                                                               |
+<!-- BEGIN_INPUTS -->
+
+| Name                      | Type    | Required | Default          | Description                                                                                                                                                                       |
+| ------------------------- | ------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bucket`                  | String  | No       |                  | Name of bucket to upload to. Can be gathered from the `login-to-gcs` action. Will default to grafanalabs-${repository.name}-${environment}                                        |
+| `bucket_path`             | String  | No       |                  | Bucket path where objects will be uploaded. Default is the bucket root.                                                                                                           |
+| `delete_credentials_file` | Boolean | No       | `true`           | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false.                                           |
+| `environment`             | String  | No       | `dev`            | Environment for uploading objects (can be either dev or prod).                                                                                                                    |
+| `glob`                    | String  | No       |                  | Glob pattern.                                                                                                                                                                     |
+| `gzip`                    | Boolean | No       | `true`           | If true, then upload files with `content-encoding: gzip`                                                                                                                          |
+| `parent`                  | Boolean | No       | `true`           | Whether parent dir should be included in GCS destination. Dirs included in the `glob` statement are unaffected by this setting.                                                   |
+| `path`                    | String  | Yes      |                  | The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
+| `predefinedAcl`           | String  | No       | `projectPrivate` | Apply a predefined set of access controls to the file(s). Default is projectPrivate (See https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions)                  |
+| `service_account`         | String  | No       |                  | Custom service account to use for authentication.                                                                                                                                 |
+| `use_wif_auth`            | Boolean | No       | `false`          | Use WIF for authentication instead of service account.                                                                                                                            |
+
+<!-- END_INPUTS -->
 
 > [!TIP]
 > To use WIF authentication you must enable `uniform_bucket_level_access` on the destination bucket. If you are at Grafana Labs, instructions can be found [here](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/continuous-integration/google-artifact-registry/). More info can be found in [Google's docs](https://cloud.google.com/storage/docs/uniform-bucket-level-access).
 
 ## Outputs
 
-| Name       | Type   | Description                                        |
-| ---------- | ------ | -------------------------------------------------- |
-| `uploaded` | String | The list of files that were successfully uploaded. |
+<!-- BEGIN_OUTPUTS -->
 
-[gcs-docs-upload-options]: https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions
+| Name       | Description                              |
+| ---------- | ---------------------------------------- |
+| `uploaded` | The list of successfully uploaded files. |
+
+<!-- END_OUTPUTS -->

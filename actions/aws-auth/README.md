@@ -37,21 +37,38 @@ jobs:
 
 <!-- markdownlint-disable no-space-in-code -->
 
-| Name                       | Type   | Description                                                                                                                                                                                                                                                                                                                                                                     |
-| -------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aws-region`               | String | Specify AWS region to use that contain your resources (default: `us-east-2`)                                                                                                                                                                                                                                                                                                    |
-| `role-arn`                 | String | Specify custom workload role. Role ARN must be prefixed with `github-actions` e.g. `arn:aws:iam::366620023056:role/github-actions/s3-test-access` [^1]                                                                                                                                                                                                                          |
-| `pass-claims`              | String | `, `-separated list of [GitHub Actions claims](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token) (session tags) to make available to `role-arn`. Currently supported claims (default): `"repository_owner, repository_name, job_workflow_ref, ref, event_name"` [^2] |
-| `set-creds-in-environment` | Bool   | Set environment variables for AWS CLI and SDKs (default: `true`)                                                                                                                                                                                                                                                                                                                |
-| `role-duration-seconds`    | String | Role duration in seconds (default: `"3600"`)                                                                                                                                                                                                                                                                                                                                    |
+<!-- BEGIN_INPUTS -->
+
+| Name                               | Type    | Required | Default                                                                | Description                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------------- | ------- | -------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aws-region`                       | String  | Yes      | `us-east-2`                                                            | AWS region that contains the resources you want to use                                                                                                                                                                                                                                                                          |
+| `checkout-actions-repository-path` | String  | No       |                                                                        | The path in the filesystem where this repository has been checked out. This is mandatory for setups where executing this action inside a local clone of the repository.                                                                                                                                                         |
+| `pass-claims`                      | String  | Yes      | `event_name, repository_owner, repository_name, job_workflow_ref, ref` | `, `-separated [GitHub Actions claims](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token) (session tags) to make available to `role-arn`. Claims must be mapped to the Cognito Identity Pool before they can be used. |
+| `role-arn`                         | String  | Yes      |                                                                        | ARN of the workload role to assume. Must be prefixed with `github-actions`, e.g. `arn:aws:iam::366620023056:role/github-actions/s3-test-access`. See the Setting up Workload Role section below for an example.                                                                                                                 |
+| `role-duration-seconds`            | String  | No       | `3600`                                                                 | Role duration in seconds                                                                                                                                                                                                                                                                                                        |
+| `set-creds-in-environment`         | Boolean | No       | `true`                                                                 | Set environment variables for AWS CLI and SDKs                                                                                                                                                                                                                                                                                  |
+
+<!-- END_INPUTS -->
 
 <!-- markdownlint-restore -->
 
-[^1]: See [Setting up Workload Role](#setting-up-workload-role) for an example
-
-[^2]: GitHub OIDC token claims must be mapped to the Cognito Identity Pool before they can be used. If you would like to use a claim that is not listed, file an issue in this repo or reach out to `@platform-productivity` in `#platform`.
+See [Setting up Workload Role](#setting-up-workload-role) for an example of a `role-arn`. If you would like to pass a claim that is not in the `pass-claims` default, file an issue in this repo or reach out to `@platform-productivity` in `#platform`.
 
 This uses the [`cognito-idpool-auth`](https://github.com/catnekaise/cognito-idpool-auth) action to perform authentication with an Amazon Cognito Identity Pool using the GitHub Actions OIDC access token.
+
+## Outputs
+
+<!-- BEGIN_OUTPUTS -->
+
+| Name                                 | Description                        |
+| ------------------------------------ | ---------------------------------- |
+| `aws_access_key_id`                  | AWS Access Key Id                  |
+| `aws_region`                         | AWS Region                         |
+| `aws_secret_access_key`              | AWS Secret Access Key              |
+| `aws_session_token`                  | AWS Session Name                   |
+| `cognito_identity_oidc_access_token` | Cognito Identity OIDC Access Token |
+
+<!-- END_OUTPUTS -->
 
 ## Setting up Workload Role
 
@@ -65,7 +82,7 @@ The role should only be present in the account that contains the resources it ne
 
 ### Trust Policy
 
-This is where you provide additional constraints for when permissions are applied. The condition block can be customized as you see fit with additional [GitHub OIDC token claims](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token) [^2].
+This is where you provide additional constraints for when permissions are applied. The condition block can be customized as you see fit with additional [GitHub OIDC token claims](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token), as long as those claims are passed via `pass-claims`.
 
 As this defines which GitHub Actions runs are allowed to use the role's permissions, it is critical to make these configurations as precise as possible. Furthermore, all runs are limited to be triggered exclusively from repositories under `grafana/`, and it is not possible to exceed this restriction.
 

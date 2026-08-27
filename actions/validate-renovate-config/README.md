@@ -4,7 +4,13 @@ Validates Renovate configuration files using [renovate-config-validator](https:/
 
 ## Inputs
 
-- `path`: Path to the Renovate config file to validate. Defaults to `renovate.json`.
+<!-- BEGIN_INPUTS -->
+
+| Name   | Type   | Required | Default         | Description                                                          |
+| ------ | ------ | -------- | --------------- | -------------------------------------------------------------------- |
+| `path` | String | No       | `renovate.json` | Path to the Renovate config file to validate (e.g., 'renovate.json') |
+
+<!-- END_INPUTS -->
 
 ## Example workflow
 

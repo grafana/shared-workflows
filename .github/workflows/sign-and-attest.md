@@ -53,11 +53,15 @@ therefore rejects refs without `@sha256:`.
 
 ## Inputs
 
-| Name             | Type   | Description                                                                                       |
-| ---------------- | ------ | ------------------------------------------------------------------------------------------------- |
-| `image`          | string | **Required.** Digest-pinned image reference under `registry`, e.g. `us-docker.pkg.dev/…@sha256:…` |
-| `registry`       | string | GAR hostname (`*.pkg.dev`) to authenticate against and sign in. Default: `us-docker.pkg.dev`      |
-| `cosign-version` | string | Cosign release tag to install (e.g. `v3.1.1`). Defaults to the workflow's pinned version.         |
+<!-- BEGIN_INPUTS -->
+
+| Name             | Type   | Required | Default             | Description                                                                                                           |
+| ---------------- | ------ | -------- | ------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `cosign-version` | string | No       |                     | Cosign release tag to install (e.g. v3.1.1). Defaults to the workflow's pinned version.                               |
+| `image`          | string | Yes      |                     | Digest-pinned image reference, e.g. us-docker.pkg.dev/grafanalabs-global/dockerhub-tanka-prod-mirror/tanka@sha256:... |
+| `registry`       | string | No       | `us-docker.pkg.dev` | GAR (Artifact Registry) hostname to authenticate against when writing the signature and attestation.                  |
+
+<!-- END_INPUTS -->
 
 ## Required caller permissions
 
