@@ -1,0 +1,39 @@
+# Reusable workflows that wrap a composite action and are expected to expose the
+# same inputs and outputs, so callers get an identical surface either way.
+#
+# Checked by `go run . parity`. Any input or output added to one side and
+# not the other fails the check; genuinely one-sided names are listed here, with
+# a reason, instead.
+rules:
+  - workflow: .github/workflows/docker-build-push-multiarch.yml
+    action: actions/docker-build-push-image/action.yaml
+
+    # These configure the multiarch workflow itself -- which hosted runner each
+    # architecture builds on, and whether to write a job summary -- rather than
+    # the docker build the action performs.
+    workflow-only-inputs:
+      - generate-summary
+      - runner-type
+      - runner-type-arm64
+      - runner-type-manifest
+      - runner-type-x64
+
+    # TODO: these two are forwarding gaps, not deliberate omissions -- the
+    # workflow should accept them and pass them through to the action. Left
+    # listed here so this check can be enabled now; adding inputs to a released
+    # reusable workflow belongs in its own PR. See issue #1466.
+    action-only-inputs:
+      - annotations
+      - builder
+
+    # The workflow builds one image per platform and merges them into a manifest,
+    # so these describe the fan-out and the merged result. The action, which only
+    # ever builds one image, has no equivalent.
+    workflow-only-outputs:
+      - image-digests
+      - oci-manifest-output-json
+      - runner-arches
+
+    # TODO: another forwarding gap, same as action-only-inputs above.
+    action-only-outputs:
+      - metadatajson

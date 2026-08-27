@@ -1,0 +1,10 @@
+name: Not a reusable workflow
+
+on:
+  pull_request:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: "true"
