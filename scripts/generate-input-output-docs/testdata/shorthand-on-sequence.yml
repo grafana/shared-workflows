@@ -1,0 +1,9 @@
+name: Shorthand sequence trigger
+
+on: [push, pull_request]
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: "true"

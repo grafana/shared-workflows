@@ -1,0 +1,27 @@
+name: Test reusable workflow
+
+on:
+  workflow_call:
+    inputs:
+      flag:
+        description: "Reusable workflows declare an explicit type, used verbatim."
+        required: false
+        default: false
+        type: boolean
+      name:
+        description: "A required string input."
+        required: true
+        type: string
+    outputs:
+      url:
+        description: "An output of the workflow."
+        value: ${{ jobs.run.outputs.url }}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.go.outputs.url }}
+    steps:
+      - id: go
+        run: echo "url=https://example.com" >> "$GITHUB_OUTPUT"

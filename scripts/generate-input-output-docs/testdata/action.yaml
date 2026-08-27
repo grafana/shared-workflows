@@ -1,0 +1,36 @@
+name: Test action
+description: A composite action fixture covering the shapes the parser has to handle.
+
+inputs:
+  zebra:
+    description: "Declared last, must sort first-to-last by name."
+    required: false
+    default: ""
+  alpha:
+    description: |
+      A folded description that spans
+      several lines and ends with a newline.
+    required: true
+  boolish:
+    description: "Has a boolean default, so the type is inferred as Boolean."
+    default: true
+  pipes:
+    description: "Contains a | pipe that must be escaped."
+    default: "a|b"
+  backticked:
+    description: "Default contains a `backtick`."
+    default: "`x`"
+  no-default:
+    description: "No default at all, so the Default cell is empty."
+
+outputs:
+  result:
+    description: "Outputs have no type, default or required flag."
+    value: ${{ steps.run.outputs.result }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: echo "result=ok" >> "$GITHUB_OUTPUT"
