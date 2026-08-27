@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.3](https://github.com/grafana/shared-workflows/compare/send-slack-message/v3.0.2...send-slack-message/v3.0.3) (2026-08-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update grafana/shared-workflows/get-vault-secrets action to v2.0.1 ([#2268](https://github.com/grafana/shared-workflows/issues/2268)) ([35bf148](https://github.com/grafana/shared-workflows/commit/35bf148d529e6ec81707d291aa73c7f3cda949de))
+* **deps:** update slackapi/slack-github-action action to v3.0.5 ([#2166](https://github.com/grafana/shared-workflows/issues/2166)) ([6e348ef](https://github.com/grafana/shared-workflows/commit/6e348efd535b34ffa4d49b0d00b754f37a12738d))
+
 ## [3.0.2](https://github.com/grafana/shared-workflows/compare/send-slack-message/v3.0.1...send-slack-message/v3.0.2) (2026-06-10)
 
 
