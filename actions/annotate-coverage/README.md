@@ -45,14 +45,18 @@ jobs:
 
 ## Inputs
 
-| Input                  | Description                                                                                                                                                | Required | Default                   |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------- |
-| `coverage-path`        | Directory containing Go coverage files (`*.out`)                                                                                                           | No       | `.coverage`               |
-| `format`               | Output format: `Text`, `Markdown`, or `GitHubAnnotations`                                                                                                  | No       | `GitHubAnnotations`       |
-| `base-ref`             | Base ref to compare against (e.g., the PR base SHA). When set, diff is `<base-ref>..<commit-sha or HEAD>`.                                                 | No       | -                         |
-| `commit-sha`           | Commit ref to compare to. With `base-ref`, diff is `<base-ref>..<commit-sha>`. Without `base-ref`, diff is the changes introduced by `<commit-sha>` alone. | No       | -                         |
-| `repository-directory` | Path to the git repository to analyze                                                                                                                      | No       | `${{ github.workspace }}` |
-| `go-version`           | Go version used to build the action binary                                                                                                                 | No       | `1.25`                    |
+<!-- BEGIN_INPUTS -->
+
+| Name                   | Type   | Required | Default                   | Description                                                                                                                                                                                     |
+| ---------------------- | ------ | -------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `base-ref`             | String | No       |                           | Base ref to compare against (e.g., the PR base branch). When set, diff is computed as &lt;base-ref>..&lt;commit-sha or HEAD>.                                                                   |
+| `commit-sha`           | String | No       |                           | Commit ref to compare to. With base-ref, diff is &lt;base-ref>..&lt;commit-sha>. Without base-ref, diff is the changes introduced by &lt;commit-sha>. Defaults to HEAD when used with base-ref. |
+| `coverage-path`        | String | No       | `.coverage`               | Directory containing Go coverage files (*.out)                                                                                                                                                  |
+| `format`               | String | No       | `GitHubAnnotations`       | Output format: Text, Markdown, or GitHubAnnotations                                                                                                                                             |
+| `go-version`           | String | No       | `1.25`                    | Go version to use when building the binary                                                                                                                                                      |
+| `repository-directory` | String | No       | `${{ github.workspace }}` | Path to the git repository to analyze                                                                                                                                                           |
+
+<!-- END_INPUTS -->
 
 ## Diff modes
 

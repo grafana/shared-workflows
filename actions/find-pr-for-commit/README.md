@@ -8,18 +8,26 @@ action will return the most recently updated PR.
 
 ## Inputs
 
-| Name        | Type   | Description                                                                                           | Default Value                    | Required |
-| ----------- | ------ | ----------------------------------------------------------------------------------------------------- | -------------------------------- | -------- |
-| `owner`     | String | The owner of the repository                                                                           | `${{ github.repository_owner }}` | No       |
-| `repo`      | String | The repository name                                                                                   | `${{ github.repository }}`       | No       |
-| `commitrev` | String | The commit SHA or revision name (like `refs/heads/main`) to find the PR for                           | `${{ github.sha }}`              | No       |
-| `token`     | String | The GitHub token to use for the query. Must have `contents:read` and `pull-requests:read` permissions | `${{ github.token }}`            | No       |
+<!-- BEGIN_INPUTS -->
+
+| Name        | Type   | Required | Default                                                                                            | Description                                                                                                                     |
+| ----------- | ------ | -------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `commitrev` | String | No       | `${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha \|\| github.sha }}` | The commit SHA, or revision name such as `refs/heads/main`, to find the PR for                                                  |
+| `owner`     | String | No       | `${{ github.repository_owner }}`                                                                   | The owner of the repository                                                                                                     |
+| `repo`      | String | No       | `${{ github.event.repository.name }}`                                                              | The repository name                                                                                                             |
+| `token`     | String | No       | `${{ github.token }}`                                                                              | The GitHub token to use for the query. Must have `contents:read` and `pull-requests:read` permissions on the target repository. |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name        | Type   | Description                              |
-| ----------- | ------ | ---------------------------------------- |
-| `pr_number` | String | The PR number associated with the commit |
+<!-- BEGIN_OUTPUTS -->
+
+| Name        | Description                              |
+| ----------- | ---------------------------------------- |
+| `pr_number` | The PR number associated with the commit |
+
+<!-- END_OUTPUTS -->
 
 ## Usage
 

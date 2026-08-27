@@ -8,20 +8,32 @@ Required permissions:
 - `pull-requests: read`
 - `actions: read`
 
-| Input                 | Description                                                    | Required | Default                                   |
-| --------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------- |
-| `workflow-id`         | ID or filename of the workflow                                 | yes      |                                           |
-| `artifact-name`       | Name of the artifact to download                               | yes      |                                           |
-| `repository`          | Owner/Name                                                     | no       | `${{ github.repository }}`                |
-| `pr-number`           | Number of the PR to consider                                   | no       | `${{ github.event.pull_request.number }}` |
-| `path`                | Directory to store the artifact in                             | no       | `${{ github.workspace }}`                 |
-| `github-token`        | GitHub token                                                   | no       | `${{ github.token }}`                     |
-| `consider-inprogress` | Not only consider completed but also in-progress workflow runs | no       | `false`                                   |
-| `consider-comments`   | Also look for workflow runs triggered by comments              | no       | `false`                                   |
+## Inputs
 
-| Output                   | Description                                            |
-| ------------------------ | ------------------------------------------------------ |
-| `artifact-download-path` | Path where the artifact was downloaded                 |
-| `artifact-id`            | ID of the artifact that was downloaded                 |
-| `workflow-run-id`        | ID of the Workflow Run                                 |
-| `workflow-run-status`    | Status of the found run (`in_progress` or `completed`) |
+<!-- BEGIN_INPUTS -->
+
+| Name                  | Type   | Required | Default                                   | Description                                                |
+| --------------------- | ------ | -------- | ----------------------------------------- | ---------------------------------------------------------- |
+| `artifact-name`       | String | Yes      |                                           | Name of a specific artifact                                |
+| `consider-comments`   | String | No       |                                           | Also look for workflow runs triggered by comments          |
+| `consider-inprogress` | String | No       |                                           | Allow to also return artifacts from in-progress runs       |
+| `github-token`        | String | No       | `${{ github.token }}`                     | GitHub token to access the workflow and artifact           |
+| `path`                | String | No       | `${{ github.workspace }}`                 | Destination path                                           |
+| `pr-number`           | String | No       | `${{ github.event.pull_request.number }}` | Pull request the workflow run is associated with           |
+| `repository`          | String | No       | `${{ github.repository }}`                | Repository of the target workflow (e.g. `grafana/grafana`) |
+| `workflow-id`         | String | Yes      |                                           | ID of the workflow inside the current repository           |
+
+<!-- END_INPUTS -->
+
+## Outputs
+
+<!-- BEGIN_OUTPUTS -->
+
+| Name                     | Description                                                                       |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| `artifact-download-path` | Path of the downloaded artifact                                                   |
+| `artifact-id`            | ID of the downloaded artifact                                                     |
+| `workflow-run-id`        | ID of the considered workflow run                                                 |
+| `workflow-run-status`    | Status of the workflow run containing the artifact (`in_progress` or `completed`) |
+
+<!-- END_OUTPUTS -->

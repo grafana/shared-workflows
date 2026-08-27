@@ -14,3 +14,14 @@ with:
 ```
 
 <!-- x-release-please-end-version -->
+
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name           | Type   | Required | Default  | Description                                 |
+| -------------- | ------ | -------- | -------- | ------------------------------------------- |
+| `argo-version` | String | No       | `3.7.10` | Version of the Argo CLI to use for linting. |
+| `path`         | String | Yes      |          | Path to files for linting.                  |
+
+<!-- END_INPUTS -->

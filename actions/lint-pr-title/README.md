@@ -26,10 +26,14 @@ so these are the commits that need to be validated.
 
 ## Inputs
 
-| Name          | Description                                                                          | Default                  | Required |
-| ------------- | ------------------------------------------------------------------------------------ | ------------------------ | -------- |
-| `config-path` | Path to the commitlint configuration file, relative to the action's directory.       | `./commitlint.config.js` | No       |
-| `title-only`  | Check only the PR/commit title. If false, it will check the whole PR/commit message. | `true`                   | No       |
+<!-- BEGIN_INPUTS -->
+
+| Name          | Type    | Required | Default                  | Description                                                                          |
+| ------------- | ------- | -------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `config-path` | String  | No       | `./commitlint.config.js` | Path to the commitlint configuration file, relative to the action's directory.       |
+| `title-only`  | Boolean | No       | `true`                   | Check only the PR/commit title. If false, it will check the whole PR/commit message. |
+
+<!-- END_INPUTS -->
 
 ## Validation
 

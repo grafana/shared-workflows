@@ -3,7 +3,8 @@ description: Composite action to push to Google Cloud Storage
 inputs:
   bucket:
     description: |
-      Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}
+      Name of bucket to upload to. Can be gathered from the `login-to-gcs` action.
+      Will default to grafanalabs-${repository.name}-${environment}
     default: ""
   path:
     description: |

@@ -22,7 +22,7 @@ on:
         default: "high"
 
       runs-on:
-        description: "The runner to use for jobs"
+        description: "The runner to use for jobs. Set this to use self-hosted runners."
         required: false
         type: string
         default: "ubuntu-latest"
@@ -64,7 +64,7 @@ on:
         default: false
 
       auto-delete-slack-channel-id:
-        description: Slack channel ID to notify before deleting a branch.
+        description: Slack channel ID to notify before deleting a branch. Required when `auto-delete-dangerous-branches` is `true`.
         required: false
         type: string
         default: ""

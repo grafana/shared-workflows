@@ -6,8 +6,14 @@ Intended to be called from [`.github/workflows/reusable-zizmor.yml`](../../.gith
 
 ## Inputs
 
-- `config_path`: Path to the zizmor config file relative to the workspace (e.g. `zizmor.yml`). Required.
-- `sarif_output`: Optional path for a SARIF report written when validation fails (used by reusable-zizmor so Grafana Bench and Loki ingestion still receive results).
+<!-- BEGIN_INPUTS -->
+
+| Name           | Type   | Required | Default | Description                                                                                                                                         |
+| -------------- | ------ | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config_path`  | String | Yes      |         | Path to the zizmor config file relative to the workspace (e.g. zizmor.yml).                                                                         |
+| `sarif_output` | String | No       |         | Optional path for a SARIF report written when validation fails (used by reusable-zizmor so Grafana Bench and Loki ingestion still receive results). |
+
+<!-- END_INPUTS -->
 
 ## Requirements
 

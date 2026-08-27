@@ -96,17 +96,25 @@ jobs:
 
 ## Inputs
 
-| Name                | Type   | Description                                                                                                                                        |
-| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `payload`           | String | JSON payload to send.                                                                                                                              |
-| `method`            | String | The Slack API method to call.                                                                                                                      |
-| `payload-templated` | String | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true. |
+<!-- BEGIN_INPUTS -->
+
+| Name                | Type    | Required | Default | Description                                                                                                                                       |
+| ------------------- | ------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `method`            | String  | Yes      |         | The Slack API method to call                                                                                                                      |
+| `payload`           | String  | No       |         | JSON payload to send                                                                                                                              |
+| `payload-templated` | Boolean | No       | `false` | To replace templated variables provided from the step env or default GitHub event context and payload, set the payload-templated variable to true |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name         | Type   | Description                                        |
-| ------------ | ------ | -------------------------------------------------- |
-| `time`       | String | The time the message was sent.                     |
-| `thread_ts`  | String | Threaded timestamp on the message that was posted. |
-| `ts`         | String | Timestamp on the message that was posted           |
-| `channel_id` | String | The ID of the Slack channel that was posted to.    |
+<!-- BEGIN_OUTPUTS -->
+
+| Name         | Description                                              |
+| ------------ | -------------------------------------------------------- |
+| `channel_id` | The channel id of the message that was posted into Slack |
+| `thread_ts`  | The timestamp on the latest thread posted into Slack     |
+| `time`       | The time that the Slack message was sent                 |
+| `ts`         | The timestamp on the message that was posted into Slack  |
+
+<!-- END_OUTPUTS -->
