@@ -38,15 +38,24 @@ $ gcloud storage cp OBJECT_LOCATION gs://DESTINATION_BUCKET_NAME
 
 ## Inputs
 
-| Name              | Type    | Description                                                                                                       |
-| ----------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
-| `bucket`          | String  | Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}                        |
-| `environment`     | String  | Environment for pushing artifacts (can be either dev or prod).                                                    |
-| `service_account` | String  | Service account to use for authentication. Use it only when the service account is different than the default one |
-| `use_wif_auth`    | Boolean | Use WIF authentication. Overrides the `service_account` input.                                                    |
+<!-- BEGIN_INPUTS -->
+
+| Name                      | Type    | Required | Default | Description                                                                                                                             |
+| ------------------------- | ------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `bucket`                  | String  | No       |         | Name of bucket to upload to. Will default to grafanalabs-${repository.name}-${environment}                                              |
+| `delete_credentials_file` | Boolean | No       | `false` | Delete the credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false. |
+| `environment`             | String  | No       | `dev`   | Environment for uploading objects (can be either dev or prod).                                                                          |
+| `service_account`         | String  | No       |         | Custom service account to use for authentication.                                                                                       |
+| `use_wif_auth`            | Boolean | No       | `false` | Use WIF for authentication instead of service account.                                                                                  |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name     | Type   | Description                                   |
-| -------- | ------ | --------------------------------------------- |
-| `bucket` | String | Name of the bucket that was authenticated to. |
+<!-- BEGIN_OUTPUTS -->
+
+| Name     | Description                                           |
+| -------- | ----------------------------------------------------- |
+| `bucket` | The name of the bucket that we have authenticated to. |
+
+<!-- END_OUTPUTS -->

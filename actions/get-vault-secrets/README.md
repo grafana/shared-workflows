@@ -50,3 +50,26 @@ jobs:
 ```
 
 <!-- x-release-please-end-version -->
+
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name             | Type    | Required | Default | Description                                                                                                                                                                                                                                                            |
+| ---------------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `common_secrets` | String  | No       |         | Common secrets mapping. Only Grafana Labs employees can list these secrets in Vault. These secrets are stored in the `ci/data/common/<secret path>` path in Vault. Ex: `repo_secrets: \| ENVVAR1=secretpath:key ENVVAR2=secretpath:key2`                               |
+| `ignore_missing` | Boolean | No       | `false` | When set to true, prevents the action from failing when a secret does not exist.                                                                                                                                                                                       |
+| `repo_secrets`   | String  | No       |         | Repository-specific secret mapping. Only Grafana Labs employees can list these secrets in Vault. These secrets are stored in the `ci/data/repo/grafana/<repo name>/<secret path>` path in Vault. Ex: `repo_secrets: \| ENVVAR1=secretpath:key ENVVAR2=secretpath:key2` |
+| `vault_instance` | String  | No       | `ops`   | The Vault instance to use (`dev` or `ops`). Defaults to `ops`.                                                                                                                                                                                                         |
+
+<!-- END_INPUTS -->
+
+## Outputs
+
+<!-- BEGIN_OUTPUTS -->
+
+| Name      | Description                            |
+| --------- | -------------------------------------- |
+| `secrets` | JSON object containing all the secrets |
+
+<!-- END_OUTPUTS -->

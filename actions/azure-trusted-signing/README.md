@@ -92,33 +92,34 @@ jobs:
 
 ## Inputs
 
-### Required
+<!-- BEGIN_INPUTS -->
 
-| **Name**                  | **Description**                                                                                         |
-| :------------------------ | :------------------------------------------------------------------------------------------------------ |
-| `application-description` | The description of the application to sign the file(s) for.                                             |
-| `artifact-to-sign`        | The name of the GitHub Actions workflow artifact from the current workflow run to sign the contents of. |
-| `azure-client-id`         | The client ID to use to authenticate with Azure.                                                        |
-| `azure-subscription-id`   | The subscription ID to use to authenticate with Azure.                                                  |
-| `azure-tenant-id`         | The tenant ID to use to authenticate with Azure.                                                        |
-| `signed-artifact-name`    | The name of the GitHub Actions workflow artifact to upload the signed files to.                         |
+| Name                       | Type   | Required | Default                                                          | Description                                                                                                     |
+| -------------------------- | ------ | -------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `application-description`  | String | Yes      |                                                                  | The description of the application to sign the file(s) for.                                                     |
+| `application-url`          | String | No       | `${{ format('{0}/{1}', github.server_url, github.repository) }}` | The optional URL of the application to sign the file(s) for. Defaults to the current GitHub repository URL.     |
+| `artifact-to-sign`         | String | Yes      |                                                                  | The name of the GitHub Actions workflow artifact from the current workflow run to sign the contents of.         |
+| `azure-client-id`          | String | Yes      |                                                                  | The client ID to use to authenticate with Azure.                                                                |
+| `azure-subscription-id`    | String | Yes      |                                                                  | The subscription ID to use to authenticate with Azure.                                                          |
+| `azure-tenant-id`          | String | Yes      |                                                                  | The tenant ID to use to authenticate with Azure.                                                                |
+| `file-filter`              | String | No       | `**/*`                                                           | The optional path filter of which files to sign from the artifact. Defaults to all files.                       |
+| `file-list`                | String | No       |                                                                  | The optional path to a file containing paths of files to sign or to exclude from signing.                       |
+| `publisher-name`           | String | No       | `Grafana Labs`                                                   | The optional name of the publisher of the application the signed file(s) belong to. Defaults to "Grafana Labs". |
+| `signed-artifact-name`     | String | Yes      |                                                                  | The name of the GitHub Actions workflow artifact to upload the signed files to.                                 |
+| `trusted-signing-account`  | String | No       | `grafana-premium-eastus`                                         | The optional name of the Azure Trusted Signing account to use.                                                  |
+| `trusted-signing-endpoint` | String | No       | `https://eus.codesigning.azure.net/`                             | The optional endpoint URL of the Azure Trusted Signing service to use.                                          |
+| `trusted-signing-profile`  | String | No       | `grafana-production`                                             | The optional name of the Azure Trusted Signing profile to use.                                                  |
 
-### Optional
-
-| **Name**                   | **Description**                                                                  | **Default**                                            |
-| :------------------------- | :------------------------------------------------------------------------------- | :----------------------------------------------------- |
-| `application-url`          | The URL of the application to sign the file(s) for.                              | The URL of the GitHub repository running the workflow. |
-| `file-filter`              | The path filter of which files to sign from the artifact.                        | `'**/*'`                                               |
-| `file-list`                | The path to a file containing paths of files to sign or to exclude from signing. | -                                                      |
-| `publisher-name`           | The name of the publisher of the application the signed file(s) belong to.       | `'Grafana Labs'`                                       |
-| `trusted-signing-account`  | The name of the Azure Trusted Signing account to use.                            | -                                                      |
-| `trusted-signing-endpoint` | The endpoint URL of the Azure Trusted Signing service to use.                    | -                                                      |
-| `trusted-signing-profile`  | The name of the Azure Trusted Signing profile to use.                            | -                                                      |
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| **Name**        | **Description**                                                                 |
-| :-------------- | :------------------------------------------------------------------------------ |
+<!-- BEGIN_OUTPUTS -->
+
+| Name            | Description                                                                     |
+| --------------- | ------------------------------------------------------------------------------- |
 | `artifact-name` | The name of the GitHub Actions workflow artifact containing the signed file(s). |
+
+<!-- END_OUTPUTS -->
 
 [azure-trusted-signing]: https://learn.microsoft.com/azure/trusted-signing/

@@ -13,3 +13,13 @@ with:
 ```
 
 <!-- x-release-please-end-version -->
+
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name      | Type   | Required | Default  | Description                     |
+| --------- | ------ | -------- | -------- | ------------------------------- |
+| `version` | String | No       | `0.55.0` | Version of conftest to install. |
+
+<!-- END_INPUTS -->

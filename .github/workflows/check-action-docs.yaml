@@ -1,0 +1,66 @@
+name: Check action and workflow docs
+
+on:
+  pull_request:
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+  merge_group:
+
+permissions: {}
+
+jobs:
+  check-action-docs:
+    name: Docs match their YAML
+    # Self-hosted so the job is covered by our runtime security monitoring.
+    runs-on: ubuntu-x64-small
+    timeout-minutes: 5
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+
+      # The generator formats its output with prettier so it matches what the
+      # pre-commit hook would write, and it requires the exact version pinned in
+      # package.json. Installing it also stops the prettier-dependent tests below
+      # from silently skipping.
+      - name: Install bun package manager
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - name: Install prettier
+        run: bun install --frozen-lockfile --linker hoisted
+
+      - name: Run generator tests
+        run: go test ./...
+        working-directory: scripts/generate-input-output-docs
+
+      - name: Check reusable workflows match their actions
+        run: go run . parity -root-dir ../../
+        working-directory: scripts/generate-input-output-docs
+
+      - name: Regenerate docs
+        run: go run . generate -root-dir ../../
+        working-directory: scripts/generate-input-output-docs
+
+      # `git diff` alone would miss a doc the generator had to create from
+      # scratch, because a new file is untracked -- and a brand-new action with
+      # no README is exactly the case this check exists to catch. Staging first
+      # makes new files visible to the diff.
+      - name: Check for drift
+        run: |
+          git add -A
+          if ! git diff --staged --exit-code; then
+            echo "::error::Action and workflow docs are out of date. Regenerate them with \`cd scripts/generate-input-output-docs && go run . generate -root-dir ../../\` and commit the result."
+            exit 1
+          fi

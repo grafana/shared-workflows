@@ -54,13 +54,17 @@ Follow that up with the actions that should publish the docs to EngHub. See [the
 
 ## Inputs
 
-| Name                                                   | Type    | Description                                                                                                    |
-| ------------------------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------- |
-| `default-branch` (required)                            | string  | Default branch name of the repository                                                                          |
-| `repo-url` (required)                                  | string  | Full URL to the GitHub repository                                                                              |
-| `working-directory` (required)                         | string  | Directory containing the `mkdocs.yml` file                                                                     |
-| `dry-run`                                              | boolean | Do not modify the files but print a diff                                                                       |
-| `checkout-action-repository-path` (default: `_action`) | string  | Folder where the repository should be checked out to for running the action or where a checkout already exists |
-| `checkout-action-repository` (default: `true`)         | boolean | If the workflow already checks out the shared-workflows repository, you can set this to false                  |
-| `verbose` (default `false`)                            | boolean | Log on info level                                                                                              |
-| `debug` (default `false`)                              | boolean | Log on debug level                                                                                             |
+<!-- BEGIN_INPUTS -->
+
+| Name                              | Type    | Required | Default   | Description                                                                                                                                      |
+| --------------------------------- | ------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `checkout-action-repository`      | Boolean | No       | `true`    | By default this action checks out its own code. If you want to skip this, set to false.                                                          |
+| `checkout-action-repository-path` | String  | No       | `_action` | Path where the action checks out its own code. If you disable the checkout, make sure to set this to where a previous checkout has been made to. |
+| `debug`                           | Boolean | No       | `false`   | Log output on debug level                                                                                                                        |
+| `default-branch`                  | String  | Yes      |           | Default branch name of the repository                                                                                                            |
+| `dry-run`                         | Boolean | No       | `false`   | Execute link rewriting without updating the underlying files                                                                                     |
+| `repo-url`                        | String  | Yes      |           | Full URL to the GitHub repository                                                                                                                |
+| `verbose`                         | Boolean | No       | `false`   | Log output on info level                                                                                                                         |
+| `working-directory`               | String  | Yes      |           | Directory containing the `mkdocs.yml` file                                                                                                       |
+
+<!-- END_INPUTS -->

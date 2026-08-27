@@ -29,3 +29,13 @@ jobs:
       # Actions that do not need the credentials anymore
       # ...
 ```
+
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name   | Type   | Required | Default | Description          |
+| ------ | ------ | -------- | ------- | -------------------- |
+| `path` | String | No       |         | Path of the checkout |
+
+<!-- END_INPUTS -->
