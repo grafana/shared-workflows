@@ -127,6 +127,28 @@ jobs:
       - name: Install techdocs-cli
         run: sudo npm install -g @techdocs/cli@1.9.8
 
+      # Temporary until https://github.com/backstage/backstage/pull/35364 is merged and released.
+      - name: Allow the Mermaid formatter in TechDocs
+        run: |
+          sudo node - "$(npm root -g)" <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const { createRequire } = require('node:module');
+          const cliRequire = createRequire(path.join(process.argv[2], '@techdocs/cli/package.json'));
+          const entry = cliRequire.resolve('@backstage/plugin-techdocs-node');
+          const file = path.join(path.dirname(entry), 'stages/generate/helpers.cjs.js');
+          const source = fs.readFileSync(file, 'utf8');
+          const marker = 'const ALLOWED_PYTHON_YAML_TAGS = /* @__PURE__ */ new Set([';
+          const tag = 'tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format';
+          if (source.split(marker).length !== 2) {
+            throw new Error('TechDocs allowlist changed. Review the temporary Mermaid patch.');
+          }
+          const allowlist = source.slice(source.indexOf(marker)).split(']);')[0];
+          if (!allowlist.includes(JSON.stringify(tag))) {
+            fs.writeFileSync(file, source.replace(marker, `${marker}\n  ${JSON.stringify(tag)},`));
+          }
+          NODE
+
       - name: setup python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
