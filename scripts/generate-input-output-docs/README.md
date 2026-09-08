@@ -19,7 +19,8 @@ once first (see [Prettier](#prettier)):
 bun install
 ```
 
-All commands run from this directory:
+All commands run from this directory, and default to treating `../..` as the
+repository root:
 
 ```sh
 cd scripts/generate-input-output-docs
@@ -28,27 +29,30 @@ cd scripts/generate-input-output-docs
 Regenerate every doc in the repo:
 
 ```sh
-go run . generate -root-dir ../../
+go run . generate
 ```
 
 Check for drift without writing anything:
 
 ```sh
-go run . check -root-dir ../../
+go run . check
 ```
 
 Check that a reusable workflow still forwards the inputs and outputs of the
 composite action it wraps:
 
 ```sh
-go run . parity -root-dir ../../
+go run . parity
 ```
 
 Print the tables for a single file, without touching any doc:
 
 ```sh
-go run . print -file ../../actions/aws-auth/action.yaml
+go run . print -f ../../actions/aws-auth/action.yaml
 ```
+
+`go run . --help` lists every command, and `go run . <command> --help` its flags.
+Pass `--root-dir` to run against a checkout somewhere else.
 
 [`check-action-docs.yaml`](../../.github/workflows/check-action-docs.yaml) runs
 `generate` and then fails on `git diff`, runs `parity`, and runs the tests.
