@@ -287,3 +287,33 @@ func TestInjectRequiresMarkersAloneOnTheirLine(t *testing.T) {
 		})
 	}
 }
+
+func TestSectionHelpers(t *testing.T) {
+	// Heading, beginMarker and endMarker are derived from the Section constant
+	// rather than written out per section, so a typo here would rename markers in
+	// every generated doc at once. Worth asserting directly rather than relying
+	// on the Inject tests to catch it indirectly.
+	tests := []struct {
+		section Section
+		heading string
+		begin   string
+		end     string
+	}{
+		{SectionInputs, "## Inputs", "<!-- BEGIN_INPUTS -->", "<!-- END_INPUTS -->"},
+		{SectionOutputs, "## Outputs", "<!-- BEGIN_OUTPUTS -->", "<!-- END_OUTPUTS -->"},
+	}
+
+	for _, tt := range tests {
+		t.Run(string(tt.section), func(t *testing.T) {
+			if got := tt.section.Heading(); got != tt.heading {
+				t.Errorf("Heading() = %q, want %q", got, tt.heading)
+			}
+			if got := tt.section.beginMarker(); got != tt.begin {
+				t.Errorf("beginMarker() = %q, want %q", got, tt.begin)
+			}
+			if got := tt.section.endMarker(); got != tt.end {
+				t.Errorf("endMarker() = %q, want %q", got, tt.end)
+			}
+		})
+	}
+}
