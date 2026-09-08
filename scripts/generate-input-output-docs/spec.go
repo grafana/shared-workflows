@@ -49,8 +49,6 @@ type IOEntry struct {
 
 // Spec is the set of inputs and outputs parsed out of a single YAML file.
 type Spec struct {
-	Kind    Kind
-	Path    string
 	Inputs  []IOEntry
 	Outputs []IOEntry
 }
@@ -78,7 +76,6 @@ type rawIO struct {
 	Default     yaml.Node `yaml:"default"`
 	Required    yaml.Node `yaml:"required"`
 	Type        yaml.Node `yaml:"type"`
-	Value       yaml.Node `yaml:"value"`
 }
 
 type rawCompositeAction struct {
@@ -111,7 +108,7 @@ func ParseFile(path string, kind Kind) (*Spec, error) {
 		return nil, err
 	}
 
-	spec := &Spec{Kind: kind, Path: path}
+	spec := &Spec{}
 
 	switch kind {
 	case KindCompositeAction:

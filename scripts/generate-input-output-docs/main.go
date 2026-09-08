@@ -103,62 +103,25 @@ func kindFlag() cli.Flag {
 	}
 }
 
-// runGenerate rewrites every doc file in the repo. When checkOnly is set it
-// reports what would change and fails instead of writing, which is what CI runs.
+// runGenerate adapts the CLI flags onto GenerateDocs, which holds the actual
+// work. When checkOnly is set it reports what would change and fails instead of
+// writing, which is what CI runs.
 func runGenerate(cmd *cli.Command, checkOnly bool) error {
 	root := cmd.String("root-dir")
-	verbose := cmd.Bool("verbose")
 
 	formatter, err := NewFormatterForRoot(cmd.String("prettier"), root)
 	if err != nil {
 		return err
 	}
 
-	targets, err := DiscoverTargets(root)
+	changed, err := GenerateDocs(GenerateOptions{
+		Root:      root,
+		Formatter: formatter,
+		CheckOnly: checkOnly,
+		Verbose:   cmd.Bool("verbose"),
+	})
 	if err != nil {
 		return err
-	}
-	if len(targets) == 0 {
-		return fmt.Errorf("no actions or reusable workflows found under %s", root)
-	}
-
-	var changed []string
-	for _, target := range targets {
-		spec, err := ParseFile(target.YAML, target.Kind)
-		if err != nil {
-			return err
-		}
-
-		existing, err := os.ReadFile(target.Doc)
-		if err != nil {
-			if !os.IsNotExist(err) {
-				return err
-			}
-			// A reusable workflow or action with no doc file at all still needs
-			// its inputs documented, so start one from the target's name.
-			existing = []byte("# " + target.Name() + "\n")
-		}
-
-		updated, err := RenderDoc(string(existing), spec, target.Doc, formatter)
-		if err != nil {
-			return err
-		}
-		if updated == string(existing) {
-			if verbose {
-				fmt.Printf("ok      %s\n", rel(root, target.Doc))
-			}
-			continue
-		}
-
-		changed = append(changed, rel(root, target.Doc))
-		if checkOnly {
-			fmt.Printf("drift   %s\n", rel(root, target.Doc))
-			continue
-		}
-		if err := os.WriteFile(target.Doc, []byte(updated), 0o644); err != nil {
-			return err
-		}
-		fmt.Printf("wrote   %s\n", rel(root, target.Doc))
 	}
 
 	if checkOnly && len(changed) > 0 {
