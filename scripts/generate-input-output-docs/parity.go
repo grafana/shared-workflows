@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 )
 
 // ParityRule declares that a reusable workflow is expected to forward every
@@ -87,7 +87,7 @@ func compareSets(label, workflowPath, actionPath string, workflowNames, actionNa
 
 	var missingFromWorkflow []string
 	for _, name := range actionNames {
-		if !inWorkflow[name] && !allowAction[name] {
+		if !has(inWorkflow, name) && !has(allowAction, name) {
 			missingFromWorkflow = append(missingFromWorkflow, name)
 		}
 	}
@@ -101,7 +101,7 @@ func compareSets(label, workflowPath, actionPath string, workflowNames, actionNa
 
 	var missingFromAction []string
 	for _, name := range workflowNames {
-		if !inAction[name] && !allowWorkflow[name] {
+		if !has(inAction, name) && !has(allowWorkflow, name) {
 			missingFromAction = append(missingFromAction, name)
 		}
 	}
@@ -121,10 +121,10 @@ func compareSets(label, workflowPath, actionPath string, workflowNames, actionNa
 	return problems
 }
 
-func staleAllowances(allowed []string, present map[string]bool, field, path string) []string {
+func staleAllowances(allowed []string, present map[string]struct{}, field, path string) []string {
 	var stale []string
 	for _, name := range allowed {
-		if !present[name] {
+		if !has(present, name) {
 			stale = append(stale, name)
 		}
 	}
@@ -143,12 +143,19 @@ func joinRoot(root, path string) string {
 	return filepath.Join(root, filepath.FromSlash(path))
 }
 
-func toSet(names []string) map[string]bool {
-	set := make(map[string]bool, len(names))
+func toSet(names []string) map[string]struct{} {
+	set := make(map[string]struct{}, len(names))
 	for _, n := range names {
-		set[n] = true
+		set[n] = struct{}{}
 	}
 	return set
+}
+
+// has keeps the membership tests above readable now that the sets carry no
+// value to test for truthiness.
+func has(set map[string]struct{}, name string) bool {
+	_, ok := set[name]
+	return ok
 }
 
 func quoteList(names []string) string {

@@ -48,7 +48,8 @@ const emptyPlaceholder = "_None._"
 // A section with no entries and no existing markers is skipped entirely rather
 // than adding an empty heading.
 func Inject(doc string, section Section, table string) (string, error) {
-	if err := validateMarkers(doc, section); err != nil {
+	lines := strings.Split(doc, "\n")
+	if err := validateMarkers(lines, section); err != nil {
 		return "", err
 	}
 
@@ -68,8 +69,8 @@ func Inject(doc string, section Section, table string) (string, error) {
 		section.endMarker(),
 	}, "\n")
 
-	if updated, ok := replaceBetweenMarkers(doc, section, block); ok {
-		return updated, nil
+	if updated, ok := replaceBetweenMarkers(lines, section, block); ok {
+		return strings.Join(updated, "\n"), nil
 	}
 	updated, ok, err := insertUnderHeading(doc, section, block)
 	if err != nil {
@@ -84,27 +85,45 @@ func Inject(doc string, section Section, table string) (string, error) {
 	return appendSection(doc, section, block), nil
 }
 
+// markerLines returns the indices of lines that consist of exactly marker.
+//
+// A marker only counts when it is alone on its line with no surrounding
+// whitespace. Matching anywhere in the document would let an input description
+// containing the literal text `<!-- END_INPUTS -->` act as a real marker, which
+// truncates the block and corrupts the doc on the next run. Prettier already
+// puts HTML comments on their own line, so every checked-in marker satisfies
+// this.
+func markerLines(lines []string, marker string) []int {
+	var found []int
+	for i, line := range lines {
+		if line == marker {
+			found = append(found, i)
+		}
+	}
+	return found
+}
+
 // validateMarkers rejects marker arrangements that cannot be updated safely.
 //
 // Each of these is a mistake rather than a state worth tolerating: left alone
 // they produce a doc that is stable on regeneration, so the CI drift check stays
 // green while the content silently rots.
-func validateMarkers(doc string, section Section) error {
-	begins := strings.Count(doc, section.beginMarker())
-	ends := strings.Count(doc, section.endMarker())
+func validateMarkers(lines []string, section Section) error {
+	begins := markerLines(lines, section.beginMarker())
+	ends := markerLines(lines, section.endMarker())
 
 	switch {
-	case begins == 0 && ends == 0:
+	case len(begins) == 0 && len(ends) == 0:
 		return nil
-	case begins > 1 || ends > 1:
+	case len(begins) > 1 || len(ends) > 1:
 		// Only the first pair would ever be rewritten; later ones keep stale
 		// content forever.
 		return fmt.Errorf("found %d %s and %d %s markers, want at most one of each",
-			begins, section.beginMarker(), ends, section.endMarker())
-	case begins != ends:
-		return fmt.Errorf("found %d %s and %d %s markers; they must be paired",
-			begins, section.beginMarker(), ends, section.endMarker())
-	case strings.Index(doc, section.endMarker()) < strings.Index(doc, section.beginMarker()):
+			len(begins), section.beginMarker(), len(ends), section.endMarker())
+	case len(begins) != len(ends):
+		return fmt.Errorf("found %d %s and %d %s markers; they must be paired (each alone on its own line)",
+			len(begins), section.beginMarker(), len(ends), section.endMarker())
+	case ends[0] < begins[0]:
 		return fmt.Errorf("%s appears before %s", section.endMarker(), section.beginMarker())
 	}
 	return nil
@@ -113,17 +132,18 @@ func validateMarkers(doc string, section Section) error {
 // replaceBetweenMarkers swaps out an existing marker block, reporting whether
 // the markers were found. validateMarkers has already established that there is
 // exactly one correctly ordered pair.
-func replaceBetweenMarkers(doc string, section Section, block string) (string, bool) {
-	begin := strings.Index(doc, section.beginMarker())
-	if begin == -1 {
-		return doc, false
+func replaceBetweenMarkers(lines []string, section Section, block string) ([]string, bool) {
+	begins := markerLines(lines, section.beginMarker())
+	ends := markerLines(lines, section.endMarker())
+	if len(begins) == 0 || len(ends) == 0 {
+		return lines, false
 	}
-	end := strings.Index(doc[begin:], section.endMarker())
-	if end == -1 {
-		return doc, false
-	}
-	end += begin + len(section.endMarker())
-	return doc[:begin] + block + doc[end:], true
+
+	rebuilt := make([]string, 0, len(lines))
+	rebuilt = append(rebuilt, lines[:begins[0]]...)
+	rebuilt = append(rebuilt, strings.Split(block, "\n")...)
+	rebuilt = append(rebuilt, lines[ends[0]+1:]...)
+	return rebuilt, true
 }
 
 // insertUnderHeading places a fresh marker block immediately below the section's

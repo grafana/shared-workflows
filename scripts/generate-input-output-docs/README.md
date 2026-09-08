@@ -77,6 +77,12 @@ Only the text between the markers is replaced, so notes, footnotes and
 `markdownlint` pragmas around a table survive regeneration. `BEGIN_OUTPUTS` /
 `END_OUTPUTS` work the same way.
 
+A marker is only recognised when it is **alone on its line**, with no
+surrounding whitespace or trailing text. That rule exists so an input
+description containing the literal text `<!-- END_INPUTS -->` can't act as a
+real marker and truncate the block. Prettier already puts HTML comments on their
+own line, so checked-in markers satisfy this without anyone thinking about it.
+
 If a doc has a `## Inputs` heading but no markers, the generator inserts them and
 drops the table that directly followed. If it has neither, a new section is
 appended. Anything that is not a plain table — a bullet list, say — is left in

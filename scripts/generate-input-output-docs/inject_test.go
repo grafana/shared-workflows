@@ -244,3 +244,46 @@ func TestInjectRejectsMalformedMarkers(t *testing.T) {
 		})
 	}
 }
+
+func TestInjectIgnoresMarkerTextInsideContent(t *testing.T) {
+	// A marker only counts when it is alone on its line. Before that rule, an
+	// input description containing the literal marker text was treated as a real
+	// marker, which truncated the block and corrupted the doc on the next run.
+	descriptionWithMarker := "| `x` | see <!-- END_INPUTS --> below |"
+	doc := "## Inputs\n\n<!-- BEGIN_INPUTS -->\n\n" + descriptionWithMarker + "\n\n<!-- END_INPUTS -->\n\nProse.\n"
+
+	once, err := Inject(doc, SectionInputs, table)
+	if err != nil {
+		t.Fatalf("Inject: %v", err)
+	}
+	twice, err := Inject(once, SectionInputs, table)
+	if err != nil {
+		t.Fatalf("second Inject: %v", err)
+	}
+	if once != twice {
+		t.Errorf("not idempotent:\nfirst:\n%s\nsecond:\n%s", once, twice)
+	}
+	if !strings.Contains(once, "Prose.") {
+		t.Errorf("content after the real end marker was lost:\n%s", once)
+	}
+	if strings.Count(once, "<!-- END_INPUTS -->") != 1 {
+		t.Errorf("expected exactly one end marker:\n%s", once)
+	}
+}
+
+func TestInjectRequiresMarkersAloneOnTheirLine(t *testing.T) {
+	// An indented or trailing-text marker is not recognised, so the doc falls
+	// through to the heading path rather than being edited around a marker that
+	// a renderer would treat as ordinary text.
+	for _, tt := range []struct{ name, marker string }{
+		{"leading whitespace", "  <!-- BEGIN_INPUTS -->"},
+		{"trailing text", "<!-- BEGIN_INPUTS --> and more"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			lines := []string{"## Inputs", "", tt.marker, "", "<!-- END_INPUTS -->"}
+			if got := markerLines(lines, SectionInputs.beginMarker()); len(got) != 0 {
+				t.Errorf("markerLines matched %q, want no match", tt.marker)
+			}
+		})
+	}
+}

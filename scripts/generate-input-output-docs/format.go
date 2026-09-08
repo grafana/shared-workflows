@@ -49,16 +49,15 @@ func PinnedPrettierVersion(root string) (string, error) {
 
 // candidateFormatters returns the commands to try, best first.
 //
-// The repo-local install is preferred because it is the pinned version by
-// definition; bunx and npx resolve it too once dependencies are installed. A
-// global prettier comes last and is only accepted if its version happens to
-// match, since a contributor's global install is the most likely source of skew.
+// Both resolve the repo-local install, which is the pinned version by
+// definition. There is deliberately no fallback to a global prettier: with an
+// exact version required, a contributor's global install only ever matches by
+// coincidence, so it is far more likely to be the source of a version mismatch
+// than a working formatter. `bun install` is the supported way to get one.
 func candidateFormatters(root string) [][]string {
 	return [][]string{
 		{filepath.Join(root, "node_modules", ".bin", "prettier")},
 		{"bunx", "prettier"},
-		{"npx", "--no-install", "prettier"},
-		{"prettier"},
 	}
 }
 
