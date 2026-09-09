@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/grafana/shared-workflows/compare/docker-export-digest/v0.1.4...docker-export-digest/v0.1.5) (2026-09-09)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
 ## [0.1.4](https://github.com/grafana/shared-workflows/compare/docker-export-digest/v0.1.3...docker-export-digest/v0.1.4) (2026-06-10)
 
 
