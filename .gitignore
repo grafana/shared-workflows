@@ -21,3 +21,7 @@ dist/
 !actions/signed-commits-info/dist/
 
 .*.bun-build
+
+# Compiled Go helper scripts (built by `go build`; use `go run .` instead)
+/scripts/*/generate-catalog-info
+/scripts/*/generate-input-output-docs
