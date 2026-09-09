@@ -18,7 +18,6 @@ repos:
           - eslint
         entry: oven/bun:1.3.0@sha256:00cccad6e9c66bbacc250851f689168606aaea551ac473e908bbcf00a5645025
         files: \.[jt]s$
-        exclude: "create_github_token.js"
         language: docker_image
 
       - id: prettier
