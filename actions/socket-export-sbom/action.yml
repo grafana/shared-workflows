@@ -3,7 +3,7 @@ description: Export SPDX SBOM from Socket.dev API for a given repository.
 
 inputs:
   socket_api_token:
-    description: "Socket API token for authentication"
+    description: "Socket API token for authentication. Requires the `full-scans:create` and `report:read` scopes."
     required: true
   socket_base_url:
     description: "Socket base url. Must end in a trailing slash: the Socket CLI appends endpoint paths to it without adding a separator, so a base of `https://api.socket.dev/v0` requests `/v0report/supported` and 404s."

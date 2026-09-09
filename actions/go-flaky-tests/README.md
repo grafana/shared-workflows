@@ -43,25 +43,30 @@ jobs:
 
 ## Inputs
 
-| Input                  | Description                                                                                                                  | Required | Default                   |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------- |
-| `loki-url`             | Loki endpoint URL                                                                                                            | ✅       | -                         |
-| `loki-username`        | Username for Loki authentication                                                                                             | ❌       | -                         |
-| `loki-password`        | Password for Loki authentication. If using Grafana Cloud, then the access policy for this token needs the `logs:read` scope. | ❌       | -                         |
-| `repository`           | Repository name in 'owner/repo' format                                                                                       | ✅       | -                         |
-| `time-range`           | Time range for the query (e.g., '1h', '24h', '7d')                                                                           | ❌       | `1h`                      |
-| `repository-directory` | Relative path to the directory with a git repository                                                                         | ❌       | `${{ github.workspace }}` |
-| `github-token`         | GitHub token for repository access                                                                                           | ❌       | `${{ github.token }}`     |
-| `skip-posting-issues`  | Skip creating/updating GitHub issues (dry-run mode)                                                                          | ❌       | `true`                    |
-| `top-k`                | Include only the top K flaky tests by distinct branches count                                                                | ❌       | `3`                       |
+<!-- BEGIN_INPUTS -->
+
+| Name                   | Type    | Required | Default                   | Description                                                               |
+| ---------------------- | ------- | -------- | ------------------------- | ------------------------------------------------------------------------- |
+| `github-token`         | String  | No       | `${{ github.token }}`     | GitHub token for repository access                                        |
+| `ignored-tests`        | String  | No       |                           | Comma-delimited test names to skip failures for                           |
+| `loki-password`        | String  | No       |                           | Password for Loki authentication                                          |
+| `loki-url`             | String  | Yes      |                           | Loki endpoint URL                                                         |
+| `loki-username`        | String  | No       |                           | Username for Loki authentication                                          |
+| `repository`           | String  | Yes      |                           | Repository name in 'owner/repo' format (e.g., 'grafana/grafana')          |
+| `repository-directory` | String  | No       | `${{ github.workspace }}` | Relative path to the directory with a git repository                      |
+| `skip-posting-issues`  | Boolean | No       | `true`                    | Skip creating/updating GitHub issues (dry-run mode)                       |
+| `time-range`           | String  | No       | `1h`                      | Time range for the query (e.g., '1h', '24h', '7d')                        |
+| `top-k`                | String  | No       | `3`                       | Include only the top K flaky tests by distinct branches count in analysis |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Output             | Description                                     |
-| ------------------ | ----------------------------------------------- |
-| `test-count`       | Number of flaky tests found                     |
-| `analysis-summary` | Summary of the analysis results                 |
-| `report-path`      | Path to the generated analysis report JSON file |
+<!-- BEGIN_OUTPUTS -->
+
+_None._
+
+<!-- END_OUTPUTS -->
 
 ## How It Works
 

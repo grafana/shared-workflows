@@ -6,21 +6,29 @@ Uses only first-party GitHub actions (`actions/github-script` and `actions/downl
 
 ## Inputs
 
-| Name            | Type     | Description                                 | Default Value         | Required |
-| --------------- | -------- | ------------------------------------------- | --------------------- | -------- |
-| `workflow`      | `string` | Workflow filename to download artifact from |                       | true     |
-| `artifact-name` | `string` | Name of the artifact to download            |                       | true     |
-| `branch`        | `string` | Branch to filter workflow runs by           | `main`                | false    |
-| `path`          | `string` | Directory to download the artifact to       | `.`                   | false    |
-| `github-token`  | `string` | GitHub token with `actions:read` permission | `${{ github.token }}` | false    |
+<!-- BEGIN_INPUTS -->
+
+| Name            | Type   | Required | Default               | Description                                                        |
+| --------------- | ------ | -------- | --------------------- | ------------------------------------------------------------------ |
+| `artifact-name` | String | Yes      |                       | Name of the artifact to download                                   |
+| `branch`        | String | No       | `main`                | Branch to filter workflow runs by                                  |
+| `github-token`  | String | No       | `${{ github.token }}` | GitHub token with actions:read permission                          |
+| `path`          | String | No       | `.`                   | Directory to download the artifact to                              |
+| `workflow`      | String | Yes      |                       | Workflow filename to download artifact from (e.g. deploy-prod.yml) |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name            | Type     | Description                                                    |
-| --------------- | -------- | -------------------------------------------------------------- |
-| `found`         | `string` | Whether the artifact was found and downloaded (`true`/`false`) |
-| `run-id`        | `string` | The workflow run ID the artifact was downloaded from           |
-| `download-path` | `string` | Path where the artifact was downloaded                         |
+<!-- BEGIN_OUTPUTS -->
+
+| Name            | Description                                                               |
+| --------------- | ------------------------------------------------------------------------- |
+| `download-path` | Path where the artifact was downloaded                                    |
+| `found`         | Whether the artifact was found and downloaded (true/false)                |
+| `run-id`        | The workflow run ID the artifact was downloaded from (empty if not found) |
+
+<!-- END_OUTPUTS -->
 
 ## Permissions
 

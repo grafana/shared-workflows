@@ -21,7 +21,7 @@ inputs:
   output-place:
     default: "pr-comment"
     required: true
-    description: "Output place"
+    description: "Where to write the report. One of `pr-comment`, `summary` or `log`."
 runs:
   using: composite
   steps:

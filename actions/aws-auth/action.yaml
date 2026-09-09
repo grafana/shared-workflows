@@ -5,15 +5,15 @@ inputs:
   aws-region:
     default: "us-east-2"
     required: true
-    description: "AWS region"
+    description: "AWS region that contains the resources you want to use"
   role-arn:
     default: ""
     required: true
-    description: "ARN of workload role"
+    description: "ARN of the workload role to assume. Must be prefixed with `github-actions`, e.g. `arn:aws:iam::366620023056:role/github-actions/s3-test-access`. See the Setting up Workload Role section below for an example."
   pass-claims:
     default: "event_name, repository_owner, repository_name, job_workflow_ref, ref"
     required: true
-    description: "`, `-separated claims from GitHub ID token to make available to `role-arn`"
+    description: "`, `-separated [GitHub Actions claims](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token) (session tags) to make available to `role-arn`. Claims must be mapped to the Cognito Identity Pool before they can be used."
   set-creds-in-environment:
     default: "true"
     required: false

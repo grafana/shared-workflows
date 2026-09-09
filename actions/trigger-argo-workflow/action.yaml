@@ -20,11 +20,11 @@ inputs:
       ```
   workflow_template:
     description: |
-      The workflow template to use. Defaults to `grafana-ci`.
+      Name of the Argo workflow template to submit.
     required: true
   extra_args:
     description: |
-      Extra arguments to pass to the Argo CLI. Ex: `--generate-name foo-"
+      Extra arguments to pass to the Argo CLI. Ex: `--generate-name foo-`
   log_level:
     description: |
       The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.

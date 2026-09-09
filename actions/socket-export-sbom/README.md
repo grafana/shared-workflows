@@ -8,14 +8,28 @@ A good use case is including this sbom as part of a public repo's release artifa
 
 ## Inputs
 
-| Name                     | Type     | Description                                                                                                                                                                                                                          | Default Value                  | Required |
-| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ | -------- |
-| `socket_api_token`       | `string` | API Key used to authenticate to socket.dev, requires the `full-scans:create` (for `socket scan create`) and `report:read` (for the SPDX export) scopes                                                                               | `none`                         | true     |
-| `socket_base_url`        | `string` | Base URL of the socket api endpoint. Must end in a trailing slash: the Socket CLI appends endpoint paths to it without adding a separator.                                                                                           | `"https://api.socket.dev/v0/"` | false    |
-| `socket_org`             | `string` | Name of the socket org.                                                                                                                                                                                                              | `"grafana"`                    | true     |
-| `branch`                 | `string` | Branch to scan and export the SBOM for. The caller must have already checked out this branch's source tree before invoking this action, since the Socket CLI scans the local manifest files rather than reading a pre-existing scan. | `none`                         | true     |
-| `output_file`            | `string` | Name of the file to save the socket sbom on the runner. Defaults to `<repo>-<branch>.spdx.json`, e.g. `grafana-v1.2.3.spdx.json`.                                                                                                    | `none`                         | false    |
-| `export_timeout_seconds` | `string` | Max seconds to wait, with backoff, for the SBOM export to become available after scan creation. The full scan report is generated lazily by Socket, so raise this for repos larger than grafana/grafana.                             | `"180"`                        | false    |
+<!-- BEGIN_INPUTS -->
+
+| Name                     | Type   | Required | Default                      | Description                                                                                                                                                                                                                                                                                            |
+| ------------------------ | ------ | -------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `branch`                 | String | Yes      |                              | Branch to scan and export the SBOM for. The caller must have already checked out this branch before invoking this action.                                                                                                                                                                              |
+| `export_timeout_seconds` | String | No       | `180`                        | Max seconds to wait for the SBOM export to become available after scan creation. The full scan report is generated lazily, so the export endpoint may 404 for a while after `socket scan create` returns. 180s comfortably covers grafana/grafana (our largest repo), which took up to 85s in testing. |
+| `output_file`            | String | No       |                              | Name of the file to save the sbom. Defaults to '&lt;repo>-&lt;branch>.spdx.json' if not set.                                                                                                                                                                                                           |
+| `socket_api_token`       | String | Yes      |                              | Socket API token for authentication. Requires the `full-scans:create` and `report:read` scopes.                                                                                                                                                                                                        |
+| `socket_base_url`        | String | No       | `https://api.socket.dev/v0/` | Socket base url. Must end in a trailing slash: the Socket CLI appends endpoint paths to it without adding a separator, so a base of `https://api.socket.dev/v0` requests `/v0report/supported` and 404s.                                                                                               |
+| `socket_org`             | String | Yes      | `grafana`                    | Socket org name                                                                                                                                                                                                                                                                                        |
+
+<!-- END_INPUTS -->
+
+## Outputs
+
+<!-- BEGIN_OUTPUTS -->
+
+| Name   | Description                    |
+| ------ | ------------------------------ |
+| `path` | Path to the exported sbom file |
+
+<!-- END_OUTPUTS -->
 
 ## Export behaviour
 

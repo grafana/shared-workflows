@@ -6,7 +6,13 @@ See [Policy Bot's documentation](https://github.com/palantir/policy-bot?tab=read
 
 ## Inputs
 
-- `validation_endpoint`: The endpoint to validate the configuration against. Defaults to `https://policy-bot.grafana.net/api/v1/validate`.
+<!-- BEGIN_INPUTS -->
+
+| Name                  | Type   | Required | Default                                                  | Description              |
+| --------------------- | ------ | -------- | -------------------------------------------------------- | ------------------------ |
+| `validation_endpoint` | String | No       | `https://github-policy-bot.grafana-ops.net/api/validate` | Validation API endpoint. |
+
+<!-- END_INPUTS -->
 
 Example workflow:
 
