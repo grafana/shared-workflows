@@ -1,0 +1,30 @@
+name: Test OpenAPI client generation
+
+on:
+  pull_request:
+    paths:
+      - actions/generate-openapi-clients/**
+      - .github/workflows/test-generate-openapi-clients.yml
+  push:
+    branches: [main]
+    paths:
+      - actions/generate-openapi-clients/**
+      - .github/workflows/test-generate-openapi-clients.yml
+  merge_group:
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s actions/generate-openapi-clients -v
