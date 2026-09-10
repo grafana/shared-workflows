@@ -26,9 +26,13 @@ jobs:
         run: |
           make catalog-info.yaml
 
+      # `git diff --staged` compares the index against HEAD, and nothing here is
+      # ever staged -- so this check passed unconditionally and let 18 actions go
+      # unregistered. Stage first so new and modified files both show up.
       - name: Check for drift
         run: |
+          git add -A
           if ! git diff --staged --exit-code; then
-            echo "catalog-info.yaml is not up-to-date, please run \`make catalog-info.yaml\` to update this file."
+            echo "::error::catalog-info.yaml is not up-to-date, please run \`make catalog-info.yaml\` to update this file."
             exit 1
           fi
