@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.2](https://github.com/grafana/shared-workflows/compare/argo-lint/v1.1.1...argo-lint/v1.1.2) (2026-09-11)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update grafana/shared-workflows/setup-argo action to v1.2.1 ([#2095](https://github.com/grafana/shared-workflows/issues/2095)) ([8483e85](https://github.com/grafana/shared-workflows/commit/8483e856baf8ecdeb4b178504eb879b3e41a46cb))
+
 ## [1.1.1](https://github.com/grafana/shared-workflows/compare/argo-lint/v1.1.0...argo-lint/v1.1.1) (2026-06-10)
 
 
