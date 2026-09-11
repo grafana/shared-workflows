@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/setup-jrsonnet/v1.0.3...setup-jrsonnet/v1.0.4) (2026-09-11)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v6 ([#2227](https://github.com/grafana/shared-workflows/issues/2227)) ([ddc2a23](https://github.com/grafana/shared-workflows/commit/ddc2a23ec2ab41811bb9ba72e26afc7ed72466b0))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/setup-jrsonnet/v1.0.2...setup-jrsonnet/v1.0.3) (2026-06-10)
 
 
