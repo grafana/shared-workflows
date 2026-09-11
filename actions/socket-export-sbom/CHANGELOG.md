@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.1](https://github.com/grafana/shared-workflows/compare/socket-export-sbom/v1.0.0...socket-export-sbom/v1.0.1) (2026-09-11)
+
+
+### 🐛 Bug Fixes
+
+* **socket-export-sbom:** run the SPDX export in JS to avoid bot-protection 403s ([#2258](https://github.com/grafana/shared-workflows/issues/2258)) ([2ee51c4](https://github.com/grafana/shared-workflows/commit/2ee51c48eacc2eccdefbc3869941dd734d0ab60e))
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency @socketsecurity/cli to v1.1.158 ([#2257](https://github.com/grafana/shared-workflows/issues/2257)) ([1def3ac](https://github.com/grafana/shared-workflows/commit/1def3aca8b145c9a5fb94cbbad44c4c6ba266e93))
+
 ## [1.0.0](https://github.com/grafana/shared-workflows/compare/socket-export-sbom/v0.1.2...socket-export-sbom/v1.0.0) (2026-08-06)
 
 
