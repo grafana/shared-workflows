@@ -6,15 +6,23 @@ Typical use: take a release-please CHANGELOG diff or a GitHub release body and p
 
 ## Inputs
 
-| Name       | Required | Description               |
-| ---------- | -------- | ------------------------- |
-| `markdown` | yes      | Markdown text to convert. |
+<!-- BEGIN_INPUTS -->
+
+| Name       | Type   | Required | Default | Description               |
+| ---------- | ------ | -------- | ------- | ------------------------- |
+| `markdown` | String | Yes      |         | Markdown text to convert. |
+
+<!-- END_INPUTS -->
 
 ## Outputs
+
+<!-- BEGIN_OUTPUTS -->
 
 | Name   | Description                |
 | ------ | -------------------------- |
 | `text` | Slack mrkdwn-encoded text. |
+
+<!-- END_OUTPUTS -->
 
 ## Usage
 
