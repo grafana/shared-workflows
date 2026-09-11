@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.2](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.2.1...setup-argo/v1.2.2) (2026-09-11)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v6 ([#2227](https://github.com/grafana/shared-workflows/issues/2227)) ([ddc2a23](https://github.com/grafana/shared-workflows/commit/ddc2a23ec2ab41811bb9ba72e26afc7ed72466b0))
+
 ## [1.2.1](https://github.com/grafana/shared-workflows/compare/setup-argo/v1.2.0...setup-argo/v1.2.1) (2026-06-10)
 
 
