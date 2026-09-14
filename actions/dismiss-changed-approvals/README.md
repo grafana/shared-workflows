@@ -22,11 +22,18 @@ The action fails closed:
 - The action can only ever dismiss reviews. Keep the org/repo setting
   "Allow GitHub Actions to create and approve pull requests" disabled so the
   workflow token is platform-blocked from approving.
+- On fork PRs the workflow token is read-only and cannot dismiss reviews.
+  Verdicts are still evaluated; any dismissal verdict **fails the job**
+  instead, so the required check keeps the merge blocked.
+- Cancelling an in-flight run is safe (e.g. `concurrency` with
+  `cancel-in-progress` when a new push supersedes it): every run re-evaluates
+  all approvals against the current head from scratch, so content is gated by
+  diff equality regardless of which run performs the dismissal.
 
 Repositories using this action should disable the native "Dismiss stale pull
 request approvals" setting, keep required approvals and CODEOWNERS review
-enabled, and must not rely on fork contributions (fork PRs are skipped because
-the workflow token is read-only there).
+enabled, and must not rely on fork contributions (on fork PRs the check fails
+instead of dismissing, see above).
 
 Every run writes its verdicts and diff hashes to `GITHUB_STEP_SUMMARY` as an
 audit trail.
@@ -40,7 +47,9 @@ name: Dismiss changed approvals
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    # `edited` catches base-branch retargets, which change the effective
+    # diff without a push.
+    types: [opened, synchronize, reopened, ready_for_review, edited]
 
 jobs:
   dismiss-changed-approvals:

@@ -15,7 +15,9 @@ Enrollment requirements for a repository:
   "restrict who can dismiss reviews" stay enabled.
 - "Allow GitHub Actions to create and approve pull requests" stays disabled,
   so the workflow token can dismiss but never approve.
-- No reliance on fork contributions (fork PRs are skipped: read-only token).
+- No reliance on fork contributions (the token is read-only on fork PRs, so
+  the check fails instead of dismissing when an approval would need to be
+  dismissed).
 
 The `dry-run` input is set to `true` during rollout (shadow mode): verdicts
 are logged and written to the job summary without dismissing anything. Flip it

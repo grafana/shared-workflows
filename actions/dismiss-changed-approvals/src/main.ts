@@ -185,14 +185,11 @@ async function run(): Promise<void> {
     return;
   }
 
-  // Fork PRs get a read-only token, so approvals cannot be dismissed. Repos
-  // enrolled in this workflow must not rely on fork contributions.
-  if (pr.head.repo?.full_name !== repo) {
-    console.log(
-      "::warning::Pull request comes from a fork; the workflow token cannot dismiss reviews. Skipping.",
-    );
-    return;
-  }
+  // Fork PRs get a read-only token, so approvals cannot be dismissed. The
+  // read APIs still work, so verdicts are evaluated as usual; any dismissal
+  // verdict fails the job instead of dismissing, keeping the merge blocked
+  // by the required check (fail closed rather than skip open).
+  const isFork = pr.head.repo?.full_name !== repo;
 
   const approvals = await activeApprovals(repo, pr.number);
   if (approvals.length === 0) {
@@ -230,6 +227,10 @@ async function run(): Promise<void> {
     } else if (dryRun) {
       console.log(
         `::warning::[dry-run] Would dismiss @${approval.reviewer}'s approval: ${verdict.reason}`,
+      );
+    } else if (isFork) {
+      fail(
+        `Would dismiss @${approval.reviewer}'s approval (${verdict.reason}), but the fork token cannot dismiss reviews; failing the check instead.`,
       );
     } else {
       await request(

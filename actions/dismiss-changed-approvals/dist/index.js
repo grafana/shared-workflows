@@ -134,10 +134,7 @@ async function run() {
     fail("No pull_request payload found on the event.");
     return;
   }
-  if (pr.head.repo?.full_name !== repo) {
-    console.log("::warning::Pull request comes from a fork; the workflow token cannot dismiss reviews. Skipping.");
-    return;
-  }
+  const isFork = pr.head.repo?.full_name !== repo;
   const approvals = await activeApprovals(repo, pr.number);
   if (approvals.length === 0) {
     console.log("No active approvals; nothing to evaluate.");
@@ -163,6 +160,8 @@ async function run() {
       console.log(`Kept @${approval.reviewer}'s approval: ${verdict.reason}`);
     } else if (dryRun) {
       console.log(`::warning::[dry-run] Would dismiss @${approval.reviewer}'s approval: ${verdict.reason}`);
+    } else if (isFork) {
+      fail(`Would dismiss @${approval.reviewer}'s approval (${verdict.reason}), but the fork token cannot dismiss reviews; failing the check instead.`);
     } else {
       await request(`/repos/${repo}/pulls/${pr.number}/reviews/${approval.reviewId}/dismissals`, {
         method: "PUT",
