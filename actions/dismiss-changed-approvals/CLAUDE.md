@@ -40,13 +40,19 @@ install step.
 - `src/decide.ts` — pure, fully tested decision logic
   (`decideForApproval`). Takes precomputed diff hashes plus commit metadata
   and returns a keep/dismiss verdict per approval.
-- `src/main.ts` — orchestration: resolves active approvals from
-  `pulls.listReviews` (latest non-COMMENTED review per user), lists PR commits
-  with their `verification` state, computes diff hashes via
+- `src/main.ts` — orchestration: resolves active approvals from the reviews
+  API (latest non-COMMENTED review per user), lists PR commits with their
+  `verification` state, computes diff hashes via
   `GET /repos/{owner}/{repo}/compare/{basehead}` with the
   `application/vnd.github.diff` media type (no checkout required), dismisses
-  reviews via `pulls.dismissReview`, and writes the audit summary.
+  reviews via the dismissals API, and writes the audit summary.
 - `src/decide.test.ts` — bun tests for the decision logic.
 
-There is deliberately no git checkout: all diffs come from the compare API, so
-the workflow needs no `actions/checkout` step and works on any runner.
+There are deliberately **no runtime dependencies**: the handful of REST calls
+use Node's native `fetch`, inputs come from `INPUT_*` env vars, the event
+payload from `GITHUB_EVENT_PATH`, and the summary is appended to
+`GITHUB_STEP_SUMMARY`. This keeps the committed `dist/index.js` a bundle of
+this action's own code only. Do not add `@actions/*` or Octokit.
+
+There is also deliberately no git checkout: all diffs come from the compare
+API, so the workflow needs no `actions/checkout` step and works on any runner.

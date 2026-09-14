@@ -1,7 +1,5 @@
 import { createHash } from "node:crypto";
-
-import * as core from "@actions/core";
-import * as github from "@actions/github";
+import { appendFileSync, readFileSync } from "node:fs";
 
 import {
   decideForApproval,
@@ -10,104 +8,57 @@ import {
   type Verdict,
 } from "./decide";
 
-type Octokit = ReturnType<typeof github.getOctokit>;
+const apiBase = process.env.GITHUB_API_URL ?? "https://api.github.com";
+const token = process.env["INPUT_GITHUB-TOKEN"] ?? "";
+const dryRun = (process.env["INPUT_DRY-RUN"] ?? "false") === "true";
 
-async function run(): Promise<void> {
-  const token = core.getInput("github-token", { required: true });
-  const dryRun = core.getBooleanInput("dry-run");
-  const octokit = github.getOctokit(token);
-  const { context } = github;
+function fail(message: string): void {
+  console.log(`::error::${message}`);
+  process.exitCode = 1;
+}
 
-  if (context.eventName !== "pull_request") {
-    core.info(
-      `Nothing to do for event "${context.eventName}"; this action only evaluates pull_request events.`,
-    );
-    return;
+async function request(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const response = await fetch(`${apiBase}${path}`, {
+    ...init,
+    headers: {
+      authorization: `Bearer ${token}`,
+      accept: "application/vnd.github+json",
+      "x-github-api-version": "2022-11-28",
+      ...init.headers,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`${init.method ?? "GET"} ${path}: HTTP ${response.status}`);
   }
+  return response;
+}
 
-  const pr = context.payload.pull_request;
-  if (!pr) {
-    core.setFailed("No pull_request payload found on the event.");
-    return;
+async function paginate<T>(path: string): Promise<T[]> {
+  const items: T[] = [];
+  for (let page = 1; ; page++) {
+    const response = await request(`${path}?per_page=100&page=${page}`);
+    const batch = (await response.json()) as T[];
+    items.push(...batch);
+    if (batch.length < 100) return items;
   }
+}
 
-  const { owner, repo } = context.repo;
+interface Review {
+  id: number;
+  state: string;
+  commit_id: string | null;
+  user: { login: string } | null;
+}
 
-  // Fork PRs get a read-only token, so approvals cannot be dismissed. Repos
-  // enrolled in this workflow must not rely on fork contributions.
-  if (pr.head.repo?.full_name !== `${owner}/${repo}`) {
-    core.warning(
-      "Pull request comes from a fork; the workflow token cannot dismiss reviews. Skipping.",
-    );
-    return;
-  }
-
-  const approvals = await activeApprovals(octokit, owner, repo, pr.number);
-  if (approvals.length === 0) {
-    core.info("No active approvals; nothing to evaluate.");
-    return;
-  }
-
-  const commits = await listCommits(octokit, owner, repo, pr.number);
-  const prAuthor: string = pr.user.login;
-  const headSha: string = pr.head.sha;
-  const baseRef: string = pr.base.ref;
-
-  const currentDiffHash = await diffHash(
-    octokit,
-    owner,
-    repo,
-    baseRef,
-    headSha,
-  );
-  if (currentDiffHash === null) {
-    // Without the current diff nothing can be evaluated. Fail the check
-    // WITHOUT dismissing: merging stays blocked, reviews are preserved.
-    core.setFailed(
-      `Could not compute the diff of ${baseRef}...${headSha}; refusing to evaluate approvals.`,
-    );
-    return;
-  }
-
-  const results: { approval: ApprovalInfo; verdict: Verdict }[] = [];
-  for (const approval of approvals) {
-    const approvalDiffHash =
-      approval.commitId === headSha
-        ? currentDiffHash
-        : await diffHash(octokit, owner, repo, baseRef, approval.commitId);
-
-    const verdict = decideForApproval({
-      approval,
-      approvalDiffHash,
-      currentDiffHash,
-      commits,
-      prAuthor,
-    });
-    results.push({ approval, verdict });
-
-    if (verdict.action === "dismiss") {
-      if (dryRun) {
-        core.warning(
-          `[dry-run] Would dismiss @${approval.reviewer}'s approval: ${verdict.reason}`,
-        );
-      } else {
-        await octokit.rest.pulls.dismissReview({
-          owner,
-          repo,
-          pull_number: pr.number,
-          review_id: approval.reviewId,
-          message: `Approval dismissed: ${verdict.reason}.`,
-        });
-        core.notice(
-          `Dismissed @${approval.reviewer}'s approval: ${verdict.reason}`,
-        );
-      }
-    } else {
-      core.info(`Kept @${approval.reviewer}'s approval: ${verdict.reason}`);
-    }
-  }
-
-  await writeSummary(results, currentDiffHash, dryRun);
+interface PullCommit {
+  sha: string;
+  parents: unknown[];
+  author: { login: string } | null;
+  committer: { login: string } | null;
+  commit: { verification?: { verified: boolean } };
 }
 
 /**
@@ -116,27 +67,22 @@ async function run(): Promise<void> {
  * dismissed. COMMENTED reviews do not supersede an approval.
  */
 async function activeApprovals(
-  octokit: Octokit,
-  owner: string,
   repo: string,
   pullNumber: number,
 ): Promise<ApprovalInfo[]> {
-  const reviews = await octokit.paginate(octokit.rest.pulls.listReviews, {
-    owner,
-    repo,
-    pull_number: pullNumber,
-    per_page: 100,
-  });
-
-  const latest = new Map<string, (typeof reviews)[number]>();
+  const reviews = await paginate<Review>(
+    `/repos/${repo}/pulls/${pullNumber}/reviews`,
+  );
+  const latest = new Map<string, Review>();
   for (const review of reviews) {
-    const login = review.user?.login;
-    if (!login || review.state === "COMMENTED" || review.state === "PENDING") {
-      continue;
+    if (
+      review.user &&
+      review.state !== "COMMENTED" &&
+      review.state !== "PENDING"
+    ) {
+      latest.set(review.user.login, review);
     }
-    latest.set(login, review);
   }
-
   return [...latest.values()]
     .filter((r) => r.state === "APPROVED")
     .flatMap((r) =>
@@ -147,17 +93,12 @@ async function activeApprovals(
 }
 
 async function listCommits(
-  octokit: Octokit,
-  owner: string,
   repo: string,
   pullNumber: number,
 ): Promise<CommitInfo[]> {
-  const commits = await octokit.paginate(octokit.rest.pulls.listCommits, {
-    owner,
-    repo,
-    pull_number: pullNumber,
-    per_page: 100,
-  });
+  const commits = await paginate<PullCommit>(
+    `/repos/${repo}/pulls/${pullNumber}/commits`,
+  );
   return commits.map((c) => ({
     sha: c.sha,
     verified: c.commit.verification?.verified === true,
@@ -169,33 +110,26 @@ async function listCommits(
 
 /**
  * SHA-256 of the three-dot diff (merge-base diff) between the base ref and the
- * given commit, computed via the compare API with the diff media type. Returns
- * null when the diff cannot be produced (unknown SHA after a force-push, diff
- * too large, ...) so the caller can fail closed.
+ * given commit, via the compare API with the diff media type. Returns null
+ * when the diff cannot be produced (unknown SHA after a force-push, diff too
+ * large, ...) so the caller can fail closed.
  */
 async function diffHash(
-  octokit: Octokit,
-  owner: string,
   repo: string,
   baseRef: string,
   sha: string,
 ): Promise<string | null> {
   try {
-    const response = await octokit.request(
-      "GET /repos/{owner}/{repo}/compare/{basehead}",
-      {
-        owner,
-        repo,
-        basehead: `${baseRef}...${sha}`,
-        headers: { accept: "application/vnd.github.diff" },
-      },
+    const response = await request(
+      `/repos/${repo}/compare/${encodeURIComponent(baseRef)}...${sha}`,
+      { headers: { accept: "application/vnd.github.diff" } },
     );
     return createHash("sha256")
-      .update(response.data as unknown as string)
+      .update(await response.text())
       .digest("hex");
   } catch (err) {
-    core.warning(
-      `Failed to compute diff for ${baseRef}...${sha}: ${
+    console.log(
+      `::warning::Failed to compute diff for ${baseRef}...${sha}: ${
         err instanceof Error ? err.message : String(err)
       }`,
     );
@@ -203,35 +137,117 @@ async function diffHash(
   }
 }
 
-async function writeSummary(
+function writeSummary(
   results: { approval: ApprovalInfo; verdict: Verdict }[],
   currentDiffHash: string,
-  dryRun: boolean,
-): Promise<void> {
-  core.summary.addHeading(
-    `Approval dismissal report${dryRun ? " (dry-run)" : ""}`,
+): void {
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+  if (!summaryPath) return;
+  const rows = results
+    .map(
+      ({ approval, verdict }) =>
+        `| @${approval.reviewer} | ${approval.commitId.slice(0, 8)} | ${
+          verdict.action === "keep" ? "kept ✅" : "dismissed ❌"
+        } | ${verdict.reason} |`,
+    )
+    .join("\n");
+  appendFileSync(
+    summaryPath,
+    `## Approval dismissal report${dryRun ? " (dry-run)" : ""}\n\n` +
+      `Current diff hash: \`${currentDiffHash.slice(0, 16)}…\`\n\n` +
+      `| Reviewer | Approved commit | Verdict | Reason |\n` +
+      `| --- | --- | --- | --- |\n${rows}\n`,
   );
-  core.summary.addRaw(
-    `<p>Current diff hash: <code>${currentDiffHash.slice(0, 16)}…</code></p>`,
-    true,
-  );
-  core.summary.addTable([
-    [
-      { data: "Reviewer", header: true },
-      { data: "Approved commit", header: true },
-      { data: "Verdict", header: true },
-      { data: "Reason", header: true },
-    ],
-    ...results.map(({ approval, verdict }) => [
-      `@${approval.reviewer}`,
-      approval.commitId.slice(0, 8),
-      verdict.action === "keep" ? "kept ✅" : "dismissed ❌",
-      verdict.reason,
-    ]),
-  ]);
-  await core.summary.write();
 }
 
-run().catch((err) =>
-  core.setFailed(err instanceof Error ? err.message : String(err)),
-);
+async function run(): Promise<void> {
+  if (process.env.GITHUB_EVENT_NAME !== "pull_request") {
+    console.log(
+      `Nothing to do for event "${process.env.GITHUB_EVENT_NAME}"; this action only evaluates pull_request events.`,
+    );
+    return;
+  }
+
+  const repo = process.env.GITHUB_REPOSITORY ?? "";
+  const event = JSON.parse(
+    readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8"),
+  ) as {
+    pull_request?: {
+      number: number;
+      user: { login: string };
+      base: { ref: string };
+      head: { sha: string; repo: { full_name: string } | null };
+    };
+  };
+  const pr = event.pull_request;
+  if (!pr) {
+    fail("No pull_request payload found on the event.");
+    return;
+  }
+
+  // Fork PRs get a read-only token, so approvals cannot be dismissed. Repos
+  // enrolled in this workflow must not rely on fork contributions.
+  if (pr.head.repo?.full_name !== repo) {
+    console.log(
+      "::warning::Pull request comes from a fork; the workflow token cannot dismiss reviews. Skipping.",
+    );
+    return;
+  }
+
+  const approvals = await activeApprovals(repo, pr.number);
+  if (approvals.length === 0) {
+    console.log("No active approvals; nothing to evaluate.");
+    return;
+  }
+
+  const currentDiffHash = await diffHash(repo, pr.base.ref, pr.head.sha);
+  if (currentDiffHash === null) {
+    // Without the current diff nothing can be evaluated. Fail the check
+    // WITHOUT dismissing: merging stays blocked, reviews are preserved.
+    fail(
+      `Could not compute the diff of ${pr.base.ref}...${pr.head.sha}; refusing to evaluate approvals.`,
+    );
+    return;
+  }
+
+  const commits = await listCommits(repo, pr.number);
+  const results: { approval: ApprovalInfo; verdict: Verdict }[] = [];
+  for (const approval of approvals) {
+    const verdict = decideForApproval({
+      approval,
+      approvalDiffHash:
+        approval.commitId === pr.head.sha
+          ? currentDiffHash
+          : await diffHash(repo, pr.base.ref, approval.commitId),
+      currentDiffHash,
+      commits,
+      prAuthor: pr.user.login,
+    });
+    results.push({ approval, verdict });
+
+    if (verdict.action === "keep") {
+      console.log(`Kept @${approval.reviewer}'s approval: ${verdict.reason}`);
+    } else if (dryRun) {
+      console.log(
+        `::warning::[dry-run] Would dismiss @${approval.reviewer}'s approval: ${verdict.reason}`,
+      );
+    } else {
+      await request(
+        `/repos/${repo}/pulls/${pr.number}/reviews/${approval.reviewId}/dismissals`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            message: `Approval dismissed: ${verdict.reason}.`,
+          }),
+        },
+      );
+      console.log(
+        `::notice::Dismissed @${approval.reviewer}'s approval: ${verdict.reason}`,
+      );
+    }
+  }
+
+  writeSummary(results, currentDiffHash);
+}
+
+run().catch((err) => fail(err instanceof Error ? err.message : String(err)));
