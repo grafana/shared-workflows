@@ -1,0 +1,23 @@
+{
+  "name": "dismiss-changed-approvals",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GitHub Action that dismisses PR approvals only when the reviewed content actually changed",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "bun build src/main.ts --target=node --outfile=dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.0",
+    "@actions/github": "^9.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/bun": "latest",
+    "eslint": "10.9.0",
+    "typescript": "6.0.3"
+  }
+}
