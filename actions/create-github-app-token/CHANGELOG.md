@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.0](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.3.1...create-github-app-token/v1.0.0) (2026-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **create-github-app-token:** rewrite as node24 action with post-job revocation ([#2028](https://github.com/grafana/shared-workflows/issues/2028))
+
+### 🎉 Features
+
+* **create-github-app-token:** rewrite as node24 action with post-job revocation ([#2028](https://github.com/grafana/shared-workflows/issues/2028)) ([026c778](https://github.com/grafana/shared-workflows/commit/026c77837eeba1f04d78bdcd6d7e8eca340451ea))
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
 ## [0.3.1](https://github.com/grafana/shared-workflows/compare/create-github-app-token/v0.3.0...create-github-app-token/v0.3.1) (2026-06-01)
 
 
