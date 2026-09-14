@@ -17,6 +17,24 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Annotate uncovered lines in a PR diff using Go coverage data
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/annotate-coverage/README.md
+  name: shared-workflows-annotate-coverage
+  title: annotate-coverage
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Lint Argo workflow files
   links:
   - title: README
@@ -53,6 +71,83 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Signs files in a GitHub Actions artifact using Azure Trusted Signing
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/azure-trusted-signing/README.md
+  name: shared-workflows-azure-trusted-signing
+  title: azure-trusted-signing
+spec:
+  lifecycle: production
+  owner: group:o11y-dept
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: |
+    This action will query for branches that are not in an open PR, and will delete them if 'dry-run' is 'false'.
+    Protected branches are excluded as well.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/cleanup-branches/README.md
+  name: shared-workflows-cleanup-branches
+  title: cleanup-branches
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Detects which components changed based on component dependencies configuration
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/component-change-detection/README.md
+  name: shared-workflows-component-change-detection
+  title: component-change-detection
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: |
+    Get an ephemeral GitHub App installation token from Vault. Registers a
+    post-job step that revokes the underlying Vault token, which cascade-revokes
+    the GitHub App token as soon as the job finishes (success or failure).
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/create-github-app-token/README.md
+  name: shared-workflows-create-github-app-token
+  title: create-github-app-token
+spec:
+  lifecycle: production
+  owner: group:platform-infrasec
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Auto dismiss Dependabot alerts based on manifest path
   links:
   - title: README
@@ -71,12 +166,85 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Composite action to push a docker image to GAR or DockerHub
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/docker-build-push-image/README.md
+  name: shared-workflows-docker-build-push-image
+  title: docker-build-push-image
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action to export and upload a docker manifest
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/docker-export-digest/README.md
+  name: shared-workflows-docker-export-digest
+  title: docker-export-digest
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Composite action to export and upload a docker manifest
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/docker-import-digests-push-manifest/README.md
+  name: shared-workflows-docker-import-digests-push-manifest
+  title: docker-import-digests-push-manifest
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Using the shared Grafana Labs DockerHub credentials, log in to DockerHub
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/dockerhub-login/README.md
   name: shared-workflows-dockerhub-login
   title: dockerhub-login
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Downloads an artifact from the last successful run of a workflow on
+    a specific branch
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/download-branch-workflow-artifact/README.md
+  name: shared-workflows-download-branch-workflow-artifact
+  title: download-branch-workflow-artifact
 spec:
   lifecycle: production
   owner: group:platform-productivity
@@ -163,6 +331,44 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Detect and analyze flaky Go tests using Loki logs
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/go-flaky-tests/README.md
+  name: shared-workflows-go-flaky-tests
+  title: go-flaky-tests
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: |
+    Updates a GitHub Project (v2) issue status field when an issue is assigned.
+    Requires the calling job to have `id-token: write` permission for Vault authentication.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/issues-update-project-status/README.md
+  name: shared-workflows-issues-update-project-status
+  title: issues-update-project-status
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Run lint on the PR title to check if It matches the commitlint specification.
   links:
   - title: README
@@ -171,7 +377,7 @@ metadata:
   title: lint-pr-title
 spec:
   lifecycle: production
-  owner: group:infra-o11y-frontend
+  owner: group:o11y-frontend
   subcomponentOf: component:shared-workflows
   type: github-action
 
@@ -241,6 +447,24 @@ metadata:
     url: https://github.com/grafana/shared-workflows/blob/main/actions/remove-checkout-credentials/README.md
   name: shared-workflows-remove-checkout-credentials
   title: remove-checkout-credentials
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Capslock compare
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/run-capslock/README.md
+  name: shared-workflows-run-capslock
+  title: run-capslock
 spec:
   lifecycle: production
   owner: group:platform-productivity
@@ -328,6 +552,42 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Reports pull-request commits that lack a verified signature
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/signed-commits-info/README.md
+  name: shared-workflows-signed-commits-info
+  title: signed-commits-info
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Export SPDX SBOM from Socket.dev API for a given repository.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/socket-export-sbom/README.md
+  name: shared-workflows-socket-export-sbom
+  title: socket-export-sbom
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Rewrite links inside techdocs pointing to outside resources
   links:
   - title: README
@@ -370,6 +630,82 @@ metadata:
     url: https://github.com/grafana/shared-workflows/blob/main/actions/validate-policy-bot-config/README.md
   name: shared-workflows-validate-policy-bot-config
   title: validate-policy-bot-config
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Validates Renovate configuration files using renovate-config-validator
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/validate-renovate-config/README.md
+  name: shared-workflows-validate-renovate-config
+  title: validate-renovate-config
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Enforces Grafana policy on a repo-local zizmor.yml (used from reusable-zizmor
+    before running zizmor).
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/validate-zizmor-config/README.md
+  name: shared-workflows-validate-zizmor-config
+  title: validate-zizmor-config
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Poll an OCI registry until the given image reference is published,
+    or fail after a timeout. Designed for waiting on the DockerHub side of Grafana's
+    async GAR→DockerHub mirror.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/wait-for-docker-publish/README.md
+  name: shared-workflows-wait-for-docker-publish
+  title: wait-for-docker-publish
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: Parses optional .github/zizmor-collection-ignore and emits explicit
+    zizmor scan paths (or signals default "." scanning). Used by reusable-zizmor.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/zizmor-collection-paths/README.md
+  name: shared-workflows-zizmor-collection-paths
+  title: zizmor-collection-paths
 spec:
   lifecycle: production
   owner: group:platform-productivity
