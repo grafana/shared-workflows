@@ -2,7 +2,20 @@
 
 This action generates clients from an OpenAPI spec. It's meant to generate clients in an uniform way across our organization
 
-_Note: For now, it only generates Go code. But it's structured in a way that any of the languages supported by the openapi-generator could be supported at the same time._
+By default, this action generates Go code under `go/<package-name>`. Set
+`language: javascript` to generate a Fetch-based TypeScript package under
+`js/<package-name>` and compile it to JavaScript with type declarations. Call the
+action once per language to generate both from the same spec.
+
+Go generation requires Go and Java. JavaScript generation requires Node.js/npm
+and Java. The JavaScript package has no runtime dependencies; callers need a
+Fetch implementation (built into modern browsers and Node.js 18+). The action
+pins TypeScript, builds the package, and retains its npm lockfile. Generated
+`dist/` and `node_modules/` directories are ignored by Git.
+
+JavaScript models retain the API's property names and raw JSON values, without
+runtime model conversion or validation. Packages use version `0.0.0`; the spec
+version remains in generated source headers. This action does not publish to npm.
 
 ## Inputs
 
@@ -16,6 +29,7 @@ _Note: For now, it only generates Go code. But it's structured in a way that any
 | `commit-user-email`  | String  | No       | `41898282+github-actions[bot]@users.noreply.github.com`                          | Use a different email address for the commit                                                                                                                                                                                                                                                                                                                                                      |
 | `commit-user-name`   | String  | No       | `github-actions[bot]`                                                            | Use a different username for the commit                                                                                                                                                                                                                                                                                                                                                           |
 | `generator-version`  | String  | No       | `7.7.0`                                                                          | The version of the OpenAPI generator to use                                                                                                                                                                                                                                                                                                                                                       |
+| `language`           | String  | No       | `go`                                                                             | Client language: go or javascript (TypeScript sources compiled to JavaScript). Outputs to go/&lt;package-name> or js/&lt;package-name>.                                                                                                                                                                                                                                                           |
 | `modify-spec-script` | String  | No       |                                                                                  | The path to an executable script that modifies the OpenAPI spec before generating the client. The spec will be piped into the script and the script should output the modified spec to stdout. Note: This is used as a workaround for the OpenAPI generator not supporting certain features. By using this feature, the spec will be modified temporarily, and the changes will not be committed. |
 | `output-dir`         | String  | No       | `.`                                                                              | The directory to output the generated client to                                                                                                                                                                                                                                                                                                                                                   |
 | `package-name`       | String  | Yes      |                                                                                  | The name of the package to generate                                                                                                                                                                                                                                                                                                                                                               |
