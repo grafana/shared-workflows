@@ -61,10 +61,10 @@ jobs:
 
 <!-- BEGIN_INPUTS -->
 
-| Name           | Type   | Required | Default               | Description                                   |
-| -------------- | ------ | -------- | --------------------- | --------------------------------------------- |
-| `github-token` | String | No       | `${{ github.token }}` | Token used to call the GitHub API             |
-| `dry-run`      | String | No       | `false`               | Log verdicts without dismissing any approvals |
+| Name           | Type    | Required | Default               | Description                                   |
+| -------------- | ------- | -------- | --------------------- | --------------------------------------------- |
+| `dry-run`      | Boolean | No       | `false`               | Log verdicts without dismissing any approvals |
+| `github-token` | String  | No       | `${{ github.token }}` | Token used to call the GitHub API             |
 
 <!-- END_INPUTS -->
 
