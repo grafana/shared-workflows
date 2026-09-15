@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
 # Input env:
-# - REPO => Repository name
-# - COMMON_SECRETS => Common secrets (in the ci/data/common/<path> vault path): {{ Env Variable Name }}={{ Secret Path }}:{{ Secret Key }}
-# - REPO_SECRETS => Repo secrets (in the ci/data/repo/${REPO}/<path> vault path): {{ Env Variable Name }}={{ Secret Path }}:{{ Secret Key }}
+# - VERSION => vault-secrets schema version (v1 or v2). Selects the Vault mount:
+#     v1 uses the shared `ci` mount; v2 uses a per-org `ci-${REPO_OWNER}` mount.
+# - REPO => Repository name (owner/repo)
+# - REPO_OWNER => Repository owner/org (only required for v2)
+# - COMMON_SECRETS => Common secrets (in the <mount>/data/common/<path> vault path): {{ Env Variable Name }}={{ Secret Path }}:{{ Secret Key }}
+# - REPO_SECRETS => Repo secrets (in the <mount>/data/repo/${REPO}/<path> vault path): {{ Env Variable Name }}={{ Secret Path }}:{{ Secret Key }}
 # Output format: "{{ Secret Path }} {{ Secret Key }} | {{ Env Variable Name }}" in the $GITHUB_OUTPUT file
 
 # Check if the REPO environment variable is set
@@ -18,7 +21,21 @@ if [ -z "$GITHUB_OUTPUT" ]; then
 	exit 1
 fi
 
-readonly COMMON_SECRETS GITHUB_OUTPUT REPO REPO_SECRETS
+# Determine the Vault mount from the schema version. Only the mount changes
+# between versions; the rest of the secret path is identical.
+# - v1 (default): the shared `ci` mount.
+# - v2: a per-org `ci-${REPO_OWNER}` mount.
+if [ "$VERSION" = "v2" ]; then
+	if [ -z "$REPO_OWNER" ]; then
+		echo "Error: REPO_OWNER environment variable is not set."
+		exit 1
+	fi
+	MOUNT="ci-${REPO_OWNER}"
+else
+	MOUNT="ci"
+fi
+
+readonly COMMON_SECRETS GITHUB_OUTPUT MOUNT REPO REPO_OWNER REPO_SECRETS VERSION
 
 RESULT=""
 
@@ -44,7 +61,7 @@ split_string() {
 if [ -n "$COMMON_SECRETS" ]; then
 	for common_secret in $COMMON_SECRETS; do
 		split_string "$common_secret"
-		RESULT="${RESULT}ci/data/common/$secret_path $secret_key | $env_variable_name;\n"
+		RESULT="${RESULT}${MOUNT}/data/common/$secret_path $secret_key | $env_variable_name;\n"
 	done
 fi
 
@@ -52,7 +69,7 @@ fi
 if [ -n "$REPO_SECRETS" ]; then
 	for repo_secret in $REPO_SECRETS; do
 		split_string "$repo_secret"
-		RESULT="${RESULT}ci/data/repo/$REPO/$secret_path $secret_key | $env_variable_name;\n"
+		RESULT="${RESULT}${MOUNT}/data/repo/$REPO/$secret_path $secret_key | $env_variable_name;\n"
 	done
 fi
 
