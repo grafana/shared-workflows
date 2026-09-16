@@ -1,8 +1,8 @@
 # download-branch-workflow-artifact
 
-Downloads an artifact from the last successful run of a workflow on a specific branch. This is useful for retrieving build state from previous deployments (e.g., component tags, digests) without relying on third-party actions.
+Downloads the newest artifact with a given name produced by a workflow on a specific branch. This is useful for retrieving build state from previous deployments (e.g., component tags, digests) without relying on third-party actions.
 
-Uses only first-party GitHub actions (`actions/github-script` and `actions/download-artifact`) to query for the most recent successful workflow run and download the specified artifact.
+Uses only the first-party `actions/github-script` action. It lists the repository's artifacts by name (retrying a few times to work around the eventually-consistent artifacts API), keeps only those produced by successful runs of the requested workflow and branch, and downloads the most recently created one. Selection is based on the artifact creation time rather than the order in which workflow runs are returned, which is not stable and could otherwise cause an older artifact to be downloaded at random.
 
 ## Inputs
 
