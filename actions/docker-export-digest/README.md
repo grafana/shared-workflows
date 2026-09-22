@@ -27,7 +27,7 @@ jobs:
       id-token: write
     steps:
       - name: Export and upload digest
-        uses: grafana/shared-workflows/actions/docker-export-digest@docker-export-digest/v0.1.4
+        uses: grafana/shared-workflows/actions/docker-export-digest@docker-export-digest/v0.1.5
         with:
           digest: ${{ steps.docker-build-push-image.outputs.digest }}
           platform: linux/arm64
@@ -37,7 +37,11 @@ jobs:
 
 ## Inputs
 
-| Name       | Type   | Description                                                                                                |
-| ---------- | ------ | ---------------------------------------------------------------------------------------------------------- |
-| `digest`   | String | Docker digest. This is included as an output for `docker-build-push-image` and `docker/build-push-action`. |
-| `platform` | String | Docker platform, ex: linux/arm64.                                                                          |
+<!-- BEGIN_INPUTS -->
+
+| Name       | Type   | Required | Default | Description                                                                                                |
+| ---------- | ------ | -------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `digest`   | String | Yes      |         | Docker digest. This is included as an output for `docker-build-push-image` and `docker/build-push-action`. |
+| `platform` | String | Yes      |         | Docker platform, ex: linux/arm64.                                                                          |
+
+<!-- END_INPUTS -->

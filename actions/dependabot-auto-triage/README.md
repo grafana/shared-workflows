@@ -67,14 +67,18 @@ jobs:
 
 ### Inputs
 
-| Name                | Description                                                                                                       | Required | Default                                               |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
-| `token`             | GitHub token with permissions to dismiss alerts                                                                   | Yes      | N/A                                                   |
-| `alert-types`       | Comma-separated list of alert types to dismiss                                                                    | No       | `dependency`                                          |
-| `paths`             | Multi-line list of glob patterns to match manifest paths to dismiss                                               | Yes      | N/A                                                   |
-| `dismissal-comment` | Default comment to add when dismissing alerts                                                                     | No       | `Auto-dismissed based on manifest path configuration` |
-| `dismissal-reason`  | Default reason for dismissal (options: `fix_started`, `inaccurate`, `no_bandwidth`, `not_used`, `tolerable_risk`) | No       | `not_used`                                            |
-| `close-prs`         | Whether to close associated Dependabot pull requests before dismissing alerts                                     | No       | `false`                                               |
+<!-- BEGIN_INPUTS -->
+
+| Name                | Type    | Required | Default                                               | Description                                                                                                       |
+| ------------------- | ------- | -------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `alert-types`       | String  | No       | `dependency`                                          | Comma-separated list of alert types to dismiss (default: "dependency")                                            |
+| `close-prs`         | Boolean | No       | `false`                                               | Whether to close associated pull requests when dismissing alerts                                                  |
+| `dismissal-comment` | String  | No       | `Auto-dismissed based on manifest path configuration` | Default comment to add when dismissing alerts                                                                     |
+| `dismissal-reason`  | String  | No       | `not_used`                                            | Default reason for dismissal. One of `fix_started`, `inaccurate`, `no_bandwidth`, `not_used` or `tolerable_risk`. |
+| `paths`             | String  | Yes      |                                                       | Multi-line list of glob patterns to match manifest paths to dismiss                                               |
+| `token`             | String  | Yes      |                                                       | GitHub token with permissions to dismiss alerts                                                                   |
+
+<!-- END_INPUTS -->
 
 ### How It Works
 

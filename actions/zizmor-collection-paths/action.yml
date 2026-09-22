@@ -1,0 +1,28 @@
+name: Collect zizmor paths
+description: >-
+  Parses optional .github/zizmor-collection-ignore and emits explicit zizmor
+  scan paths (or signals default "." scanning). Used by reusable-zizmor.
+outputs:
+  use_explicit_paths:
+    description: "true when ignore prefixes are active; false to scan ."
+    value: ${{ steps.collect.outputs.use_explicit_paths }}
+  paths_list:
+    description: Path to the newline-separated explicit inputs file (when use_explicit_paths is true).
+    value: ${{ steps.collect.outputs.paths_list }}
+  helper_root:
+    description: Directory containing collection_paths.py and run_zizmor.py (GITHUB_ACTION_PATH).
+    value: ${{ steps.collect.outputs.helper_root }}
+
+runs:
+  using: composite
+  steps:
+    - name: Collect paths
+      id: collect
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "helper_root=${GITHUB_ACTION_PATH}" >> "${GITHUB_OUTPUT}"
+        python3 "${GITHUB_ACTION_PATH}/collection_paths.py" \
+          --repo-root "${GITHUB_WORKSPACE}" \
+          --ignore-file "${GITHUB_WORKSPACE}/.github/zizmor-collection-ignore" \
+          --paths-out "${RUNNER_TEMP}/zizmor-explicit-inputs.txt"

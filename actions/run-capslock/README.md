@@ -19,13 +19,17 @@ jobs:
 
 ## Inputs
 
-| Name               | Description                                            | Default    |
-| ------------------ | ------------------------------------------------------ | ---------- |
-| `go-version`       | Go version to use                                      | 1.24.6     |
-| `capslock-version` | Capslock version to use                                | v0.2.8     |
-| `scope`            | Path to run                                            |            |
-| `main-branch`      | Main branch name                                       | main       |
-| `output-place`     | Output place (options: pr-comment\*, summary and log ) | pr-comment |
+<!-- BEGIN_INPUTS -->
+
+| Name               | Type   | Required | Default      | Description                                                         |
+| ------------------ | ------ | -------- | ------------ | ------------------------------------------------------------------- |
+| `capslock-version` | String | Yes      | `v0.2.8`     | Capslock version used                                               |
+| `go-version`       | String | Yes      | `1.24.6`     | Go version used                                                     |
+| `main-branch`      | String | Yes      | `main`       | Name of the main branch                                             |
+| `output-place`     | String | Yes      | `pr-comment` | Where to write the report. One of `pr-comment`, `summary` or `log`. |
+| `scope`            | String | Yes      |              | The scope of analysis                                               |
+
+<!-- END_INPUTS -->
 
 \* For pr-comment the permission pull-request: write it's needed
 

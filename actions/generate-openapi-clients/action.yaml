@@ -7,7 +7,7 @@ inputs:
     required: false
     default: "7.7.0"
   spec-path:
-    description: "The path to the OpenAPI spec to generate the client from"
+    description: "The path to the OpenAPI spec to generate the client from. Supports JSON or YAML."
     required: true
   output-dir:
     description: "The directory to output the generated client to"
@@ -50,7 +50,7 @@ runs:
   steps:
     # Get openapi-generator
     - id: openapi-generator-cache
-      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         key: openapi-generator-${{ inputs.generator-version }}
         path: openapi-generator-cli.jar
@@ -62,7 +62,7 @@ runs:
         GENERATOR_VERSION: ${{ inputs.generator-version }}
       run: |
         wget -nv "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${GENERATOR_VERSION}/openapi-generator-cli-${GENERATOR_VERSION}.jar" -O ./openapi-generator-cli.jar
-    - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+    - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       if: steps.openapi-generator-cache.outputs.cache-hit != 'true'
       with:
         key: openapi-generator-${{ inputs.generator-version }}
@@ -104,7 +104,7 @@ runs:
         fi
 
     # Commit the changes
-    - uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
+    - uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
       if: ${{ inputs.commit-changes == 'true' }}
       with:
         commit_message: ${{ inputs.commit-message }}

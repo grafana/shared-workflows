@@ -43,20 +43,28 @@ jobs:
 
 ## Inputs
 
-| Name                   | Type    | Description                                                     | Default |
-| ---------------------- | ------- | --------------------------------------------------------------- | ------- |
-| `config-file`          | String  | Path to component dependencies YAML file                        |         |
-| `previous-tags-source` | String  | Workflow name to download previous component-tags artifact from |         |
-| `target-ref`           | String  | Git ref to compare against                                      | `HEAD`  |
-| `force-rebuild-all`    | Boolean | Force rebuild all components                                    | `false` |
-| `force-components`     | String  | Force rebuild specific components (comma-separated)             |         |
+<!-- BEGIN_INPUTS -->
+
+| Name                   | Type    | Required | Default | Description                                         |
+| ---------------------- | ------- | -------- | ------- | --------------------------------------------------- |
+| `config-file`          | String  | Yes      |         | Path to component dependencies YAML file            |
+| `force-components`     | String  | No       |         | Force rebuild specific components (comma-separated) |
+| `force-rebuild-all`    | Boolean | No       | `false` | Force rebuild all components                        |
+| `previous-tags-source` | String  | Yes      |         | Workflow name to get previous tags from             |
+| `target-ref`           | String  | No       | `HEAD`  | Git ref to compare against                          |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name              | Type   | Description                                                                             |
-| ----------------- | ------ | --------------------------------------------------------------------------------------- |
-| `changes_json`    | String | All component changes as JSON object (e.g., `{"apiserver": true, "controller": false}`) |
-| `components_json` | String | List of all components as JSON array (e.g., `["apiserver", "controller"]`)              |
+<!-- BEGIN_OUTPUTS -->
+
+| Name              | Description                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| `changes_json`    | All component changes as JSON object (e.g., {"apiserver": true, "controller": false}) |
+| `components_json` | List of all components as JSON array (e.g., ["apiserver", "controller"])              |
+
+<!-- END_OUTPUTS -->
 
 ## Configuration File
 

@@ -22,7 +22,7 @@ on:
         default: "high"
 
       runs-on:
-        description: "The runner to use for jobs"
+        description: "The runner to use for jobs. Set this to use self-hosted runners."
         required: false
         type: string
         default: "ubuntu-latest"
@@ -64,7 +64,7 @@ on:
         default: false
 
       auto-delete-slack-channel-id:
-        description: Slack channel ID to notify before deleting a branch.
+        description: Slack channel ID to notify before deleting a branch. Required when `auto-delete-dangerous-branches` is `true`.
         required: false
         type: string
         default: ""
@@ -100,13 +100,13 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - id: setup-node
         name: Setup node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22.x"
 
@@ -115,7 +115,7 @@ jobs:
         env:
           # Keep this updated in a simpler way than needing a full package.json.
           # renovate: datasource=npm depName=jose
-          JOSE_VERSION: 6.2.3
+          JOSE_VERSION: 6.2.10
         run: npm install "jose@${JOSE_VERSION}"
 
       - id: get-job-workflow-ref
@@ -282,7 +282,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.26.1
+      ZIZMOR_VERSION: 1.30.0
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -290,18 +290,23 @@ jobs:
     steps:
       - name: Harden the runner (Audit all outbound calls)
         if: ${{ ! github.event.repository.private }}
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
+      # .github/zizmor-collection-ignore (optional) — see reusable-zizmor.md
+      - name: Collect zizmor paths
+        id: zizmor-helper
+        uses: grafana/shared-workflows/actions/zizmor-collection-paths@0488ac5c8514affaad8206148e57f8c44a4e9a27 # zizmor-collection-paths/v0.2.0
+
       - name: Restore config from cache
         id: cache-config
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: env.DEFAULT_ZIZMOR_CONFIG_DOWNLOADED
         with:
           path: ${{ runner.temp }}/zizmor.yml
@@ -403,7 +408,7 @@ jobs:
           fi
 
       - name: Setup UV
-        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
           activate-environment: true
@@ -420,7 +425,7 @@ jobs:
           sarif_output: results.sarif
 
       - name: Zizmor cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ runner.temp }}/.cache/zizmor
           key: zizmor-${{ runner.os }}-${{ runner.arch }}
@@ -430,22 +435,13 @@ jobs:
         env:
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
-        shell: sh
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
+          HELPER_ROOT: ${{ steps.zizmor-helper.outputs.helper_root }}
+        shell: bash
         run: |
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format sarif \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            > results.sarif
-          exit_code=$?
-          # Only fail on exit code 1 (zizmor crash). 0 = no findings, 10-14 = findings by severity.
-          if [ "${exit_code}" -eq 1 ]; then exit 1; fi
-          exit 0
+          set -euo pipefail
+          python3 "${HELPER_ROOT}/run_zizmor.py" sarif --batch-size 400 --out results.sarif
 
       - name: Upload artifact
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
@@ -479,7 +475,7 @@ jobs:
       - name: Upload to code-scanning
         id: upload-sarif
         if: ${{ !cancelled() && hashFiles('results.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
+        uses: github/codeql-action/upload-sarif@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
         continue-on-error: true
         with:
           sarif_file: results.sarif
@@ -495,13 +491,15 @@ jobs:
           REPO_LOCAL_ZIZMOR_CONFIG: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
           ZIZMOR_CACHE_DIR: ${{ runner.temp }}/.cache/zizmor
+          USE_EXPLICIT_PATHS: ${{ steps.zizmor-helper.outputs.use_explicit_paths }}
+          PATHS_LIST: ${{ steps.zizmor-helper.outputs.paths_list }}
+          HELPER_ROOT: ${{ steps.zizmor-helper.outputs.helper_root }}
         run: |
-          set -o pipefail
-
-          echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
+          set -euo pipefail
 
           if [ "${VALIDATE_CONFIG_OUTCOME}" = "failure" ]; then
-            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}."
+            echo "zizmor-results<<EOF" >> "${GITHUB_OUTPUT}"
+            echo "Repo-local zizmor config policy validation failed for ${REPO_LOCAL_ZIZMOR_CONFIG}." >> "${GITHUB_OUTPUT}"
             if [ -f results.sarif ]; then
               python3 - <<'PY' | tee -a "${GITHUB_OUTPUT}"
           import json
@@ -518,33 +516,7 @@ jobs:
             exit 0
           fi
 
-          # Run zizmor again with plain output for human-readable logs.
-          # Don't fail the build here - we capture the exit code for the
-          # "Fail the build" step to evaluate against fail-severity.
-          # Output is also captured for the fallback PR comment when
-          # Code Scanning is unavailable.
-          set +e
-          uvx zizmor@"${ZIZMOR_VERSION}" \
-            --format plain \
-            --min-severity "${MIN_SEVERITY}" \
-            --min-confidence "${MIN_CONFIDENCE}" \
-            --cache-dir "${ZIZMOR_CACHE_DIR}" \
-            ${RUNNER_DEBUG:+"--verbose"} \
-            ${ZIZMOR_CONFIG_PATH:+--config "${ZIZMOR_CONFIG_PATH}"} \
-            ${ZIZMOR_EXTRA_ARGS:+${ZIZMOR_EXTRA_ARGS}} \
-            . \
-            | tee -a "${GITHUB_OUTPUT}"
-          zizmor_exit_code=$?
-          set -e
-          echo "EOF" >> "${GITHUB_OUTPUT}"
-
-          # Error 1 is a failure of zizmor itself
-          if [ "${zizmor_exit_code}" -eq 1 ]; then
-            echo "zizmor itself failed - check the above output. failing the workflow."
-            exit 1
-          fi
-
-          echo "zizmor-exit-code=${zizmor_exit_code}" | tee -a "${GITHUB_OUTPUT}"
+          python3 "${HELPER_ROOT}/run_zizmor.py" plain-github-output --batch-size 400
 
       - name: Remove zizmor config
         env:
@@ -557,13 +529,13 @@ jobs:
       - name: Hide any previous comments
         if: ${{ !cancelled() && steps.upload-sarif.outcome == 'failure' && github.event.pull_request.head.repo.full_name == github.repository }}
         id: hide-comments
-        uses: int128/hide-comment-action@42ef2bf9a7d8751219e33ff76f19752fee8decec # v1.61.0
+        uses: int128/hide-comment-action@95dd081d51b1cae55a0d089db892cea5835e4e15 # v1.67.0
         with:
           ends-with: "<!-- comment-action/${{ github.workflow }}/${{ github.job }} -->"
 
       - name: Comment with zizmor results
         if: steps.upload-sarif.outcome == 'failure' && steps.zizmor-plain.outputs.zizmor-exit-code != 0 && github.event.pull_request.head.repo.full_name == github.repository
-        uses: int128/comment-action@6178a0317dc0dc698ddbed82176419f7b3effd3d # v1.66.0
+        uses: int128/comment-action@2263c1a82c13c37672f725bcd07145530cd42579 # v1.69.0
         with:
           post: |
             :cry: zizmor failed with exit code ${{ steps.zizmor-plain.outputs.zizmor-exit-code }}.
@@ -628,7 +600,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 

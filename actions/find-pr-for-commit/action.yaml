@@ -13,7 +13,7 @@ inputs:
     required: false
 
   commitrev:
-    description: The commit SHA to find the PR for
+    description: The commit SHA, or revision name such as `refs/heads/main`, to find the PR for
     # If this is a PR, use the PR head SHA. This is because `github.sha` is the
     # merge commit SHA which will not have a PR associated with it. The PR head
     # SHA is the commit that was pushed to the PR branch.

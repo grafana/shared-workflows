@@ -58,19 +58,19 @@ jobs:
     steps:
       - name: Harden the runner (Audit all outbound calls)
         if: ${{ ! github.event.repository.private }}
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - id: checkout
         name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - id: checkout-shared-workflows
         name: Checkout shared workflows
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           repository: grafana/shared-workflows
@@ -127,8 +127,30 @@ jobs:
       - name: Install techdocs-cli
         run: sudo npm install -g @techdocs/cli@1.9.8
 
+      # Temporary until https://github.com/backstage/backstage/pull/35364 is merged and released.
+      - name: Allow the Mermaid formatter in TechDocs
+        run: |
+          sudo node - "$(npm root -g)" <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const { createRequire } = require('node:module');
+          const cliRequire = createRequire(path.join(process.argv[2], '@techdocs/cli/package.json'));
+          const entry = cliRequire.resolve('@backstage/plugin-techdocs-node');
+          const file = path.join(path.dirname(entry), 'stages/generate/helpers.cjs.js');
+          const source = fs.readFileSync(file, 'utf8');
+          const marker = 'const ALLOWED_PYTHON_YAML_TAGS = /* @__PURE__ */ new Set([';
+          const tag = 'tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format';
+          if (source.split(marker).length !== 2) {
+            throw new Error('TechDocs allowlist changed. Review the temporary Mermaid patch.');
+          }
+          const allowlist = source.slice(source.indexOf(marker)).split(']);')[0];
+          if (!allowlist.includes(JSON.stringify(tag))) {
+            fs.writeFileSync(file, source.replace(marker, `${marker}\n  ${JSON.stringify(tag)},`));
+          }
+          NODE
+
       - name: setup python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: 3.11
 

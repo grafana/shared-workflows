@@ -77,10 +77,10 @@ runs:
         path: ${{ steps.get-staging-path.outputs.staging-path }}
 
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       with:
         # renovate: datasource=dotnet-version depName=dotnet-sdk
-        dotnet-version: "8.0.422"
+        dotnet-version: "8.0.424"
 
     - name: Install Sign CLI tool
       id: install-sign-tool
@@ -102,7 +102,7 @@ runs:
         "sign-tool=$toolPath" >> ${env:GITHUB_OUTPUT}
 
     - name: Azure log in
-      uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3.0.0
+      uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
       with:
         client-id: ${{ inputs.azure-client-id }}
         subscription-id: ${{ inputs.azure-subscription-id }}

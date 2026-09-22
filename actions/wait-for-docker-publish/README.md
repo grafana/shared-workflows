@@ -9,16 +9,26 @@ loop, so the action works against any OCI-conformant registry.
 
 ## Inputs
 
-| Name               | Required | Default | Description                                                                        |
-| ------------------ | -------- | ------- | ---------------------------------------------------------------------------------- |
-| `image`            | yes      | —       | OCI image reference. **Must include a `:tag` or an `@sha256:…` digest** (or both). |
-| `timeout`          | no       | `10m`   | Total wall-clock budget. Accepts `s`/`m`/`h` suffixes.                             |
-| `initial-interval` | no       | `5s`    | First sleep after a miss.                                                          |
-| `max-interval`     | no       | `60s`   | Upper bound on the exponential backoff.                                            |
+<!-- BEGIN_INPUTS -->
+
+| Name               | Type   | Required | Default | Description                                                                   |
+| ------------------ | ------ | -------- | ------- | ----------------------------------------------------------------------------- |
+| `image`            | String | Yes      |         | Full image reference. Must include a `:tag` or `@sha256:...` digest (or both) |
+| `initial-interval` | String | No       | `5s`    | First sleep after a miss (e.g. 5s).                                           |
+| `max-interval`     | String | No       | `60s`   | Upper bound on the backoff (e.g. 60s).                                        |
+| `timeout`          | String | No       | `10m`   | Total wall-clock budget (e.g. 10m, 600s, 1h).                                 |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-None. The step exits 0 on success and 1 on timeout.
+<!-- BEGIN_OUTPUTS -->
+
+_None._
+
+<!-- END_OUTPUTS -->
+
+The step exits 0 on success and 1 on timeout.
 
 ## Behaviour
 
@@ -42,7 +52,7 @@ jobs:
       digest: ${{ steps.push.outputs.digest }}
     steps:
       - id: push
-        uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.3.0
+        uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.3.1
         with:
           registries: "gar"
           push: true
@@ -54,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for DockerHub mirror
-        uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.3.0
+        uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.3.1
         with:
           image: grafana/myrepo@${{ needs.publish.outputs.digest }}
 ```
@@ -63,7 +73,7 @@ Tag-only example (sufficient when tags are not reused):
 
 ```yaml
 - name: Wait for DockerHub mirror
-  uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.3.0
+  uses: grafana/shared-workflows/actions/wait-for-docker-publish@wait-for-docker-publish/v0.3.1
   with:
     image: grafana/myrepo:${{ github.sha }}
     timeout: 15m

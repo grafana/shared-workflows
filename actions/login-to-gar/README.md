@@ -37,12 +37,14 @@ jobs:
 
 ## Inputs
 
-| Name                    | Description                                                                                                              | Default             |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------- |
-| `registry`              | Google Artifact Registry to authenticate against.                                                                        | `us-docker.pkg.dev` |
-| `workspace_credentials` | Whether to place the GCP credentials file in the workspace. Off by default. See [Docker Actions Compatibility] for more. | `false`             |
+<!-- BEGIN_INPUTS -->
 
-[Docker Actions Compatibility]: #docker-actions-compatibility
+| Name                    | Type    | Required | Default             | Description                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------- | ------- | -------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `registry`              | String  | No       | `us-docker.pkg.dev` | Google Artifact Registry to authenticate against.                                                                                                                                                                                                                                                                                              |
+| `workspace_credentials` | Boolean | No       | `false`             | Keep credentials file in workspace for Docker action compatibility. When false (default), credentials are moved to a temporary location so they aren't in the working directory where they can be accidentally committed or printed. Set to true if you need to use Docker-based GitHub Actions that require workspace access in a later step. |
+
+<!-- END_INPUTS -->
 
 ## Docker Actions Compatibility
 

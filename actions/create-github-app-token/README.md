@@ -2,19 +2,34 @@
 
 From a `grafana/` org repository, get a ephemeral GitHub API token from a GitHub App using Vault.
 
+The action automatically registers a post-job step that revokes the Vault
+token used to issue the GitHub App token. Revoking the Vault token
+cascade-revokes every lease it created, which invalidates the GitHub App token
+as soon as the job finishes (regardless of whether earlier steps succeeded or
+failed). If revocation fails for any reason, the token still expires naturally
+when its Vault lease TTL elapses.
+
 ## Inputs
 
-| Name             | Type   | Description                 | Default Value | Required |
-| ---------------- | ------ | --------------------------- | ------------- | -------- |
-| `permission_set` | String | The required permission set | `default`     | Yes      |
-| `github_app`     | String | The required GitHub app     |               | Yes      |
-| `vault_instance` | String | Vault instance to point     | `ops`         | No       |
+<!-- BEGIN_INPUTS -->
+
+| Name             | Type   | Required | Default   | Description                                                                                            |
+| ---------------- | ------ | -------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| `github_app`     | String | Yes      |           | GitHub app name in Vault. You can define multiple apps for load balancing in a comma-separated format. |
+| `permission_set` | String | No       | `default` | Permission set name.                                                                                   |
+| `vault_instance` | String | No       | `ops`     | The Vault instance to use (`dev` or `ops`). Defaults to `ops`.                                         |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name    | Type   | Description                |
-| ------- | ------ | -------------------------- |
-| `token` | String | The generated GitHub token |
+<!-- BEGIN_OUTPUTS -->
+
+| Name    | Description                       |
+| ------- | --------------------------------- |
+| `token` | GitHub installation access token. |
+
+<!-- END_OUTPUTS -->
 
 ## Action Permissions
 
@@ -48,7 +63,7 @@ jobs:
 
     steps:
       - id: get-github-token
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.3.1
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v1.0.0
         with:
           github_app: github-app-name
 
@@ -79,7 +94,7 @@ jobs:
 
     steps:
       - id: get-github-token-read
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.3.1
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v1.0.0
         with:
           github_app: github-app-name
           permission_set: read-only-on-foo-repository
@@ -94,7 +109,7 @@ jobs:
             https://api.github.com/repos/grafana/foo-repository/assignees
 
       - id: get-github-token-write
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v0.3.1
+        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v1.0.0
         with:
           github_app: github-app-name
           permission_set: write-on-bar-repository

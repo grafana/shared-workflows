@@ -15,6 +15,7 @@ inputs:
   generate-summary:
     description: |
       Generates both a markdown summary and outputs the env variable OCI_MANIFEST_OUTPUT_JSON.
+      Only runs when `push` is also `true`.
     default: "false"
   push:
     description: |
@@ -26,10 +27,10 @@ inputs:
     required: true
 outputs:
   image-digests:
-    description: CSV list of image digests.
+    description: Newline-separated list of image digests in the format `<image>:<tag>@<digest>`. Empty unless both `push` and `generate-summary` are `true`.
     value: ${{ steps.summary.outputs.image-digests }}
   oci-manifest-output-json:
-    description: JSON array of manifests with tag, indexDigest, and per-platform digest information.
+    description: JSON array of manifests with tag, indexDigest, and per-platform digest information. Empty unless both `push` and `generate-summary` are `true`.
     value: ${{ steps.summary.outputs.oci-manifest-output-json }}
 
 runs:
@@ -43,7 +44,7 @@ runs:
         merge-multiple: true
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+      uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       with:
         driver: docker-container
         version: latest # see https://github.com/docker/build-push-action/issues/1345#issuecomment-2770572479
@@ -107,7 +108,7 @@ runs:
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
-      uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
       with:
         images: ${{ inputs.images }}
         tags: ${{ inputs.tags }}
@@ -157,7 +158,7 @@ runs:
 
     - name: Set up Go
       if: ${{ inputs.push == 'true' && inputs.generate-summary == 'true' }}
-      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version: "1.25"
         cache: true

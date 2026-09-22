@@ -18,9 +18,21 @@ to fork and modify to run on your own instances. See [#21][issue-21].
 
 ## Inputs
 
-- `instance`: The instance to use (`dev` or `ops`). Defaults to `ops`.
-- `namespace`: Required. The namespace to trigger the workflow in.
-- `parameters`: The newline-separated parameters to pass to the Argo workflow. Example:
+<!-- BEGIN_INPUTS -->
+
+| Name                | Type    | Required | Default | Description                                                                                      |
+| ------------------- | ------- | -------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `extra_args`        | String  | No       |         | Extra arguments to pass to the Argo CLI. Ex: `--generate-name foo-`                              |
+| `instance`          | String  | No       | `ops`   | The instance to use (`dev` or `ops`). Defaults to `ops`.                                         |
+| `log_level`         | String  | No       | `info`  | The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.        |
+| `namespace`         | String  | Yes      |         | Required. The namespace to trigger the workflow in.                                              |
+| `output_summary`    | Boolean | No       | `false` | If `true`, write the triggered workflow URL to the GitHub job summary. Defaults to `false`.      |
+| `parameters`        | String  | No       |         | The newline-separated parameters to pass to the Argo workflow. Ex: `param1=value1 param2=value2` |
+| `workflow_template` | String  | Yes      |         | Name of the Argo workflow template to submit.                                                    |
+
+<!-- END_INPUTS -->
+
+`parameters` takes one `key=value` pair per line:
 
 ```yaml
 parameters: |
@@ -28,13 +40,15 @@ parameters: |
   param2=value2
 ```
 
-- `workflow_template`: The workflow template to use. Required if `command` is `submit` (the default).
-- `extra_args`: Extra arguments to pass to the Argo CLI. Example: `--generate-name foo-`
-- `log_level`: The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.
-
 ## Outputs
 
-- `uri`: The URI of the workflow that was created.
+<!-- BEGIN_OUTPUTS -->
+
+| Name  | Description                                 |
+| ----- | ------------------------------------------- |
+| `uri` | The URI of the workflow that was triggered. |
+
+<!-- END_OUTPUTS -->
 
 ## Required permissions
 

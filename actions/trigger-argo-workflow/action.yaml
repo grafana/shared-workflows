@@ -20,11 +20,11 @@ inputs:
       ```
   workflow_template:
     description: |
-      The workflow template to use. Defaults to `grafana-ci`.
+      Name of the Argo workflow template to submit.
     required: true
   extra_args:
     description: |
-      Extra arguments to pass to the Argo CLI. Ex: `--generate-name foo-"
+      Extra arguments to pass to the Argo CLI. Ex: `--generate-name foo-`
   log_level:
     description: |
       The log level to use. Choose from `debug`, `info`, `warn` or `error`. Defaults to `info`.
@@ -49,7 +49,7 @@ runs:
       uses: grafana/shared-workflows/actions/setup-argo@21cbef8182ef0fc1c3ae8e68b9590af49ed10a5b # setup-argo/v1.2.1
 
     - name: Setup go
-      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         check-latest: true
         cache-dependency-path: |
@@ -83,7 +83,7 @@ runs:
 
     - name: Get Argo Token
       id: get-argo-token
-      uses: grafana/shared-workflows/actions/get-vault-secrets@e46fe1e9a2bf9e618bcf8d8d32f3a7381b45c06d # get-vault-secrets/v2.0.0
+      uses: grafana/shared-workflows/actions/get-vault-secrets@2e3743a1f8abfd3e921e53a7726ec0744c11bb01 # get-vault-secrets/v2.0.1
       with:
         vault_instance: ${{ steps.argo-instance.outputs.vault-instance }}
         repo_secrets: |

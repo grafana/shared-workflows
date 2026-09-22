@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/grafana/shared-workflows/compare/remove-checkout-credentials/v0.1.1...remove-checkout-credentials/v0.1.2) (2026-09-09)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
 ## [0.1.1](https://github.com/grafana/shared-workflows/compare/remove-checkout-credentials-v0.1.0...remove-checkout-credentials/v0.1.1) (2026-06-10)
 
 

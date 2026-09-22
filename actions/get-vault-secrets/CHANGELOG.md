@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.1.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v2.0.2...get-vault-secrets/v2.1.0) (2026-09-15)
+
+
+### 🎉 Features
+
+* **get-vault-secrets:** supporting v2 schema ([#2303](https://github.com/grafana/shared-workflows/issues/2303)) ([9a3914f](https://github.com/grafana/shared-workflows/commit/9a3914ffcdf8ee7d89daab29d05aaa749e98713b))
+
+## [2.0.2](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v2.0.1...get-vault-secrets/v2.0.2) (2026-09-09)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
+## [2.0.1](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v2.0.0...get-vault-secrets/v2.0.1) (2026-08-06)
+
+
+### 🐛 Bug Fixes
+
+* **get-vault-secrets:** bound and retry the OIDC token request ([#2249](https://github.com/grafana/shared-workflows/issues/2249)) ([69f2c01](https://github.com/grafana/shared-workflows/commit/69f2c01cf9bfe3826caec182978372a8df2f37cb))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update hashicorp/vault-action action to v4 ([#2045](https://github.com/grafana/shared-workflows/issues/2045)) ([753db01](https://github.com/grafana/shared-workflows/commit/753db0190710a686e3e5cf11175c50b175fb8661))
+
 ## [2.0.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v1.3.2...get-vault-secrets/v2.0.0) (2026-06-08)
 
 

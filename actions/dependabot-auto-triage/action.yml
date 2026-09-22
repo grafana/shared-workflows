@@ -19,7 +19,7 @@ inputs:
     required: false
     default: "Auto-dismissed based on manifest path configuration"
   dismissal-reason:
-    description: "Default reason for dismissal"
+    description: "Default reason for dismissal. One of `fix_started`, `inaccurate`, `no_bandwidth`, `not_used` or `tolerable_risk`."
     required: false
     default: "not_used"
     # Options: 'fix_started', 'inaccurate', 'no_bandwidth', 'not_used', 'tolerable_risk'

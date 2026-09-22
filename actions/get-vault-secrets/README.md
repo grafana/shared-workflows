@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v2.0.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v2.1.0
         with:
           # Secrets placed in the ci/common/<path> path in Vault
           common_secrets: |
@@ -50,3 +50,27 @@ jobs:
 ```
 
 <!-- x-release-please-end-version -->
+
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name             | Type    | Required | Default | Description                                                                                                                                                                                                                                                            |
+| ---------------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `common_secrets` | String  | No       |         | Common secrets mapping. Only Grafana Labs employees can list these secrets in Vault. These secrets are stored in the `ci/data/common/<secret path>` path in Vault. Ex: `repo_secrets: \| ENVVAR1=secretpath:key ENVVAR2=secretpath:key2`                               |
+| `ignore_missing` | Boolean | No       | `false` | When set to true, prevents the action from failing when a secret does not exist.                                                                                                                                                                                       |
+| `repo_secrets`   | String  | No       |         | Repository-specific secret mapping. Only Grafana Labs employees can list these secrets in Vault. These secrets are stored in the `ci/data/repo/grafana/<repo name>/<secret path>` path in Vault. Ex: `repo_secrets: \| ENVVAR1=secretpath:key ENVVAR2=secretpath:key2` |
+| `vault_instance` | String  | No       | `ops`   | The Vault instance to use (`dev` or `ops`). Defaults to `ops`.                                                                                                                                                                                                         |
+| `version`        | String  | No       | `v1`    | Version of the vault-secrets schema to use. Valid values are `v1` or `v2`. `v1` (default) reads from the shared `ci` mount using the `vault-github-actions` role. `v2` reads from a per-org `ci-<owner>` mount using the `ci-<owner>` role.                            |
+
+<!-- END_INPUTS -->
+
+## Outputs
+
+<!-- BEGIN_OUTPUTS -->
+
+| Name      | Description                            |
+| --------- | -------------------------------------- |
+| `secrets` | JSON object containing all the secrets |
+
+<!-- END_OUTPUTS -->

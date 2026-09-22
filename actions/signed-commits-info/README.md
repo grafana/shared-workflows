@@ -36,6 +36,16 @@ jobs:
 
 <!-- x-release-please-end-version -->
 
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name           | Type   | Required | Default               | Description                       |
+| -------------- | ------ | -------- | --------------------- | --------------------------------- |
+| `github-token` | String | No       | `${{ github.token }}` | Token used to call the GitHub API |
+
+<!-- END_INPUTS -->
+
 ## Development
 
 This project uses the [bun](https://bun.sh) toolchain.
@@ -49,4 +59,4 @@ bun run typecheck
 The bundled `dist/index.js` must be committed — GitHub Actions execute it
 directly.
 
-[verification]: https://docs.github.com/en/rest/commits/commits#list-commits
+[verification]: https://docs.github.com/rest/commits/commits#list-commits

@@ -103,20 +103,22 @@ jobs:
 
 ## Inputs
 
-| Name                           | Type    | Description                                                                                                                                                                                                   | Default Value   | Required |
-| ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------- |
-| min-severity                   | string  | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                      | medium          | false    |
-| min-confidence                 | string  | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                             | low             | false    |
-| fail-severity                  | string  | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]                                                                                     | high            | false    |
-| runs-on                        | string  | The runner to use for jobs. Configure this to use self-hosted runners.                                                                                                                                        | ubuntu-latest   | false    |
-| always-use-default-config      | boolean | Whether to always use the [default configuration]. When `false`, `.zizmor.yml` or `.github/zizmor.yml` will be used, if present.                                                                              | false           | false    |
-| github-token                   | string  | The GitHub token to use when authenticating with the GitHub API                                                                                                                                               | ${github.token} | false    |
-| extra-args                     | string  | Extra arguments to pass into zizmor                                                                                                                                                                           | ""              | false    |
-| send-bench-metrics             | boolean | If true, run Grafana Bench after analysis to send zizmor metrics to Prometheus. Uses shared Vault secrets (grafana-bench); no caller secrets required. Set to false to skip.                                  | true            | false    |
-| auto-delete-dangerous-branches | boolean | If true, on `push` to a non-default branch, delete the branch when zizmor reports `dangerous-triggers` findings. Sends a Slack notification first. Caller must grant `contents: write` and `id-token: write`. | false           | false    |
-| auto-delete-slack-channel-id   | string  | Slack channel ID to notify before deleting a branch. Required when `auto-delete-dangerous-branches` is `true`.                                                                                                | ""              | false    |
+<!-- BEGIN_INPUTS -->
 
-[default configuration]: ../zizmor.yml
+| Name                             | Type    | Required | Default               | Description                                                                                                                                                                                                                   |
+| -------------------------------- | ------- | -------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `always-use-default-config`      | boolean | No       | `false`               | Whether to always use the default configuration. When `false`, `.zizmor.yml` or `.github/zizmor.yml` will be used, if present.                                                                                                |
+| `auto-delete-dangerous-branches` | boolean | No       | `false`               | If true, automatically delete non-default branches on push events when zizmor finds dangerous-triggers findings. Sends a Slack notification before deletion. Caller must grant contents:write and id-token:write permissions. |
+| `auto-delete-slack-channel-id`   | string  | No       |                       | Slack channel ID to notify before deleting a branch. Required when `auto-delete-dangerous-branches` is `true`.                                                                                                                |
+| `extra-args`                     | string  | No       |                       | Extra arguments to pass to Zizmor                                                                                                                                                                                             |
+| `fail-severity`                  | string  | No       | `high`                | Fail the build if any result is at or above this severity [possible values: never, any, informational, low, medium, high]                                                                                                     |
+| `github-token`                   | string  | No       | `${{ github.token }}` | Use a different token to the default                                                                                                                                                                                          |
+| `min-confidence`                 | string  | No       | `low`                 | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                                             |
+| `min-severity`                   | string  | No       | `low`                 | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                                      |
+| `runs-on`                        | string  | No       | `ubuntu-latest`       | The runner to use for jobs. Set this to use self-hosted runners.                                                                                                                                                              |
+| `send-bench-metrics`             | boolean | No       | `true`                | If true, run Grafana Bench after analysis (Vault Prometheus creds). Job only runs for grafana org and non-fork PRs; fork PRs have no OIDC/Vault access.                                                                       |
+
+<!-- END_INPUTS -->
 
 ## Grafana Bench (Prometheus metrics)
 
@@ -215,3 +217,14 @@ files can be ignored][zizmor-ignore-config].
 
 [zizmor-config]: https://woodruffw.github.io/zizmor/configuration/
 [zizmor-ignore-config]: https://woodruffw.github.io/zizmor/usage/#with-zizmoryml
+
+## Skipping vendored workflow trees ([security-appsec#326](https://github.com/grafana/security-appsec/issues/326))
+
+Vendored trees can still contain `.github/workflows/`. Add **`.github/zizmor-collection-ignore`** at the repo root with one directory prefix per line. Lines like `ksonnet/vendor/**/*` work (a trailing `/**` is stripped). Do not use `..` or absolute paths. Comments (`#`) and blank lines are OK. Without this file, zizmor still scans `.`.
+
+```text
+ksonnet/vendor
+terraform/modules/github.com/github-aws-runners
+```
+
+Path collection and batched runs are implemented by the composite action [`actions/zizmor-collection-paths`](../../actions/zizmor-collection-paths), **hash-pinned** in `reusable-zizmor.yml` (bump that SHA when you change the action). It runs from the Actions cache, so nothing lands in the caller workspace.

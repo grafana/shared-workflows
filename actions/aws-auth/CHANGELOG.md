@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/grafana/shared-workflows/compare/aws-auth/v1.0.4...aws-auth/v1.0.5) (2026-09-09)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
 ## [1.0.4](https://github.com/grafana/shared-workflows/compare/aws-auth/v1.0.3...aws-auth/v1.0.4) (2026-06-10)
 
 
