@@ -14,28 +14,36 @@ Assumes `actions/checkout` has already been called.
 
 ## Inputs
 
-| Name             | Type     | Description                                                                | Default                                                 | Required |
-| ---------------- | -------- | -------------------------------------------------------------------------- | ------------------------------------------------------- | -------- |
-| `branch`         | `string` | Branch name to push to                                                     |                                                         | true     |
-| `commit-message` | `string` | Commit message for the change                                              |                                                         | true     |
-| `title`          | `string` | Pull request title                                                         |                                                         | true     |
-| `body`           | `string` | Pull request body (markdown)                                               |                                                         | true     |
-| `add-paths`      | `string` | Comma, newline, or space-separated list of file paths to stage             |                                                         | true     |
-| `base-branch`    | `string` | Base branch for the PR                                                     | `main`                                                  | false    |
-| `token`          | `string` | GitHub token for push and PR creation                                      | `${{ github.token }}`                                   | false    |
-| `git-user-name`  | `string` | Git user name for the commit (author and committer)                        | `github-actions[bot]`                                   | false    |
-| `git-user-email` | `string` | Git user email for the commit (author and committer)                       | `41898282+github-actions[bot]@users.noreply.github.com` | false    |
-| `labels`         | `string` | Comma or newline-separated list of labels                                  |                                                         | false    |
-| `reviewers`      | `string` | Comma or newline-separated list of GitHub usernames to request review from |                                                         | false    |
-| `draft`          | `string` | Create a draft pull request (`true`/`false`)                               | `false`                                                 | false    |
+<!-- BEGIN_INPUTS -->
+
+| Name             | Type    | Required | Default                                                 | Description                                                                                                                         |
+| ---------------- | ------- | -------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `add-paths`      | String  | Yes      |                                                         | A comma, newline, or space-separated list of file paths to commit. Paths follow git's pathspec syntax (e.g. '_.json', 'docs/_.md'). |
+| `base-branch`    | String  | No       | `main`                                                  | Base branch for the PR                                                                                                              |
+| `body`           | String  | Yes      |                                                         | Pull request body (markdown)                                                                                                        |
+| `branch`         | String  | Yes      |                                                         | Branch name to push to (e.g. updater/my-update)                                                                                     |
+| `commit-message` | String  | Yes      |                                                         | Commit message for the change                                                                                                       |
+| `draft`          | Boolean | No       | `false`                                                 | Create a draft pull request (true/false)                                                                                            |
+| `git-user-email` | String  | No       | `41898282+github-actions[bot]@users.noreply.github.com` | Git user email for the commit (used as both author and committer)                                                                   |
+| `git-user-name`  | String  | No       | `github-actions[bot]`                                   | Git user name for the commit (used as both author and committer)                                                                    |
+| `labels`         | String  | No       |                                                         | A comma or newline-separated list of labels to add to the pull request                                                              |
+| `reviewers`      | String  | No       |                                                         | A comma or newline-separated list of GitHub usernames to request review from                                                        |
+| `title`          | String  | Yes      |                                                         | Pull request title                                                                                                                  |
+| `token`          | String  | No       | `${{ github.token }}`                                   | GitHub token for push and PR creation (contents: write, pull-requests: write)                                                       |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name                     | Description                                              |
-| ------------------------ | -------------------------------------------------------- |
-| `pull-request-number`    | The pull request number                                  |
-| `pull-request-url`       | The URL of the pull request                              |
-| `pull-request-operation` | The operation performed: `created`, `updated`, or `none` |
+<!-- BEGIN_OUTPUTS -->
+
+| Name                     | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| `pull-request-number`    | The pull request number                                          |
+| `pull-request-operation` | The operation performed by the action: created, updated, or none |
+| `pull-request-url`       | The URL of the pull request                                      |
+
+<!-- END_OUTPUTS -->
 
 ## Permissions
 

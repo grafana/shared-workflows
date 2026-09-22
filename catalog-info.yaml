@@ -148,6 +148,26 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: |
+    Creates or updates a pull request from file changes in the working tree.
+    Assumes actions/checkout has already been called.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/create-or-update-pr/README.md
+  name: shared-workflows-create-or-update-pr
+  title: create-or-update-pr
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Auto dismiss Dependabot alerts based on manifest path
   links:
   - title: README
@@ -331,6 +351,28 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: |
+    Commits changes in the working tree and pushes to the current branch.
+    A lightweight replacement for stefanzweifel/git-auto-commit-action.
+    Typically used in pull_request workflows to auto-commit generated files
+    back to the PR branch.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/git-auto-commit/README.md
+  name: shared-workflows-git-auto-commit
+  title: git-auto-commit
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Detect and analyze flaky Go tests using Loki logs
   links:
   - title: README
@@ -465,6 +507,27 @@ metadata:
     url: https://github.com/grafana/shared-workflows/blob/main/actions/run-capslock/README.md
   name: shared-workflows-run-capslock
   title: run-capslock
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
+  description: |
+    Finds and lints shell scripts using shellcheck.
+    A lightweight replacement for ludeeus/action-shellcheck that uses
+    the runner's pre-installed shellcheck instead of downloading a binary.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/run-shellcheck/README.md
+  name: shared-workflows-run-shellcheck
+  title: run-shellcheck
 spec:
   lifecycle: production
   owner: group:platform-productivity

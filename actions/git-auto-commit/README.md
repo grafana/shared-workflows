@@ -13,24 +13,32 @@ The action:
 
 ## Inputs
 
-| Name             | Type     | Description                                 | Default                                                 | Required |
-| ---------------- | -------- | ------------------------------------------- | ------------------------------------------------------- | -------- |
-| `commit-message` | `string` | Commit message                              | `Apply automatic changes`                               | false    |
-| `branch`         | `string` | Branch to push to                           | `${{ github.head_ref }}`                                | false    |
-| `file-pattern`   | `string` | Space-separated file patterns for `git add` | `.`                                                     | false    |
-| `git-user-name`  | `string` | Git user name for the commit                | `github-actions[bot]`                                   | false    |
-| `git-user-email` | `string` | Git user email for the commit               | `41898282+github-actions[bot]@users.noreply.github.com` | false    |
-| `token`          | `string` | GitHub token for push authentication        | `${{ github.token }}`                                   | false    |
-| `commit-options` | `string` | Additional flags for `git commit`           |                                                         | false    |
-| `push-options`   | `string` | Additional flags for `git push`             |                                                         | false    |
-| `skip-push`      | `string` | Skip the push step (`true`/`false`)         | `false`                                                 | false    |
+<!-- BEGIN_INPUTS -->
+
+| Name             | Type    | Required | Default                                                 | Description                                                                                                  |
+| ---------------- | ------- | -------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `branch`         | String  | No       | `${{ github.head_ref }}`                                | Branch to push to. Defaults to the PR head branch. Leave empty on push events to push to the current branch. |
+| `commit-message` | String  | No       | `Apply automatic changes`                               | Commit message                                                                                               |
+| `commit-options` | String  | No       |                                                         | Additional flags for git commit (e.g. '--no-verify')                                                         |
+| `file-pattern`   | String  | No       | `.`                                                     | Space-separated file patterns for git add (e.g. 'src/*.js docs/')                                            |
+| `git-user-email` | String  | No       | `41898282+github-actions[bot]@users.noreply.github.com` | Git user email for the commit                                                                                |
+| `git-user-name`  | String  | No       | `github-actions[bot]`                                   | Git user name for the commit                                                                                 |
+| `push-options`   | String  | No       |                                                         | Additional flags for git push (e.g. '--force')                                                               |
+| `skip-push`      | Boolean | No       | `false`                                                 | Skip the push step (true/false). Useful for local commit only.                                               |
+| `token`          | String  | No       | `${{ github.token }}`                                   | GitHub token for push authentication (contents: write)                                                       |
+
+<!-- END_INPUTS -->
 
 ## Outputs
 
-| Name               | Description                                                     |
-| ------------------ | --------------------------------------------------------------- |
-| `changes-detected` | `true` if changes were committed, `false` if working tree clean |
-| `commit-hash`      | Full SHA of the created commit (empty if no changes)            |
+<!-- BEGIN_OUTPUTS -->
+
+| Name               | Description                                                         |
+| ------------------ | ------------------------------------------------------------------- |
+| `changes-detected` | 'true' if changes were committed, 'false' if working tree was clean |
+| `commit-hash`      | Full SHA of the created commit (empty if no changes)                |
+
+<!-- END_OUTPUTS -->
 
 ## Permissions
 

@@ -11,21 +11,29 @@ The action:
 
 ## Inputs
 
-| Name               | Type     | Description                                                                 | Default | Required |
-| ------------------ | -------- | --------------------------------------------------------------------------- | ------- | -------- |
-| `scandir`          | `string` | Directory to scan for shell scripts                                         | `.`     | false    |
-| `ignore-paths`     | `string` | Space-separated paths or directories to exclude                             |         | false    |
-| `ignore-names`     | `string` | Space-separated file names to exclude                                       |         | false    |
-| `severity`         | `string` | Minimum severity: `error`, `warning`, `info`, `style`                       |         | false    |
-| `format`           | `string` | Output format: `gcc`, `tty`, `json`, `json1`, `checkstyle`, `diff`, `quiet` | `gcc`   | false    |
-| `additional-files` | `string` | Space-separated extra file names to scan for                                |         | false    |
-| `check-together`   | `string` | Run shellcheck on all files at once (`true`/`false`)                        | `false` | false    |
+<!-- BEGIN_INPUTS -->
+
+| Name               | Type    | Required | Default | Description                                                               |
+| ------------------ | ------- | -------- | ------- | ------------------------------------------------------------------------- |
+| `additional-files` | String  | No       |         | Space-separated extra file names to scan for                              |
+| `check-together`   | Boolean | No       | `false` | Run shellcheck on all files at once instead of one at a time (true/false) |
+| `format`           | String  | No       | `gcc`   | Output format: gcc, tty, json, json1, checkstyle, diff, quiet             |
+| `ignore-names`     | String  | No       |         | Space-separated file names to exclude from scanning                       |
+| `ignore-paths`     | String  | No       |         | Space-separated paths or directories to exclude from scanning             |
+| `scandir`          | String  | No       | `.`     | Directory to scan for shell scripts                                       |
+| `severity`         | String  | No       |         | Minimum severity of errors to consider: error, warning, info, style       |
+
+<!-- END_INPUTS -->
 
 ## Outputs
+
+<!-- BEGIN_OUTPUTS -->
 
 | Name    | Description                                     |
 | ------- | ----------------------------------------------- |
 | `files` | Space-separated list of files that were checked |
+
+<!-- END_OUTPUTS -->
 
 ## ShellCheck options
 
