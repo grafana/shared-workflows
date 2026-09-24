@@ -1,0 +1,49 @@
+name: Run ShellCheck
+description: |
+  Finds and lints shell scripts using shellcheck.
+  A lightweight replacement for ludeeus/action-shellcheck that uses
+  the runner's pre-installed shellcheck instead of downloading a binary.
+
+inputs:
+  scandir:
+    default: "."
+    description: "Directory to scan for shell scripts"
+  ignore-paths:
+    default: ""
+    description: "Space-separated paths or directories to exclude from scanning"
+  ignore-names:
+    default: ""
+    description: "Space-separated file names to exclude from scanning"
+  severity:
+    default: ""
+    description: "Minimum severity of errors to consider: error, warning, info, style"
+  format:
+    default: "gcc"
+    description: "Output format: gcc, tty, json, json1, checkstyle, diff, quiet"
+  additional-files:
+    default: ""
+    description: "Space-separated extra file names to scan for"
+  check-together:
+    default: "false"
+    description: "Run shellcheck on all files at once instead of one at a time (true/false)"
+
+outputs:
+  files:
+    description: "Space-separated list of files that were checked"
+    value: ${{ steps.run-shellcheck.outputs.files }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run ShellCheck
+      id: run-shellcheck
+      shell: bash
+      env:
+        SCANDIR: ${{ inputs.scandir }}
+        IGNORE_PATHS: ${{ inputs.ignore-paths }}
+        IGNORE_NAMES: ${{ inputs.ignore-names }}
+        SEVERITY: ${{ inputs.severity }}
+        FORMAT: ${{ inputs.format }}
+        ADDITIONAL_FILES: ${{ inputs.additional-files }}
+        CHECK_TOGETHER: ${{ inputs.check-together }}
+      run: ${GITHUB_ACTION_PATH}/run-shellcheck.sh

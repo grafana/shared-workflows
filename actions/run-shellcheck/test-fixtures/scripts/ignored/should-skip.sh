@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo $THIS_WOULD_FAIL_BUT_SHOULD_BE_IGNORED
