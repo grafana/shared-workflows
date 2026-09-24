@@ -34,7 +34,7 @@ jobs:
           go test ./... -coverprofile=.coverage/coverage.out
 
       - name: Annotate uncovered lines in PR diff
-        uses: grafana/shared-workflows/actions/annotate-coverage@annotate-coverage/v0.2.0
+        uses: grafana/shared-workflows/actions/annotate-coverage@annotate-coverage/v0.2.1
         with:
           coverage-path: .coverage
           base-ref: ${{ github.event.pull_request.base.sha }}
