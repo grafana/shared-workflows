@@ -1,0 +1,49 @@
+name: Dismiss approvals when PR content changes
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      # Retargeting the base branch fires `edited` (no push, no synchronize)
+      # and changes the effective diff, so approvals must be re-evaluated.
+      - edited
+
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dismiss-changed-approvals-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  # Merge-queue snapshots contain no new reviewable content; pass immediately
+  # so the required workflow does not block the queue.
+  merge-queue-pass:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Merge queue snapshot — nothing to evaluate."
+
+  dismiss-changed-approvals:
+    # Skipped in shared-workflows itself: this repo is not enrolled in
+    # content-based dismissal, and the action is fetched from main, which
+    # would break PRs (like the one introducing the action) where the ref
+    # does not exist yet.
+    if: github.event_name == 'pull_request' && github.repository != 'grafana/shared-workflows'
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      # TODO: pin to the dismiss-changed-approvals/v0.1.0 release SHA once the
+      # first release exists.
+      - uses: grafana/shared-workflows/actions/dismiss-changed-approvals@main
+        with:
+          # Shadow mode during rollout: log verdicts, dismiss nothing.
+          # Flip to false to enforce.
+          dry-run: true

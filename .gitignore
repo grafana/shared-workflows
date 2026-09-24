@@ -19,6 +19,7 @@ coverage/
 
 dist/
 !actions/signed-commits-info/dist/
+!actions/dismiss-changed-approvals/dist/
 
 .*.bun-build
 
