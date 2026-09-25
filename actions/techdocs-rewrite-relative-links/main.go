@@ -13,19 +13,15 @@ import (
 	"syscall"
 
 	"github.com/aymanbagabas/go-udiff"
-	"github.com/lmittmann/tint"
 	"github.com/spf13/afero"
 	markdown "github.com/teekennedy/goldmark-markdown"
 	"github.com/urfave/cli/v3"
-	"github.com/willabides/actionslog"
-	"github.com/willabides/actionslog/human"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 	"go.yaml.in/yaml/v3"
-	"golang.org/x/term"
 )
 
 func main() {
@@ -79,28 +75,11 @@ func main() {
 				level = slog.LevelInfo
 			}
 
-			var logger *slog.Logger
-			if os.Getenv("GITHUB_ACTIONS") == "true" {
-				handler := &human.Handler{}
-				logger = slog.New(&actionslog.Wrapper{
-					Handler: handler.WithOutput,
-					Level:   level,
-				})
-			} else {
-				if term.IsTerminal(int(os.Stderr.Fd())) {
-					logger = slog.New(
-						tint.NewHandler(os.Stderr, &tint.Options{
-							Level: level,
-						}),
-					)
-				} else {
-					logger = slog.New(
-						slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-							Level: level,
-						}),
-					)
-				}
-			}
+			logger := slog.New(
+				slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+					Level: level,
+				}),
+			)
 			ctrl := controller{
 				filesys:       afero.NewOsFs(),
 				dryRun:        cmd.Bool("dry-run"),

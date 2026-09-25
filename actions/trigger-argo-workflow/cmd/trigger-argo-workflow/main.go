@@ -10,11 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/lmittmann/tint"
-	cli "github.com/urfave/cli/v3"
-	"github.com/willabides/actionslog"
-	"github.com/willabides/actionslog/human"
-	"golang.org/x/term"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -59,22 +55,6 @@ func runMain(args []string, writer io.Writer, errWriter io.Writer) {
 			Level: &lv,
 		}),
 	)
-
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
-		handler := &human.Handler{Level: &lv}
-
-		logger = slog.New(&actionslog.Wrapper{
-			Handler: handler.WithOutput,
-		})
-	}
-
-	if term.IsTerminal(int(os.Stderr.Fd())) {
-		logger = slog.New(
-			tint.NewHandler(os.Stderr, &tint.Options{
-				Level: &lv,
-			}),
-		)
-	}
 
 	app := cli.Command{}
 	app.Writer = writer
