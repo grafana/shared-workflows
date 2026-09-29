@@ -221,6 +221,11 @@
       "package-name": "signed-commits-info",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/dismiss-changed-approvals": {
+      "package-name": "dismiss-changed-approvals",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",
