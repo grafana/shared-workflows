@@ -1,0 +1,19 @@
+{
+  "name": "{{npmName}}",
+  "version": "{{npmVersion}}",
+  "description": "Generated API client for {{npmName}}",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/{{gitUserId}}/{{gitRepoId}}.git"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
