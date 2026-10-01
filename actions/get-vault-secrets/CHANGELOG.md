@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v2.0.2...get-vault-secrets/v2.1.0) (2026-09-15)
+
+
+### 🎉 Features
+
+* **get-vault-secrets:** supporting v2 schema ([#2303](https://github.com/grafana/shared-workflows/issues/2303)) ([9a3914f](https://github.com/grafana/shared-workflows/commit/9a3914ffcdf8ee7d89daab29d05aaa749e98713b))
+
 ## [2.0.2](https://github.com/grafana/shared-workflows/compare/get-vault-secrets/v2.0.1...get-vault-secrets/v2.0.2) (2026-09-09)
 
 

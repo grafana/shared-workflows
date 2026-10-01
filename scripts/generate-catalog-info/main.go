@@ -180,11 +180,18 @@ func main() {
 		}
 	}
 
+	// writeYAML puts a blank line after every document, which reads well between
+	// them but leaves a trailing one at EOF. pre-commit's end-of-file-fixer
+	// strips that, so emitting it would make the generated file differ from the
+	// committed one by a single byte -- and the drift check would then fail on
+	// every PR. Normalize to exactly one trailing newline.
+	normalized := append(bytes.TrimRight(output.Bytes(), "\n"), '\n')
+
 	if outputPath == "-" {
-		fmt.Println(output.String())
+		fmt.Print(string(normalized))
 		return
 	}
-	if err := os.WriteFile(outputPath, output.Bytes(), 0644); err != nil {
+	if err := os.WriteFile(outputPath, normalized, 0644); err != nil {
 		logger.Error("writing to output failed", "err", err.Error())
 		os.Exit(1)
 	}

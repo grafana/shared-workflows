@@ -115,7 +115,7 @@ jobs:
         env:
           # Keep this updated in a simpler way than needing a full package.json.
           # renovate: datasource=npm depName=jose
-          JOSE_VERSION: 6.2.10
+          JOSE_VERSION: 6.2.12
         run: npm install "jose@${JOSE_VERSION}"
 
       - id: get-job-workflow-ref
@@ -282,7 +282,7 @@ jobs:
       MIN_SEVERITY: ${{ inputs.min-severity }}
       MIN_CONFIDENCE: ${{ inputs.min-confidence }}
       # renovate: datasource=pypi depName=zizmor
-      ZIZMOR_VERSION: 1.30.0
+      ZIZMOR_VERSION: 1.30.1
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
       DEFAULT_ZIZMOR_CONFIG_DOWNLOADED: ${{ needs.job-workflow-ref.outputs.sha }}
@@ -302,7 +302,7 @@ jobs:
       # .github/zizmor-collection-ignore (optional) — see reusable-zizmor.md
       - name: Collect zizmor paths
         id: zizmor-helper
-        uses: grafana/shared-workflows/actions/zizmor-collection-paths@0488ac5c8514affaad8206148e57f8c44a4e9a27 # zizmor-collection-paths/v0.2.0
+        uses: grafana/shared-workflows/actions/zizmor-collection-paths@a034b4386faf97ab1c4766c3d6cbdc5012253c6b # zizmor-collection-paths/v0.2.1
 
       - name: Restore config from cache
         id: cache-config
@@ -419,7 +419,7 @@ jobs:
         id: validate-config
         continue-on-error: true
         if: ${{ inputs.always-use-default-config == false && steps.setup-config.outputs.zizmor-config == '' && steps.setup-config.outputs['repo-local-zizmor-config'] != '' }}
-        uses: grafana/shared-workflows/actions/validate-zizmor-config@e181109698e53b4c68bd51fe27ba47c6adf27da7 # validate-zizmor-config/v0.2.1
+        uses: grafana/shared-workflows/actions/validate-zizmor-config@92d3c99189f579cdd1ea2657b8e6971fe60877fb # validate-zizmor-config/v0.2.2
         with:
           config_path: ${{ steps.setup-config.outputs['repo-local-zizmor-config'] }}
           sarif_output: results.sarif
