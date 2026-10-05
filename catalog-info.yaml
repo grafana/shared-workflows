@@ -148,6 +148,26 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: |
+    Creates or updates a pull request from file changes in the working tree.
+    Assumes actions/checkout has already been called.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/create-or-update-pr/README.md
+  name: shared-workflows-create-or-update-pr
+  title: create-or-update-pr
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Auto dismiss Dependabot alerts based on manifest path
   links:
   - title: README
