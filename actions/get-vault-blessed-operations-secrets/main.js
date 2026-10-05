@@ -84,8 +84,10 @@ const authenticateWithVault = async ({
   return token;
 };
 
-// Read one KV v2 secret and return its key/value map.
-const readSecret = async ({ vaultUrl, vaultToken, proxyJwt, path }) => {
+// Read one KV v2 secret and return its key/value map. `label` names the
+// secrets lines that use it; log messages never include the path itself,
+// because it is derived from the `secrets` input.
+const readSecret = async ({ vaultUrl, vaultToken, proxyJwt, path, label }) => {
   const res = await fetchWithTimeout(`${vaultUrl}/v1/${path}`, {
     method: "GET",
     headers: {
@@ -96,25 +98,25 @@ const readSecret = async ({ vaultUrl, vaultToken, proxyJwt, path }) => {
   const body = await res.text();
   if (res.status === 403 || res.status === 404) {
     throw permanent(
-      `Vault read of '${path}' failed (HTTP ${res.status}). The secret does ` +
+      `Vault read for ${label} failed (HTTP ${res.status}). The secret does ` +
         "not exist, or it is outside the operation's read_paths in the CI " +
         "gates catalog.",
     );
   }
   if (!res.ok) {
-    throw new Error(`Vault read of '${path}' failed (HTTP ${res.status}).`);
+    throw new Error(`Vault read for ${label} failed (HTTP ${res.status}).`);
   }
   let parsed;
   try {
     parsed = JSON.parse(body);
   } catch (err) {
-    throw new Error(`Failed to parse Vault response for '${path}'.`, {
+    throw new Error(`Failed to parse Vault response for ${label}.`, {
       cause: err,
     });
   }
   const data = parsed && parsed.data && parsed.data.data;
   if (!data || typeof data !== "object") {
-    throw new Error(`Vault response for '${path}' did not contain data.`);
+    throw new Error(`Vault response for ${label} did not contain data.`);
   }
   return data;
 };
@@ -159,19 +161,24 @@ const main = async () => {
   saveState("proxy_audience", proxyAudience);
 
   // 3) Read each distinct path once.
+  const linesByPath = new Map();
+  for (const { path, line } of secrets) {
+    linesByPath.set(path, [...(linesByPath.get(path) || []), line]);
+  }
   const byPath = new Map();
-  for (const path of new Set(secrets.map((s) => s.path))) {
-    const data = await retry({ label: `Read ${path}` }, () =>
-      readSecret({ vaultUrl, vaultToken, proxyJwt, path }),
+  for (const [path, lines] of linesByPath) {
+    const label = `secrets line${lines.length > 1 ? "s" : ""} ${lines.join(", ")}`;
+    const data = await retry({ label: `Read ${label}` }, () =>
+      readSecret({ vaultUrl, vaultToken, proxyJwt, path, label }),
     );
     byPath.set(path, data);
   }
 
   const result = {};
-  for (const { envName, path, key } of secrets) {
+  for (const { envName, path, key, line } of secrets) {
     const value = byPath.get(path)[key];
     if (value === undefined || value === null) {
-      throw new Error(`Key '${key}' not found in '${path}'.`);
+      throw new Error(`Invalid secrets line ${line}: the key does not exist.`);
     }
     setSecret(String(value));
     result[envName] = String(value);

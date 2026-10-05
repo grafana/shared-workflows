@@ -56,11 +56,13 @@ describe("lib.js", () => {
           envName: "WINGET_TOKEN",
           path: "ci/data/operations/publish_winget/winget",
           key: "token",
+          line: 1,
         },
         {
           envName: "OTHER",
           path: "ci/data/operations/publish_winget/nested/path",
           key: "key.1",
+          line: 3,
         },
       ]);
     });
@@ -92,7 +94,21 @@ describe("lib.js", () => {
     });
 
     test("rejects duplicate names", () => {
-      expect(() => parseSecrets("op", "A=x:k\nA=y:k")).toThrow(/Duplicate/);
+      expect(() => parseSecrets("op", "A=x:k\nA=y:k")).toThrow(
+        /line 2: the name is already used/,
+      );
+    });
+
+    test("errors name the line number, not the line's text", () => {
+      expect(() => parseSecrets("op", "A=x:k\n\nMY_TOKEN=../x:k")).toThrow(
+        /^Invalid secrets line 3: /,
+      );
+      try {
+        parseSecrets("op", "MY_TOKEN=../x:k");
+      } catch (err) {
+        expect(err.message).not.toContain("MY_TOKEN");
+        expect(err.message).not.toContain("../x");
+      }
     });
   });
 

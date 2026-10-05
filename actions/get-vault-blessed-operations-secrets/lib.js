@@ -162,48 +162,56 @@ const validateVaultInstance = (instance) => {
 // `ENV_NAME=subpath:key`; the subpath is always relative to
 // `ci/data/operations/<operation>/`, so a caller cannot read anything outside
 // its operation.
+//
+// Errors name the line number, never the line's text: the input comes from
+// `INPUT_SECRETS`, and nothing derived from it is written to the log.
 const parseSecrets = (operation, raw) => {
   const lines = String(raw || "")
     .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+    .map((text, index) => ({ text: text.trim(), line: index + 1 }))
+    .filter(({ text }) => text);
   if (lines.length === 0) {
     throw new Error("secrets input is required and must not be empty.");
   }
 
   const seen = new Set();
-  return lines.map((line) => {
-    const match = /^([^=]+)=([^:]+):(.+)$/.exec(line);
+  return lines.map(({ text, line }) => {
+    const fail = (reason) => {
+      throw new Error(`Invalid secrets line ${line}: ${reason}`);
+    };
+
+    const match = /^([^=]+)=([^:]+):(.+)$/.exec(text);
     if (!match) {
-      throw new Error(
-        `Invalid secrets line '${line}'. Expected 'ENV_NAME=subpath:key'.`,
-      );
+      fail("expected 'ENV_NAME=subpath:key'.");
     }
     const [, envName, subpath, key] = match;
 
     if (!ENV_NAME_PATTERN.test(envName)) {
-      throw new Error(`Invalid name '${envName}' in secrets line '${line}'.`);
+      fail(
+        "the name must be letters, digits and '_', not starting with a digit.",
+      );
     }
     if (seen.has(envName)) {
-      throw new Error(`Duplicate name '${envName}' in secrets input.`);
+      fail("the name is already used on an earlier line.");
     }
     seen.add(envName);
 
     const segments = subpath.split("/");
     if (segments.some((s) => !PATH_SEGMENT_PATTERN.test(s) || s === "..")) {
-      throw new Error(
-        `Invalid subpath '${subpath}' in secrets line '${line}'. Use a path ` +
-          "relative to the operation, e.g. 'winget' or 'registry/token'.",
+      fail(
+        "the subpath must be relative to the operation, e.g. 'winget' or " +
+          "'registry/token'.",
       );
     }
     if (!KEY_PATTERN.test(key)) {
-      throw new Error(`Invalid key '${key}' in secrets line '${line}'.`);
+      fail("the key must be letters, digits and '.', '_' or '-'.");
     }
 
     return {
       envName,
       path: `ci/data/operations/${operation}/${subpath}`,
       key,
+      line,
     };
   });
 };

@@ -313,6 +313,29 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: |
+    From inside a CI gates blessed workflow, read the secrets of one operation
+    from `ci/data/operations/<operation>/` in Vault. Vault only issues a token
+    when the run comes from an adopted repository, through the pinned blessed
+    workflow and the operation's GitHub Environment, on an allowed protected ref.
+    Registers a post-job step that revokes the Vault token.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/get-vault-blessed-operations-secrets/README.md
+  name: shared-workflows-get-vault-blessed-operations-secrets
+  title: get-vault-blessed-operations-secrets
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Composite action (step) to get secrets from Grafana Labs' Vault instance.
   links:
   - title: README
