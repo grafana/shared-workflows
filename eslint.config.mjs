@@ -49,11 +49,15 @@ export default defineConfig([
     },
   },
   {
-    // The create-github-app-token action ships as a plain node24 action that
-    // runs straight from a git checkout with no bundler, so its sources must
-    // use CommonJS (require/module.exports) and rely on Node.js runtime
-    // globals. Declare those here instead of excluding the files from linting.
-    files: ["actions/create-github-app-token/**/*.js"],
+    // The create-github-app-token and get-vault-blessed-operations-secrets
+    // actions ship as plain node24 actions that run straight from a git
+    // checkout with no bundler, so their sources must use CommonJS
+    // (require/module.exports) and rely on Node.js runtime globals. Declare
+    // those here instead of excluding the files from linting.
+    files: [
+      "actions/create-github-app-token/**/*.js",
+      "actions/get-vault-blessed-operations-secrets/**/*.js",
+    ],
     languageOptions: {
       sourceType: "commonjs",
       globals: {

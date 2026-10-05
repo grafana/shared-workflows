@@ -221,6 +221,11 @@
       "package-name": "signed-commits-info",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/get-vault-blessed-operations-secrets": {
+      "package-name": "get-vault-blessed-operations-secrets",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",

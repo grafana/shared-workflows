@@ -1,0 +1,31 @@
+name: Get Vault Blessed Operations Secrets
+description: |
+  From inside a CI gates blessed workflow, read the secrets of one operation
+  from `ci/data/operations/<operation>/` in Vault. Vault only issues a token
+  when the run comes from an adopted repository, through the pinned blessed
+  workflow and the operation's GitHub Environment, on an allowed protected ref.
+  Registers a post-job step that revokes the Vault token.
+inputs:
+  operation:
+    description: |
+      CI gates operation name, as in the catalog
+      (`terraform/ci-gates/catalog/<operation>.yaml` in deployment_tools), e.g. `publish_winget`.
+    required: true
+  secrets:
+    description: |
+      Secrets to read, one per line, as `NAME=subpath:key`. The subpath is
+      relative to `ci/data/operations/<operation>/`. Ex: `secrets: | WINGET_TOKEN=winget:token`
+    required: true
+  vault_instance:
+    description: |
+      The Vault instance to use (`dev` or `ops`). Defaults to `ops`. A catalog
+      binding with `instance: prod` is served by `ops`.
+    default: ops
+outputs:
+  secrets:
+    description: JSON object mapping each requested name to its secret value.
+runs:
+  using: node24
+  main: main.js
+  post: post.js
+  post-if: always()
