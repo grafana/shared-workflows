@@ -1,0 +1,61 @@
+name: Git Auto Commit
+description: |
+  Commits changes in the working tree and pushes to the current branch.
+  A lightweight replacement for stefanzweifel/git-auto-commit-action.
+  Typically used in pull_request workflows to auto-commit generated files
+  back to the PR branch.
+
+inputs:
+  commit-message:
+    default: "Apply automatic changes"
+    description: "Commit message"
+  branch:
+    default: ${{ github.head_ref }}
+    description: "Branch to push to. Defaults to the PR head branch. Leave empty on push events to push to the current branch."
+  file-pattern:
+    default: "."
+    description: "Space-separated file patterns for git add (e.g. 'src/*.js docs/')"
+  git-user-name:
+    default: "github-actions[bot]"
+    description: "Git user name for the commit"
+  git-user-email:
+    default: "41898282+github-actions[bot]@users.noreply.github.com"
+    description: "Git user email for the commit"
+  token:
+    default: ${{ github.token }}
+    description: "GitHub token for push authentication (contents: write)"
+  commit-options:
+    default: ""
+    description: "Additional flags for git commit (e.g. '--no-verify')"
+  push-options:
+    default: ""
+    description: "Additional flags for git push (e.g. '--force')"
+  skip-push:
+    default: "false"
+    description: "Skip the push step (true/false). Useful for local commit only."
+
+outputs:
+  changes-detected:
+    description: "'true' if changes were committed, 'false' if working tree was clean"
+    value: ${{ steps.git-auto-commit.outputs.changes-detected }}
+  commit-hash:
+    description: "Full SHA of the created commit (empty if no changes)"
+    value: ${{ steps.git-auto-commit.outputs.commit-hash }}
+
+runs:
+  using: composite
+  steps:
+    - name: Git Auto Commit
+      id: git-auto-commit
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        BRANCH: ${{ inputs.branch }}
+        FILE_PATTERN: ${{ inputs.file-pattern }}
+        GIT_USER_NAME: ${{ inputs.git-user-name }}
+        GIT_USER_EMAIL: ${{ inputs.git-user-email }}
+        COMMIT_OPTIONS: ${{ inputs.commit-options }}
+        PUSH_OPTIONS: ${{ inputs.push-options }}
+        SKIP_PUSH: ${{ inputs.skip-push }}
+      run: ${GITHUB_ACTION_PATH}/git-auto-commit.sh
