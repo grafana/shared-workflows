@@ -31,23 +31,14 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v1.1.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      # Get GitHub App token with Dependabot alerts permissions
-      - name: Retrieve GitHub App secrets
-        id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.1.3
-        with:
-          common_secrets: |
-            DEPENDABOT_AUTO_TRIAGE_APP_ID=dependabot-auto-triage:app-id
-            DEPENDABOT_AUTO_TRIAGE_APP_PRIVATE_KEY=dependabot-auto-triage:private-key
-
+      # Get a GitHub App token with Dependabot alerts permissions via the GitHub App Token Broker
       - name: Generate token
         id: generate-token
-        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v1.1.3
+        uses: grafana/shared-workflows/actions/create-github-app-token@5bbb526b1728ca57fbe1750c4c27ab6ab06171c2
         with:
-          app-id: ${{ env.DEPENDABOT_AUTO_TRIAGE_APP_ID }}
-          private-key: ${{ env.DEPENDABOT_AUTO_TRIAGE_APP_PRIVATE_KEY }}
+          github_app: dependabot-auto-triage-app
 
       # Use the token with the auto-triage action
       - name: Auto Dismiss Dependabot Alerts
@@ -112,9 +103,9 @@ To use this action, you need:
 
 2. The GitHub App needs to be installed on your repository or organization
 
-3. The App ID and private key should be stored securely (e.g., in Vault)
+3. The GitHub App needs to be configured in the GitHub App Token Broker for your repository
 
-The example workflow above demonstrates using the `actions/create-github-app-token` action to generate a token with the required permissions.
+The example workflow above demonstrates using the [`create-github-app-token`](../create-github-app-token/README.md) action to get a token for the `dependabot-auto-triage-app` GitHub App from the GitHub App Token Broker, so the App's private key is never exposed to the workflow.
 
 If you're experiencing "Resource not accessible by integration" errors, this indicates that the token being used doesn't have the necessary permissions to access the Dependabot API.
 
