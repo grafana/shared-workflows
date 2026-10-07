@@ -15,3 +15,8 @@ test-failure-analysis.json
 
 # Go coverage files
 *.out
+
+# Locally built binaries (action.yaml builds from source)
+/aggregate
+/go-flaky-tests
+/analyzer
