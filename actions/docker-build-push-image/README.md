@@ -155,18 +155,18 @@ So then the full checklist of work to do to implement a new registry is:
 
 ## Migrating
 
-This action is intended to replace `build-push-to-dockerhub` and `build-push-to-dockerhub`.
+This action is intended to replace `push-to-gar-docker` and `build-push-to-dockerhub`.
 
 ### Migrating from `build-push-to-dockerhub`
 
-> [!IMPORTANT]
-> **Breaking Change:** The `push` input now defaults to `false` (matching Docker's official `build-push-action`).
-> You must explicitly add `push: true` to maintain the previous behavior of pushing images to the registry.
+> [!NOTE]
+> The `push` input defaults to `false` (matching Docker's official `build-push-action`), the same as
+> `build-push-to-dockerhub`. Carry over your existing `push` value unchanged; if you didn't set one, don't add one.
 
 1. Use the new action
 2. Rename dockerhub specific settings
 3. Add `registries: dockerhub`
-4. **Add `push: true`** to maintain previous behavior
+4. Keep your existing `push` value as-is
 
 ```bash
 # old
@@ -175,6 +175,7 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
     with:
       repository: ${{ github.repository }} # or any other dockerhub repository
       context: .
+      push: true
       tags: |-
         "2024-04-01-abcd1234"
         "latest"
@@ -192,7 +193,7 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
         "latest"
       # ADD: registry
       registries: dockerhub
-      # ADD: push (was implicit before, now explicit)
+      # UNCHANGED: push (carried over from the old step)
       push: true
 ```
 
@@ -200,12 +201,14 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
 
 > [!IMPORTANT]
 > **Breaking Change:** The `push` input now defaults to `false` (matching Docker's official `build-push-action`).
-> The old `push-to-gar-docker` action defaulted to `push: true`. You must explicitly add `push: true` to maintain the previous behavior.
+> The old `push-to-gar-docker` action defaulted to `${{ github.event_name == 'push' }}`, so it pushed on `push`
+> events but not on pull requests. If your step didn't set `push`, add `push: ${{ github.event_name == 'push' }}`
+> to keep that behavior. Don't use `push: true` there: it would also push images from pull request builds.
 
 1. Use the new action
 2. Rename gar specific settings
 3. Add `registries: gar`
-4. **Add `push: true`** to maintain previous behavior
+4. **Keep `push` behavior:** keep an existing `push` value as-is, or add `push: ${{ github.event_name == 'push' }}` if there wasn't one
 
 ```bash
 # old
@@ -235,6 +238,6 @@ This action is intended to replace `build-push-to-dockerhub` and `build-push-to-
       context: "<YOUR_CONTEXT>" # e.g. "." - where the Dockerfile is
       # ADD: registry
       registries: gar
-      # ADD: push (old action defaulted to true)
-      push: true
+      # ADD: push (old action's implicit default, now explicit)
+      push: ${{ github.event_name == 'push' }}
 ```
