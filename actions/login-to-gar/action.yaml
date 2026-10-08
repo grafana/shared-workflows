@@ -52,8 +52,44 @@ runs:
 
         echo "::debug::Credentials stored in ${TEMP_CREDS_PATH}"
 
+    # setup-gcloud runs `gcloud auth login` once, with no retry, and fetching
+    # the OIDC subject token for it occasionally times out. If it fails, wait
+    # and run setup-gcloud again (up to 2 retries); gcloud is already installed
+    # by then, so each retry is effectively just another login attempt.
     - name: Setup `gcloud` CLI
-      if: ${{ !steps.check_if_gcloud_is_installed.outputs.gcloud-installed }}
+      id: setup-gcloud
+      continue-on-error: true
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      with:
+        # Accept any version
+        version:
+
+    - name: Wait before retrying `gcloud` setup
+      if: steps.setup-gcloud.outcome == 'failure'
+      shell: sh
+      run: |
+        echo "::warning::setup-gcloud failed, retrying in 10s (attempt 2 of 3)"
+        sleep 10
+
+    - name: Setup `gcloud` CLI (retry 1)
+      id: setup-gcloud-retry
+      if: steps.setup-gcloud.outcome == 'failure'
+      continue-on-error: true
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      with:
+        # Accept any version
+        version:
+
+    - name: Wait before retrying `gcloud` setup again
+      if: steps.setup-gcloud-retry.outcome == 'failure'
+      shell: sh
+      run: |
+        echo "::warning::setup-gcloud failed again, retrying in 30s (attempt 3 of 3)"
+        sleep 30
+
+    # Last attempt: no continue-on-error, so a third failure fails the job
+    - name: Setup `gcloud` CLI (retry 2)
+      if: steps.setup-gcloud-retry.outcome == 'failure'
       uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
       with:
         # Accept any version

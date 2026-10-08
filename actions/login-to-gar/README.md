@@ -46,6 +46,14 @@ jobs:
 
 <!-- END_INPUTS -->
 
+## Retries
+
+`setup-gcloud` runs `gcloud auth login` once, and fetching the GitHub OIDC token
+for that login occasionally times out (`Unable to retrieve Identity Pool subject
+token`, `upstream request timeout`). When that happens, this action runs
+`setup-gcloud` up to two more times, after 10s and then 30s, before failing.
+Each retry is logged as a warning.
+
 ## Docker Actions Compatibility
 
 By default, this action stores credentials in a temporary location outside of
