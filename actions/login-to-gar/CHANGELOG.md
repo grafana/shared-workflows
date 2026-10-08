@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/login-to-gar/v1.0.3...login-to-gar/v1.0.4) (2026-10-08)
+
+
+### 🐛 Bug Fixes
+
+* avoid noisy notice messages ([#2158](https://github.com/grafana/shared-workflows/issues/2158)) ([e3d8e4f](https://github.com/grafana/shared-workflows/commit/e3d8e4fc93c11a792dd548a113679a85d5b78493))
+* **login-to-gar:** retry gcloud login on transient OIDC token failures ([#2337](https://github.com/grafana/shared-workflows/issues/2337)) ([6dfac59](https://github.com/grafana/shared-workflows/commit/6dfac5932dac415f17544b55f45efc5a3c5a0da2))
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/login-to-gar/v1.0.2...login-to-gar/v1.0.3) (2026-06-10)
 
 
