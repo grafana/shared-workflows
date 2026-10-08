@@ -217,6 +217,11 @@
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
     },
+    "actions/pr-retarget": {
+      "package-name": "pr-retarget",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
+    },
     "actions/signed-commits-info": {
       "package-name": "signed-commits-info",
       "extra-files": ["README.md"],
