@@ -477,6 +477,27 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: |
+    Finds and lints shell scripts using shellcheck.
+    A lightweight replacement for ludeeus/action-shellcheck that uses
+    the runner's pre-installed shellcheck instead of downloading a binary.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/run-shellcheck/README.md
+  name: shared-workflows-run-shellcheck
+  title: run-shellcheck
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Composite action to send a Slack message
   links:
   - title: README
