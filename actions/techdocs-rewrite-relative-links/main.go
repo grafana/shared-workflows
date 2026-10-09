@@ -89,7 +89,7 @@ func main() {
 			} else {
 				if term.IsTerminal(int(os.Stderr.Fd())) {
 					logger = slog.New(
-						tint.NewHandler(os.Stderr, &tint.Options{
+						tint.NewTextHandler(os.Stderr, &tint.Options{
 							Level: level,
 						}),
 					)
