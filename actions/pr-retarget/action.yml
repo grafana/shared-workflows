@@ -1,0 +1,49 @@
+name: Retarget pull requests
+description: Route pull requests to a development branch with maintainer-only comment overrides.
+
+inputs:
+  github-token:
+    description: GitHub token with pull requests write permission. Prefer an App token so base changes trigger CI.
+    required: true
+  source-branch:
+    description: Branch from which newly opened or edited pull requests are redirected.
+    default: main
+  target-branch:
+    description: Development branch to which pull requests are redirected.
+    default: dev
+  override-label:
+    description: Persistent opt-out label applied by the source-branch comment command.
+    default: allow-main
+
+outputs:
+  base-branch:
+    description: Current base branch of the processed pull request, or empty for ignored events.
+    value: ${{ steps.retarget.outputs.base-branch }}
+  changed:
+    description: Whether the action changed the pull request base branch.
+    value: ${{ steps.retarget.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Retarget pull request
+      id: retarget
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+      env:
+        PR_RETARGET_ACTION_PATH: ${{ github.action_path }}
+        PR_RETARGET_SOURCE_BRANCH: ${{ inputs.source-branch }}
+        PR_RETARGET_TARGET_BRANCH: ${{ inputs.target-branch }}
+        PR_RETARGET_OVERRIDE_LABEL: ${{ inputs.override-label }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const { pathToFileURL } = require('node:url');
+          const { retarget } = await import(pathToFileURL(`${process.env.PR_RETARGET_ACTION_PATH}/retarget.mjs`).href);
+          const result = await retarget({
+            github, context,
+            sourceBranch: process.env.PR_RETARGET_SOURCE_BRANCH,
+            targetBranch: process.env.PR_RETARGET_TARGET_BRANCH,
+            overrideLabel: process.env.PR_RETARGET_OVERRIDE_LABEL,
+          });
+          core.setOutput('base-branch', result.baseBranch ?? '');
+          core.setOutput('changed', String(result.changed));
