@@ -1,0 +1,71 @@
+name: Submit WinGet Manifest
+
+# Blessed workflow for the `publish_winget` CI gates operation. It opens a
+# microsoft/winget-pkgs PR for a release of the calling repository. Callers
+# (grafana/alloy, grafana/k6, grafana/xk6) must adopt the operation in CI gates;
+# the WinGet token is only readable from the `publish` job below.
+
+on:
+  workflow_call:
+    inputs:
+      release-tag:
+        description: "Release tag (e.g., v1.0.0)"
+        required: true
+        type: string
+      package-id:
+        description: "WinGet package ID (e.g., GrafanaLabs.k6)"
+        required: true
+        type: string
+      urls:
+        description: "Space-separated installer URLs"
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: windows-2025
+
+    # Gate 1: GitHub checks this environment in the caller's repository
+    # (allowed refs, reviewers) before the job starts.
+    environment: publish_winget
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Install WingetCreate
+        shell: pwsh
+        run: |
+          Import-Module Appx -UseWindowsPowerShell
+          $appxBundleFile = Join-Path ${env:RUNNER_TEMP} "wingetcreate.msixbundle"
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest/msixbundle -OutFile $appxBundleFile
+          Add-AppxPackage $appxBundleFile
+
+      # Gate 2: Vault only issues a token if the run's OIDC claims match the
+      # operation's role: an adopted repository, this workflow at its pinned
+      # ref, an allowed protected ref, and the environment above.
+      - name: Get WinGet token
+        id: get-token
+        # TODO: pin to the released get-vault-blessed-operations-secrets SHA once it is on main.
+        uses: grafana/shared-workflows/actions/get-vault-blessed-operations-secrets@4fe6653bf3610d33d8d967f719bfa19fc253d4e1
+        with:
+          operation: publish_winget
+          secrets: |
+            token=winget:token
+
+      - name: Submit WinGet Manifest
+        env:
+          PACKAGE_ID: ${{ inputs.package-id }}
+          PACKAGE_VERSION: ${{ inputs.release-tag }}
+          URLS: ${{ inputs.urls }}
+          WINGET_CREATE_GITHUB_TOKEN: ${{ fromJSON(steps.get-token.outputs.secrets).token }}
+        shell: pwsh
+        run: |
+          wingetcreate token --store
+          wingetcreate update ${env:PACKAGE_ID} `
+            --urls ($env:URLS -split ' ') `
+            --version ${env:PACKAGE_VERSION}.TrimStart("v") `
+            --submit
