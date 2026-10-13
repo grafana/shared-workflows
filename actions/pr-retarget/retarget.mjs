@@ -30,6 +30,7 @@ export async function retarget({
   const { payload, eventName, repo } = context;
   let number;
   let command;
+  let enforceOverrideLabel = false;
   if (eventName === "issue_comment") {
     if (payload.action !== "created" || !payload.issue?.pull_request) {
       return ignored;
@@ -52,6 +53,10 @@ export async function retarget({
     payload.pull_request
   ) {
     number = payload.pull_request.number;
+    // The override label is the exemption signal, so verify the actor whenever
+    // it is added. Otherwise triage-level users could self-grant the override.
+    enforceOverrideLabel =
+      payload.action === "labeled" && payload.label?.name === overrideLabel;
   } else {
     return ignored;
   }
@@ -65,6 +70,30 @@ export async function retarget({
   const unchanged = { changed: false, baseBranch: pr.base.ref };
   if (pr.state !== "open") return unchanged;
   if (![sourceBranch, targetBranch].includes(pr.base.ref)) return unchanged;
+
+  if (enforceOverrideLabel) {
+    // Bot-added labels are the action's own persistence (sender is the App);
+    // human and other actor additions require write, maintain or admin.
+    if (payload.sender?.type !== "Bot") {
+      const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+        ...repo,
+        username: payload.sender.login,
+      });
+      if (!overridePermissions.has(data.permission)) {
+        await github.rest.issues.removeLabel({
+          ...repo,
+          issue_number: number,
+          name: overrideLabel,
+        });
+        await github.rest.issues.createComment({
+          ...repo,
+          issue_number: number,
+          body: `Removed the \`${overrideLabel}\` label: only users with write access to the repository can grant this override. A maintainer with write access can comment \`/target ${sourceBranch}\` instead.`,
+        });
+      }
+    }
+    return unchanged;
+  }
 
   const hasOverride = pr.labels.some((label) => label.name === overrideLabel);
   if (!command) {

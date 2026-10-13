@@ -12,6 +12,8 @@ function fixture({
   action = eventName === "issue_comment" ? "created" : "opened",
   body = "/target main",
   permission = "write",
+  sender = null,
+  addedLabel = null,
 } = {}) {
   const calls = [];
   const pr = {
@@ -49,6 +51,8 @@ function fixture({
       pull_request: { number: 42, base: { ref: "main" }, labels: [] },
       issue: { number: 42, pull_request: {} },
       comment: { body, user: { login: "maintainer" } },
+      ...(sender && { sender }),
+      ...(addedLabel && { label: { name: addedLabel } }),
     },
   };
   return {
@@ -195,8 +199,81 @@ test("accepts whitespace around an exact command", async () => {
     eventName: "issue_comment",
     body: " \n/target main\r\n",
   });
-  await f.run();
+  const run = await f.run();
   assert.ok(f.methods().includes("add"));
+  return run;
+});
+
+// --- enforcement of override-label provenance ---
+for (const permission of ["triage", "read", "none"]) {
+  test(`${permission} cannot self-grant the override label`, async () => {
+    const f = fixture({
+      action: "labeled",
+      addedLabel: "allow-main",
+      sender: { login: "helper", type: "User" },
+      permission,
+    });
+    assert.deepEqual(await f.run(), { changed: false, baseBranch: "main" });
+    assert.deepEqual(f.methods(), ["get", "permission", "remove", "comment"]);
+    assert.deepEqual(f.calls[2].args, {
+      owner: "grafana",
+      repo: "example",
+      issue_number: 42,
+      name: "allow-main",
+    });
+    assert.match(f.calls[3].args.body, /write access/);
+  });
+}
+
+for (const permission of ["write", "maintain", "admin"]) {
+  test(`${permission} can add the override label directly`, async () => {
+    const f = fixture({
+      action: "labeled",
+      addedLabel: "allow-main",
+      sender: { login: "maintainer", type: "User" },
+      permission,
+    });
+    assert.deepEqual(await f.run(), { changed: false, baseBranch: "main" });
+    assert.deepEqual(f.methods(), ["get", "permission"]);
+  });
+}
+
+test("bot-added override label is trusted without a permission lookup", async () => {
+  const f = fixture({
+    action: "labeled",
+    addedLabel: "allow-main",
+    sender: { login: "routing-app[bot]", type: "Bot" },
+  });
+  assert.deepEqual(await f.run(), { changed: false, baseBranch: "main" });
+  assert.deepEqual(f.methods(), ["get"]); // lookup skipped, state read only
+});
+
+test("adding an unrelated label is not enforcement", async () => {
+  const f = fixture({
+    action: "labeled",
+    addedLabel: "needs-review",
+    sender: { login: "helper", type: "User" },
+    permission: "triage",
+  });
+  assert.deepEqual(await f.run(), { changed: true, baseBranch: "dev" });
+  assert.deepEqual(f.methods(), ["get", "branch", "update", "comment"]);
+});
+
+test("override-label enforcement is skipped on closed PRs and foreign bases", async () => {
+  for (const options of [{ state: "closed" }, { base: "release" }]) {
+    const f = fixture({
+      action: "labeled",
+      addedLabel: "allow-main",
+      sender: { login: "helper", type: "User" },
+      permission: "triage",
+      ...options,
+    });
+    assert.deepEqual(await f.run(), {
+      changed: false,
+      baseBranch: options.base ?? "main",
+    });
+    assert.deepEqual(f.methods(), ["get"]);
+  }
 });
 
 for (const options of [
