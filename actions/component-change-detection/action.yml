@@ -41,44 +41,120 @@ runs:
         CONFIG_FILE: ${{ inputs.config-file }}
       run: ${{ github.action_path }}/scripts/extract-components.sh
 
-    # Download previous component tags from the source workflow
-    - name: Find last successful workflow run
-      id: find-previous-run
+    # Download previous component tags from the source workflow.
+    # We select the newest matching artifact directly instead of trusting the
+    # order returned by listWorkflowRuns, which is not stable and caused older
+    # artifacts to be picked at random.
+    - name: Find and download previous component tags
+      id: download-previous-tags
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
         INPUT_WORKFLOW: ${{ inputs.previous-tags-source }}
+        ARTIFACT_NAME: component-tags
+        ZIP_PATH: ${{ runner.temp }}/component-tags.zip
       with:
         script: |
+          const fs = require('fs');
+          const workflow = process.env.INPUT_WORKFLOW;
+          const artifactName = process.env.ARTIFACT_NAME;
+          const zipPath = process.env.ZIP_PATH;
+
+          // Build the set of successful run IDs for the source workflow on main.
+          // Used only as a membership filter; the order is intentionally ignored.
+          const runIds = new Set();
           try {
-            const { data: { workflow_runs } } = await github.rest.actions.listWorkflowRuns({
+            const runs = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: process.env.INPUT_WORKFLOW,
+              workflow_id: workflow,
               branch: 'main',
               status: 'success',
-              per_page: 1
+              per_page: 100
             });
-            if (workflow_runs.length > 0) {
-              core.setOutput('run-id', workflow_runs[0].id);
-              console.log(`Found last successful run: ${workflow_runs[0].id}`);
-            } else {
-              core.setOutput('run-id', '');
-              console.log('No successful workflow runs found');
+            for (const run of runs.data.workflow_runs) {
+              runIds.add(run.id);
             }
           } catch (error) {
-            core.setOutput('run-id', '');
-            console.log(`Failed to query workflow runs: ${error.message}`);
+            console.log(`Failed to list runs for workflow ${workflow}: ${error.message}`);
           }
 
-    - name: Download previous component tags
-      if: steps.find-previous-run.outputs.run-id != ''
-      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-      with:
-        name: component-tags
-        path: .
-        run-id: ${{ steps.find-previous-run.outputs.run-id }}
-        github-token: ${{ github.token }}
-      continue-on-error: true
+          if (runIds.size === 0) {
+            console.log(`No successful runs found for workflow ${workflow} on main`);
+            return;
+          }
+
+          // The artifacts API is eventually consistent, so read it a few times and
+          // keep every matching, unexpired candidate we see across the attempts.
+          const attempts = 3;
+          const candidates = new Map();
+
+          for (let attempt = 1; attempt <= attempts; attempt++) {
+            try {
+              const artifacts = await github.paginate(github.rest.actions.listArtifactsForRepo, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: artifactName,
+                per_page: 100
+              });
+
+              for (const artifact of artifacts) {
+                if (artifact.name !== artifactName || artifact.expired) {
+                  continue;
+                }
+                const run = artifact.workflow_run;
+                if (!run || !runIds.has(run.id)) {
+                  continue;
+                }
+                candidates.set(artifact.id, artifact);
+              }
+            } catch (error) {
+              console.log(`Listing ${artifactName} artifacts failed on attempt ${attempt}: ${error.message}`);
+            }
+
+            if (attempt < attempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+
+          // Pick the newest artifact by creation time, breaking ties by id.
+          const newest = [...candidates.values()].sort((a, b) => {
+            const byCreatedAt = (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0);
+            return byCreatedAt !== 0 ? byCreatedAt : b.id - a.id;
+          })[0];
+
+          if (!newest) {
+            console.log(`No unexpired ${artifactName} artifact found for workflow ${workflow} on main`);
+            return;
+          }
+
+          const runId = newest.workflow_run ? String(newest.workflow_run.id) : '';
+          console.log(`Selected ${artifactName} artifact ${newest.id} created at ${newest.created_at} by run ${runId || 'unknown'}`);
+
+          try {
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: newest.id,
+              archive_format: 'zip'
+            });
+            fs.writeFileSync(zipPath, Buffer.from(download.data));
+          } catch (error) {
+            console.log(`Downloading artifact ${newest.id} failed: ${error.message}`);
+            return;
+          }
+
+          core.setOutput('zip-path', zipPath);
+
+    - name: Extract previous component tags
+      if: steps.download-previous-tags.outputs.zip-path != ''
+      shell: bash
+      env:
+        ZIP_PATH: ${{ steps.download-previous-tags.outputs.zip-path }}
+      run: |
+        if ! unzip -o "$ZIP_PATH" -d .; then
+          echo "Could not extract the downloaded component-tags archive"
+        fi
+        rm -f "$ZIP_PATH"
 
     - name: Check if artifact was found
       id: check-tags-artifact
