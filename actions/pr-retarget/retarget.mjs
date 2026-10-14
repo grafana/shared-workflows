@@ -1,0 +1,271 @@
+const prActions = new Set([
+  "opened",
+  "reopened",
+  "edited",
+  "labeled",
+  "unlabeled",
+]);
+const overridePermissions = new Set(["write", "maintain", "admin"]);
+
+/** Dispatch only automatic PR metadata, never code or an override command. */
+export async function dispatchAutomatic({
+  github,
+  context,
+  sourceBranch = "main",
+  targetBranch = "dev",
+  overrideLabel = "allow-main",
+  exemptHeadPrefix = "",
+  dispatchWorkflow = "pr-retarget.yml",
+  dispatchRef = "main",
+}) {
+  const { payload, eventName, repo } = context;
+  const pr = payload.pull_request;
+  if (
+    eventName !== "pull_request_target" ||
+    !prActions.has(payload.action) ||
+    !pr
+  ) {
+    return { changed: false };
+  }
+  const enforceLabel =
+    payload.action === "labeled" && payload.label?.name === overrideLabel;
+  // Dev-bound backmerges and unrelated bases need no token. Label provenance
+  // enforcement still runs on dev so a non-write user cannot stash an opt-out.
+  if (
+    ![sourceBranch, targetBranch].includes(pr.base.ref) ||
+    (pr.base.ref !== sourceBranch && !enforceLabel)
+  )
+    return { changed: false };
+  const sameRepo =
+    pr.head.repo?.full_name?.toLowerCase() ===
+    pr.base.repo.full_name.toLowerCase();
+  if (
+    !enforceLabel &&
+    sameRepo &&
+    (pr.head.ref === targetBranch ||
+      (exemptHeadPrefix && pr.head.ref.startsWith(exemptHeadPrefix)))
+  ) {
+    return { changed: false };
+  }
+  const routingEvent = {
+    action: payload.action,
+    sender: {
+      login: payload.sender.login,
+      type: payload.sender.type,
+    },
+  };
+  if (["labeled", "unlabeled"].includes(payload.action)) {
+    routingEvent.label = { name: payload.label.name };
+  }
+  await github.rest.actions.createWorkflowDispatch({
+    ...repo,
+    workflow_id: dispatchWorkflow,
+    ref: dispatchRef,
+    inputs: {
+      "pr-number": String(pr.number),
+      "routing-event": JSON.stringify(routingEvent),
+    },
+  });
+  return { changed: false };
+}
+
+/** Only dispatch users/workflows with repository write authority can submit this
+ * metadata. It can request automatic dev routing/label enforcement, never an
+ * override command. The token-bearing runner still reads fresh PR state. */
+function automaticDispatchPayload(inputs) {
+  const prNumber = inputs?.["pr-number"];
+  const rawEvent = inputs?.["routing-event"];
+  if (!prNumber && !rawEvent) return null; // read-only manual smoke test
+  if (
+    typeof prNumber !== "string" ||
+    !/^[1-9]\d*$/.test(prNumber) ||
+    !Number.isSafeInteger(Number(prNumber))
+  ) {
+    throw new Error("Dispatch requires a positive integer pr-number.");
+  }
+  let event;
+  try {
+    event = JSON.parse(rawEvent);
+  } catch {
+    throw new Error("Dispatch routing-event must be valid JSON.");
+  }
+  if (
+    !event ||
+    typeof event !== "object" ||
+    Array.isArray(event) ||
+    Object.keys(event).some(
+      (key) => !["action", "sender", "label"].includes(key),
+    ) ||
+    !prActions.has(event.action) ||
+    typeof event.sender?.login !== "string" ||
+    !event.sender.login ||
+    !["User", "Bot"].includes(event.sender?.type) ||
+    (["labeled", "unlabeled"].includes(event.action) &&
+      (typeof event.label?.name !== "string" || !event.label.name))
+  ) {
+    throw new Error(
+      "Dispatch routing-event must contain only automatic PR metadata.",
+    );
+  }
+  return { ...event, pull_request: { number: Number(prNumber) } };
+}
+
+/** Metadata-only routing. Never execute PR code or interpolate comments into scripts. */
+export async function retarget({
+  github,
+  context,
+  sourceBranch = "main",
+  targetBranch = "dev",
+  overrideLabel = "allow-main",
+  trustedBot = "",
+  exemptHeadPrefix = "",
+}) {
+  for (const value of [sourceBranch, targetBranch, overrideLabel]) {
+    if (!value || value !== value.trim()) {
+      throw new Error(
+        "Branches and override-label must be nonempty and trimmed.",
+      );
+    }
+  }
+  if (sourceBranch === targetBranch) {
+    throw new Error("source-branch and target-branch must be different.");
+  }
+
+  const ignored = { changed: false };
+  let { payload, eventName } = context;
+  const { repo } = context;
+  if (eventName === "workflow_dispatch") {
+    payload = automaticDispatchPayload(payload.inputs);
+    if (!payload) return ignored;
+    eventName = "pull_request_target";
+  }
+  let number;
+  let command;
+  let enforceOverrideLabel = false;
+  if (eventName === "issue_comment") {
+    if (payload.action !== "created" || !payload.issue?.pull_request) {
+      return ignored;
+    }
+    const body = payload.comment?.body?.trim();
+    if (body === `/target ${sourceBranch}`) command = sourceBranch;
+    else if (body === `/target ${targetBranch}`) command = targetBranch;
+    else return ignored;
+    number = payload.issue.number;
+
+    // Check current repository permissions, not author_association or PR authorship.
+    const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+      ...repo,
+      username: payload.comment.user.login,
+    });
+    if (!overridePermissions.has(data.permission)) return ignored;
+  } else if (
+    eventName === "pull_request_target" &&
+    prActions.has(payload.action) &&
+    payload.pull_request
+  ) {
+    number = payload.pull_request.number;
+    // The override label is the exemption signal, so verify the actor whenever
+    // it is added. Otherwise triage-level users could self-grant the override.
+    enforceOverrideLabel =
+      payload.action === "labeled" && payload.label?.name === overrideLabel;
+  } else {
+    return ignored;
+  }
+
+  // Event snapshots can be stale (e.g. a comment restores main while an older
+  // opened event is queued). Always use the current base, labels and state.
+  const { data: pr } = await github.rest.pulls.get({
+    ...repo,
+    pull_number: number,
+  });
+  const unchanged = { changed: false, baseBranch: pr.base.ref };
+  if (pr.state !== "open") return unchanged;
+  if (![sourceBranch, targetBranch].includes(pr.base.ref)) return unchanged;
+
+  const hasOverride = pr.labels.some((label) => label.name === overrideLabel);
+  if (enforceOverrideLabel) {
+    // A queued label event may outlive the label itself. Do not remove a label
+    // that is already gone or turn a harmless replay into a 404 failure.
+    if (!hasOverride) return unchanged;
+    // Only the explicitly configured routing App is trusted without a lookup;
+    // being a GitHub Bot is not itself authorization to grant an override.
+    const isRoutingApp =
+      trustedBot &&
+      payload.sender?.type === "Bot" &&
+      payload.sender.login === trustedBot;
+    if (!isRoutingApp) {
+      const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+        ...repo,
+        username: payload.sender.login,
+      });
+      if (!overridePermissions.has(data.permission)) {
+        await github.rest.issues.removeLabel({
+          ...repo,
+          issue_number: number,
+          name: overrideLabel,
+        });
+        await github.rest.issues.createComment({
+          ...repo,
+          issue_number: number,
+          body: `Removed the \`${overrideLabel}\` label: only users with write access to the repository can grant this override. A maintainer with write access can comment \`/target ${sourceBranch}\` instead.`,
+        });
+      }
+    }
+    return unchanged;
+  }
+
+  if (!command) {
+    if (pr.base.ref !== sourceBranch || hasOverride) return unchanged;
+    // Do not redirect dev → main rollups into a PR against their own branch.
+    // A fork's branch named dev must NOT inherit this exemption.
+    if (
+      (pr.head.ref === targetBranch ||
+        (exemptHeadPrefix && pr.head.ref.startsWith(exemptHeadPrefix))) &&
+      pr.head.repo?.full_name?.toLowerCase() ===
+        pr.base.repo.full_name.toLowerCase()
+    ) {
+      return unchanged;
+    }
+  }
+
+  const destination = command ?? targetBranch;
+  const changeBase = pr.base.ref !== destination;
+  if (changeBase) {
+    // Fail before altering labels if the destination does not exist.
+    await github.rest.repos.getBranch({ ...repo, branch: destination });
+  }
+
+  if (command === sourceBranch && !hasOverride) {
+    // Persist the exception BEFORE changing base, so the resulting edited event
+    // cannot bounce the PR back to the development branch.
+    // Require the configured label to exist; GitHub can silently ignore unknown
+    // labels when adding them. Provision it once in each caller repository.
+    await github.rest.issues.getLabel({ ...repo, name: overrideLabel });
+    await github.rest.issues.addLabels({
+      ...repo,
+      issue_number: number,
+      labels: [overrideLabel],
+    });
+  } else if (command === targetBranch && hasOverride) {
+    await github.rest.issues.removeLabel({
+      ...repo,
+      issue_number: number,
+      name: overrideLabel,
+    });
+  }
+
+  if (!changeBase) return unchanged;
+  await github.rest.pulls.update({
+    ...repo,
+    pull_number: number,
+    base: destination,
+  });
+  await github.rest.issues.createComment({
+    ...repo,
+    issue_number: number,
+    body: command
+      ? `Changed the base branch to \`${destination}\` at a maintainer's request. The \`${overrideLabel}\` override ${command === sourceBranch ? "is enabled" : "is disabled"}.`
+      : `This repository routes feature PRs to \`${targetBranch}\`, so I changed the base from \`${sourceBranch}\` to \`${targetBranch}\`. A maintainer with write access can comment \`/target ${sourceBranch}\` to restore \`${sourceBranch}\` and persist the \`${overrideLabel}\` override, or \`/target ${targetBranch}\` to remove it. Same-repository \`${targetBranch} → ${sourceBranch}\` rollups are exempt.`,
+  });
+  return { changed: true, baseBranch: destination };
+}

@@ -1,0 +1,90 @@
+# Copy to .github/workflows/pr-retarget.yml in the consuming repository.
+# Configure its App/Vault permission set first; see ../README.md.
+# The routing action tag below is the planned initial release. Before release use a
+# reviewed full commit SHA; pin all references to reviewed SHAs in production.
+name: Route PRs to development
+
+on:
+  # Metadata-only dispatcher. No PR checkout, App token or OIDC on this event.
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
+    types: [opened, reopened, edited, labeled, unlabeled]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: Automatic PR number; leave both inputs empty for the token smoke test.
+        type: string
+        default: ""
+      routing-event:
+        description: Automatic action/label/actor metadata JSON, never code or override commands.
+        type: string
+        default: ""
+
+permissions: {}
+
+jobs:
+  dispatch:
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      (github.event.pull_request.base.ref == 'main' ||
+       (github.event.action == 'labeled' && github.event.label.name == 'allow-main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch routing on the trusted default branch
+        # x-release-please-start-version
+        uses: grafana/shared-workflows/actions/pr-retarget@pr-retarget/v0.1.0
+        # x-release-please-end-version
+        with:
+          github-token: ${{ github.token }}
+          dispatch-workflow: pr-retarget.yml
+          dispatch-ref: main
+          exempt-head-prefix: release/
+
+  retarget:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
+       (github.event.comment.body == '/target main' ||
+        github.event.comment.body == '/target dev'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: pr-retarget-${{ github.repository }}-${{ github.event.issue.number || inputs.pr-number || github.run_id }}
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+    steps:
+      - name: Get repository-scoped routing token
+        id: token
+        uses: grafana/shared-workflows/actions/create-github-app-token@5bbb526b1728ca57fbe1750c4c27ab6ab06171c2 # create-github-app-token/v1.0.0
+        with:
+          github_app: YOUR-GITHUB-APP
+          permission_set: pr-routing
+
+      - name: Verify token (empty-input manual smoke test)
+        if: github.event_name == 'workflow_dispatch' && inputs.pr-number == '' && inputs.routing-event == ''
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          script: |
+            await github.rest.repos.get(context.repo);
+            await github.rest.repos.getBranch({ ...context.repo, branch: 'dev' });
+            await github.rest.issues.getLabel({ ...context.repo, name: 'allow-main' });
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo, username: context.actor,
+            });
+            core.info(`Routing token authenticated; actor permission: ${data.permission}`);
+
+      - name: Route PR
+        if: github.event_name == 'issue_comment' || inputs.pr-number != '' || inputs.routing-event != ''
+        # x-release-please-start-version
+        uses: grafana/shared-workflows/actions/pr-retarget@pr-retarget/v0.1.0
+        # x-release-please-end-version
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          trusted-bot: YOUR-GITHUB-APP[bot]
+          exempt-head-prefix: release/
