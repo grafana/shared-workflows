@@ -21,12 +21,15 @@ users whose **current repository permission** is write, maintain or admin can
 issue commands. PR authorship or organization membership alone is insufficient.
 For custom branches, the commands use those names, e.g. `/target trunk` and
 `/target develop`. A fork branch named `dev` does not qualify for the rollup
-exemption.
+exemption. Set `exempt-head-prefix: release/` to also preserve same-repository
+release-train PRs; by default no extra prefix is exempt. The example caller
+sets it explicitly.
 
 The override label itself is also permission-gated: when `allow-main` is added
 by a user without write access (for example a triage-level moderator), the
 action removes it and posts an explanatory comment. Labels added by the routing
-App itself are trusted without a lookup. Enforcement runs on the `labeled`
+App configured through `trusted-bot` are trusted without a lookup. Other bots
+must pass the same permission check; an empty `trusted-bot` trusts no bot implicitly. Enforcement runs on the `labeled`
 event, so callers must subscribe to it (the example workflow already does).
 
 Removing `allow-main` from a PR still targeting `main` resumes automatic routing
@@ -72,7 +75,7 @@ Start with these deployment-tools guides (Grafana-internal access required):
   — permission sets, OIDC restrictions and Terraform/Atlantis rollout.
 - [Creating/installing a GitHub App](https://github.com/grafana/deployment_tools/blob/master/docs/interacting-with-github-api.md#creating-a-new-github-app)
   — App ownership, installation and permission approvals.
-- [Token action documentation](../create-github-app-token/README.md)
+- [Token action documentation](https://github.com/grafana/shared-workflows/tree/main/actions/create-github-app-token)
   — runtime inputs, OIDC permissions and token cleanup.
 
 **Prefer an existing team-scoped App** installed on the consuming repository.
@@ -90,7 +93,15 @@ changes require approval. The App must grant at least:
 
 Metadata access supports the [repository-permission lookup](https://docs.github.com/en/rest/collaborators/collaborators#get-repository-permissions-for-a-user)
 used to authorize commenters. Issues access is needed for labels and comments.
-The action does not need Actions, Checks or Statuses permissions.
+The **App token** does not need Actions, Checks or Statuses permissions. The
+separate tokenless dispatcher uses `GITHUB_TOKEN` with `actions: write` to start
+a `workflow_dispatch` run; this does not change the App's permissions.
+
+**Grafana's Vault proxy rejects `pull_request_target` OIDC tokens**, regardless
+of the Vault role's event bounds. Never request an App token on that event. The
+caller has two paths: `pull_request_target` dispatches automatic metadata to the
+receiver on `main`; `workflow_dispatch` and `issue_comment` obtain App tokens.
+An empty manual dispatch remains a read-only token smoke test.
 
 In `deployment_tools`, add an entry to
 `terraform/repositories/YOUR-REPO/github-app-configs/config.yaml` (append to its
@@ -105,7 +116,7 @@ workflows:
       pr-routing:
         branch: main
         event_name:
-          - pull_request_target
+          - workflow_dispatch
           - issue_comment
         repositories:
           - YOUR-REPO
@@ -139,57 +150,60 @@ For help, contact **#platform-infrasec-chat** for Vault/OIDC authentication or
 
 ### Caller workflow
 
-Save as `.github/workflows/pr-retarget.yml`. Replace the App name with your
-repository's provisioned Vault configuration; change `pr-routing` if you chose a
-different permission-set name. The `pr-retarget`
-version below is the planned initial release; until published, use the reviewed
-commit SHA. Pin all action references to reviewed commit SHAs for production.
+Copy the [complete caller workflow](examples/pr-retarget.yml) to
+`.github/workflows/pr-retarget.yml` in the consuming repository. It declares
+`pr-number` and `routing-event` string inputs, the two jobs, empty-input smoke
+test, and receiver/comment concurrency. Do not collapse it into one privileged
+`pull_request_target` job: the Vault proxy forbids that event.
+
+The example references the planned initial release below. Until that release
+exists, use the reviewed full commit SHA. Pin **both** routing action references
+to reviewed SHAs in production; no caller checkout is needed.
 
 <!-- x-release-please-start-version -->
 
 ```yaml
-name: Route PRs to development
-
-on:
-  pull_request_target:
-    types: [opened, reopened, edited, labeled, unlabeled]
-  issue_comment:
-    types: [created]
-
-permissions: {}
-
-# Serialize both event types for the same PR. Do not cancel a run halfway through
-# persisting an override and changing the base. The action reads fresh PR state.
-concurrency:
-  group: pr-retarget-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: false
-
-jobs:
-  retarget:
-    if: >-
-      github.event_name == 'pull_request_target' ||
-      (github.event.issue.pull_request &&
-       (github.event.comment.body == '/target main' ||
-        github.event.comment.body == '/target dev'))
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      id-token: write
-    steps:
-      - name: Get routing token
-        id: token
-        uses: grafana/shared-workflows/actions/create-github-app-token@create-github-app-token/v1.0.0
-        with:
-          github_app: YOUR-GITHUB-APP
-          permission_set: pr-routing
-
-      - name: Route PR
-        uses: grafana/shared-workflows/actions/pr-retarget@pr-retarget/v0.1.0
-        with:
-          github-token: ${{ steps.token.outputs.token }}
+uses: grafana/shared-workflows/actions/pr-retarget@pr-retarget/v0.1.0
 ```
 
 <!-- x-release-please-end-version -->
+
+Adjust source/target inputs, the dispatcher base/label filter and the comment
+command filter if different from main/dev. Set `dispatch-ref` and the receiver's allowed `github.ref` to the
+trusted default branch, matching the broker entry; `dispatch-workflow` must
+match the installed caller filename. Keep the dispatcher free of OIDC/App tokens.
+
+The dispatcher calls the action with the built-in token:
+
+```yaml
+permissions:
+  actions: write
+# ...
+with:
+  github-token: ${{ github.token }}
+  dispatch-workflow: pr-retarget.yml
+  dispatch-ref: main
+  exempt-head-prefix: release/
+```
+
+The receiver/comment job has `id-token: write`, obtains an App token using the
+existing token action, and supplies it to the same routing action:
+
+```yaml
+- name: Get routing token
+  id: token
+  uses: grafana/shared-workflows/actions/create-github-app-token@5bbb526b1728ca57fbe1750c4c27ab6ab06171c2 # create-github-app-token/v1.0.0
+  with:
+    github_app: YOUR-GITHUB-APP
+    permission_set: pr-routing
+# ... routing action step:
+# with:
+#   github-token: ${{ steps.token.outputs.token }}
+#   trusted-bot: YOUR-GITHUB-APP[bot]
+```
+
+Set the App name and `trusted-bot` to the provisioned identity; use your actual
+permission-set name if not `pr-routing`. Private keys never enter this workflow.
 
 The caller's comment filter is intentionally exact to avoid issuing Vault tokens
 for ordinary comments. Remove the filter if you need commands with surrounding
@@ -215,7 +229,13 @@ See [GitHub's workflow-trigger rules](https://docs.github.com/en/actions/how-tos
 
 - Metadata-only: the action does **not** check out, build or execute PR code.
   Do not add a PR-head checkout to this privileged workflow.
-- Comments are read as data, never interpolated into shell or JavaScript source.
+- Comments and dispatch inputs are data, never interpolated into scripts.
+  Automatic dispatch metadata is validated and cannot carry `/target main` or
+  any other override command. It carries the original actor for label checks;
+  dispatching manually requires repository write authority. The receiver reads
+  current PR state and only acts on its own repository.
+- Ordinary dev-bound backmerges are skipped before dispatch/token issuance.
+  Override-label additions still dispatch enforcement on either base branch.
 - A source-branch override is persisted before the base changes, so subsequent
   events cannot bounce an intentional `main` PR back to `dev`.
 - The override label can only be granted by write-level users or the routing App
@@ -235,12 +255,16 @@ See [GitHub's workflow-trigger rules](https://docs.github.com/en/actions/how-tos
 
 <!-- BEGIN_INPUTS -->
 
-| Name             | Type   | Required | Default      | Description                                                                                       |
-| ---------------- | ------ | -------- | ------------ | ------------------------------------------------------------------------------------------------- |
-| `github-token`   | String | Yes      |              | GitHub token with pull requests write permission. Prefer an App token so base changes trigger CI. |
-| `override-label` | String | No       | `allow-main` | Persistent opt-out label applied by the source-branch comment command.                            |
-| `source-branch`  | String | No       | `main`       | Branch from which newly opened or edited pull requests are redirected.                            |
-| `target-branch`  | String | No       | `dev`        | Development branch to which pull requests are redirected.                                         |
+| Name                 | Type   | Required | Default           | Description                                                                                                                                         |
+| -------------------- | ------ | -------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dispatch-ref`       | String | No       | `main`            | Trusted default-branch ref for the receiver workflow; must match its broker authorization.                                                          |
+| `dispatch-workflow`  | String | No       | `pr-retarget.yml` | Receiver workflow filename dispatched on automatic PR events. It must accept pr-number and routing-event string inputs.                             |
+| `exempt-head-prefix` | String | No       |                   | Optional same-repository head branch prefix exempt from automatic routing (for example release/). Fork branches are never exempt.                   |
+| `github-token`       | String | Yes      |                   | For pull_request_target use GITHUB_TOKEN with actions write to dispatch. For issue_comment/workflow_dispatch use an App token with PR/Issues write. |
+| `override-label`     | String | No       | `allow-main`      | Persistent opt-out label applied by the source-branch comment command.                                                                              |
+| `source-branch`      | String | No       | `main`            | Branch from which newly opened or edited pull requests are redirected.                                                                              |
+| `target-branch`      | String | No       | `dev`             | Development branch to which pull requests are redirected.                                                                                           |
+| `trusted-bot`        | String | No       |                   | Exact routing App bot login allowed to grant overrides without a collaborator lookup. Other bots are permission-checked.                            |
 
 <!-- END_INPUTS -->
 

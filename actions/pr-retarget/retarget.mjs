@@ -7,6 +7,109 @@ const prActions = new Set([
 ]);
 const overridePermissions = new Set(["write", "maintain", "admin"]);
 
+/** Dispatch only automatic PR metadata, never code or an override command. */
+export async function dispatchAutomatic({
+  github,
+  context,
+  sourceBranch = "main",
+  targetBranch = "dev",
+  overrideLabel = "allow-main",
+  exemptHeadPrefix = "",
+  dispatchWorkflow = "pr-retarget.yml",
+  dispatchRef = "main",
+}) {
+  const { payload, eventName, repo } = context;
+  const pr = payload.pull_request;
+  if (
+    eventName !== "pull_request_target" ||
+    !prActions.has(payload.action) ||
+    !pr
+  ) {
+    return { changed: false };
+  }
+  const enforceLabel =
+    payload.action === "labeled" && payload.label?.name === overrideLabel;
+  // Dev-bound backmerges and unrelated bases need no token. Label provenance
+  // enforcement still runs on dev so a non-write user cannot stash an opt-out.
+  if (
+    ![sourceBranch, targetBranch].includes(pr.base.ref) ||
+    (pr.base.ref !== sourceBranch && !enforceLabel)
+  )
+    return { changed: false };
+  const sameRepo =
+    pr.head.repo?.full_name?.toLowerCase() ===
+    pr.base.repo.full_name.toLowerCase();
+  if (
+    !enforceLabel &&
+    sameRepo &&
+    (pr.head.ref === targetBranch ||
+      (exemptHeadPrefix && pr.head.ref.startsWith(exemptHeadPrefix)))
+  ) {
+    return { changed: false };
+  }
+  const routingEvent = {
+    action: payload.action,
+    sender: {
+      login: payload.sender.login,
+      type: payload.sender.type,
+    },
+  };
+  if (["labeled", "unlabeled"].includes(payload.action)) {
+    routingEvent.label = { name: payload.label.name };
+  }
+  await github.rest.actions.createWorkflowDispatch({
+    ...repo,
+    workflow_id: dispatchWorkflow,
+    ref: dispatchRef,
+    inputs: {
+      "pr-number": String(pr.number),
+      "routing-event": JSON.stringify(routingEvent),
+    },
+  });
+  return { changed: false };
+}
+
+/** Only dispatch users/workflows with repository write authority can submit this
+ * metadata. It can request automatic dev routing/label enforcement, never an
+ * override command. The token-bearing runner still reads fresh PR state. */
+function automaticDispatchPayload(inputs) {
+  const prNumber = inputs?.["pr-number"];
+  const rawEvent = inputs?.["routing-event"];
+  if (!prNumber && !rawEvent) return null; // read-only manual smoke test
+  if (
+    typeof prNumber !== "string" ||
+    !/^[1-9]\d*$/.test(prNumber) ||
+    !Number.isSafeInteger(Number(prNumber))
+  ) {
+    throw new Error("Dispatch requires a positive integer pr-number.");
+  }
+  let event;
+  try {
+    event = JSON.parse(rawEvent);
+  } catch {
+    throw new Error("Dispatch routing-event must be valid JSON.");
+  }
+  if (
+    !event ||
+    typeof event !== "object" ||
+    Array.isArray(event) ||
+    Object.keys(event).some(
+      (key) => !["action", "sender", "label"].includes(key),
+    ) ||
+    !prActions.has(event.action) ||
+    typeof event.sender?.login !== "string" ||
+    !event.sender.login ||
+    !["User", "Bot"].includes(event.sender?.type) ||
+    (["labeled", "unlabeled"].includes(event.action) &&
+      (typeof event.label?.name !== "string" || !event.label.name))
+  ) {
+    throw new Error(
+      "Dispatch routing-event must contain only automatic PR metadata.",
+    );
+  }
+  return { ...event, pull_request: { number: Number(prNumber) } };
+}
+
 /** Metadata-only routing. Never execute PR code or interpolate comments into scripts. */
 export async function retarget({
   github,
@@ -14,6 +117,8 @@ export async function retarget({
   sourceBranch = "main",
   targetBranch = "dev",
   overrideLabel = "allow-main",
+  trustedBot = "",
+  exemptHeadPrefix = "",
 }) {
   for (const value of [sourceBranch, targetBranch, overrideLabel]) {
     if (!value || value !== value.trim()) {
@@ -27,7 +132,13 @@ export async function retarget({
   }
 
   const ignored = { changed: false };
-  const { payload, eventName, repo } = context;
+  let { payload, eventName } = context;
+  const { repo } = context;
+  if (eventName === "workflow_dispatch") {
+    payload = automaticDispatchPayload(payload.inputs);
+    if (!payload) return ignored;
+    eventName = "pull_request_target";
+  }
   let number;
   let command;
   let enforceOverrideLabel = false;
@@ -71,10 +182,18 @@ export async function retarget({
   if (pr.state !== "open") return unchanged;
   if (![sourceBranch, targetBranch].includes(pr.base.ref)) return unchanged;
 
+  const hasOverride = pr.labels.some((label) => label.name === overrideLabel);
   if (enforceOverrideLabel) {
-    // Bot-added labels are the action's own persistence (sender is the App);
-    // human and other actor additions require write, maintain or admin.
-    if (payload.sender?.type !== "Bot") {
+    // A queued label event may outlive the label itself. Do not remove a label
+    // that is already gone or turn a harmless replay into a 404 failure.
+    if (!hasOverride) return unchanged;
+    // Only the explicitly configured routing App is trusted without a lookup;
+    // being a GitHub Bot is not itself authorization to grant an override.
+    const isRoutingApp =
+      trustedBot &&
+      payload.sender?.type === "Bot" &&
+      payload.sender.login === trustedBot;
+    if (!isRoutingApp) {
       const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
         ...repo,
         username: payload.sender.login,
@@ -95,13 +214,13 @@ export async function retarget({
     return unchanged;
   }
 
-  const hasOverride = pr.labels.some((label) => label.name === overrideLabel);
   if (!command) {
     if (pr.base.ref !== sourceBranch || hasOverride) return unchanged;
     // Do not redirect dev → main rollups into a PR against their own branch.
     // A fork's branch named dev must NOT inherit this exemption.
     if (
-      pr.head.ref === targetBranch &&
+      (pr.head.ref === targetBranch ||
+        (exemptHeadPrefix && pr.head.ref.startsWith(exemptHeadPrefix))) &&
       pr.head.repo?.full_name?.toLowerCase() ===
         pr.base.repo.full_name.toLowerCase()
     ) {

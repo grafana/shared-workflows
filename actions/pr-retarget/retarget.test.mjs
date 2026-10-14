@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { retarget } from "./retarget.mjs";
+import { retarget, dispatchAutomatic } from "./retarget.mjs";
 
 function fixture({
   base = "main",
@@ -12,7 +12,7 @@ function fixture({
   action = eventName === "issue_comment" ? "created" : "opened",
   body = "/target main",
   permission = "write",
-  sender = null,
+  sender = { login: "maintainer", type: "User" },
   addedLabel = null,
 } = {}) {
   const calls = [];
@@ -20,7 +20,9 @@ function fixture({
     state,
     base: { ref: base, repo: { full_name: "grafana/example" } },
     head: { ref: head, repo: headRepo ? { full_name: headRepo } : null },
-    labels: labels.map((name) => ({ name })),
+    labels: (addedLabel && labels.length === 0 ? [addedLabel] : labels).map(
+      (name) => ({ name }),
+    ),
   };
   const api =
     (method, data = {}) =>
@@ -30,6 +32,7 @@ function fixture({
     };
   const github = {
     rest: {
+      actions: { createWorkflowDispatch: api("dispatch") },
       repos: {
         getCollaboratorPermissionLevel: api("permission", { permission }),
         getBranch: api("branch"),
@@ -48,7 +51,7 @@ function fixture({
     repo: { owner: "grafana", repo: "example" },
     payload: {
       action,
-      pull_request: { number: 42, base: { ref: "main" }, labels: [] },
+      pull_request: { number: 42, base: pr.base, head: pr.head, labels: [] },
       issue: { number: 42, pull_request: {} },
       comment: { body, user: { login: "maintainer" } },
       ...(sender && { sender }),
@@ -97,6 +100,28 @@ for (const options of [
     assert.deepEqual(f.methods(), ["get"]);
   });
 }
+
+test("configured same-repository release branches are exempt", async () => {
+  const f = fixture({ head: "release/2026-10-13" });
+  assert.deepEqual(await f.run({ exemptHeadPrefix: "release/" }), {
+    changed: false,
+    baseBranch: "main",
+  });
+  assert.deepEqual(f.methods(), ["get"]);
+});
+
+test("release exemption does not apply to fork branches", async () => {
+  const f = fixture({
+    head: "release/2026-10-13",
+    headRepo: "outsider/example",
+  });
+  assert.equal((await f.run({ exemptHeadPrefix: "release/" })).changed, true);
+});
+
+test("release exemption is disabled by default", async () => {
+  const f = fixture({ head: "release/2026-10-13" });
+  assert.equal((await f.run()).changed, true);
+});
 
 for (const headRepo of ["outsider/example", null]) {
   test(`does not exempt dev branch with head repository ${headRepo}`, async () => {
@@ -238,14 +263,53 @@ for (const permission of ["write", "maintain", "admin"]) {
   });
 }
 
-test("bot-added override label is trusted without a permission lookup", async () => {
+test("only the configured routing App bypasses the permission lookup", async () => {
   const f = fixture({
     action: "labeled",
     addedLabel: "allow-main",
     sender: { login: "routing-app[bot]", type: "Bot" },
   });
-  assert.deepEqual(await f.run(), { changed: false, baseBranch: "main" });
-  assert.deepEqual(f.methods(), ["get"]); // lookup skipped, state read only
+  assert.deepEqual(await f.run({ trustedBot: "routing-app[bot]" }), {
+    changed: false,
+    baseBranch: "main",
+  });
+  assert.deepEqual(f.methods(), ["get"]);
+});
+
+for (const trustedBot of ["", "routing-app[bot]"]) {
+  test(`other bots cannot self-grant overrides (trustedBot=${trustedBot})`, async () => {
+    const f = fixture({
+      action: "labeled",
+      addedLabel: "allow-main",
+      sender: { login: "other-app[bot]", type: "Bot" },
+      permission: "none",
+    });
+    await f.run({ trustedBot });
+    assert.deepEqual(f.methods(), ["get", "permission", "remove", "comment"]);
+  });
+}
+
+test("a matching login is not trusted without GitHub's Bot actor type", async () => {
+  const f = fixture({
+    action: "labeled",
+    addedLabel: "allow-main",
+    sender: { login: "routing-app[bot]", type: "User" },
+    permission: "none",
+  });
+  await f.run({ trustedBot: "routing-app[bot]" });
+  assert.deepEqual(f.methods(), ["get", "permission", "remove", "comment"]);
+});
+
+test("stale label event is harmless when the label is already gone", async () => {
+  const f = fixture({
+    action: "labeled",
+    addedLabel: "allow-main",
+    sender: { login: "helper", type: "User" },
+    permission: "triage",
+  });
+  f.pr.labels = [];
+  await f.run();
+  assert.deepEqual(f.methods(), ["get"]);
 });
 
 test("adding an unrelated label is not enforcement", async () => {
@@ -369,3 +433,207 @@ for (const config of [
     assert.deepEqual(f.methods(), []);
   });
 }
+
+function dispatchContext(f) {
+  const { action, sender, label } = f.context.payload;
+  f.context.eventName = "workflow_dispatch";
+  f.context.payload = {
+    inputs: {
+      "pr-number": "42",
+      "routing-event": JSON.stringify({
+        action,
+        sender,
+        ...(label && { label }),
+      }),
+    },
+  };
+}
+
+for (const action of ["opened", "reopened", "edited", "labeled", "unlabeled"]) {
+  test(`tokenless ${action} dispatcher queues metadata on main`, async () => {
+    const f = fixture({
+      action,
+      addedLabel: ["labeled", "unlabeled"].includes(action)
+        ? "needs-review"
+        : null,
+    });
+    await dispatchAutomatic({ github: f.github, context: f.context });
+    assert.deepEqual(f.methods(), ["dispatch"]);
+    const args = f.calls[0].args;
+    assert.equal(args.workflow_id, "pr-retarget.yml");
+    assert.equal(args.ref, "main");
+    assert.equal(args.inputs["pr-number"], "42");
+    const metadata = JSON.parse(args.inputs["routing-event"]);
+    assert.equal(metadata.action, action);
+    assert.equal(metadata.sender.login, "maintainer");
+    assert.equal(metadata.comment, undefined);
+    assert.equal(metadata.command, undefined);
+    assert.equal(metadata.pull_request, undefined);
+  });
+
+  test(`dispatched ${action} routes using fresh PR state`, async () => {
+    const f = fixture({
+      action,
+      addedLabel: ["labeled", "unlabeled"].includes(action)
+        ? "needs-review"
+        : null,
+    });
+    dispatchContext(f);
+    assert.deepEqual(await f.run(), { changed: true, baseBranch: "dev" });
+    assert.deepEqual(f.methods(), ["get", "branch", "update", "comment"]);
+  });
+}
+
+for (const options of [
+  { base: "dev", head: "main" },
+  { base: "dev", head: "backmerge/main-after-release" },
+  { base: "release" },
+  { head: "dev" },
+  { head: "release/2026-10-14" },
+  { eventName: "issue_comment" },
+  { action: "closed" },
+]) {
+  test(`dispatcher skips irrelevant/exempt event ${JSON.stringify(options)}`, async () => {
+    const f = fixture(options);
+    await dispatchAutomatic({
+      github: f.github,
+      context: f.context,
+      exemptHeadPrefix: "release/",
+    });
+    assert.deepEqual(f.methods(), []);
+  });
+}
+
+test("dispatcher does not exempt fork release branches", async () => {
+  const f = fixture({
+    head: "release/2026-10-14",
+    headRepo: "outsider/example",
+  });
+  await dispatchAutomatic({
+    github: f.github,
+    context: f.context,
+    exemptHeadPrefix: "release/",
+  });
+  assert.deepEqual(f.methods(), ["dispatch"]);
+});
+
+test("override-label enforcement is dispatched even on dev", async () => {
+  const f = fixture({
+    base: "dev",
+    action: "labeled",
+    addedLabel: "allow-main",
+    permission: "triage",
+    sender: { login: "helper", type: "User" },
+  });
+  await dispatchAutomatic({ github: f.github, context: f.context });
+  assert.deepEqual(f.methods(), ["dispatch"]);
+  dispatchContext(f);
+  await f.run();
+  assert.deepEqual(f.methods(), [
+    "dispatch",
+    "get",
+    "permission",
+    "remove",
+    "comment",
+  ]);
+  assert.equal(f.calls[2].args.username, "helper");
+});
+
+test("dispatched routing never overrides a freshly restored main exception", async () => {
+  const f = fixture({ labels: ["allow-main"] });
+  dispatchContext(f);
+  await f.run();
+  assert.deepEqual(f.methods(), ["get"]);
+});
+
+test("dispatched trusted App label preserves the explicitly configured bot exemption", async () => {
+  const f = fixture({
+    action: "labeled",
+    addedLabel: "allow-main",
+    sender: { login: "routing-app[bot]", type: "Bot" },
+  });
+  dispatchContext(f);
+  await f.run({ trustedBot: "routing-app[bot]" });
+  assert.deepEqual(f.methods(), ["get"]);
+});
+
+test("empty manual dispatch is a no-op for the action", async () => {
+  const f = fixture({ eventName: "workflow_dispatch" });
+  f.context.payload.inputs = { "pr-number": "", "routing-event": "" };
+  assert.deepEqual(await f.run(), { changed: false });
+  assert.deepEqual(f.methods(), []);
+});
+
+const validAutomaticMetadata = JSON.stringify({
+  action: "opened",
+  sender: { login: "maintainer", type: "User" },
+});
+for (const inputs of [
+  { "pr-number": 42, "routing-event": validAutomaticMetadata },
+  { "pr-number": "0", "routing-event": validAutomaticMetadata },
+  { "pr-number": "-1", "routing-event": validAutomaticMetadata },
+  { "pr-number": "42;echo hacked", "routing-event": validAutomaticMetadata },
+  { "pr-number": "9007199254740993", "routing-event": validAutomaticMetadata },
+  { "pr-number": "42" },
+  { "routing-event": validAutomaticMetadata },
+  { "pr-number": "42", "routing-event": "not-json" },
+  { "pr-number": "42", "routing-event": "null" },
+  { "pr-number": "42", "routing-event": "[]" },
+  { "pr-number": "42", "routing-event": JSON.stringify({ action: "opened" }) },
+  {
+    "pr-number": "42",
+    "routing-event": JSON.stringify({
+      action: "issue_comment",
+      sender: { login: "maintainer", type: "User" },
+    }),
+  },
+  {
+    "pr-number": "42",
+    "routing-event": JSON.stringify({
+      action: "opened",
+      sender: { login: "maintainer", type: "User" },
+      command: "/target main",
+    }),
+  },
+  {
+    "pr-number": "42",
+    "routing-event": JSON.stringify({
+      action: "opened",
+      sender: { login: "maintainer", type: "User" },
+      comment: { body: "/target main" },
+    }),
+  },
+  {
+    "pr-number": "42",
+    "routing-event": JSON.stringify({
+      action: "labeled",
+      sender: { login: "maintainer", type: "User" },
+    }),
+  },
+  {
+    "pr-number": "42",
+    "routing-event": JSON.stringify({
+      action: "opened",
+      sender: { login: "maintainer", type: "Organization" },
+    }),
+  },
+]) {
+  test(`invalid dispatch fails before GitHub mutations: ${JSON.stringify(inputs)}`, async () => {
+    const f = fixture({ eventName: "workflow_dispatch" });
+    f.context.payload.inputs = inputs;
+    await assert.rejects(f.run(), /Dispatch/);
+    assert.deepEqual(f.methods(), []);
+  });
+}
+
+test("dispatch errors propagate without any PR writes", async () => {
+  const f = fixture();
+  f.github.rest.actions.createWorkflowDispatch = async () => {
+    throw new Error("Dispatch forbidden");
+  };
+  await assert.rejects(
+    dispatchAutomatic({ github: f.github, context: f.context }),
+    /Dispatch forbidden/,
+  );
+  assert.deepEqual(f.methods(), []);
+});

@@ -219,7 +219,7 @@
     },
     "actions/pr-retarget": {
       "package-name": "pr-retarget",
-      "extra-files": ["README.md"],
+      "extra-files": ["README.md", "examples/pr-retarget.yml"],
       "initial-version": "0.1.0"
     },
     "actions/signed-commits-info": {
