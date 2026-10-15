@@ -116,21 +116,21 @@ jobs:
 | `min-confidence`                 | string  | No       | `low`                 | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                                             |
 | `min-severity`                   | string  | No       | `low`                 | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                                      |
 | `runs-on`                        | string  | No       | `ubuntu-latest`       | The runner to use for jobs. Set this to use self-hosted runners.                                                                                                                                                              |
-| `send-bench-metrics`             | boolean | No       | `true`                | If true, run Grafana Bench after analysis (Vault Prometheus creds). Job only runs for grafana org and non-fork PRs; fork PRs have no OIDC/Vault access.                                                                       |
+| `send-bench-metrics`             | boolean | No       | `true`                | If true, run Grafana Bench after analysis (Vault Prometheus creds). Reporting only runs for grafana org and non-fork PRs; fork PRs have no OIDC/Vault access.                                                                 |
 
 <!-- END_INPUTS -->
 
 ## Grafana Bench (Prometheus metrics)
 
-When `send-bench-metrics` is true (default), the workflow runs a second job after zizmor analysis that:
+When `send-bench-metrics` is true (default), the analysis job reports metrics after scanning:
 
 1. Fetches **Prometheus credentials** from Vault (shared `grafana-bench` common secrets), same as the [setup-grafana-bench](https://github.com/grafana/grafana-bench/blob/main/.github/actions/setup-grafana-bench/action.yml) action.
-2. Downloads the **SARIF file** artifact produced by the analysis job.
+2. Reads the **SARIF file** directly from the scan workspace.
 3. Runs the [Grafana Bench](https://github.com/grafana/grafana-bench) Docker image with `report --report-input zizmor` and `--prometheus-metrics`, sending metrics to Grafana’s Prometheus (ops) endpoint.
 
-**No caller configuration needed:** You do not need to set `PROMETHEUS_URL` or pass `secrets: inherit` for metrics; the workflow uses Vault.
+**Caller permissions:** Grant `id-token: write` to allow the analysis job to fetch metrics credentials from Vault. You do not need to set `PROMETHEUS_URL` or pass `secrets: inherit` for metrics; the workflow uses Vault.
 
-**To disable:** Pass `send-bench-metrics: false` so the Grafana Bench job is skipped.
+**To disable:** Pass `send-bench-metrics: false` so the Grafana Bench reporting steps are skipped.
 
 **If only `bench_*` metrics appear in Prometheus and `zizmor_*` metrics are missing:**
 
