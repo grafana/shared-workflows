@@ -48,7 +48,7 @@ on:
         default: ""
 
       send-bench-metrics:
-        description: If true, run Grafana Bench after analysis (Vault Prometheus creds). Job only runs for grafana org and non-fork PRs; fork PRs have no OIDC/Vault access.
+        description: If true, run Grafana Bench after analysis (Vault Prometheus creds). Reporting only runs for grafana org and non-fork PRs; fork PRs have no OIDC/Vault access.
         required: false
         type: boolean
         default: true
@@ -271,6 +271,7 @@ jobs:
     permissions:
       actions: read
       contents: read
+      id-token: write
 
       # fallback: comment on PR when code-scanning upload is unavailable
       # (private repos without Advanced Security)
@@ -589,36 +590,21 @@ jobs:
             exit 1
           fi
 
-  grafana-bench:
-    name: Send zizmor metrics to Prometheus via Grafana Bench
-    continue-on-error: true
-    needs: [analysis, job-workflow-ref]
-    # Only run for grafana org and non-fork PRs (fork PRs have no OIDC/Vault access).
-    if: ${{ github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && always() && !cancelled() && (needs.analysis.result == 'success' || needs.analysis.result == 'failure') }}
-    runs-on: ${{ inputs.runs-on }}
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
       - id: get-secrets
+        if: ${{ !cancelled() && github.repository_owner == 'grafana' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) && inputs.send-bench-metrics && hashFiles('results.sarif') != '' }}
+        continue-on-error: true
         name: Get Prometheus secrets from Vault
         uses: grafana/shared-workflows/actions/get-vault-secrets@4e6a096e033d00f25363adb1dc75b7e56ecdb7c6
         with:
+          export_env: false
           common_secrets: |
             PROMETHEUS_URL=grafana-bench:prometheus_url
             PROMETHEUS_USER=grafana-bench:prometheus_user
             PROMETHEUS_PASSWORD=grafana-bench:prometheus_token
 
-      - name: Download SARIF artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: SARIF file
-
       - name: Run Grafana Bench (Docker image)
+        if: ${{ !cancelled() && steps.get-secrets.outcome == 'success' }}
+        continue-on-error: true
         env:
           BENCH_SERVICE: ${{ format('grafana-{0}', github.event.repository.name) }}
           BENCH_SUITE_NAME: ${{ github.event.repository.name }}/zizmor
@@ -630,11 +616,7 @@ jobs:
           PROMETHEUS_PASSWORD: ${{ fromJSON(steps.get-secrets.outputs.secrets).PROMETHEUS_PASSWORD }}
         run: |
           BENCH_IMAGE="ghcr.io/grafana/grafana-bench:${BENCH_VERSION}"
-          SARIF_FILE=$(find . -name "*.sarif" -type f | head -n 1)
-          if [ -z "${SARIF_FILE}" ]; then
-            echo "::error::No SARIF file found; analysis job must upload the SARIF artifact."
-            exit 1
-          fi
+          SARIF_FILE=results.sarif
           if [ -z "${PROMETHEUS_URL}" ]; then
             echo "::error::PROMETHEUS_URL not set; Vault step may have failed or export_env is false."
             exit 1
