@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.4](https://github.com/grafana/shared-workflows/compare/validate-zizmor-config/v0.2.3...validate-zizmor-config/v0.2.4) (2026-10-20)
+
+
+### 🤖 Continuous Integration
+
+* **zizmor:** update config validator to v0.2.3 ([#2348](https://github.com/grafana/shared-workflows/issues/2348)) ([2befffd](https://github.com/grafana/shared-workflows/commit/2befffd18e64a8fd27746798f261744c3b319d2c))
+
+
+### 🔧 Miscellaneous Chores
+
+* **main:** release validate-zizmor-config 0.2.3 ([#2294](https://github.com/grafana/shared-workflows/issues/2294)) ([2b94cc5](https://github.com/grafana/shared-workflows/commit/2b94cc54e852bc2900612d264df5fd69fc4fc787))
+
 ## [0.2.3](https://github.com/grafana/shared-workflows/compare/validate-zizmor-config/v0.2.2...validate-zizmor-config/v0.2.3) (2026-10-20)
 
 
