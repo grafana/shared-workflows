@@ -32,6 +32,18 @@ While Dependabot can update references to these actions, Renovate can't do it ou
 }
 ```
 
+## Releasing
+
+So you've made a change and want to release it?
+
+We run a GitHub Action to create automatic release PRs:
+
+1. Merge all the changes you want.
+2. Find the release-please PR that is automatically opened.
+3. Merge said PR.
+4. Update users of the workflow(s) you've updated.
+   For org-wide checks, some of them may be in this repository, [security-github-actions](https://github.com/grafana/security-github-actions), or both.
+
 ## Notes
 
 ### Configure your IDE to run Prettier
