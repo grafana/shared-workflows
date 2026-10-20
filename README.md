@@ -37,6 +37,10 @@ While Dependabot can update references to these actions, Renovate can't do it ou
 Each action and reusable workflow is versioned and released individually, using tags of the form `<name>/v<semver version>`.
 This lets consumers review changes before updating and allows Dependabot and Renovate to track new releases.
 
+**Never manually push a tag at any point in the release process.**
+Release Please creates release tags automatically when you merge a release PR.
+If a release is missing or fails, fix the release automation rather than pushing a tag yourself.
+
 ### Prepare your changes
 
 Pull request titles must follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/): a type, an optional scope, a colon, and a subject, all in lowercase.
