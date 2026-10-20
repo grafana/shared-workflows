@@ -97,6 +97,9 @@ jobs:
       ZIZMOR_VERSION: 1.30.1
       GH_TOKEN: ${{ inputs.github-token || github.token }}
       ZIZMOR_EXTRA_ARGS: ${{ inputs.extra-args }}
+      # The workspace is the checked-out PR. Don't let uv read config files
+      # (uv.toml, pyproject.toml) from it, e.g. to swap the package index.
+      UV_NO_CONFIG: "true"
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
