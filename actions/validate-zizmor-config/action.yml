@@ -23,7 +23,10 @@ runs:
         if [ -n "${SARIF_OUTPUT}" ]; then
           args+=(--sarif-output "${SARIF_OUTPUT}")
         fi
-        uv run --with "pyyaml==${PYYAML_VERSION}" python3 "${args[@]}"
+        # The workspace can contain untrusted PR files. Do not let uv discover
+        # or build the checked-out repository before running our validator.
+        uv run --no-project --no-config --no-env-file --isolated \
+          --with "pyyaml==${PYYAML_VERSION}" -- python3 "${args[@]}"
       env:
         CONFIG_PATH: ${{ inputs.config_path }}
         SARIF_OUTPUT: ${{ inputs.sarif_output }}
