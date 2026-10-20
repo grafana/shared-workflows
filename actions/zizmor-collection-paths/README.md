@@ -14,6 +14,7 @@ cd actions/zizmor-collection-paths && python3 -m unittest discover -v
 
 | Name                 | Description                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------- |
+| `default_config`     | Path to the default Grafana zizmor config shipped with this action.                   |
 | `helper_root`        | Directory containing collection_paths.py and run_zizmor.py (GITHUB_ACTION_PATH).      |
 | `paths_list`         | Path to the newline-separated explicit inputs file (when use_explicit_paths is true). |
 | `use_explicit_paths` | true when ignore prefixes are active; false to scan .                                 |

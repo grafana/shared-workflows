@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - actions/zizmor-collection-paths/**
+      - .github/zizmor.yml
       - .github/workflows/test-zizmor-collection-paths.yml
       - .github/workflows/reusable-zizmor.yml
 
   pull_request:
     paths:
       - actions/zizmor-collection-paths/**
+      - .github/zizmor.yml
       - .github/workflows/test-zizmor-collection-paths.yml
       - .github/workflows/reusable-zizmor.yml
     types:

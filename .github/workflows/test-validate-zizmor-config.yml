@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - actions/validate-zizmor-config/**
+      - actions/zizmor-collection-paths/default-zizmor.yml
       - .github/workflows/test-validate-zizmor-config.yml
       - .github/workflows/reusable-zizmor.yml
 
   pull_request:
     paths:
       - actions/validate-zizmor-config/**
+      - actions/zizmor-collection-paths/default-zizmor.yml
       - .github/workflows/test-validate-zizmor-config.yml
       - .github/workflows/reusable-zizmor.yml
     types:
@@ -54,7 +56,7 @@ jobs:
           cd actions/validate-zizmor-config
           uv run --with "pyyaml==${PYYAML_VERSION}" python3 -m unittest discover -v
 
-      - name: Integration smoke (action on repo default zizmor)
+      - name: Integration smoke (action on the default zizmor config)
         uses: ./actions/validate-zizmor-config
         with:
-          config_path: .github/zizmor.yml
+          config_path: actions/zizmor-collection-paths/default-zizmor.yml
