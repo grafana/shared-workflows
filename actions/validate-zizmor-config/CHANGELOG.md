@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/grafana/shared-workflows/compare/validate-zizmor-config/v0.2.2...validate-zizmor-config/v0.2.3) (2026-10-20)
+
+
+### 🐛 Bug Fixes
+
+* **validate-zizmor-config:** isolate uv from caller project ([#2346](https://github.com/grafana/shared-workflows/issues/2346)) ([6be809e](https://github.com/grafana/shared-workflows/commit/6be809e60f4611e23b5f37a3b27b92a3c7accd6f))
+
 ## [0.2.2](https://github.com/grafana/shared-workflows/compare/validate-zizmor-config/v0.2.1...validate-zizmor-config/v0.2.2) (2026-09-09)
 
 
