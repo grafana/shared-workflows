@@ -423,6 +423,25 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Route pull requests to a development branch with maintainer-only comment
+    overrides.
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/pr-retarget/README.md
+  name: shared-workflows-pr-retarget
+  title: pr-retarget
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: Composite action to push to Google Cloud Storage
   links:
   - title: README

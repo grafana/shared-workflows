@@ -1,0 +1,71 @@
+name: Retarget pull requests
+description: Route pull requests to a development branch with maintainer-only comment overrides.
+
+inputs:
+  github-token:
+    description: For pull_request_target use GITHUB_TOKEN with actions write to dispatch. For issue_comment/workflow_dispatch use an App token with PR/Issues write.
+    required: true
+  dispatch-workflow:
+    description: Receiver workflow filename dispatched on automatic PR events. It must accept pr-number and routing-event string inputs.
+    default: pr-retarget.yml
+  dispatch-ref:
+    description: Trusted default-branch ref for the receiver workflow; must match its broker authorization.
+    default: main
+  source-branch:
+    description: Branch from which newly opened or edited pull requests are redirected.
+    default: main
+  target-branch:
+    description: Development branch to which pull requests are redirected.
+    default: dev
+  override-label:
+    description: Persistent opt-out label applied by the source-branch comment command.
+    default: allow-main
+
+  exempt-head-prefix:
+    description: Optional same-repository head branch prefix exempt from automatic routing (for example release/). Fork branches are never exempt.
+    default: ""
+  trusted-bot:
+    description: Exact routing App bot login allowed to grant overrides without a collaborator lookup. Other bots are permission-checked.
+    default: ""
+
+outputs:
+  base-branch:
+    description: Current base branch of the processed pull request, or empty for ignored events.
+    value: ${{ steps.retarget.outputs.base-branch }}
+  changed:
+    description: Whether the action changed the pull request base branch.
+    value: ${{ steps.retarget.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Retarget pull request
+      id: retarget
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+      env:
+        PR_RETARGET_ACTION_PATH: ${{ github.action_path }}
+        PR_RETARGET_SOURCE_BRANCH: ${{ inputs.source-branch }}
+        PR_RETARGET_TARGET_BRANCH: ${{ inputs.target-branch }}
+        PR_RETARGET_OVERRIDE_LABEL: ${{ inputs.override-label }}
+        PR_RETARGET_TRUSTED_BOT: ${{ inputs.trusted-bot }}
+        PR_RETARGET_EXEMPT_HEAD_PREFIX: ${{ inputs.exempt-head-prefix }}
+        PR_RETARGET_DISPATCH_WORKFLOW: ${{ inputs.dispatch-workflow }}
+        PR_RETARGET_DISPATCH_REF: ${{ inputs.dispatch-ref }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const { pathToFileURL } = require('node:url');
+          const { retarget, dispatchAutomatic } = await import(pathToFileURL(`${process.env.PR_RETARGET_ACTION_PATH}/retarget.mjs`).href);
+          const run = context.eventName === 'pull_request_target' ? dispatchAutomatic : retarget;
+          const result = await run({
+            github, context,
+            sourceBranch: process.env.PR_RETARGET_SOURCE_BRANCH,
+            targetBranch: process.env.PR_RETARGET_TARGET_BRANCH,
+            overrideLabel: process.env.PR_RETARGET_OVERRIDE_LABEL,
+            trustedBot: process.env.PR_RETARGET_TRUSTED_BOT,
+            exemptHeadPrefix: process.env.PR_RETARGET_EXEMPT_HEAD_PREFIX,
+            dispatchWorkflow: process.env.PR_RETARGET_DISPATCH_WORKFLOW,
+            dispatchRef: process.env.PR_RETARGET_DISPATCH_REF,
+          });
+          core.setOutput('base-branch', result.baseBranch ?? '');
+          core.setOutput('changed', String(result.changed));
