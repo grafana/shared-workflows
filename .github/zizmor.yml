@@ -1,5 +1,8 @@
 # This is also used as the default configuration for the Zizmor reusable
 # workflow.
+#
+# Keep it in sync with actions/zizmor-collection-paths/default-zizmor.yml;
+# test_default_config.py checks this.
 
 rules:
   unpinned-uses:

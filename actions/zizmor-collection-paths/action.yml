@@ -12,6 +12,9 @@ outputs:
   helper_root:
     description: Directory containing collection_paths.py and run_zizmor.py (GITHUB_ACTION_PATH).
     value: ${{ steps.collect.outputs.helper_root }}
+  default_config:
+    description: Path to the default Grafana zizmor config shipped with this action.
+    value: ${{ steps.collect.outputs.default_config }}
 
 runs:
   using: composite
@@ -22,6 +25,7 @@ runs:
       run: |
         set -euo pipefail
         echo "helper_root=${GITHUB_ACTION_PATH}" >> "${GITHUB_OUTPUT}"
+        echo "default_config=${GITHUB_ACTION_PATH}/default-zizmor.yml" >> "${GITHUB_OUTPUT}"
         python3 "${GITHUB_ACTION_PATH}/collection_paths.py" \
           --repo-root "${GITHUB_WORKSPACE}" \
           --ignore-file "${GITHUB_WORKSPACE}/.github/zizmor-collection-ignore" \
