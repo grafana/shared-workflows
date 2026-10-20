@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/grafana/shared-workflows/compare/zizmor-collection-paths/v0.2.1...zizmor-collection-paths/v0.3.0) (2026-10-20)
+
+
+### 🎉 Features
+
+* **zizmor-collection-paths:** ship the default zizmor config ([#2349](https://github.com/grafana/shared-workflows/issues/2349)) ([17bd666](https://github.com/grafana/shared-workflows/commit/17bd666db0ca999812b0c6aeb1a6b8fba16986b4))
+
 ## [0.2.1](https://github.com/grafana/shared-workflows/compare/zizmor-collection-paths/v0.2.0...zizmor-collection-paths/v0.2.1) (2026-09-09)
 
 
