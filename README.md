@@ -32,6 +32,39 @@ While Dependabot can update references to these actions, Renovate can't do it ou
 }
 ```
 
+## Releasing actions and reusable workflows
+
+Each action and reusable workflow is versioned and released individually, using tags of the form `<name>/v<semver version>`.
+This lets consumers review changes before updating and allows Dependabot and Renovate to track new releases.
+
+**Never manually push a tag at any point in the release process.**
+Release Please creates release tags automatically when you merge a release PR.
+If a release is missing or fails, fix the release automation rather than pushing a tag yourself.
+
+### Prepare your changes
+
+Pull request titles must follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/): a type, an optional scope, a colon, and a subject, all in lowercase.
+Release Please uses these titles to generate the changelog and determine version bumps:
+
+- `feat: add support for eating lollipops` causes a minor version bump.
+- `feat!: rename foo input to bar` marks a breaking change and causes a major version bump.
+
+Each pull request must also have a description explaining the change.
+CI enforces conventional pull request titles and non-empty descriptions.
+
+### Publish the release and update consumers
+
+1. Merge all the changes you want to release into `main`.
+2. Find the release PR for each action or reusable workflow you changed.
+   On every push to `main`, our Release Please GitHub Action creates or updates a draft PR for each changed component, including its `CHANGELOG.md` updates.
+3. Review the release PR, mark it ready for review, and merge it to create the next tagged release.
+   This requires write access to the repository.
+4. Update consumers to reference the new release.
+   Publishing a release does not update their pinned versions.
+   For org-wide checks, look for consumers in this repository and [security-github-actions](https://github.com/grafana/security-github-actions); updates may be needed in either or both.
+
+For more information about Release Please, refer to the [release-please-action repository](https://github.com/googleapis/release-please-action).
+
 ## Notes
 
 ### Configure your IDE to run Prettier
@@ -127,29 +160,6 @@ id: echo-success
 shell: bash
 run: ./echo-success.bash
 ```
-
-### Version actions and reusable workflows
-
-To avoid breaking compatibility, each action or reusable workflow is versioned so that engineers consuming the component can review incoming changes.
-This also helps automated update tools like Dependabot and Renovate to work effectively.
-
-For every push to `main`, Release Please creates or updates a draft pull request with updates in `CHANGELOG.md`.
-Since this repository is a monorepo, it creates one pull request for each action or reusable workflow that changed.
-Users with write access can mark the pull request ready for review and merge it to create the next tagged release.
-Each action is released individually and uses tags of the form `<name>/v<semver version>`.
-
-To generate the CHANGELOG for the current release, all pull request titles need to follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/).
-This means that the PR should start with a _type_ followed by a colon, and then a _subject_, all in lowercase.
-
-Pull request titles with the `feat` type, like `feat: add support for eating lollipops`, cause minor version bumps.
-
-Pull request titles that include an exclamation mark (`!`) after the type, like `feat!: rename foo input to bar`, cause major version bumps.
-
-Each pull request must also have a description that explains the change.
-
-CI enforces the use of conventional pull request titles and non-empty pull request descriptions.
-
-For more information about Release Please, refer to the [release-please-action repository](https://github.com/googleapis/release-please-action).
 
 ### Add new components to the Release Please configuration file
 
