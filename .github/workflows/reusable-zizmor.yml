@@ -261,12 +261,6 @@ jobs:
 
           python3 "${HELPER_ROOT}/run_zizmor.py" plain-github-output --batch-size 400
 
-      - name: Remove zizmor config
-        env:
-          ZIZMOR_CONFIG_PATH: ${{ steps.setup-config.outputs.zizmor-config }}
-        if: steps.setup-config.outputs.zizmor-config
-        run: rm "${ZIZMOR_CONFIG_PATH}"
-
       # Fallback: post a PR comment with findings when Code Scanning is
       # unavailable (e.g. private repos without Advanced Security).
       - name: Hide any previous comments
