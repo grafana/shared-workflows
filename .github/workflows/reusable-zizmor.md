@@ -38,10 +38,8 @@ jobs:
       actions: read
       contents: read
 
-      # used in the `job-workflow-ref` job to fetch an OIDC token, which
-      # allows the run to determine its ref. That's used to find the default
-      # configuration file. This doesn't work from forks. In that case,
-      # Zizmor's default config behaviour will be used.
+      # used by the `grafana-bench` job to fetch Prometheus credentials from
+      # Vault. Not needed when `send-bench-metrics` is `false`.
       id-token: write
 
       # fallback: comment on PR when code-scanning upload is unavailable
@@ -80,10 +78,8 @@ jobs:
       actions: read
       contents: read
 
-      # used in the `job-workflow-ref` job to fetch an OIDC token, which
-      # allows the run to determine its ref. That's used to find the default
-      # configuration file. This doesn't work from forks. In that case,
-      # Zizmor's default config behaviour will be used.
+      # used by the `grafana-bench` job to fetch Prometheus credentials from
+      # Vault. Not needed when `send-bench-metrics` is `false`.
       id-token: write
 
       # fallback: comment on PR when code-scanning upload is unavailable
@@ -193,13 +189,13 @@ uses: actions/checkout@v3 # zizmor: ignore[artipacked]
 
 ## Repo-local `zizmor.yml` policy gate
 
-When `always-use-default-config` is `false` and the calling repository uses a **repo-local** `zizmor.yml` or `.github/zizmor.yml` (so zizmor discovers that file instead of the Grafana default from `shared-workflows`), the workflow **validates that file before running zizmor**. If validation fails, the job stops and zizmor is not executed. Validation uses the composite action [`actions/validate-zizmor-config`](../../actions/validate-zizmor-config) from this repository, **hash-pinned** in `reusable-zizmor.yml` to satisfy pinning checks (bump that SHA when you change the action). **Set up Zizmor configuration** writes the path to validate as step output `repo-local-zizmor-config` when a repo-local file is used; that is separate from `zizmor-config`, which is only set when the run uses **`--config`** with the downloaded Grafana default.
+When `always-use-default-config` is `false` and the calling repository uses a **repo-local** `zizmor.yml` or `.github/zizmor.yml` (so zizmor discovers that file instead of the Grafana default from `shared-workflows`), the workflow **validates that file before running zizmor**. If validation fails, the job stops and zizmor is not executed. Validation uses the composite action [`actions/validate-zizmor-config`](../../actions/validate-zizmor-config) from this repository, **hash-pinned** in `reusable-zizmor.yml` to satisfy pinning checks (bump that SHA when you change the action). **Set up Zizmor configuration** writes the path to validate as step output `repo-local-zizmor-config` when a repo-local file is used; that is separate from `zizmor-config`, which is only set when the run uses **`--config`** with the Grafana default shipped in [`actions/zizmor-collection-paths`](../../actions/zizmor-collection-paths/default-zizmor.yml).
 
 The gate is **skipped** when:
 
 - `always-use-default-config` is `true` (only the Grafana default from this repository is used), or
 - There is no repo-local config file, or
-- The run uses the fetched default via `--config` (no repo-local file in play).
+- The run uses the Grafana default shipped with `zizmor-collection-paths` via `--config` (no repo-local file in play).
 
 The policy rejects configs that:
 
