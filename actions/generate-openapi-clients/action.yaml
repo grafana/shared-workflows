@@ -13,6 +13,10 @@ inputs:
     description: "The directory to output the generated client to"
     required: false
     default: "."
+  language:
+    description: "Client language: go or javascript (TypeScript sources compiled to JavaScript). Outputs to go/<package-name> or js/<package-name>."
+    required: false
+    default: "go"
   commit-changes:
     description: If true, the action will commit and push the changes to the repository, if there's a diff.
     required: false
@@ -90,6 +94,7 @@ runs:
         OUTPUT_DIR: ${{ inputs.output-dir }}
         PACKAGE_NAME: ${{ inputs.package-name }}
         SPEC_PATH: ${{ steps.modify-spec.outputs.spec-path }}
+        CLIENT_LANGUAGE: ${{ inputs.language }}
 
     # Cleanup files that shouldn't be committed
     - name: Cleanup
