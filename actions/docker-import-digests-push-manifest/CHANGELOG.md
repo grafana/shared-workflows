@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.2.3...docker-import-digests-push-manifest/v0.2.4) (2026-10-24)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/download-artifact action to v8.0.2 ([#2355](https://github.com/grafana/shared-workflows/issues/2355)) ([ff77b7d](https://github.com/grafana/shared-workflows/commit/ff77b7d668a03745a3a334efc9c8e4a126c3b4c1))
+
 ## [0.2.3](https://github.com/grafana/shared-workflows/compare/docker-import-digests-push-manifest/v0.2.2...docker-import-digests-push-manifest/v0.2.3) (2026-10-08)
 
 
