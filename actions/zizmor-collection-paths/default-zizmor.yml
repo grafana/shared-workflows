@@ -1,8 +1,7 @@
 # Default zizmor configuration for the reusable-zizmor workflow, used when the
 # calling repository has no zizmor.yml or .github/zizmor.yml of its own. It
 # ships with this action so it always matches the pinned version of the
-# workflow. Keep it in sync with .github/zizmor.yml; test_default_config.py
-# checks this.
+# workflow.
 
 rules:
   unpinned-uses:
