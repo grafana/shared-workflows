@@ -349,6 +349,25 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
+  description: Run govulncheck, publish the results to the job summary and optionally
+    notify Slack
+  links:
+  - title: README
+    url: https://github.com/grafana/shared-workflows/blob/main/actions/govulncheck/README.md
+  name: shared-workflows-govulncheck
+  title: govulncheck
+spec:
+  lifecycle: production
+  owner: group:platform-productivity
+  subcomponentOf: component:shared-workflows
+  type: github-action
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    github.com/project-slug: grafana/shared-workflows
   description: |
     Updates a GitHub Project (v2) issue status field when an issue is assigned.
     Requires the calling job to have `id-token: write` permission for Vault authentication.
