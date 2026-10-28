@@ -1,0 +1,90 @@
+name: govulncheck
+description: Run govulncheck, publish the results to the job summary and optionally notify Slack
+
+inputs:
+  go-version:
+    description: "Go version to run govulncheck with. If not set, the default of golang/govulncheck-action is used."
+    required: false
+    default: ""
+  work-dir:
+    description: "Directory to run govulncheck in, for repositories where the Go module is not at the root."
+    required: false
+    default: "."
+  checkout:
+    description: "Check out the repository (without persisting credentials). Set to `false` to run on a repository that is already checked out."
+    required: false
+    default: "true"
+  slack-channel:
+    description: "ID of the Slack channel to notify when vulnerabilities are found. If not set, no Slack message is sent. The calling job needs `id-token: write`."
+    required: false
+    default: ""
+  fail-on-vulnerabilities:
+    description: "Fail the action if vulnerabilities are found in code that is called. The summary and the Slack message are always produced first."
+    required: false
+    default: "true"
+
+outputs:
+  has-vulnerabilities:
+    value: ${{ steps.summarize.outputs.has-vulnerabilities }}
+    description: "`true` if vulnerabilities were found in code that is called, `false` otherwise"
+  vulnerabilities-found:
+    value: ${{ steps.summarize.outputs.vulnerabilities-found }}
+    description: "Number of vulnerabilities found in code that is called"
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      if: inputs.checkout == 'true'
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    # Passing an empty string explicitly is not the same as not passing the
+    # input, so `go-version-input` is only set when `go-version` is, which lets
+    # golang/govulncheck-action apply its own default otherwise.
+    - name: Run govulncheck
+      if: inputs.go-version == ''
+      uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+      with:
+        work-dir: ${{ inputs.work-dir }}
+        repo-checkout: "false"
+        output-format: json
+        output-file: ${{ runner.temp }}/govulncheck.json
+
+    - name: Run govulncheck (Go ${{ inputs.go-version }})
+      if: inputs.go-version != ''
+      uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+      with:
+        go-version-input: ${{ inputs.go-version }}
+        work-dir: ${{ inputs.work-dir }}
+        repo-checkout: "false"
+        output-format: json
+        output-file: ${{ runner.temp }}/govulncheck.json
+
+    - name: Summarize govulncheck results
+      id: summarize
+      shell: bash
+      env:
+        GOVULNCHECK_JSON: ${{ runner.temp }}/govulncheck.json
+        SLACK_CHANNEL: ${{ inputs.slack-channel }}
+      run: |
+        ${GITHUB_ACTION_PATH}/summarize.sh
+
+    # A Slack outage must not hide the vulnerabilities, so don't fail on it.
+    - name: Notify Slack
+      if: inputs.slack-channel != '' && steps.summarize.outputs.has-vulnerabilities == 'true'
+      continue-on-error: true
+      uses: grafana/shared-workflows/actions/send-slack-message@551bc8d50017d3e95d5da3f8a4826e733a208dc0 # send-slack-message/v3.0.2
+      with:
+        method: chat.postMessage
+        payload: ${{ steps.summarize.outputs.slack-payload }}
+
+    - name: Fail on vulnerabilities
+      if: inputs.fail-on-vulnerabilities == 'true' && steps.summarize.outputs.has-vulnerabilities == 'true'
+      shell: bash
+      env:
+        VULNERABILITIES_FOUND: ${{ steps.summarize.outputs.vulnerabilities-found }}
+      run: |
+        echo "::error title=govulncheck::${VULNERABILITIES_FOUND} vulnerabilities found in code that is called, see the job summary for details"
+        exit 1

@@ -1,0 +1,177 @@
+name: Test govulncheck
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/govulncheck/**
+      - .github/workflows/test-govulncheck.yaml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/govulncheck/**
+      - .github/workflows/test-govulncheck.yaml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Summarize fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            actions/govulncheck
+
+      - name: Run summarize.sh against the fixtures
+        run: ./actions/govulncheck/summarize_test.sh
+
+  e2e:
+    name: "End to end (${{ matrix.name }})"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: default Go version
+            go-version: ""
+          - name: Go 1.26
+            go-version: "1.26"
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            actions/govulncheck
+
+      # The action checks out the repository, which cleans the workspace, so
+      # the modules are created outside of it. The vulnerable one is created
+      # here rather than committed so that dependency update tooling ignores it.
+      - name: Create test modules
+        env:
+          MODULES_DIR: ${{ runner.temp }}/modules
+        run: |
+          mkdir -p "${MODULES_DIR}/clean" "${MODULES_DIR}/vulnerable"
+
+          printf 'module example.com/clean\n\ngo 1.22\n' >"${MODULES_DIR}/clean/go.mod"
+          printf 'package main\n\nfunc main() {}\n' >"${MODULES_DIR}/clean/main.go"
+
+          printf 'module example.com/vulnerable\n\ngo 1.22\n\nrequire golang.org/x/text v0.3.0\n' >"${MODULES_DIR}/vulnerable/go.mod"
+          cat >"${MODULES_DIR}/vulnerable/main.go" <<'EOF'
+          package main
+
+          import (
+              "fmt"
+
+              "golang.org/x/text/language"
+          )
+
+          func main() {
+              // GO-2021-0113: out-of-bounds read in language.Parse
+              tag, _ := language.Parse("en-US")
+              fmt.Println(tag)
+          }
+          EOF
+          (cd "${MODULES_DIR}/vulnerable" && GOFLAGS=-mod=mod go mod tidy)
+
+      - name: Run on a module without vulnerabilities
+        id: clean
+        uses: ./actions/govulncheck
+        with:
+          go-version: ${{ matrix.go-version }}
+          work-dir: ${{ runner.temp }}/modules/clean
+
+      - name: Assert that no vulnerabilities were reported
+        env:
+          HAS_VULNERABILITIES: ${{ steps.clean.outputs.has-vulnerabilities }}
+          VULNERABILITIES_FOUND: ${{ steps.clean.outputs.vulnerabilities-found }}
+        run: |
+          if [[ "${HAS_VULNERABILITIES}" != "false" || "${VULNERABILITIES_FOUND}" != "0" ]]; then
+            echo "Expected no vulnerabilities, got has-vulnerabilities=${HAS_VULNERABILITIES} vulnerabilities-found=${VULNERABILITIES_FOUND}"
+            exit 1
+          fi
+
+      - name: Run on a module that is already checked out
+        id: no-checkout
+        uses: ./actions/govulncheck
+        with:
+          go-version: ${{ matrix.go-version }}
+          work-dir: ${{ runner.temp }}/modules/clean
+          checkout: "false"
+
+      - name: Assert that no vulnerabilities were reported without a checkout
+        env:
+          HAS_VULNERABILITIES: ${{ steps.no-checkout.outputs.has-vulnerabilities }}
+        run: |
+          if [[ "${HAS_VULNERABILITIES}" != "false" ]]; then
+            echo "Expected no vulnerabilities, got has-vulnerabilities=${HAS_VULNERABILITIES}"
+            exit 1
+          fi
+
+      - name: Run on a vulnerable module without failing
+        id: vulnerable
+        uses: ./actions/govulncheck
+        with:
+          go-version: ${{ matrix.go-version }}
+          work-dir: ${{ runner.temp }}/modules/vulnerable
+          fail-on-vulnerabilities: "false"
+
+      - name: Assert that the vulnerability was reported
+        env:
+          HAS_VULNERABILITIES: ${{ steps.vulnerable.outputs.has-vulnerabilities }}
+          VULNERABILITIES_FOUND: ${{ steps.vulnerable.outputs.vulnerabilities-found }}
+        run: |
+          if [[ "${HAS_VULNERABILITIES}" != "true" || "${VULNERABILITIES_FOUND}" -lt 1 ]]; then
+            echo "Expected vulnerabilities, got has-vulnerabilities=${HAS_VULNERABILITIES} vulnerabilities-found=${VULNERABILITIES_FOUND}"
+            exit 1
+          fi
+
+      - name: Run on a vulnerable module, failing by default
+        id: failing
+        continue-on-error: true
+        uses: ./actions/govulncheck
+        with:
+          go-version: ${{ matrix.go-version }}
+          work-dir: ${{ runner.temp }}/modules/vulnerable
+
+      - name: Assert that the action failed
+        env:
+          OUTCOME: ${{ steps.failing.outcome }}
+        run: |
+          if [[ "${OUTCOME}" != "failure" ]]; then
+            echo "Expected the action to fail on vulnerabilities, outcome was ${OUTCOME}"
+            exit 1
+          fi
