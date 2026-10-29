@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/grafana/shared-workflows/compare/docker-export-digest/v0.1.5...docker-export-digest/v0.1.6) (2026-10-29)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/upload-artifact action to v7.0.2 ([#2356](https://github.com/grafana/shared-workflows/issues/2356)) ([e2e2a50](https://github.com/grafana/shared-workflows/commit/e2e2a50a30c6a6a945b23830036f00d2f1b6d92c))
+
 ## [0.1.5](https://github.com/grafana/shared-workflows/compare/docker-export-digest/v0.1.4...docker-export-digest/v0.1.5) (2026-09-09)
 
 
