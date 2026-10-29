@@ -1,0 +1,36 @@
+# {{npmName}}
+
+Generated from the OpenAPI specification by OpenAPI Generator. Do not edit the
+generated sources manually.
+
+This package contains a Fetch-based client usable from JavaScript or TypeScript.
+It has no runtime dependencies. Use a browser with Fetch support or Node.js 18+,
+or supply a Fetch implementation through `Configuration.fetchApi`.
+
+## Build and use locally
+
+```sh
+npm ci
+npm run build
+```
+
+The build writes CommonJS JavaScript and type declarations to `dist/`. From a
+consuming project, install this package by its local directory:
+
+```sh
+npm install /path/to/this/package
+```
+
+Set `Configuration.basePath` to your API endpoint; the default server URL comes
+from the spec. Configure authentication with `Configuration.headers` or the
+authentication options defined by the spec.
+
+API classes and their request parameter interfaces are in `src/apis/`; model
+types are exported from `src/models/`. Models preserve the API's wire-format
+property names and JSON values. Response schemas are not validated at runtime.
+Non-success HTTP responses reject with `ResponseError`, which retains the
+original response.
+
+Sources and the npm lockfile are committed. Build output and installed
+dependencies are ignored. Version `0.0.0` is a placeholder for local consumption;
+this workflow does not publish an npm package.
