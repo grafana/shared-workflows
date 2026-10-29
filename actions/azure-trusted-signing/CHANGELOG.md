@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.0.4](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.3...azure-trusted-signing/v1.0.4) (2026-10-29)
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/download-artifact action to v8.0.2 ([#2355](https://github.com/grafana/shared-workflows/issues/2355)) ([ff77b7d](https://github.com/grafana/shared-workflows/commit/ff77b7d668a03745a3a334efc9c8e4a126c3b4c1))
+* **deps:** update actions/setup-dotnet action to v5.4.0 ([#2143](https://github.com/grafana/shared-workflows/issues/2143)) ([62b69d8](https://github.com/grafana/shared-workflows/commit/62b69d891d126422abb91076e061e21ed7394fa6))
+* **deps:** update actions/setup-dotnet action to v6 ([#2231](https://github.com/grafana/shared-workflows/issues/2231)) ([83f97e5](https://github.com/grafana/shared-workflows/commit/83f97e5f21a12f04721ef95936a1408c231da363))
+* **deps:** update actions/upload-artifact action to v7.0.2 ([#2356](https://github.com/grafana/shared-workflows/issues/2356)) ([e2e2a50](https://github.com/grafana/shared-workflows/commit/e2e2a50a30c6a6a945b23830036f00d2f1b6d92c))
+* **deps:** update azure/login action to v3.0.1 ([#2256](https://github.com/grafana/shared-workflows/issues/2256)) ([80dff28](https://github.com/grafana/shared-workflows/commit/80dff288c7a16a9716958721b9a4e79953fe0eee))
+* **deps:** update azure/login action to v3.1.0 ([#2318](https://github.com/grafana/shared-workflows/issues/2318)) ([e136200](https://github.com/grafana/shared-workflows/commit/e13620090fb3919c011b44d6c2233bb4561d70e6))
+* **deps:** update dependency dotnet-sdk to v8.0.423 ([#2169](https://github.com/grafana/shared-workflows/issues/2169)) ([f9457fa](https://github.com/grafana/shared-workflows/commit/f9457fa36af500816a432cecec60a48cb6a7391e))
+* **deps:** update dependency dotnet-sdk to v8.0.424 ([#2260](https://github.com/grafana/shared-workflows/issues/2260)) ([c45c3eb](https://github.com/grafana/shared-workflows/commit/c45c3eb30ba05fc70986dcf8db46ca92388b14f7))
+* **deps:** update dependency dotnet-sdk to v8.0.425 ([#2307](https://github.com/grafana/shared-workflows/issues/2307)) ([ecea3bd](https://github.com/grafana/shared-workflows/commit/ecea3bd93f571493dcd19795a58bc92ad4ee41cc))
+* **deps:** update dependency dotnet-sdk to v8.0.426 ([#2360](https://github.com/grafana/shared-workflows/issues/2360)) ([b155eaa](https://github.com/grafana/shared-workflows/commit/b155eaad6a9dede013e797332e9ae447e412158f))
+* **deps:** update dotnet monorepo to v8.0.422 ([#2080](https://github.com/grafana/shared-workflows/issues/2080)) ([bac5784](https://github.com/grafana/shared-workflows/commit/bac57843a247c882c96089efd777e1752caa31b8))
+* upgrade to .NET 10 ([#2362](https://github.com/grafana/shared-workflows/issues/2362)) ([e41c4f4](https://github.com/grafana/shared-workflows/commit/e41c4f40e03a0ddc04d199a678e97302dcef4f79))
+
 ## [1.0.3](https://github.com/grafana/shared-workflows/compare/azure-trusted-signing/v1.0.2...azure-trusted-signing/v1.0.3) (2026-06-10)
 
 
