@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/grafana/shared-workflows/compare/issues-update-project-status/v0.2.2...issues-update-project-status/v0.2.3) (2026-10-29)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update grafana/shared-workflows/create-github-app-token action to v1.0 ([#2302](https://github.com/grafana/shared-workflows/issues/2302)) ([f6352d3](https://github.com/grafana/shared-workflows/commit/f6352d39539d65802b699f327581d95cdc352232))
+
 ## [0.2.2](https://github.com/grafana/shared-workflows/compare/issues-update-project-status/v0.2.1...issues-update-project-status/v0.2.2) (2026-09-09)
 
 
