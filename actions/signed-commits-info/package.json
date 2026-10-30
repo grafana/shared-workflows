@@ -18,6 +18,6 @@
     "@eslint/js": "10.0.1",
     "@types/bun": "latest",
     "eslint": "10.9.0",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   }
 }
