@@ -1,5 +1,5 @@
 name: Build and Push Docker Image
-description: Composite action to push a docker image to GAR or DockerHub
+description: Composite action to build a docker image and push it to GAR
 
 inputs:
   annotations:
@@ -51,15 +51,6 @@ inputs:
       The driver to use for Docker Buildx.
       Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).
     default: docker-container
-  dockerhub-registry:
-    description: |
-      DockerHub Registry to store docker images in.
-    default: "docker.io"
-  dockerhub-repository:
-    description: |
-      DockerHub Repository to store docker images in.
-      Default: github.repository
-    default: ${{ github.repository }}
   file:
     description: |
       The dockerfile to use.
@@ -116,7 +107,7 @@ inputs:
   registries:
     description: |
       CSV list of registries to build images for.
-      Accepted registries are "gar" and "dockerhub".
+      The only accepted registry is "gar". Docker Hub images are published from GAR by gar-image-mirror.
   secrets:
     description: |
       Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built.
@@ -182,6 +173,10 @@ runs:
         #############################################################
 
         for r in ${REGISTRIES//,/ }; do
+          if [ "${r}" = "dockerhub" ]; then
+            echo "::error::The \"dockerhub\" registry is no longer supported. Push to GAR instead (registries: gar); Docker Hub images are published from GAR by gar-image-mirror."
+            exit 1
+          fi
           echo "include-${r}=true" | tee -a "${GITHUB_OUTPUT}"
         done
 
@@ -198,22 +193,11 @@ runs:
       run: |
         bash "${GITHUB_ACTION_PATH}/gar-setup-project-vars.sh"
 
-    - name: Setup DockerHub variables
-      if: ${{ steps.registries.outputs.include-dockerhub == 'true' }}
-      id: setup-dockerhub-vars
-      shell: bash
-      env:
-        DOCKERHUB_IMAGE: ${{ inputs.dockerhub-repository }}
-        DOCKERHUB_REGISTRY: ${{ inputs.dockerhub-registry }}
-      run: |
-        bash "${GITHUB_ACTION_PATH}/dockerhub-setup-project-vars.sh"
-
     - name: Finalize build vars
       id: setup-vars
       shell: bash
       env:
         GAR_IMAGE: ${{ steps.setup-gar-vars.outputs.image }}
-        DOCKERHUB_IMAGE: ${{ steps.setup-dockerhub-vars.outputs.image }}
         PUSH: ${{ inputs.push }}
       run: |
         #############################################################
@@ -227,7 +211,7 @@ runs:
         #############################################################
 
         images=""
-        for image in "${GAR_IMAGE}" "${DOCKERHUB_IMAGE}"
+        for image in "${GAR_IMAGE}"
         do
           # if an image is not the emptry string, add it to the list
           if [ -n "${image}" ]; then
@@ -254,10 +238,6 @@ runs:
     - name: Login to GAR
       if: ${{ inputs.push == 'true' && steps.registries.outputs.include-gar == 'true' }}
       uses: grafana/shared-workflows/actions/login-to-gar@afad5c7621e788905e6417f05b492972685ab1eb # login-to-gar/v1.0.4
-
-    - name: Login to DockerHub
-      if: ${{ inputs.push == 'true' && steps.registries.outputs.include-dockerhub == 'true' }}
-      uses: grafana/shared-workflows/actions/dockerhub-login@3ffeda28e54d6c8e02c3998594fafaf0a359328d # dockerhub-login/v2.0.0
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
