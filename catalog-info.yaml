@@ -166,7 +166,7 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
-  description: Composite action to push a docker image to GAR or DockerHub
+  description: Composite action to build a docker image and push it to GAR
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/docker-build-push-image/README.md
