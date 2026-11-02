@@ -173,8 +173,8 @@ runs:
         #############################################################
 
         for r in ${REGISTRIES//,/ }; do
-          if [ "${r}" = "dockerhub" ]; then
-            echo "::error::The \"dockerhub\" registry is no longer supported. Push to GAR instead (registries: gar); Docker Hub images are published from GAR by gar-image-mirror."
+          if [ "${r}" != "gar" ]; then
+            echo "::error::Unsupported registry \"${r}\". The only accepted registry is \"gar\"; Docker Hub images are published from GAR by gar-image-mirror."
             exit 1
           fi
           echo "include-${r}=true" | tee -a "${GITHUB_OUTPUT}"

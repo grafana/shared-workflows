@@ -15,7 +15,7 @@ This can push to Google Artifact Registry (GAR).
 > [!NOTE]
 > Pushing to Docker Hub is no longer supported: the `dockerhub` registry and the `dockerhub-registry` and
 > `dockerhub-repository` inputs have been removed. Docker Hub images are published from GAR by `gar-image-mirror`.
-> For local builds that aren't pushed, use [docker/build-push-action] directly.
+> If you only need Docker Hub-style image names for a local build, use [docker/build-push-action] directly.
 
 > [!WARNING]
 > There is a [bug with Google Artifact Registry](https://issuetracker.google.com/issues/390719013?pli=1) that prevents docker images from pushing successfully if the
