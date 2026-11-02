@@ -83,17 +83,6 @@ on:
           Passed to `docker/setup-buildx-action`.
         default: "docker-container"
         type: string
-      dockerhub-registry:
-        description: |
-          DockerHub Registry to store docker images in.
-        default: "docker.io"
-        type: string
-      dockerhub-repository:
-        description: |
-          DockerHub Repository to store docker images in.
-          Default: github.repository
-        default: "${{ github.repository }}"
-        type: string
       file:
         description: |
           The dockerfile to use.
@@ -162,7 +151,7 @@ on:
       registries:
         description: |
           CSV list of registries to build images for.
-          Accepted registries are "gar" and "dockerhub".
+          The only accepted registry is "gar". Docker Hub images are published from GAR by gar-image-mirror.
         type: string
       secrets:
         description: |
@@ -236,6 +225,17 @@ jobs:
       runner-type-arm64: ${{ steps.runners.outputs.runner-type-arm64 }}
       runner-type-manifest: ${{ steps.runners.outputs.runner-type-manifest }}
     steps:
+      - name: Reject Docker Hub registry
+        shell: bash
+        env:
+          REGISTRIES: ${{ inputs.registries }}
+        run: |
+          for r in ${REGISTRIES//,/ }; do
+            if [ "${r}" = "dockerhub" ]; then
+              echo "::error::The \"dockerhub\" registry is no longer supported. Push to GAR instead (registries: gar); Docker Hub images are published from GAR by gar-image-mirror."
+              exit 1
+            fi
+          done
       - id: matrix
         name: Convert platforms to runner arches
         shell: bash
@@ -359,7 +359,6 @@ jobs:
           cache-from: ${{ inputs.cache-from }}
           cache-to: ${{ inputs.cache-to }}
           context: ${{ inputs.context }}
-          dockerhub-repository: ${{ inputs.dockerhub-repository }}
           docker-buildx-driver: ${{ inputs.docker-buildx-driver }}
           file: ${{ inputs.file }}
           gar-registry: ${{ inputs.gar-registry }}

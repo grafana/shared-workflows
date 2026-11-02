@@ -44,13 +44,13 @@ jobs:
 
 <!-- BEGIN_INPUTS -->
 
-| Name               | Type    | Required | Default | Description                                                                                                                                                         |
-| ------------------ | ------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gar-environment`  | String  | No       | `dev`   | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project to either `grafanalabs-dev` or `grafanalabs-global`.                       |
-| `generate-summary` | Boolean | No       | `false` | Generates both a markdown summary and outputs the env variable OCI_MANIFEST_OUTPUT_JSON. Only runs when `push` is also `true`.                                      |
-| `images`           | String  | Yes      |         | CSV of Docker images to push. These images should not include tags. Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image |
-| `push`             | Boolean | No       | `false` | Whether to push the manifest to the configured registries.                                                                                                          |
-| `tags`             | String  | Yes      |         | List of Docker tags to be pushed.                                                                                                                                   |
+| Name               | Type    | Required | Default | Description                                                                                                                                                                                                             |
+| ------------------ | ------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gar-environment`  | String  | No       | `dev`   | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project to either `grafanalabs-dev` or `grafanalabs-global`.                                                                           |
+| `generate-summary` | Boolean | No       | `false` | Generates both a markdown summary and outputs the env variable OCI_MANIFEST_OUTPUT_JSON. Only runs when `push` is also `true`.                                                                                          |
+| `images`           | String  | Yes      |         | CSV of Docker images to push. These images should not include tags. Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name Docker Hub images are not supported; they are published from GAR by gar-image-mirror. |
+| `push`             | Boolean | No       | `false` | Whether to push the manifest to the configured registries.                                                                                                                                                              |
+| `tags`             | String  | Yes      |         | List of Docker tags to be pushed.                                                                                                                                                                                       |
 
 <!-- END_INPUTS -->
 
