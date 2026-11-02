@@ -9,7 +9,8 @@ java -jar openapi-generator-cli.jar generate \
   -o "${JS_DIR}" \
   --git-user-id "grafana" \
   --git-repo-id "${REPO_NAME}" \
-  --additional-properties="npmName=${REPO_NAME}-${PACKAGE_NAME},npmVersion=0.0.0,supportsES6=true,hideGenerationTimestamp=true,disallowAdditionalPropertiesIfNotPresent=false,withoutRuntimeChecks=true,modelPropertyNaming=original" \
+  --additional-properties="npmName=${REPO_NAME}-${PACKAGE_NAME},npmVersion=0.0.0,supportsES6=true,importFileExtension=.js,hideGenerationTimestamp=true,disallowAdditionalPropertiesIfNotPresent=false,withoutRuntimeChecks=true,modelPropertyNaming=original" \
+  --openapi-generator-ignore-list tsconfig.esm.json \
   -t "${GITHUB_ACTION_PATH}/templates/typescript-fetch"
 
 # There are no runtime dependencies. Pin the compiler in the package template

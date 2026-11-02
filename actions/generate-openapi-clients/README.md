@@ -13,6 +13,16 @@ Fetch implementation (built into modern browsers and Node.js 18+). The action
 pins TypeScript, builds the package, and retains its npm lockfile. Generated
 `dist/` and `node_modules/` directories are ignored by Git.
 
+The package ships native ES modules with `.js` import extensions, NodeNext
+compilation, and `sideEffects: false` for tree shaking. It has one build and one
+`tsconfig.json`; the generator's unused `tsconfig.esm.json` is excluded. Import
+the package by name. Node.js consumers using `require()` need Node.js 20.19+,
+22.12+, or newer releases.
+
+Grafana plugins using Jest must add the generated package name to their existing
+`transformIgnorePatterns` allowlist, alongside packages such as `d3`, `uuid`, and
+`@grafana/schema`, so Jest transforms its ESM output.
+
 JavaScript models retain the API's property names and raw JSON values, without
 runtime model conversion or validation. Packages use version `0.0.0`; the spec
 version remains in generated source headers. This action does not publish to npm.
