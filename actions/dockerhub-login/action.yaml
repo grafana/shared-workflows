@@ -1,6 +1,15 @@
 name: Login to DockerHub
 description: Log in to Docker Hub as the grafana organization with a short-lived, pull-only OIDC token
 
+inputs:
+  connection-id:
+    description: |
+      Docker Hub OIDC connection ID. Defaults to the connection for the `grafana` GitHub org.
+      Repositories in other GitHub orgs must pass their org's connection ID.
+      Not a secret: the connection's rulesets decide which workflows get a token.
+    required: false
+    default: e14404e0-cb2e-419e-89da-f08af0347345
+
 runs:
   using: composite
   steps:
@@ -16,7 +25,5 @@ runs:
       with:
         username: grafana
       env:
-        # Docker Hub OIDC connection of the grafana org.
-        # Not a secret: the connection's rulesets decide which workflows get a token.
-        DOCKERHUB_OIDC_CONNECTIONID: e14404e0-cb2e-419e-89da-f08af0347345
+        DOCKERHUB_OIDC_CONNECTIONID: ${{ inputs.connection-id }}
         DOCKERHUB_OIDC_EXPIREIN: "3600" # 1 hour

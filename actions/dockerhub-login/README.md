@@ -34,4 +34,26 @@ jobs:
 
 <!-- x-release-please-end-version -->
 
+## Other GitHub orgs
+
+The default `connection-id` only works for repositories in the `grafana` GitHub org.
+Repositories in other orgs need their own Docker Hub OIDC connection (ask Platform Productivity) and must pass its ID:
+
+```yaml
+- name: Login to DockerHub
+  uses: grafana/shared-workflows/actions/dockerhub-login@<version>
+  with:
+    connection-id: <your org's connection ID>
+```
+
+## Inputs
+
+<!-- BEGIN_INPUTS -->
+
+| Name            | Type   | Required | Default                                | Description                                                                                                                                                                                                                                |
+| --------------- | ------ | -------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `connection-id` | String | No       | `e14404e0-cb2e-419e-89da-f08af0347345` | Docker Hub OIDC connection ID. Defaults to the connection for the `grafana` GitHub org. Repositories in other GitHub orgs must pass their org's connection ID. Not a secret: the connection's rulesets decide which workflows get a token. |
+
+<!-- END_INPUTS -->
+
 [oidc]: https://docs.docker.com/security/authentication/oidc-connections/
