@@ -27,7 +27,7 @@ jobs:
       id-token: write
     steps:
       - name: Login to DockerHub
-        uses: grafana/shared-workflows/actions/dockerhub-login@dockerhub-login/v2.0.0
+        uses: grafana/shared-workflows/actions/dockerhub-login@dockerhub-login/v3.0.0
       - name: Build
         run: make build
 ```
