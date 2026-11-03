@@ -33,8 +33,10 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-      - name: Download OpenAPI Generator
-        run: curl --fail --location --retry 3 https://repo.maven.apache.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar -o "$RUNNER_TEMP/openapi-generator-cli.jar"
+      - name: Download and verify OpenAPI Generator
+        run: |
+          curl --fail --location --retry 3 https://repo.maven.apache.org/maven2/org/openapitools/openapi-generator-cli/7.7.0/openapi-generator-cli-7.7.0.jar -o "$RUNNER_TEMP/openapi-generator-cli.jar"
+          echo "3a757276c31d249a4f06a14651b1ff1f1a5cf46e110a70adcc4a6a2834f85561  $RUNNER_TEMP/openapi-generator-cli.jar" | sha256sum --check --strict
       - run: python3 -m unittest discover -s actions/generate-openapi-clients -v
         env:
           OPENAPI_GENERATOR_JAR: ${{ runner.temp }}/openapi-generator-cli.jar
