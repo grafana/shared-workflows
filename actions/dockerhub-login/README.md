@@ -6,7 +6,7 @@ It uses a [Docker Hub OIDC connection][oidc]: `docker/login-action` exchanges th
 The token:
 
 - can only read public repositories (it cannot push or read private images)
-- expires after 30 minutes
+- expires after 1 hour
 
 The job needs `id-token: write`. The action fails on `pull_request_target` events.
 

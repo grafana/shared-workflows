@@ -16,6 +16,7 @@ runs:
       with:
         username: grafana
       env:
-        # TODO: replace with the Docker Hub OIDC connection ID once we decide where it is stored.
-        DOCKERHUB_OIDC_CONNECTIONID: <placeholder>
-        DOCKERHUB_OIDC_EXPIREIN: "1800" # 30 minutes
+        # Docker Hub OIDC connection of the grafana org.
+        # Not a secret: the connection's rulesets decide which workflows get a token.
+        DOCKERHUB_OIDC_CONNECTIONID: e14404e0-cb2e-419e-89da-f08af0347345
+        DOCKERHUB_OIDC_EXPIREIN: "3600" # 1 hour
