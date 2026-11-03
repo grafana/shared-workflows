@@ -6,7 +6,6 @@ inputs:
     description: |
       Docker Hub OIDC connection ID. Defaults to the connection for the `grafana` GitHub org.
       Repositories in other GitHub orgs must pass their org's connection ID.
-      Not a secret: the connection's rulesets decide which workflows get a token.
     required: false
     default: e14404e0-cb2e-419e-89da-f08af0347345
 
