@@ -10,10 +10,12 @@ This action can work 1 of 2 ways:
 2. It can be used in conjunction with [docker-export-digest] and [docker-import-digests-push-manifest] to push untagged
    images whose digests are later exported and merged into a tagged docker manifest. For true multi-arch builds.
 
-This can push to the following registries:
+This can push to Google Artifact Registry (GAR).
 
-1. Google Artifact Registry
-2. DockerHub
+> [!NOTE]
+> Pushing to Docker Hub is no longer supported: the `dockerhub` registry and the `dockerhub-registry` and
+> `dockerhub-repository` inputs have been removed. Docker Hub images are published from GAR by `gar-image-mirror`.
+> If you only need Docker Hub-style image names for a local build, use [docker/build-push-action] directly.
 
 > [!WARNING]
 > There is a [bug with Google Artifact Registry](https://issuetracker.google.com/issues/390719013?pli=1) that prevents docker images from pushing successfully if the
@@ -49,7 +51,7 @@ jobs:
             ${{ github.sha }}
             main
           push: true
-          registries: "gar,dockerhub"
+          registries: gar
 ```
 
 <!-- x-release-please-end-version -->
@@ -58,37 +60,35 @@ jobs:
 
 <!-- BEGIN_INPUTS -->
 
-| Name                          | Type    | Required | Default                    | Description                                                                                                                                                                                                                                                                              |
-| ----------------------------- | ------- | -------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `annotations`                 | String  | No       |                            | List of custom annotations to add to the image as metadata (passed to `docker/build-push-action`). Passed to `docker/build-push-action`.                                                                                                                                                 |
-| `build-args`                  | String  | No       |                            | List of arguments necessary for the Docker image to be built. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                               |
-| `build-contexts`              | String  | No       |                            | List of additional build contexts (e.g., name=path). Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                        |
-| `builder`                     | String  | No       |                            | Name of the buildx builder to use. If not specified, a new builder will be created. This is useful when you need to reuse a builder, for example with buildkit-cache-dance.                                                                                                              |
-| `buildkitd-config`            | String  | No       |                            | The buildkitd config file to use. Defaults to `/etc/buildkitd.toml` if you're using Grafana's self-hosted runners. Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).                                                      |
-| `buildkitd-config-inline`     | String  | No       |                            | The buildkitd inline config to use. Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).                                                                                                                                     |
-| `cache-from`                  | String  | No       | `type=gha`                 | Where cache should be fetched from. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)               |
-| `cache-to`                    | String  | No       | `type=gha,mode=max`        | Where cache should be stored to. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)                  |
-| `context`                     | String  | No       | `.`                        | Path to the Docker build context. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                           |
-| `docker-buildx-driver`        | String  | No       | `docker-container`         | The driver to use for Docker Buildx. Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).                                                                                                                                    |
-| `dockerhub-registry`          | String  | No       | `docker.io`                | DockerHub Registry to store docker images in.                                                                                                                                                                                                                                            |
-| `dockerhub-repository`        | String  | No       | `${{ github.repository }}` | DockerHub Repository to store docker images in. Default: github.repository                                                                                                                                                                                                               |
-| `file`                        | String  | No       |                            | The dockerfile to use. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                                      |
-| `gar-delete-credentials-file` | Boolean | No       | `true`                     | Delete the Google credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false.                                                                                                                                           |
-| `gar-environment`             | String  | No       | `dev`                      | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project (gar-project) to either `grafanalabs-dev` or `grafanalabs-global`.                                                                                                                              |
-| `gar-image`                   | String  | No       |                            | Name of the image to build. Default: `${GitHub Repo Name}`.                                                                                                                                                                                                                              |
-| `gar-registry`                | String  | No       | `us-docker.pkg.dev`        | Google Artifact Registry to store docker images in.                                                                                                                                                                                                                                      |
-| `gar-repository`              | String  | No       |                            | Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name. Default: `docker-${GitHub Repo Name}-${gar-environment}`                                                                   |
-| `include-tags-in-push`        | Boolean | No       | `true`                     | Disables the pushing of tags, and instead includes just a list of images as docker tags. Used when pushing docker digests instead of docker tags.                                                                                                                                        |
-| `labels`                      | String  | No       |                            | List of custom labels to add to the image as metadata (Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)). Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).        |
-| `load`                        | Boolean | No       | `false`                    | Whether to load the built image into the local docker daemon (Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)). Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). |
-| `outputs`                     | String  | No       |                            | List of docker output destinations. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                         |
-| `platforms`                   | String  | No       |                            | List of platforms to build the image for. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                   |
-| `push`                        | String  | No       |                            | Whether to push the image to the configured registries. Defaults to false (matching Docker's official action). Set to true to push images. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                  |
-| `registries`                  | String  | No       |                            | CSV list of registries to build images for. Accepted registries are "gar" and "dockerhub".                                                                                                                                                                                               |
-| `secrets`                     | String  | No       |                            | Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                           |
-| `ssh`                         | String  | No       |                            | List of SSH agent socket or keys to expose to the build Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                     |
-| `tags`                        | String  | Yes      |                            | List of Docker tags to be pushed. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                           |
-| `target`                      | String  | No       |                            | Sets the target stage to build. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                             |
+| Name                          | Type    | Required | Default             | Description                                                                                                                                                                                                                                                                              |
+| ----------------------------- | ------- | -------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations`                 | String  | No       |                     | List of custom annotations to add to the image as metadata (passed to `docker/build-push-action`). Passed to `docker/build-push-action`.                                                                                                                                                 |
+| `build-args`                  | String  | No       |                     | List of arguments necessary for the Docker image to be built. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                               |
+| `build-contexts`              | String  | No       |                     | List of additional build contexts (e.g., name=path). Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                        |
+| `builder`                     | String  | No       |                     | Name of the buildx builder to use. If not specified, a new builder will be created. This is useful when you need to reuse a builder, for example with buildkit-cache-dance.                                                                                                              |
+| `buildkitd-config`            | String  | No       |                     | The buildkitd config file to use. Defaults to `/etc/buildkitd.toml` if you're using Grafana's self-hosted runners. Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).                                                      |
+| `buildkitd-config-inline`     | String  | No       |                     | The buildkitd inline config to use. Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).                                                                                                                                     |
+| `cache-from`                  | String  | No       | `type=gha`          | Where cache should be fetched from. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)               |
+| `cache-to`                    | String  | No       | `type=gha,mode=max` | Where cache should be stored to. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). [More about GHA and container caching](https://www.kenmuse.com/blog/implementing-docker-layer-caching-in-github-actions/)                  |
+| `context`                     | String  | No       | `.`                 | Path to the Docker build context. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                           |
+| `docker-buildx-driver`        | String  | No       | `docker-container`  | The driver to use for Docker Buildx. Passed to [docker/setup-buildx-action](https://github.com/docker/setup-buildx-action?tab=readme-ov-file#inputs).                                                                                                                                    |
+| `file`                        | String  | No       |                     | The dockerfile to use. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                                      |
+| `gar-delete-credentials-file` | Boolean | No       | `true`              | Delete the Google credentials file after the action is finished. If you want to keep the credentials file for a later step, set this to false.                                                                                                                                           |
+| `gar-environment`             | String  | No       | `dev`               | Environment for pushing artifacts (can be either dev or prod). This sets the GAR Project (gar-project) to either `grafanalabs-dev` or `grafanalabs-global`.                                                                                                                              |
+| `gar-image`                   | String  | No       |                     | Name of the image to build. Default: `${GitHub Repo Name}`.                                                                                                                                                                                                                              |
+| `gar-registry`                | String  | No       | `us-docker.pkg.dev` | Google Artifact Registry to store docker images in.                                                                                                                                                                                                                                      |
+| `gar-repository`              | String  | No       |                     | Override the 'repo_name' used to construct the GAR repository name. Only necessary when the GAR includes a repo name that doesn't match the GitHub repo name. Default: `docker-${GitHub Repo Name}-${gar-environment}`                                                                   |
+| `include-tags-in-push`        | Boolean | No       | `true`              | Disables the pushing of tags, and instead includes just a list of images as docker tags. Used when pushing docker digests instead of docker tags.                                                                                                                                        |
+| `labels`                      | String  | No       |                     | List of custom labels to add to the image as metadata (Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)). Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).        |
+| `load`                        | Boolean | No       | `false`             | Whether to load the built image into the local docker daemon (Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs)). Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs). |
+| `outputs`                     | String  | No       |                     | List of docker output destinations. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                         |
+| `platforms`                   | String  | No       |                     | List of platforms to build the image for. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                   |
+| `push`                        | String  | No       |                     | Whether to push the image to the configured registries. Defaults to false (matching Docker's official action). Set to true to push images. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                  |
+| `registries`                  | String  | No       |                     | CSV list of registries to build images for. The only accepted registry is "gar". Docker Hub images are published from GAR by gar-image-mirror.                                                                                                                                           |
+| `secrets`                     | String  | No       |                     | Secrets to expose to the build. Only needed when authenticating to private repositories outside the repository in which the image is being built. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                           |
+| `ssh`                         | String  | No       |                     | List of SSH agent socket or keys to expose to the build Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                     |
+| `tags`                        | String  | Yes      |                     | List of Docker tags to be pushed. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                           |
+| `target`                      | String  | No       |                     | Sets the target stage to build. Passed to [docker/build-push-action](https://github.com/docker/build-push-action?tab=readme-ov-file#inputs).                                                                                                                                             |
 
 <!-- END_INPUTS -->
 
@@ -117,12 +117,6 @@ The full GAR image is constructed as follows, where `gar-project` is determined 
 
 "${{ inputs.gar-registry }}/${{ gar-project }}/${{ inputs.gar-repository }}/${{ inputs.gar-image }}"
 
-## How we construct DockerHub Images
-
-The full DockerHub image is constructed as follows:
-
-"${{ inputs.dockerhub-registry }}/${{ inputs.dockerhub-repository }}"
-
 ## Adding New Registries
 
 Each registry is setup as follows:
@@ -145,7 +139,7 @@ So then the full checklist of work to do to implement a new registry is:
       _not_ be required.
 - [ ] Add a step before `setup-vars` that takes those input values and constructs a valid untagged image name for the
       registry you'll be pushing to. Then set that as an output.
-      Ex: `echo "image=${DOCKERHUB_REGISTRY}/${DOCKERHUB_IMAGE}" | tee -a "${GITHUB_OUTPUT}"`
+      Ex: `echo "image=${REGISTRY}/${IMAGE}" | tee -a "${GITHUB_OUTPUT}"`
 - [ ] Add your image into the `setup-vars` step by passing the output image into an env variable, and adding it to the
       list of images to be parsed. Use the existing repos as examples.
 - [ ] Add a login step that depends
@@ -155,47 +149,12 @@ So then the full checklist of work to do to implement a new registry is:
 
 ## Migrating
 
-This action is intended to replace `push-to-gar-docker` and `build-push-to-dockerhub`.
+This action replaces `push-to-gar-docker` and `build-push-to-dockerhub`.
 
 ### Migrating from `build-push-to-dockerhub`
 
-> [!NOTE]
-> The `push` input defaults to `false` (matching Docker's official `build-push-action`), the same as
-> `build-push-to-dockerhub`. Carry over your existing `push` value unchanged; if you didn't set one, don't add one.
-
-1. Use the new action
-2. Rename dockerhub specific settings
-3. Add `registries: dockerhub`
-4. Keep your existing `push` value as-is
-
-```bash
-# old
-  - id: push-to-dockerhub
-    uses: grafana/shared-workflows/actions/build-push-to-dockerhub@build-push-to-dockerhub/v0.4.0
-    with:
-      repository: ${{ github.repository }} # or any other dockerhub repository
-      context: .
-      push: true
-      tags: |-
-        "2024-04-01-abcd1234"
-        "latest"
-
-# new
-  - id: push-to-dockerhub
-    # CHANGE: use the new action
-    uses: grafana/shared-workflows/actions/docker-build-push-image@docker-build-push-image/v0.1.0
-    with:
-      # CHANGE: dockerhub specific configs
-      dockerhub-repository: ${{ github.repository }} # or any other dockerhub repository
-      context: .
-      tags: |-
-        "2024-04-01-abcd1234"
-        "latest"
-      # ADD: registry
-      registries: dockerhub
-      # UNCHANGED: push (carried over from the old step)
-      push: true
-```
+`build-push-to-dockerhub` has been removed, and this action no longer pushes to Docker Hub. Push to GAR with
+`registries: gar` and publish to Docker Hub via `gar-image-mirror`.
 
 ### Migrating from `push-to-gar-docker`
 

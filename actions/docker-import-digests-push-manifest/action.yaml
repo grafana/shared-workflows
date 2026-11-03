@@ -10,7 +10,8 @@ inputs:
   images:
     description: |
       CSV of Docker images to push. These images should not include tags.
-      Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name,docker.io/grafana/dockerhub-image
+      Ex: us-docker.pkg.dev/grafanalabs-dev/gar-registry/image-name
+      Docker Hub images are not supported; they are published from GAR by gar-image-mirror.
     required: true
   generate-summary:
     description: |
@@ -58,13 +59,12 @@ runs:
       run: |
         ##################################################################
         # This step parses the input image list to determine if
-        # docker images or gar images have been passed in... so we
-        # can determine which systems to login to.
+        # gar images have been passed in... so we can determine
+        # which systems to login to. Docker Hub images are rejected.
         ##################################################################
 
         set -euo pipefail
 
-        DOCKERHUB_IMAGE=false
         GAR_IMAGE=false
 
         IFS=',' read -ra IMAGE_LIST <<< "${IMAGES}"
@@ -75,25 +75,20 @@ runs:
           echo "Verifying image: $image"
           echo "Verifying registry: $registry"
 
-          # Default if there's no dot or colon (Docker Hub shorthand)
-          if [[ "$registry" != *.* && "$registry" != *:* ]]; then
-            DOCKERHUB_IMAGE=true
+          # No dot or colon means Docker Hub shorthand (e.g. grafana/image)
+          if [[ "$registry" != *.* && "$registry" != *:* ]] || [[ "$registry" == "docker.io" ]] || [[ "$registry" == "index.docker.io" ]]; then
+            echo "::error::$image is a Docker Hub image. Pushing to Docker Hub is no longer supported; push to GAR instead. Docker Hub images are published from GAR by gar-image-mirror."
+            exit 1
           fi
 
           if [[ "$registry" == *".pkg.dev" ]] || [[ "$registry" == *"gcr.io" ]]; then
             echo "$image → Google Artifact Registry"
             GAR_IMAGE=true
-          elif [[ "$registry" == "docker.io" ]] || [[ "$registry" == "index.docker.io" ]]; then
-            echo "$image → DockerHub"
-            DOCKERHUB_IMAGE=true
           else
             echo "$image → Other registry ($registry)"
           fi
         done
 
-        if [[ "$DOCKERHUB_IMAGE" == "true" ]]; then
-          echo "include-dockerhub=true" | tee -a "${GITHUB_OUTPUT}"
-        fi
         if [[ "$GAR_IMAGE" == "true" ]]; then
           echo "include-gar=true" | tee -a "${GITHUB_OUTPUT}"
         fi
@@ -101,10 +96,6 @@ runs:
     - name: Login to GAR
       if: ${{ steps.prepare-vars.outputs.include-gar == 'true' }}
       uses: grafana/shared-workflows/actions/login-to-gar@afad5c7621e788905e6417f05b492972685ab1eb # login-to-gar/v1.0.4
-
-    - name: Login to DockerHub
-      if: ${{ steps.prepare-vars.outputs.include-dockerhub == 'true' }}
-      uses: grafana/shared-workflows/actions/dockerhub-login@3ffeda28e54d6c8e02c3998594fafaf0a359328d # dockerhub-login/v2.0.0
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
