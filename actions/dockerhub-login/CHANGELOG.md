@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.0.0](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v2.0.0...dockerhub-login/v3.0.0) (2026-11-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* **dockerhub-login:** log in with Docker Hub OIDC instead of the shared secret ([#2378](https://github.com/grafana/shared-workflows/issues/2378))
+
+### 🎉 Features
+
+* **dockerhub-login:** log in with Docker Hub OIDC instead of the shared secret ([#2378](https://github.com/grafana/shared-workflows/issues/2378)) ([51c1810](https://github.com/grafana/shared-workflows/commit/51c1810b481c6f413c150eef881a5da1c36f30f6))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update docker/login-action action to v4.4.0 ([#2168](https://github.com/grafana/shared-workflows/issues/2168)) ([21536e4](https://github.com/grafana/shared-workflows/commit/21536e4603262dd7882584949c2da3c8d01cba45))
+* **deps:** update docker/login-action action to v4.5.1 ([#2219](https://github.com/grafana/shared-workflows/issues/2219)) ([e7c5c20](https://github.com/grafana/shared-workflows/commit/e7c5c2014724b9102771f725b87c28d8f0246e1a))
+* **deps:** update docker/login-action action to v4.6.0 ([#2247](https://github.com/grafana/shared-workflows/issues/2247)) ([e2bc296](https://github.com/grafana/shared-workflows/commit/e2bc296fb44bcff24b058c52fc69efd48118fbdc))
+* **deps:** update grafana/shared-workflows/get-vault-secrets action to v2.0.1 ([#2268](https://github.com/grafana/shared-workflows/issues/2268)) ([35bf148](https://github.com/grafana/shared-workflows/commit/35bf148d529e6ec81707d291aa73c7f3cda949de))
+
 ## [2.0.0](https://github.com/grafana/shared-workflows/compare/dockerhub-login/v1.0.4...dockerhub-login/v2.0.0) (2026-06-10)
 
 
