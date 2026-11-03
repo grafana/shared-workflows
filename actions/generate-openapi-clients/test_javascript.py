@@ -56,11 +56,11 @@ class JavaScriptPackageTest(unittest.TestCase):
             ["bash", str(ACTION / "generate.sh")],
             cwd=cls.root,
             env={
-                **os.environ,
+                **{key: value for key, value in os.environ.items() if key != "REPO_NAME"},
                 "CLIENT_LANGUAGE": "javascript",
                 "OUTPUT_DIR": str(cls.root),
                 "PACKAGE_NAME": "sample",
-                "REPO_NAME": "public-clients",
+                "GITHUB_REPOSITORY": "grafana/public-clients",
                 "SPEC_PATH": str(cls.root / "spec.json"),
                 "GITHUB_ACTION_PATH": str(ACTION),
             },

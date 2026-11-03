@@ -24,9 +24,11 @@ class GenerateClientTest(unittest.TestCase):
             "REPO_NAME": "public-clients",
             "GITHUB_ACTION_PATH": str(ACTION),
             "TEST_LOG": str(self.root / "commands"),
+            "TEST_GENERATOR_LOG": str(self.root / "generator-arguments"),
         }
         self.stub("java", '''
 if [ "${FAIL_GENERATION:-}" = 1 ]; then exit 42; fi
+printf '%s\n' "$@" > "$TEST_GENERATOR_LOG"
 while [ "$#" -gt 0 ]; do
   if [ "$1" = -o ]; then mkdir -p "$2"; touch "$2/generated"; fi
   shift
@@ -80,6 +82,34 @@ if [ "${FAIL_BUILD:-}" = 1 ] && [ "$1" = run ]; then exit 43; fi
         result = self.generate(CLIENT_LANGUAGE="javascript", FAIL_GENERATION="1")
         self.assertEqual(result.returncode, 42)
         self.assertFalse((self.root / "commands").exists())
+
+    def test_repository_name_defaults_to_github_repository(self):
+        self.env.pop("REPO_NAME")
+        for language, repository in [("go", "public-clients/go"),
+                                     ("javascript", "public-clients")]:
+            with self.subTest(language=language):
+                result = self.generate(
+                    CLIENT_LANGUAGE=language,
+                    GITHUB_REPOSITORY="grafana/public-clients",
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                args = (self.root / "generator-arguments").read_text().splitlines()
+                self.assertEqual(args[args.index("--git-repo-id") + 1], repository)
+                if language == "javascript":
+                    self.assertTrue(any("npmName=public-clients-sample," in arg
+                                        for arg in args))
+
+    def test_explicit_repository_name_is_preserved(self):
+        for language, repository in [("go", "public-clients/go"),
+                                     ("javascript", "public-clients")]:
+            with self.subTest(language=language):
+                result = self.generate(
+                    CLIENT_LANGUAGE=language,
+                    GITHUB_REPOSITORY="grafana/different-repository",
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                args = (self.root / "generator-arguments").read_text().splitlines()
+                self.assertEqual(args[args.index("--git-repo-id") + 1], repository)
 
     def test_build_failure_is_propagated(self):
         result = self.generate(CLIENT_LANGUAGE="javascript", FAIL_BUILD="1")

@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 set -euo pipefail
 
+# Actions supplies owner/repository; preserve an explicit caller override.
+export REPO_NAME="${REPO_NAME:-${GITHUB_REPOSITORY##*/}}"
+
 case "${CLIENT_LANGUAGE:-go}" in
   go) ;;
   javascript) exec "${GITHUB_ACTION_PATH}/generate-javascript.sh" ;;
