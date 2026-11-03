@@ -220,7 +220,8 @@ kind: Component
 metadata:
   annotations:
     github.com/project-slug: grafana/shared-workflows
-  description: Using the shared Grafana Labs DockerHub credentials, log in to DockerHub
+  description: Log in to Docker Hub as the grafana organization with a short-lived,
+    pull-only OIDC token
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/dockerhub-login/README.md
