@@ -1,19 +1,21 @@
 name: Login to DockerHub
-description: Using the shared Grafana Labs DockerHub credentials, log in to DockerHub
+description: Log in to Docker Hub as the grafana organization with a short-lived, pull-only OIDC token
 
 runs:
   using: composite
   steps:
-    - name: Get secrets for DockerHub login
-      id: get-secrets
-      uses: grafana/shared-workflows/actions/get-vault-secrets@2e3743a1f8abfd3e921e53a7726ec0744c11bb01 # get-vault-secrets/v2.0.1
-      with:
-        common_secrets: |
-          DOCKERHUB_USERNAME=dockerhub:username
-          DOCKERHUB_PASSWORD=dockerhub:password
+    - name: Reject pull_request_target
+      if: ${{ github.event_name == 'pull_request_target' }}
+      shell: bash
+      run: |
+        echo "::error::dockerhub-login does not support pull_request_target. Use pull_request instead."
+        exit 1
 
     - name: Log in to Docker Hub
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
       with:
-        username: ${{ fromJSON(steps.get-secrets.outputs.secrets).DOCKERHUB_USERNAME }}
-        password: ${{ fromJSON(steps.get-secrets.outputs.secrets).DOCKERHUB_PASSWORD }}
+        username: grafana
+      env:
+        # TODO: replace with the Docker Hub OIDC connection ID once we decide where it is stored.
+        DOCKERHUB_OIDC_CONNECTIONID: <placeholder>
+        DOCKERHUB_OIDC_EXPIREIN: "1800" # 30 minutes
