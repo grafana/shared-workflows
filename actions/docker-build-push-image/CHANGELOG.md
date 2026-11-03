@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.5...docker-build-push-image/v1.0.0) (2026-11-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* **docker-build-push-image:** remove Docker Hub support ([#2371](https://github.com/grafana/shared-workflows/issues/2371))
+
+### 🎉 Features
+
+* **docker-build-push-image:** remove Docker Hub support ([#2371](https://github.com/grafana/shared-workflows/issues/2371)) ([d60d8c5](https://github.com/grafana/shared-workflows/commit/d60d8c52b8ee47d4ecd78e7ee22e2050e8e44712))
+
 ## [0.3.5](https://github.com/grafana/shared-workflows/compare/docker-build-push-image/v0.3.4...docker-build-push-image/v0.3.5) (2026-10-08)
 
 
