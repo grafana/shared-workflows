@@ -209,13 +209,21 @@ jobs:
 
 Every semver-like string between the `x-release-please-start-version` and `x-release-please-end-version` comments is updated with the new version whenever the component is released.
 
-### Deprecating shared workflows
+### Deprecating and removing actions
 
-When deprecating a shared workflow, follow this procedure:
+Follow these steps to retire an action smoothly, so consumers have time to
+migrate and know what to expect.
 
-1. Post a deprecation notice and warning in the affected action.
-   Also provide a migration guide.
-   Use [this commit](https://github.com/grafana/shared-workflows/commit/b6c252dc86cb65eaf2d8344d6d51ca07436214a2) as an example.
-2. Once step 1 is merged, release the affected action so the latest version includes the deprecation notice.
-   Renovate will automatically start to roll this version out.
-3. On the agreed date, delete the action from `main`.
+1. **Deprecate.** Add a deprecation notice and warning to the action, naming
+   the replacement if there is one, with a migration guide. Use
+   [this commit](https://github.com/grafana/shared-workflows/commit/b6c252dc86cb65eaf2d8344d6d51ca07436214a2)
+   as an example. Release the action so Renovate rolls the notice out.
+2. **List external dependencies.** Record what the action relies on outside
+   this repository: Vault paths, GCP service accounts or WIF bindings,
+   registries, GitHub Apps.
+3. **Find consumers and set a deadline.** Search for usages, for example
+   `org:grafana "shared-workflows/actions/<action>@"`. Open PRs or ping the
+   owners, and announce a deadline (e.g. 2 weeks) in #platform-productivity.
+4. **Delete the action from `main`** on the deadline.
+5. **Clean up external dependencies** from step 2 that nothing current still
+   uses, and announce it.
