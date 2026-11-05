@@ -42,9 +42,8 @@ runs:
       run: ${{ github.action_path }}/scripts/extract-components.sh
 
     # Download previous component tags from the source workflow.
-    # We select the newest matching artifact directly instead of trusting the
-    # order returned by listWorkflowRuns, which is not stable and caused older
-    # artifacts to be picked at random.
+    # The artifacts API does not return a stable order. A stored artifact older than
+    # 5 days is fetched again, up to 5 times, to look for a newer commit.
     - name: Find and download previous component tags
       id: download-previous-tags
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -58,77 +57,102 @@ runs:
           const workflow = process.env.INPUT_WORKFLOW;
           const artifactName = process.env.ARTIFACT_NAME;
           const zipPath = process.env.ZIP_PATH;
+          const maxRetries = 5;
+          const fiveDaysMs = 5 * 24 * 60 * 60 * 1000;
 
-          // Build the set of successful run IDs for the source workflow on main.
-          // Used only as a membership filter; the order is intentionally ignored.
           const runIds = new Set();
-          try {
-            const runs = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: workflow,
-              branch: 'main',
-              status: 'success',
-              per_page: 100
+          const seenArtifacts = new Map();
+
+          const newestMatching = () => {
+            const matching = [...seenArtifacts.values()].filter((artifact) => {
+              const run = artifact.workflow_run;
+              return run && runIds.has(run.id);
             });
-            for (const run of runs.data.workflow_runs) {
-              runIds.add(run.id);
-            }
-          } catch (error) {
-            console.log(`Failed to list runs for workflow ${workflow}: ${error.message}`);
-          }
+            matching.sort((left, right) => {
+              const byCreatedAt = (Date.parse(right.created_at) || 0) - (Date.parse(left.created_at) || 0);
+              return byCreatedAt !== 0 ? byCreatedAt : right.id - left.id;
+            });
+            return matching[0];
+          };
 
-          if (runIds.size === 0) {
-            console.log(`No successful runs found for workflow ${workflow} on main`);
-            return;
-          }
+          let newest;
+          for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            let runsListFailed = false;
+            let artifactsListFailed = false;
 
-          // The artifacts API is eventually consistent, so read it a few times and
-          // keep every matching, unexpired candidate we see across the attempts.
-          const attempts = 3;
-          const candidates = new Map();
-
-          for (let attempt = 1; attempt <= attempts; attempt++) {
             try {
-              const artifacts = await github.paginate(github.rest.actions.listArtifactsForRepo, {
+              const runs = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                name: artifactName,
+                workflow_id: workflow,
+                branch: 'main',
+                status: 'success',
                 per_page: 100
               });
-
-              for (const artifact of artifacts) {
-                if (artifact.name !== artifactName || artifact.expired) {
-                  continue;
-                }
-                const run = artifact.workflow_run;
-                if (!run || !runIds.has(run.id)) {
-                  continue;
-                }
-                candidates.set(artifact.id, artifact);
+              for (const run of runs.data.workflow_runs) {
+                runIds.add(run.id);
               }
             } catch (error) {
-              console.log(`Listing ${artifactName} artifacts failed on attempt ${attempt}: ${error.message}`);
+              if (error.status === 404 && attempt === 0) {
+                console.log(`Workflow ${workflow} was not found`);
+                return;
+              }
+              runsListFailed = true;
+              console.log(`Listing runs for workflow ${workflow} failed on attempt ${attempt + 1}: ${error.message}`);
             }
 
-            if (attempt < attempts) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
+            if (runIds.size === 0 && !runsListFailed) {
+              console.log(`No successful runs found for workflow ${workflow} on main`);
+              return;
             }
+
+            if (runIds.size > 0) {
+              try {
+                const artifacts = await github.rest.actions.listArtifactsForRepo({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: artifactName,
+                  per_page: 100
+                });
+                for (const artifact of artifacts.data.artifacts) {
+                  if (artifact.name === artifactName && !artifact.expired) {
+                    seenArtifacts.set(artifact.id, artifact);
+                  }
+                }
+              } catch (error) {
+                artifactsListFailed = true;
+                console.log(`Listing ${artifactName} artifacts failed on attempt ${attempt + 1}: ${error.message}`);
+              }
+            }
+
+            newest = newestMatching();
+            const createdAtMs = newest ? Date.parse(newest.created_at) || 0 : 0;
+            const stale = Boolean(newest) && createdAtMs < Date.now() - fiveDaysMs;
+            if (!stale && !runsListFailed && !artifactsListFailed) {
+              break;
+            }
+            if (attempt === maxRetries) {
+              break;
+            }
+
+            if (stale) {
+              console.log(`Stored ${artifactName} artifact ${newest.id} created at ${newest.created_at} is older than 5 days. Searching again for a newer commit (${attempt + 1}/${maxRetries}).`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
-
-          // Pick the newest artifact by creation time, breaking ties by id.
-          const newest = [...candidates.values()].sort((a, b) => {
-            const byCreatedAt = (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0);
-            return byCreatedAt !== 0 ? byCreatedAt : b.id - a.id;
-          })[0];
 
           if (!newest) {
             console.log(`No unexpired ${artifactName} artifact found for workflow ${workflow} on main`);
             return;
           }
 
+          if ((Date.parse(newest.created_at) || 0) < Date.now() - fiveDaysMs) {
+            console.log(`No ${artifactName} artifact newer than 5 days after ${maxRetries} retries. Using artifact ${newest.id} created at ${newest.created_at}.`);
+          }
+
           const runId = newest.workflow_run ? String(newest.workflow_run.id) : '';
-          console.log(`Selected ${artifactName} artifact ${newest.id} created at ${newest.created_at} by run ${runId || 'unknown'}`);
+          const headSha = newest.workflow_run && newest.workflow_run.head_sha ? newest.workflow_run.head_sha : 'unknown';
+          console.log(`Selected ${artifactName} artifact ${newest.id} created at ${newest.created_at} from commit ${headSha} by run ${runId || 'unknown'}`);
 
           try {
             const download = await github.rest.actions.downloadArtifact({

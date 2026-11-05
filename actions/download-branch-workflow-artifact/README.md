@@ -2,7 +2,7 @@
 
 Downloads the newest artifact with a given name produced by a workflow on a specific branch. This is useful for retrieving build state from previous deployments (e.g., component tags, digests) without relying on third-party actions.
 
-Uses only the first-party `actions/github-script` action. It lists the repository's artifacts by name (retrying a few times to work around the eventually-consistent artifacts API), keeps only those produced by successful runs of the requested workflow and branch, and downloads the most recently created one. Selection is based on the artifact creation time rather than the order in which workflow runs are returned, which is not stable and could otherwise cause an older artifact to be downloaded at random.
+Uses only the first-party `actions/github-script` action. It reads the first page of artifacts with the given name and keeps those produced by a successful run of the requested workflow and branch. The artifacts API does not return a stable order, so the action picks the newest artifact by creation time. If that artifact is older than 5 days, it repeats the lookup up to 5 times to find a newer commit. If every attempt is still older than 5 days, it downloads the newest artifact it saw.
 
 ## Inputs
 
