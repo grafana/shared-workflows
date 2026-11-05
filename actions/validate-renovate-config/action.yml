@@ -21,3 +21,15 @@ runs:
       env:
         CONFIG_PATH: ${{ inputs.path }}
         RENOVATE_VERSION: renovate@43.232
+
+    - name: Prevent repository-wide disabling
+      shell: bash
+      run: |
+        normalized_config="$(mktemp)"
+        trap 'rm -f "$normalized_config"' EXIT
+        npx --yes --package "$JSON5_VERSION" -- json5 --out-file "$normalized_config" < "$CONFIG_PATH"
+        node "$ACTION_PATH/check-policy.cjs" "$normalized_config"
+      env:
+        CONFIG_PATH: ${{ inputs.path }}
+        ACTION_PATH: ${{ github.action_path }}
+        JSON5_VERSION: json5@2.2.3

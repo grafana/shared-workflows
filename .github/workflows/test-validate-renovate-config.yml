@@ -1,0 +1,46 @@
+name: Test validate-renovate-config action
+
+on:
+  pull_request:
+    paths:
+      - actions/validate-renovate-config/**
+      - .github/workflows/test-validate-renovate-config.yml
+  push:
+    branches: [main]
+    paths:
+      - actions/validate-renovate-config/**
+      - .github/workflows/test-validate-renovate-config.yml
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Policy unit tests
+        run: node --test actions/validate-renovate-config/check-policy.test.cjs
+      - name: Create JSON5 fixture
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/allowed.json5" <<'JSON5'
+          {
+            // Scoped disabling is allowed.
+            packageRules: [{matchManagers: ['gomod'], matchUpdateTypes: ['major'], enabled: false}],
+          }
+          JSON5
+      - name: Validate JSON5 config
+        uses: ./actions/validate-renovate-config
+        with:
+          path: ${{ runner.temp }}/allowed.json5

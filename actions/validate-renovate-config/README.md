@@ -1,6 +1,6 @@
 # validate-renovate-config
 
-Validates Renovate configuration files using [renovate-config-validator](https://docs.renovatebot.com/config-validation/).
+Validates JSON and JSON5 Renovate configuration files using [renovate-config-validator](https://docs.renovatebot.com/config-validation/) and rejects top-level `enabled: false`, `force.enabled: false`, or direct references to the `:disableRenovate` preset. Scoped disabling through package rules or update-type settings is allowed. The policy checks the supplied file; it does not resolve inherited presets or detect catch-all disabling rules.
 
 ## Inputs
 
