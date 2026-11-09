@@ -1,0 +1,63 @@
+{
+  "Metadata": { "OS": { "Family": "alpine", "Name": "3.19.9" } },
+  "Results": [
+    {
+      "Type": "alpine",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2026-40200",
+          "PkgName": "musl",
+          "InstalledVersion": "1.2.4_git20230717-r5",
+          "FixedVersion": "1.2.4_git20230717-r6",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-40200"
+        },
+        {
+          "VulnerabilityID": "CVE-2026-40200",
+          "PkgName": "musl-utils",
+          "InstalledVersion": "1.2.4_git20230717-r5",
+          "FixedVersion": "1.2.4_git20230717-r6",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-40200"
+        },
+        {
+          "VulnerabilityID": "CVE-2024-0002",
+          "PkgName": "busybox",
+          "InstalledVersion": "1.36.1-r15",
+          "FixedVersion": "",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-0002"
+        },
+        {
+          "VulnerabilityID": "CVE-2024-0003",
+          "PkgName": "evil`pkg|x)",
+          "InstalledVersion": "<script>1</script>",
+          "FixedVersion": "2_*_",
+          "Severity": "HIGH",
+          "PrimaryURL": "javascript:alert(1)"
+        },
+        {
+          "VulnerabilityID": "CVE-2024-0004",
+          "PkgName": "paren",
+          "InstalledVersion": "1",
+          "FixedVersion": "",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://example.com/a(b)c"
+        }
+      ]
+    },
+    {
+      "Type": "gobinary",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2026-40200",
+          "PkgName": "musl",
+          "InstalledVersion": "1.2.4_git20230717-r5",
+          "FixedVersion": "1.2.4_git20230717-r6",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-40200"
+        }
+      ]
+    }
+  ]
+}
