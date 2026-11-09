@@ -90,8 +90,9 @@ workflow that builds several images gets one comment per image. It is derived fr
   switching input modes for an image costs one cache miss.
 - Vulnerability matching always runs against the **current** Trivy DB, so a PR that
   has been open for a week still shows newly published CVEs. The DB is cached in
-  six-hour buckets to match its publishing cadence, with a prefix fallback so a stale
-  cache is updated incrementally rather than downloaded from scratch.
+  six-hour buckets to match its publishing cadence; on a miss the newest previous
+  bucket is restored and Trivy only downloads a fresh copy if that one has expired.
+  Caches are per repository, so each consumer pays roughly one download per six hours.
 
 ## Failure behaviour
 
