@@ -104,10 +104,19 @@ run current MAX_ROWS=abc
 expect_stderr "max-rows must be a non-negative integer"
 refute_comment "and 3 more"
 
-CASE="long tables are collapsed"
-# Fabricate a report with more rows than the open threshold.
-jq '.Results[0].Vulnerabilities = [range(25) | {VulnerabilityID: "CVE-2024-\(10000 + .)", PkgName: "pkg\(.)", InstalledVersion: "1", Severity: "HIGH"}] | .Results |= .[:1]' \
-	"${DIR}/testdata/report/current.json" >"${WORK}/many.json"
+CASE="tables open at 10 rows and collapse above"
+# fabricate <n> <out>: a report with n unique HIGH findings.
+fabricate() {
+	jq --argjson n "$1" '.Results[0].Vulnerabilities = [range($n) | {VulnerabilityID: "CVE-2024-\(10000 + .)", PkgName: "pkg\(.)", InstalledVersion: "1", Severity: "HIGH"}] | .Results |= .[:1]' \
+		"${DIR}/testdata/report/current.json" >"$2"
+}
+fabricate 10 "${WORK}/ten.json"
+run "${WORK}/ten.json"
+expect_comment "<details open><summary>Findings (10)</summary>"
+fabricate 11 "${WORK}/eleven.json"
+run "${WORK}/eleven.json"
+expect_comment "<details><summary>Findings (11)</summary>"
+fabricate 25 "${WORK}/many.json"
 run "${WORK}/many.json"
 expect_output "total=25"
 expect_comment "<details><summary>Findings (25)</summary>"

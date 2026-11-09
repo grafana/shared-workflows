@@ -5,7 +5,7 @@ Scans a container image built earlier in the same job with
 comment on the pull request. It never fails the job because of findings.
 
 The comment shows counts by severity and a table of the findings at the requested
-severities (expanded when short, collapsed when long), with a link to the workflow run.
+severities (expanded up to 10 rows, collapsed beyond that), with a link to the workflow run.
 The same Markdown is written to the job summary, so fork PRs (which cannot post comments)
 still get the results. If the table would push the comment past GitHub's size limit, the
 comment keeps the counts and links to the job summary for the table. Scan metadata that

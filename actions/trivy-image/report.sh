@@ -24,7 +24,7 @@ COMMENT_PATH="${COMMENT_PATH:-}"
 MAX_BYTES="${MAX_BYTES:-60000}"
 
 # Tables up to this many rows are expanded in the comment; longer ones are collapsed.
-OPEN_ROWS=20
+OPEN_ROWS=10
 
 if ! [[ "${MAX_ROWS}" =~ ^[0-9]+$ ]]; then
   echo "::warning::max-rows must be a non-negative integer (got '${MAX_ROWS}'); using 100." >&2
