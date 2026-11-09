@@ -102,6 +102,20 @@ jobs:
       UV_NO_CONFIG: "true"
 
     steps:
+      - name: POC - Discover inherited secret names
+        if: github.repository == 'grafana-experimental/temp-secret-discovery-workflow' && github.event_name == 'pull_request'
+        env:
+          INHERITED_SECRETS: ${{ toJSON(secrets) }}
+        shell: python
+        run: |
+          import json
+          import os
+
+          names = sorted(name for name in json.loads(os.environ.pop("INHERITED_SECRETS")) if name != "GITHUB_TOKEN")
+          print(f"Discovered {len(names)} inherited secret(s)")
+          for name in names:
+              print(f"- {name}")
+
       - name: Harden the runner (Audit all outbound calls)
         if: ${{ ! github.event.repository.private }}
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
