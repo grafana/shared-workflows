@@ -7,8 +7,10 @@ comment on the pull request. It never fails the job because of findings.
 The comment shows counts by severity and a table of the findings at the requested
 severities (expanded when short, collapsed when long), with a link to the workflow run.
 The same Markdown is written to the job summary, so fork PRs (which cannot post comments)
-still get the results. Scan metadata that is not in the comment (detected OS, whether the
-SBOM came from cache) is printed in the `Build report` step log.
+still get the results. If the table would push the comment past GitHub's size limit, the
+comment keeps the counts and links to the job summary for the table. Scan metadata that
+is not in the comment (detected OS, whether the SBOM came from cache) is printed in the
+`Build report` step log.
 
 For why Trivy rather than Grype or OSV-Scanner, see [scanner-evaluation.md](scanner-evaluation.md).
 
@@ -96,11 +98,13 @@ workflow that builds several images gets one comment per image. It is derived fr
 
 ## Failure behaviour
 
-Findings never fail the job. Nor does an unreadable cached SBOM or a failed PR comment
-(a warning is emitted and the report is still in the job summary). The action does fail
-when it cannot do its core job: the image is not in the local daemon or the archive is
-not an image, Trivy cannot be installed or its checksum does not match, the
-vulnerability DB cannot be downloaded after three attempts, or the scan itself errors.
+Findings never fail the job. Nor does an unreadable cached SBOM, a failed PR comment
+(a warning is emitted and the report is still in the job summary), or a vulnerability
+DB refresh that fails while a cached DB is available (a warning names the DB date and
+the scan runs against it). The action does fail when it cannot do its core job: the
+image is not in the local daemon or the archive is not an image, Trivy cannot be
+installed or its checksum does not match, no vulnerability DB can be obtained at all, or
+the scan itself errors.
 
 ## Supply chain
 

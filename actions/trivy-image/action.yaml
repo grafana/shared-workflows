@@ -173,8 +173,9 @@ runs:
           fi
           image_display="${IMAGE_NAME} ($(basename "${IMAGE_TAR}"))"
         else
-          if ! layers=$(docker image inspect --format '{{json .RootFS.Layers}}' "${IMAGE_REF}" 2>/dev/null); then
-            echo "::error::Image '${IMAGE_REF}' not found in the local Docker daemon. Build it in this job first (with docker/build-push-action use 'load: true'), or pass the image as an archive with image-tar."
+          inspect_err="${RUNNER_TEMP}/trivy-image-inspect.err"
+          if ! layers=$(docker image inspect --format '{{json .RootFS.Layers}}' "${IMAGE_REF}" 2>"${inspect_err}"); then
+            echo "::error::docker image inspect '${IMAGE_REF}' failed: $(tr '\n' ' ' <"${inspect_err}"). If the image is not in the daemon, build it in this job first (docker/build-push-action: load: true) or pass it with image-tar."
             exit 1
           fi
           if [[ -z "${IMAGE_NAME}" ]]; then
@@ -224,7 +225,7 @@ runs:
         esac
         archive="trivy_${ver}_Linux-${arch}.tar.gz"
         base="https://github.com/aquasecurity/trivy/releases/download/${TRIVY_BIN_VERSION}"
-        curl_opts=(-sSfL --retry 3 --retry-all-errors --connect-timeout 10)
+        curl_opts=(-sSfL --proto '=https' --proto-redir '=https' --tlsv1.2 --retry 3 --retry-all-errors --connect-timeout 10)
 
         dir="${RUNNER_TEMP}/trivy-bin"
         mkdir -p "${dir}"
@@ -256,11 +257,18 @@ runs:
       env:
         TRIVY: ${{ steps.install.outputs.trivy }}
         TRIVY_CACHE_DIR: ${{ steps.meta.outputs.cache-dir }}
-        TIMEOUT: ${{ inputs.timeout }}
       run: |
         set -euo pipefail
+        db="${TRIVY_CACHE_DIR}/db"
+        valid_db() { [[ -s "${db}/trivy.db" ]] && jq -e '.NextUpdate' "${db}/metadata.json" >/dev/null 2>&1; }
+        # Snapshot so a partially written download is not mistaken for the restored DB.
+        snapshot() { stat -c '%s' "${db}/trivy.db" 2>/dev/null; cat "${db}/metadata.json" 2>/dev/null; true; }
+        before=$(snapshot)
+
+        # Trivy only downloads when the restored DB is past its NextUpdate; a stalled
+        # registry must not hold the job for the full scan timeout.
         for attempt in 1 2 3; do
-          if "${TRIVY}" image --download-db-only --timeout "${TIMEOUT}" --quiet; then
+          if "${TRIVY}" image --download-db-only --timeout 3m --quiet; then
             exit 0
           fi
           if [[ "${attempt}" -lt 3 ]]; then
@@ -268,7 +276,12 @@ runs:
             sleep $(( attempt * 15 ))
           fi
         done
-        echo "::error::Could not download the Trivy vulnerability DB after 3 attempts."
+
+        if [[ "$(snapshot)" == "${before}" ]] && valid_db; then
+          echo "::warning::Could not refresh the Trivy vulnerability DB; scanning with the cached DB from $(jq -r .UpdatedAt "${db}/metadata.json")."
+          exit 0
+        fi
+        echo "::error::Could not download the Trivy vulnerability DB after 3 attempts and no usable cached DB is available."
         exit 1
 
     - name: Restore cached SBOM
@@ -367,6 +380,7 @@ runs:
       shell: bash
       env:
         REPORT_PATH: ${{ steps.meta.outputs.report-path }}
+        SUMMARY_PATH: ${{ steps.meta.outputs.work-dir }}/summary.md
         COMMENT_PATH: ${{ steps.meta.outputs.work-dir }}/comment.md
         IMAGE_REF: ${{ steps.meta.outputs.image-display }}
         IMAGE_NAME: ${{ steps.meta.outputs.image-name }}
@@ -378,8 +392,10 @@ runs:
         MAX_ROWS: ${{ inputs.max-rows }}
       run: |
         set -euo pipefail
-        bash "${GITHUB_ACTION_PATH}/report.sh" > "${COMMENT_PATH}"
-        cat "${COMMENT_PATH}" >> "${GITHUB_STEP_SUMMARY}"
+        # stdout is the full report (job summary); COMMENT_PATH gets the same or a
+        # reduced version if it would exceed GitHub's comment size limit.
+        bash "${GITHUB_ACTION_PATH}/report.sh" > "${SUMMARY_PATH}"
+        cat "${SUMMARY_PATH}" >> "${GITHUB_STEP_SUMMARY}"
         echo "comment-path=${COMMENT_PATH}" >> "${GITHUB_OUTPUT}"
 
     - name: Post PR comment

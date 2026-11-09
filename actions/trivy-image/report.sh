@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Render a Trivy JSON report as Markdown on stdout and write counts to
-# $GITHUB_OUTPUT when set.
+# $GITHUB_OUTPUT when set. When COMMENT_PATH is set, also write the PR comment
+# there: the same Markdown, or a reduced version without the table when the full
+# one exceeds MAX_BYTES (GitHub rejects comments over 65536 characters).
 #
 # Environment:
 #   REPORT_PATH         Trivy JSON report for the image under test (required)
 #   IMAGE_REF, IMAGE_NAME, SLUG, SEVERITY, IGNORE_UNFIXED, SBOM_CACHE_HIT,
-#   TRIVY_BIN_VERSION, MAX_ROWS
+#   TRIVY_BIN_VERSION, MAX_ROWS, COMMENT_PATH, MAX_BYTES
 #   GITHUB_SERVER_URL, GITHUB_REPOSITORY, GITHUB_RUN_ID (runner defaults) for the run link
 set -euo pipefail
 
@@ -18,6 +20,8 @@ IGNORE_UNFIXED="${IGNORE_UNFIXED:-false}"
 SBOM_CACHE_HIT="${SBOM_CACHE_HIT:-false}"
 TRIVY_BIN_VERSION="${TRIVY_BIN_VERSION:-}"
 MAX_ROWS="${MAX_ROWS:-100}"
+COMMENT_PATH="${COMMENT_PATH:-}"
+MAX_BYTES="${MAX_BYTES:-60000}"
 
 # Tables up to this many rows are expanded in the comment; longer ones are collapsed.
 OPEN_ROWS=20
@@ -25,6 +29,9 @@ OPEN_ROWS=20
 if ! [[ "${MAX_ROWS}" =~ ^[0-9]+$ ]]; then
   echo "::warning::max-rows must be a non-negative integer (got '${MAX_ROWS}'); using 100." >&2
   MAX_ROWS=100
+fi
+if ! [[ "${MAX_BYTES}" =~ ^[0-9]+$ ]]; then
+  MAX_BYTES=60000
 fi
 
 run_url=""
@@ -77,7 +84,11 @@ if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   ' "${summary_path}" >> "${GITHUB_OUTPUT}"
 fi
 
+# render <full|reduced>: "reduced" replaces the findings table with a pointer to
+# the job summary, for comments that would exceed MAX_BYTES.
+render() {
 jq -r \
+  --arg mode "$1" \
   --arg image_ref "${IMAGE_REF}" \
   --arg image_name "${IMAGE_NAME}" \
   --arg slug "${SLUG}" \
@@ -127,7 +138,13 @@ jq -r \
   "",
   count_line,
   "",
-  (.total as $t | .findings | details("Findings (\($t))"; $t <= $open_rows)),
+  (if $mode == "reduced" then
+      "> [!NOTE]",
+      "> The findings table is too large for a comment; see the "
+        + (if $run_url != "" then "[workflow run](\($run_url)) summary" else "job summary" end) + "."
+   else
+      (.total as $t | .findings | details("Findings (\($t))"; $t <= $open_rows))
+   end),
   "",
   "<sub>"
     + ($image_ref | short_ref | code)
@@ -137,6 +154,20 @@ jq -r \
   "<sub>Informational only; this check never fails the build.</sub>",
   "<!-- trivy-image-scan:\($slug) -->"
   ' "${summary_path}"
+}
+
+full_path="$(dirname "${REPORT_PATH}")/report.md"
+render full > "${full_path}"
+cat "${full_path}"
+
+if [[ -n "${COMMENT_PATH}" ]]; then
+  if [[ "$(wc -c < "${full_path}")" -le "${MAX_BYTES}" ]]; then
+    cp "${full_path}" "${COMMENT_PATH}"
+  else
+    echo "::notice::Scan report exceeds ${MAX_BYTES} bytes; posting a reduced comment. The full table is in the job summary." >&2
+    render reduced > "${COMMENT_PATH}"
+  fi
+fi
 
 # Scan metadata that is not shown in the comment goes to the step log.
 jq -r \

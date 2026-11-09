@@ -16,15 +16,18 @@ fail() {
 }
 
 # run <fixture name or path> [VAR=value ...]: runs report.sh and leaves the
-# Markdown in ${WORK}/comment and the outputs in ${WORK}/output.
+# Markdown (stdout, i.e. the job summary) in ${WORK}/comment, the PR comment in
+# ${WORK}/pr-comment and the outputs in ${WORK}/output.
 run() {
 	local fixture="$1"
 	shift
 	: >"${WORK}/output"
+	rm -f "${WORK}/pr-comment"
 	[[ "${fixture}" == */* ]] || fixture="${DIR}/testdata/report/${fixture}.json"
 	cp "${fixture}" "${WORK}/report.json"
 	env -i PATH="${PATH}" \
 		REPORT_PATH="${WORK}/report.json" \
+		COMMENT_PATH="${WORK}/pr-comment" \
 		GITHUB_OUTPUT="${WORK}/output" \
 		GITHUB_SERVER_URL="https://github.com" \
 		GITHUB_REPOSITORY="grafana/example" \
@@ -102,14 +105,28 @@ expect_stderr "max-rows must be a non-negative integer"
 refute_comment "and 3 more"
 
 CASE="long tables are collapsed"
-run current MAX_ROWS=100
-expect_comment "<details open><summary>Findings (5)</summary>"
 # Fabricate a report with more rows than the open threshold.
 jq '.Results[0].Vulnerabilities = [range(25) | {VulnerabilityID: "CVE-2024-\(10000 + .)", PkgName: "pkg\(.)", InstalledVersion: "1", Severity: "HIGH"}] | .Results |= .[:1]' \
 	"${DIR}/testdata/report/current.json" >"${WORK}/many.json"
 run "${WORK}/many.json"
 expect_output "total=25"
 expect_comment "<details><summary>Findings (25)</summary>"
+
+CASE="PR comment matches the summary when under the byte cap"
+run current
+cmp -s "${WORK}/comment" "${WORK}/pr-comment" || fail "$CASE: pr-comment differs from stdout"
+
+CASE="PR comment is reduced when over the byte cap"
+run "${WORK}/many.json" MAX_BYTES=2000
+expect_comment "<details><summary>Findings (25)</summary>" # summary keeps the table
+expect_comment "| 🟠 HIGH | CVE-2024-10000"
+expect_stderr "::notice::Scan report exceeds 2000 bytes"
+grep -qF "> [!NOTE]" "${WORK}/pr-comment" || fail "$CASE: expected NOTE in pr-comment"
+grep -qF "see the [workflow run](https://github.com/grafana/example/actions/runs/42) summary" "${WORK}/pr-comment" || fail "$CASE: expected summary link in pr-comment"
+grep -qF "🟠 **25** High" "${WORK}/pr-comment" || fail "$CASE: expected counts in pr-comment"
+grep -qF "<!-- trivy-image-scan:example -->" "${WORK}/pr-comment" || fail "$CASE: expected marker in pr-comment"
+if grep -qF "| 🟠" "${WORK}/pr-comment"; then fail "$CASE: pr-comment must not contain table rows"; fi
+[[ "$(wc -c <"${WORK}/pr-comment")" -le 2000 ]] || fail "$CASE: pr-comment exceeds the cap"
 
 CASE="requested severities always appear in the count line"
 run empty SEVERITY="CRITICAL,HIGH,MEDIUM,LOW"
