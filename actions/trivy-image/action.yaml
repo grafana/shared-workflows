@@ -4,10 +4,7 @@ description: >-
   comment on the pull request. Takes the image from the local Docker daemon (`image-ref`)
   or from an OCI/Docker archive (`image-tar`). The image SBOM is cached by layer digest so
   an unchanged image is not re-analysed; vulnerabilities are always matched against the
-  current database. When a baseline SBOM is available (explicit baseline image, cached
-  baseline, or baseline artifact from the base branch), the comment also lists
-  vulnerabilities introduced and resolved by the change. Never fails the job because of
-  findings.
+  current database. Never fails the job because of findings.
 
 inputs:
   image-ref:
@@ -26,9 +23,8 @@ inputs:
     default: ""
   image-name:
     description: >-
-      Stable name for this image used in cache keys, baseline keys, artifact names and the
-      comment id. Must be the same on pull_request and push runs. Defaults to `image-ref`
-      without tag/digest; required with `image-tar`.
+      Stable name for this image used in cache keys and the comment id. Defaults to
+      `image-ref` without tag/digest; required with `image-tar`.
     required: false
     default: ""
   severity:
@@ -47,24 +43,6 @@ inputs:
     description: Trivy timeout applied to each Trivy invocation.
     required: false
     default: "10m"
-  baseline-image-ref:
-    description: >-
-      Image to diff against instead of the cached/artifact baseline, e.g. the image your
-      default branch last pushed to a registry. Pulled if not present locally; log in to
-      the registry before this step. Its SBOM is cached by layer digest like the main image.
-    required: false
-    default: ""
-  save-baseline:
-    description: >-
-      Save this image's SBOM as the baseline for the current branch (Actions cache and a
-      90-day workflow artifact) so pull requests targeting it can report introduced/resolved
-      vulnerabilities. `auto` saves on push events only.
-    required: false
-    default: "auto"
-  baseline-ref:
-    description: Branch whose baseline to diff against. Defaults to the PR base branch.
-    required: false
-    default: ""
   cache-sbom:
     description: >-
       Cache the image SBOM keyed on layer digests. Set to false for workflows that scan a
@@ -76,13 +54,11 @@ inputs:
     required: false
     default: "true"
   max-rows:
-    description: Maximum number of rows in each findings table.
+    description: Maximum number of rows in the findings table.
     required: false
     default: "100"
   github-token:
-    description: >-
-      Token used to post the PR comment and to look up baseline artifacts. Needs
-      `pull-requests: write` for comments and `actions: read` for the artifact fallback.
+    description: "Token used to post the PR comment. Needs `pull-requests: write`."
     required: false
     default: ${{ github.token }}
 
@@ -96,12 +72,6 @@ outputs:
   sbom-cache-hit:
     description: true when a valid SBOM was restored from cache instead of generated.
     value: ${{ steps.check-sbom.outputs.valid == 'true' }}
-  baseline-found:
-    description: true when a baseline SBOM was available.
-    value: ${{ steps.report.outputs.baseline-found }}
-  baseline-source:
-    description: "Where the baseline came from: image, cache, artifact or none."
-    value: ${{ steps.scan.outputs.baseline-source }}
   critical:
     description: Number of CRITICAL findings.
     value: ${{ steps.report.outputs.critical }}
@@ -120,12 +90,6 @@ outputs:
   fixable:
     description: Findings that have a fixed version.
     value: ${{ steps.report.outputs.fixable }}
-  introduced:
-    description: Findings present in this image but not in the baseline (empty without baseline).
-    value: ${{ steps.report.outputs.introduced }}
-  resolved:
-    description: Findings present in the baseline but not in this image (empty without baseline).
-    value: ${{ steps.report.outputs.resolved }}
 
 runs:
   using: composite
@@ -137,13 +101,6 @@ runs:
         IMAGE_REF: ${{ inputs.image-ref }}
         IMAGE_TAR: ${{ inputs.image-tar }}
         IMAGE_NAME: ${{ inputs.image-name }}
-        BASELINE_IMAGE_REF: ${{ inputs.baseline-image-ref }}
-        SAVE_BASELINE: ${{ inputs.save-baseline }}
-        BASELINE_REF: ${{ inputs.baseline-ref }}
-        EVENT_NAME: ${{ github.event_name }}
-        REF_NAME: ${{ github.ref_name }}
-        BASE_REF: ${{ github.base_ref }}
-        SHA: ${{ github.sha }}
         # renovate: datasource=github-releases depName=aquasecurity/trivy
         TRIVY_BIN_VERSION: v0.76.2
       run: |
@@ -160,14 +117,13 @@ runs:
         fi
 
         required=(curl jq sha256sum tar)
-        if [[ -n "${IMAGE_REF}" || -n "${BASELINE_IMAGE_REF}" ]]; then
+        if [[ -n "${IMAGE_REF}" ]]; then
           required+=(docker)
         fi
         for tool in "${required[@]}"; do
           command -v "${tool}" >/dev/null || { echo "::error::${tool} is required on the runner"; exit 1; }
         done
 
-        layers_of() { docker image inspect --format '{{json .RootFS.Layers}}' "$1" 2>/dev/null; }
         sanitize() { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '-' | cut -c1-80; }
         key_hash() { printf '%s|%s' "$1" "${TRIVY_BIN_VERSION}" | sha256sum | cut -c1-32; }
 
@@ -217,7 +173,7 @@ runs:
           fi
           image_display="${IMAGE_NAME} ($(basename "${IMAGE_TAR}"))"
         else
-          if ! layers=$(layers_of "${IMAGE_REF}"); then
+          if ! layers=$(docker image inspect --format '{{json .RootFS.Layers}}' "${IMAGE_REF}" 2>/dev/null); then
             echo "::error::Image '${IMAGE_REF}' not found in the local Docker daemon. Build it in this job first (with docker/build-push-action use 'load: true'), or pass the image as an archive with image-tar."
             exit 1
           fi
@@ -229,39 +185,12 @@ runs:
           image_display="${IMAGE_REF}"
         fi
         slug=$(sanitize "${IMAGE_NAME}")
+        work_dir="${RUNNER_TEMP}/trivy-image/${slug}"
+        mkdir -p "${work_dir}"
 
         # Layer digests are content-addressed: identical layers give the same key even
         # when the image ID differs because of a new build timestamp.
         sbom_key="trivy-image-sbom-v1-${slug}-$(key_hash "${layers}")"
-
-        # Optional explicit baseline image. Failure to obtain it degrades to the other
-        # baseline sources rather than failing the job.
-        baseline_image_key=""
-        if [[ -n "${BASELINE_IMAGE_REF}" ]]; then
-          if ! base_layers=$(layers_of "${BASELINE_IMAGE_REF}"); then
-            echo "Pulling baseline image ${BASELINE_IMAGE_REF}"
-            if docker pull --quiet "${BASELINE_IMAGE_REF}" >/dev/null && base_layers=$(layers_of "${BASELINE_IMAGE_REF}"); then
-              :
-            else
-              echo "::warning::Could not pull baseline image '${BASELINE_IMAGE_REF}'; falling back to cached/artifact baseline."
-              base_layers=""
-            fi
-          fi
-          if [[ -n "${base_layers}" ]]; then
-            baseline_image_key="trivy-image-baseline-sbom-v1-${slug}-$(key_hash "${base_layers}")"
-          fi
-        fi
-
-        save_baseline=false
-        if [[ "${SAVE_BASELINE}" == "true" || ( "${SAVE_BASELINE}" == "auto" && "${EVENT_NAME}" == "push" ) ]]; then
-          save_baseline=true
-        fi
-        if [[ -z "${BASELINE_REF}" ]]; then
-          BASELINE_REF="${BASE_REF}"
-        fi
-
-        work_dir="${RUNNER_TEMP}/trivy-image/${slug}"
-        mkdir -p "${work_dir}/baseline"
 
         # trivy-db is published roughly every six hours; bucket the DB cache to match.
         db_bucket="$(date -u +%Y-%m-%d)-$(( 10#$(date -u +%H) / 6 ))"
@@ -276,13 +205,7 @@ runs:
           echo "work-dir=${work_dir}"
           echo "sbom-path=${work_dir}/sbom.cdx.json"
           echo "report-path=${work_dir}/report.json"
-          echo "baseline-dir=${work_dir}/baseline"
           echo "sbom-key=${sbom_key}"
-          echo "baseline-image-key=${baseline_image_key}"
-          echo "baseline-save-key=trivy-image-baseline-v1-${slug}-$(sanitize "${REF_NAME}")-${SHA}"
-          echo "baseline-restore-prefix=trivy-image-baseline-v1-${slug}-$(sanitize "${BASELINE_REF}")-"
-          echo "save-baseline=${save_baseline}"
-          echo "baseline-ref=${BASELINE_REF}"
           echo "db-bucket=${db_bucket}"
         } >> "${GITHUB_OUTPUT}"
 
@@ -401,110 +324,12 @@ runs:
         path: ${{ steps.meta.outputs.sbom-path }}
         key: ${{ steps.meta.outputs.sbom-key }}
 
-    # Baseline resolution, in priority order: explicit baseline image, cached baseline
-    # for the base branch, baseline artifact from the base branch's last run.
-
-    - name: Restore baseline image SBOM
-      id: restore-baseline-image
-      if: steps.meta.outputs.baseline-image-key != ''
-      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: ${{ steps.meta.outputs.baseline-dir }}
-        key: ${{ steps.meta.outputs.baseline-image-key }}
-
-    - name: Generate baseline image SBOM
-      id: generate-baseline-image
-      if: steps.meta.outputs.baseline-image-key != '' && steps.restore-baseline-image.outputs.cache-hit != 'true'
-      shell: bash
-      env:
-        BASELINE_IMAGE_REF: ${{ inputs.baseline-image-ref }}
-        BASELINE_DIR: ${{ steps.meta.outputs.baseline-dir }}
-        TIMEOUT: ${{ inputs.timeout }}
-        TRIVY: ${{ steps.install.outputs.trivy }}
-        TRIVY_CACHE_DIR: ${{ steps.meta.outputs.cache-dir }}
-      run: |
-        set -euo pipefail
-        generated=false
-        if "${TRIVY}" image --image-src docker --format cyclonedx \
-             --output "${BASELINE_DIR}/sbom.cdx.json" --timeout "${TIMEOUT}" --skip-db-update --quiet \
-             "${BASELINE_IMAGE_REF}"; then
-          generated=true
-        else
-          echo "::warning::Could not generate an SBOM for baseline image '${BASELINE_IMAGE_REF}'; continuing without it."
-          rm -f "${BASELINE_DIR}/sbom.cdx.json"
-        fi
-        echo "generated=${generated}" >> "${GITHUB_OUTPUT}"
-
-    - name: Save baseline image SBOM to cache
-      if: steps.generate-baseline-image.outputs.generated == 'true'
-      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: ${{ steps.meta.outputs.baseline-dir }}
-        key: ${{ steps.meta.outputs.baseline-image-key }}
-
-    - name: Restore cached baseline SBOM
-      id: restore-baseline
-      if: steps.meta.outputs.baseline-ref != '' && steps.meta.outputs.baseline-image-key == ''
-      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: ${{ steps.meta.outputs.baseline-dir }}
-        # Exact key intentionally never matches; restore-keys picks the newest baseline for the branch.
-        key: ${{ steps.meta.outputs.baseline-restore-prefix }}never
-        restore-keys: ${{ steps.meta.outputs.baseline-restore-prefix }}
-
-    - name: Fetch baseline SBOM artifact
-      id: baseline-artifact
-      if: steps.meta.outputs.baseline-ref != '' && steps.meta.outputs.baseline-image-key == ''
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github-token }}
-        REPO: ${{ github.repository }}
-        SLUG: ${{ steps.meta.outputs.slug }}
-        BASELINE_REF: ${{ steps.meta.outputs.baseline-ref }}
-        BASELINE_DIR: ${{ steps.meta.outputs.baseline-dir }}
-      run: |
-        set -euo pipefail
-        found=false
-        if [[ -s "${BASELINE_DIR}/sbom.cdx.json" ]]; then
-          echo "found=${found}" >> "${GITHUB_OUTPUT}"   # cached baseline already present
-          exit 0
-        fi
-
-        name="trivy-image-baseline-${SLUG}"
-        if artifacts=$(gh api "repos/${REPO}/actions/artifacts?name=${name}&per_page=100" 2>/dev/null); then
-          artifact_id=$(jq -r --arg branch "${BASELINE_REF}" '
-            [.artifacts[] | select(.expired == false and .workflow_run.head_branch == $branch)]
-            | sort_by(.created_at) | last | .id // empty' <<< "${artifacts}")
-          if [[ -n "${artifact_id}" ]]; then
-            zip="${RUNNER_TEMP}/${name}.zip"
-            if gh api "repos/${REPO}/actions/artifacts/${artifact_id}/zip" > "${zip}" \
-               && unzip -o -q "${zip}" -d "${BASELINE_DIR}" \
-               && jq -e '.bomFormat == "CycloneDX"' "${BASELINE_DIR}/sbom.cdx.json" >/dev/null 2>&1; then
-              found=true
-              echo "Using baseline artifact ${artifact_id} from ${BASELINE_REF}"
-            else
-              echo "::warning::Baseline artifact ${artifact_id} could not be downloaded or is invalid; continuing without it."
-              rm -f "${BASELINE_DIR}/sbom.cdx.json"
-            fi
-            rm -f "${zip}"
-          else
-            echo "No baseline artifact for ${BASELINE_REF} yet."
-          fi
-        else
-          echo "::notice::Could not list workflow artifacts (does the token have actions: read?); skipping artifact baseline."
-        fi
-        echo "found=${found}" >> "${GITHUB_OUTPUT}"
-
-    - name: Scan SBOMs for vulnerabilities
-      id: scan
+    - name: Scan SBOM for vulnerabilities
       shell: bash
       env:
         WORK_DIR: ${{ steps.meta.outputs.work-dir }}
         SBOM_PATH: ${{ steps.meta.outputs.sbom-path }}
         REPORT_PATH: ${{ steps.meta.outputs.report-path }}
-        BASELINE_DIR: ${{ steps.meta.outputs.baseline-dir }}
-        BASELINE_IMAGE_KEY: ${{ steps.meta.outputs.baseline-image-key }}
-        ARTIFACT_FOUND: ${{ steps.baseline-artifact.outputs.found }}
         SEVERITY: ${{ inputs.severity }}
         IGNORE_UNFIXED: ${{ inputs.ignore-unfixed }}
         TRIVYIGNORES: ${{ inputs.trivyignores }}
@@ -537,65 +362,11 @@ runs:
 
         "${TRIVY}" sbom "${args[@]}" --output "${REPORT_PATH}" "${SBOM_PATH}"
 
-        baseline_report=""
-        baseline_source="none"
-        baseline_sbom="${BASELINE_DIR}/sbom.cdx.json"
-        if [[ -s "${baseline_sbom}" ]]; then
-          # Same DB, same moment: the diff reflects only what the change did to the image.
-          if "${TRIVY}" sbom "${args[@]}" --output "${BASELINE_DIR}/report.json" "${baseline_sbom}"; then
-            baseline_report="${BASELINE_DIR}/report.json"
-            if [[ -n "${BASELINE_IMAGE_KEY}" ]]; then
-              baseline_source="image"
-            elif [[ "${ARTIFACT_FOUND}" == "true" ]]; then
-              baseline_source="artifact"
-            else
-              baseline_source="cache"
-            fi
-          else
-            echo "::warning::Baseline SBOM could not be scanned; skipping introduced/resolved diff."
-          fi
-        fi
-        {
-          echo "baseline-report=${baseline_report}"
-          echo "baseline-source=${baseline_source}"
-        } >> "${GITHUB_OUTPUT}"
-
-    - name: Save baseline SBOM
-      if: steps.meta.outputs.save-baseline == 'true'
-      shell: bash
-      env:
-        SBOM_PATH: ${{ steps.meta.outputs.sbom-path }}
-        BASELINE_DIR: ${{ steps.meta.outputs.baseline-dir }}
-      run: |
-        set -euo pipefail
-        rm -rf "${BASELINE_DIR}"
-        mkdir -p "${BASELINE_DIR}"
-        cp "${SBOM_PATH}" "${BASELINE_DIR}/sbom.cdx.json"
-
-    - name: Upload baseline SBOM to cache
-      if: steps.meta.outputs.save-baseline == 'true'
-      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: ${{ steps.meta.outputs.baseline-dir }}
-        key: ${{ steps.meta.outputs.baseline-save-key }}
-
-    - name: Upload baseline SBOM artifact
-      if: steps.meta.outputs.save-baseline == 'true'
-      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-      with:
-        name: trivy-image-baseline-${{ steps.meta.outputs.slug }}
-        path: ${{ steps.meta.outputs.baseline-dir }}/sbom.cdx.json
-        if-no-files-found: warn
-        overwrite: true
-
     - name: Build report
       id: report
       shell: bash
       env:
         REPORT_PATH: ${{ steps.meta.outputs.report-path }}
-        BASELINE_REPORT: ${{ steps.scan.outputs.baseline-report }}
-        BASELINE_SOURCE: ${{ steps.scan.outputs.baseline-source }}
-        BASELINE_IMAGE_REF: ${{ inputs.baseline-image-ref }}
         COMMENT_PATH: ${{ steps.meta.outputs.work-dir }}/comment.md
         IMAGE_REF: ${{ steps.meta.outputs.image-display }}
         IMAGE_NAME: ${{ steps.meta.outputs.image-name }}
@@ -603,7 +374,6 @@ runs:
         SEVERITY: ${{ inputs.severity }}
         IGNORE_UNFIXED: ${{ inputs.ignore-unfixed }}
         SBOM_CACHE_HIT: ${{ steps.check-sbom.outputs.valid == 'true' }}
-        BASELINE_REF: ${{ steps.meta.outputs.baseline-ref }}
         TRIVY_BIN_VERSION: ${{ steps.meta.outputs.trivy-version }}
         MAX_ROWS: ${{ inputs.max-rows }}
       run: |

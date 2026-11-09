@@ -15,20 +15,16 @@ fail() {
 	failures=$((failures + 1))
 }
 
-# run <current fixture> <baseline fixture or ""> [VAR=value ...]: runs report.sh
-# and leaves the Markdown in ${WORK}/comment and the outputs in ${WORK}/output.
+# run <fixture name or path> [VAR=value ...]: runs report.sh and leaves the
+# Markdown in ${WORK}/comment and the outputs in ${WORK}/output.
 run() {
-	local current="$1" baseline="$2"
-	shift 2
+	local fixture="$1"
+	shift
 	: >"${WORK}/output"
-	cp "${DIR}/testdata/report/${current}.json" "${WORK}/report.json"
-	local baseline_path=""
-	if [[ -n "${baseline}" ]]; then
-		baseline_path="${DIR}/testdata/report/${baseline}.json"
-	fi
+	[[ "${fixture}" == */* ]] || fixture="${DIR}/testdata/report/${fixture}.json"
+	cp "${fixture}" "${WORK}/report.json"
 	env -i PATH="${PATH}" \
 		REPORT_PATH="${WORK}/report.json" \
-		BASELINE_REPORT="${baseline_path}" \
 		GITHUB_OUTPUT="${WORK}/output" \
 		GITHUB_SERVER_URL="https://github.com" \
 		GITHUB_REPOSITORY="grafana/example" \
@@ -36,7 +32,6 @@ run() {
 		IMAGE_REF="example:pr-0123456789abcdef0123456789abcdef01234567" \
 		IMAGE_NAME="example" \
 		SLUG="example" \
-		BASELINE_REF="main" \
 		TRIVY_BIN_VERSION="v0.0.0" \
 		"$@" \
 		bash "${DIR}/report.sh" >"${WORK}/comment" 2>"${WORK}/stderr"
@@ -58,34 +53,35 @@ expect_stderr() {
 	grep -qF -- "$1" "${WORK}/stderr" || fail "$CASE: expected stderr to contain '$1'"
 }
 
-CASE="no baseline"
-run current ""
+CASE="counts and layout"
+run current
 expect_output "critical=1"
 expect_output "high=3"
 expect_output "medium=1"
+expect_output "low=0"
 expect_output "total=5"
 expect_output "fixable=3"
-expect_output "baseline-found=false"
-expect_output "introduced="
-expect_output "resolved="
 expect_comment "### Trivy image scan: <code>example</code>"
-expect_comment "**1** Critical"
-expect_comment "**3** High"
-expect_comment "**1** Medium"
-expect_comment "> [!NOTE]"
-expect_comment "No baseline for <code>main</code> yet"
-expect_comment "<details><summary>All findings (5)</summary>"
+expect_comment "🔴 **1** Critical · 🟠 **3** High · 🟡 **1** Medium"
+refute_comment "Low"
+expect_comment "<details open><summary>Findings (5)</summary>"
 expect_comment "<code>example:pr-01234567…</code>"
+expect_comment "Trivy v0.0.0"
 expect_comment "[workflow run](https://github.com/grafana/example/actions/runs/42)"
+expect_comment "Informational only; this check never fails the build."
 expect_comment "<!-- trivy-image-scan:example -->"
-expect_stderr "os=alpine 3.19.9"
+expect_stderr "image=example:pr-0123456789abcdef0123456789abcdef01234567 os=alpine 3.19.9 trivy=v0.0.0 sbom=generated total=5"
+
+CASE="findings are sorted by severity"
+run current
+[[ "$(grep -m1 '^| 🔴\|^| 🟠\|^| 🟡\|^| 🟢' "${WORK}/comment")" == *CRITICAL* ]] || fail "$CASE: first row should be CRITICAL"
 
 CASE="duplicate findings across result types are counted once"
-run current ""
+run current
 [[ "$(grep -c 'CVE-2026-40200' "${WORK}/comment")" -eq 2 ]] || fail "$CASE: expected musl and musl-utils rows only"
 
 CASE="untrusted fields are escaped"
-run current ""
+run current
 expect_comment '<code>evil&#96;pkg\|x)</code>'
 expect_comment '<code>&lt;script&gt;1&lt;/script&gt;</code>'
 expect_comment '<code>2&#95;&#42;&#95;</code>'
@@ -93,63 +89,37 @@ refute_comment 'javascript:'
 expect_comment '| CVE-2024-0003 |'
 expect_comment '(https://example.com/a%28b%29c)'
 
-CASE="introduced and resolved against a cached baseline"
-run current baseline BASELINE_SOURCE=cache
-expect_output "baseline-found=true"
-expect_output "introduced=4"
-expect_output "resolved=1"
-expect_comment "> [!CAUTION]"
-expect_comment "**4 vulnerabilities introduced** compared to <code>main</code>, 1 resolved."
-expect_comment "<details open><summary>Introduced (4)</summary>"
-expect_comment "<details><summary>Resolved (1)</summary>"
-expect_comment "CVE-2023-9999"
-
-CASE="baseline source labels"
-run current baseline BASELINE_SOURCE=artifact
-expect_comment "compared to <code>main</code> (baseline artifact)"
-run current baseline BASELINE_SOURCE=image BASELINE_IMAGE_REF=ghcr.io/example/app:latest
-expect_comment "compared to image <code>ghcr.io/example/app:latest</code>"
-
-CASE="resolved only"
-run empty baseline BASELINE_SOURCE=cache
-expect_output "introduced=0"
-expect_output "resolved=2"
-expect_comment "> [!TIP]"
-expect_comment "**2 vulnerabilities resolved** compared to <code>main</code>; none introduced."
-expect_comment "<details><summary>Resolved (2)</summary>"
-refute_comment "Introduced ("
-
-CASE="identical baseline"
-run current current BASELINE_SOURCE=cache
-expect_output "introduced=0"
-expect_output "resolved=0"
-expect_comment "> [!TIP]"
-expect_comment "No vulnerabilities introduced or resolved compared to <code>main</code>."
-
-CASE="malformed baseline degrades to no baseline"
-printf 'not json\n' >"${WORK}/bad.json"
-run current "" BASELINE_REPORT="${WORK}/bad.json"
-expect_output "baseline-found=false"
-expect_stderr "Baseline report is unreadable"
-expect_comment "> [!NOTE]"
+CASE="ignore-unfixed and cache hit are reflected"
+run current IGNORE_UNFIXED=true SBOM_CACHE_HIT=true
+expect_comment "High · 🟡 **1** Medium (fixed only)"
+expect_stderr "sbom=cache"
 
 CASE="max-rows truncates and invalid max-rows falls back"
-run current "" MAX_ROWS=2
+run current MAX_ROWS=2
 expect_comment "and 3 more; see the [workflow run]"
-run current "" MAX_ROWS=abc
+run current MAX_ROWS=abc
 expect_stderr "max-rows must be a non-negative integer"
 refute_comment "and 3 more"
 
+CASE="long tables are collapsed"
+run current MAX_ROWS=100
+expect_comment "<details open><summary>Findings (5)</summary>"
+# Fabricate a report with more rows than the open threshold.
+jq '.Results[0].Vulnerabilities = [range(25) | {VulnerabilityID: "CVE-2024-\(10000 + .)", PkgName: "pkg\(.)", InstalledVersion: "1", Severity: "HIGH"}] | .Results |= .[:1]' \
+	"${DIR}/testdata/report/current.json" >"${WORK}/many.json"
+run "${WORK}/many.json"
+expect_output "total=25"
+expect_comment "<details><summary>Findings (25)</summary>"
+
 CASE="requested severities always appear in the count line"
-run empty "" SEVERITY="CRITICAL,HIGH,MEDIUM,LOW"
-expect_comment "**0** Critical"
-expect_comment "**0** Low"
+run empty SEVERITY="CRITICAL,HIGH,MEDIUM,LOW"
+expect_comment "🔴 **0** Critical · 🟠 **0** High · 🟡 **0** Medium · 🟢 **0** Low"
 expect_output "total=0"
-expect_comment "<details><summary>All findings (0)</summary>"
+expect_comment "<details open><summary>Findings (0)</summary>"
 expect_comment "_none_"
 
 CASE="no workflow run link outside Actions"
-run current "" GITHUB_RUN_ID=
+run current GITHUB_RUN_ID=
 refute_comment "[workflow run]"
 
 if [[ "${failures}" -gt 0 ]]; then

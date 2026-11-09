@@ -648,10 +648,8 @@ metadata:
     an informational comment on the pull request. Takes the image from the local Docker
     daemon (`image-ref`) or from an OCI/Docker archive (`image-tar`). The image SBOM
     is cached by layer digest so an unchanged image is not re-analysed; vulnerabilities
-    are always matched against the current database. When a baseline SBOM is available
-    (explicit baseline image, cached baseline, or baseline artifact from the base
-    branch), the comment also lists vulnerabilities introduced and resolved by the
-    change. Never fails the job because of findings.
+    are always matched against the current database. Never fails the job because of
+    findings.
   links:
   - title: README
     url: https://github.com/grafana/shared-workflows/blob/main/actions/trivy-image/README.md

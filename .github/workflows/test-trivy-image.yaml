@@ -58,7 +58,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write # PR comment
-      actions: read # baseline artifact lookup
 
     strategy:
       fail-fast: false
@@ -106,24 +105,19 @@ jobs:
           image-ref: ${{ matrix.source == 'daemon' && format('{0}:test', env.IMAGE_NAME) || '' }}
           image-tar: ${{ matrix.source == 'archive' && format('{0}/image.tar', runner.temp) || '' }}
           image-name: ${{ env.IMAGE_NAME }}
-          # A public image one minor behind the fixture, so the introduced/resolved diff renders.
-          baseline-image-ref: alpine:3.18
 
       - name: Check outputs
         env:
           TOTAL: ${{ steps.scan.outputs.total }}
+          CRITICAL: ${{ steps.scan.outputs.critical }}
+          HIGH: ${{ steps.scan.outputs.high }}
           REPORT: ${{ steps.scan.outputs.report-path }}
           SBOM: ${{ steps.scan.outputs.sbom-path }}
           SBOM_CACHE_HIT: ${{ steps.scan.outputs.sbom-cache-hit }}
-          BASELINE_FOUND: ${{ steps.scan.outputs.baseline-found }}
-          BASELINE_SOURCE: ${{ steps.scan.outputs.baseline-source }}
-          INTRODUCED: ${{ steps.scan.outputs.introduced }}
-          RESOLVED: ${{ steps.scan.outputs.resolved }}
         run: |
           set -euo pipefail
-          echo "total=${TOTAL} sbom-cache-hit=${SBOM_CACHE_HIT} baseline-found=${BASELINE_FOUND} baseline-source=${BASELINE_SOURCE} introduced=${INTRODUCED} resolved=${RESOLVED}"
-          [[ "${TOTAL}" =~ ^[0-9]+$ ]] || { echo "::error::total is not numeric"; exit 1; }
-          [[ "${BASELINE_FOUND}" == "true" && "${BASELINE_SOURCE}" == "image" ]] || { echo "::error::expected the baseline image to be used"; exit 1; }
-          [[ "${INTRODUCED}" =~ ^[0-9]+$ && "${RESOLVED}" =~ ^[0-9]+$ ]] || { echo "::error::introduced/resolved not numeric"; exit 1; }
+          echo "total=${TOTAL} critical=${CRITICAL} high=${HIGH} sbom-cache-hit=${SBOM_CACHE_HIT}"
+          [[ "${TOTAL}" =~ ^[0-9]+$ && "${CRITICAL}" =~ ^[0-9]+$ && "${HIGH}" =~ ^[0-9]+$ ]] || { echo "::error::counts are not numeric"; exit 1; }
+          [[ "${SBOM_CACHE_HIT}" == "true" || "${SBOM_CACHE_HIT}" == "false" ]] || { echo "::error::sbom-cache-hit is not a boolean"; exit 1; }
           jq -e '.Results' "${REPORT}" > /dev/null
           jq -e '.bomFormat == "CycloneDX"' "${SBOM}" > /dev/null
