@@ -1,7 +1,16 @@
 #! /usr/bin/env bash
 set -euo pipefail
 
-# Generate Go client (TODO: Add support for other languages)
+# Actions supplies owner/repository; preserve an explicit caller override.
+export REPO_NAME="${REPO_NAME:-${GITHUB_REPOSITORY##*/}}"
+
+case "${CLIENT_LANGUAGE:-go}" in
+  go) ;;
+  javascript) exec "${GITHUB_ACTION_PATH}/generate-javascript.sh" ;;
+  *) echo "Unsupported client language: ${CLIENT_LANGUAGE}. Expected go or javascript." >&2; exit 1 ;;
+esac
+
+# Generate Go client
 GO_DIR="${OUTPUT_DIR}/go/${PACKAGE_NAME}"
 rm -rf "${GO_DIR}"
 java -jar openapi-generator-cli.jar generate \
