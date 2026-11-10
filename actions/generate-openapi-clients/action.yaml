@@ -115,4 +115,4 @@ runs:
         commit_message: ${{ inputs.commit-message }}
         commit_author: ${{ inputs.commit-author}}
         commit_user_name: ${{ inputs.commit-user-name}}
-        commit_user_email: ${{ inputs.commit-email }}
+        commit_user_email: ${{ inputs.commit-user-email }}
