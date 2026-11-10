@@ -158,6 +158,58 @@ jobs:
           cache-suffix: ${{ env.ZIZMOR_VERSION }}
           cache-dependency-glob: ""
 
+      # Temporary GH secrets migration notice. Will remove after November 23, 2026.
+      - name: Find GitHub secret references
+        id: secret-references
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        shell: bash
+        run: |
+          shopt -s nullglob
+          reference="secrets[[:space:]]*(\.[[:space:]]*[A-Za-z_][A-Za-z0-9_]*|\[[[:space:]]*['\"][A-Za-z_][A-Za-z0-9_]*['\"][[:space:]]*\])"
+          secret_references=''
+          for file in .github/workflows/*.yml .github/workflows/*.yaml; do
+            [[ -f $file && ! -L $file ]] || continue
+            matches=$(grep -Eio "$reference" "$file" || [[ $? -eq 1 ]])
+            names=$(printf '%s\n' "$matches" | tr '[:lower:]' '[:upper:]' | sed 's/^SECRETS//; s/[^A-Z0-9_]//g; /^GITHUB_TOKEN$/d; /^$/d' | LC_ALL=C sort -u)
+            formatted=''
+            while IFS= read -r name; do
+              [[ -n $name ]] || continue
+              formatted+="${formatted:+, }\`$name\`"
+            done <<< "$names"
+            [[ -z $formatted ]] || secret_references+="- \`$file\`: $formatted"$'\n'
+          done
+          printf 'secret_references<<EOF\n%s\nEOF\n' "$secret_references" >> "$GITHUB_OUTPUT"
+
+      - name: Comment with secret migration notice
+        if: steps.secret-references.outcome == 'success' && steps.secret-references.outputs.secret_references != ''
+        continue-on-error: true
+        uses: int128/comment-action@2263c1a82c13c37672f725bcd07145530cd42579 # v1.69.0
+        with:
+          update-if-exists: replace
+          update-if-exists-key: github-actions-secret-removal-notice
+          post: |
+            ### GitHub Actions secret migration notice
+
+            We found these secret references in this repository's workflow files:
+
+            ${{ steps.secret-references.outputs.secret_references }}
+
+            **All GitHub Actions secrets are scheduled for removal on November 23, 2026.**
+            If these references use secrets stored in GitHub, you must move them to Vault and update the workflows before that date. Follow the [Vault migration guidance](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/vault/#ci-secrets-for-repositories-outside-the-grafana-org).
+
+            > [!NOTE]
+            > If you lack write access to `grafana/deployment_tools` to configure the [GitHub App Token Broker (GATB)](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/vault/github-app-token-broker/), or the permissions needed to store your credentials in Vault, submit a [GitHub App Authentication Setup request](https://helpdesk2.grafana.com/submit/e537fff8-1871-4f32-bd7d-761d6cdef734) for assistance from Platform Productivity.
+
+      - name: Hide resolved secret migration notice
+        if: steps.secret-references.outcome == 'success' && steps.secret-references.outputs.secret_references == ''
+        continue-on-error: true
+        uses: int128/hide-comment-action@430b7e736ceb7372703a3022d1a5a26f07328207 # v1.78.0
+        with:
+          ends-with: "<!-- comment-action/github-actions-secret-removal-notice -->"
+
       - name: Validate repo-local zizmor config policy
         id: validate-config
         continue-on-error: true
