@@ -198,10 +198,11 @@ jobs:
             ${{ steps.secret-references.outputs.secret_references }}
 
             **All GitHub Actions secrets are scheduled for removal on November 23, 2026.**
+
             If these references use secrets stored in GitHub, you must move them to Vault and update the workflows before that date. Follow the [Vault migration guidance](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/vault/#ci-secrets-for-repositories-outside-the-grafana-org).
 
             > [!NOTE]
-            > If you lack write access to `grafana/deployment_tools` to configure the [GitHub App Token Broker (GATB)](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/vault/github-app-token-broker/), or the permissions needed to store your credentials in Vault, submit a [GitHub App Authentication Setup request](https://helpdesk2.grafana.com/submit/e537fff8-1871-4f32-bd7d-761d6cdef734) for assistance from Platform Productivity.
+            > If your workflow needs GitHub App authentication but you lack access to define the [GitHub App Token Broker (GATB) configuration](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/vault/github-app-token-broker/) in `grafana/deployment_tools` or register the App credentials in Vault, submit a [GitHub App Authentication Setup request](https://helpdesk2.grafana.com/submit/e537fff8-1871-4f32-bd7d-761d6cdef734) for assistance from Platform Productivity squad.
 
       - name: Hide resolved secret migration notice
         if: steps.secret-references.outcome == 'success' && steps.secret-references.outputs.secret_references == ''
