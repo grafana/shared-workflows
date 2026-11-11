@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.2.0](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients/v1.1.1...generate-openapi-clients/v1.2.0) (2026-11-11)
+
+
+### 🎉 Features
+
+* **generate-openapi-clients:** support JavaScript clients ([#2299](https://github.com/grafana/shared-workflows/issues/2299)) ([e52d64d](https://github.com/grafana/shared-workflows/commit/e52d64dea00d1a57596d19b9a7d74f75309e8d0a))
+
+
+### 🐛 Bug Fixes
+
+* **generate-openapi-clients:** honor commit-user-email input ([#2384](https://github.com/grafana/shared-workflows/issues/2384)) ([611a413](https://github.com/grafana/shared-workflows/commit/611a4132b8ea071b7447a26b681fcf654e7181b8))
+
+
+### 📝 Documentation
+
+* generate action and workflow input/output tables ([#2276](https://github.com/grafana/shared-workflows/issues/2276)) ([ddcc1f8](https://github.com/grafana/shared-workflows/commit/ddcc1f84239514abefa7b02481bfcc24bd88c4ca))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update actions/cache action to v6 ([#2227](https://github.com/grafana/shared-workflows/issues/2227)) ([ddc2a23](https://github.com/grafana/shared-workflows/commit/ddc2a23ec2ab41811bb9ba72e26afc7ed72466b0))
+* **deps:** update stefanzweifel/git-auto-commit-action action to v7.2.0 ([#2194](https://github.com/grafana/shared-workflows/issues/2194)) ([87f28f1](https://github.com/grafana/shared-workflows/commit/87f28f11dadb56791da38d3f05b15377f948d951))
+
 ## [1.1.1](https://github.com/grafana/shared-workflows/compare/generate-openapi-clients/v1.1.0...generate-openapi-clients/v1.1.1) (2026-06-10)
 
 
