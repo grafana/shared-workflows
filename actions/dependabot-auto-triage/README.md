@@ -42,7 +42,7 @@ jobs:
 
       # Use the token with the auto-triage action
       - name: Auto Dismiss Dependabot Alerts
-        uses: grafana/shared-workflows/actions/dependabot-auto-triage@dependabot-auto-triage/v1.1.3
+        uses: grafana/shared-workflows/actions/dependabot-auto-triage@dependabot-auto-triage/v1.1.4
         with:
           token: ${{ steps.generate-token.outputs.token }}
           paths: |
