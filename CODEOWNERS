@@ -20,5 +20,9 @@
 # Platform Infrasec
 /actions/create-github-app-token @grafana/platform-infrasec
 
+# Platform Monitoring
+/actions/trivy-image/ @grafana/platform-monitoring
+/.github/workflows/test-trivy-image.yaml @grafana/platform-monitoring
+
 # Mimir
 actions/go-flaky-tests/cmd/go-flaky-tests @grafana/mimir-maintainers

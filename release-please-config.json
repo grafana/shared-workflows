@@ -226,6 +226,11 @@
       "package-name": "govulncheck",
       "extra-files": ["README.md"],
       "initial-version": "0.1.0"
+    },
+    "actions/trivy-image": {
+      "package-name": "trivy-image",
+      "extra-files": ["README.md"],
+      "initial-version": "0.1.0"
     }
   },
   "release-type": "simple",

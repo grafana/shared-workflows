@@ -1,0 +1,417 @@
+name: Trivy image scan
+description: >-
+  Scan a container image built in the current job with Trivy and post an informational
+  comment on the pull request. Takes the image from the local Docker daemon (`image-ref`)
+  or from an OCI/Docker archive (`image-tar`). The image SBOM is cached by layer digest so
+  an unchanged image is not re-analysed; vulnerabilities are always matched against the
+  current database. Never fails the job because of findings.
+
+inputs:
+  image-ref:
+    description: >-
+      Image reference present in the local Docker daemon, e.g. `my-app:pr-<sha>`. With
+      docker/build-push-action set `load: true` so the image is loaded. Exactly one of
+      `image-ref` and `image-tar` must be set.
+    required: false
+    default: ""
+  image-tar:
+    description: >-
+      Path to the image as an OCI layout (tar or directory, e.g. the output of
+      `docker buildx build --output type=oci,dest=image.tar`) or a `docker save` archive.
+      Use this when the image is not loaded into the daemon. Requires `image-name`.
+    required: false
+    default: ""
+  image-name:
+    description: >-
+      Stable name for this image used in cache keys and the comment id. Defaults to
+      `image-ref` without tag/digest; required with `image-tar`.
+    required: false
+    default: ""
+  severity:
+    description: Comma-separated severities to report.
+    required: false
+    default: "CRITICAL,HIGH"
+  ignore-unfixed:
+    description: Only report vulnerabilities that have a fixed version.
+    required: false
+    default: "false"
+  trivyignores:
+    description: Comma-separated workspace-relative paths to .trivyignore files (concatenated).
+    required: false
+    default: ""
+  timeout:
+    description: Trivy timeout applied to each Trivy invocation.
+    required: false
+    default: "10m"
+  cache-sbom:
+    description: >-
+      Cache the image SBOM keyed on layer digests. Set to false for workflows that scan a
+      stream of distinct images where the cache would never hit.
+    required: false
+    default: "true"
+  comment:
+    description: Post or update an informational comment on the pull request.
+    required: false
+    default: "true"
+  max-rows:
+    description: Maximum number of rows in the findings table.
+    required: false
+    default: "100"
+  github-token:
+    description: "Token used to post the PR comment. Needs `pull-requests: write`."
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  report-path:
+    description: Path to the Trivy JSON vulnerability report.
+    value: ${{ steps.meta.outputs.report-path }}
+  sbom-path:
+    description: Path to the CycloneDX SBOM of the image.
+    value: ${{ steps.meta.outputs.sbom-path }}
+  sbom-cache-hit:
+    description: true when a valid SBOM was restored from cache instead of generated.
+    value: ${{ steps.check-sbom.outputs.valid == 'true' }}
+  critical:
+    description: Number of CRITICAL findings.
+    value: ${{ steps.report.outputs.critical }}
+  high:
+    description: Number of HIGH findings.
+    value: ${{ steps.report.outputs.high }}
+  medium:
+    description: Number of MEDIUM findings.
+    value: ${{ steps.report.outputs.medium }}
+  low:
+    description: Number of LOW findings.
+    value: ${{ steps.report.outputs.low }}
+  total:
+    description: Total findings at the requested severities.
+    value: ${{ steps.report.outputs.total }}
+  fixable:
+    description: Findings that have a fixed version.
+    value: ${{ steps.report.outputs.fixable }}
+
+runs:
+  using: composite
+  steps:
+    - name: Inspect image and compute keys
+      id: meta
+      shell: bash
+      env:
+        IMAGE_REF: ${{ inputs.image-ref }}
+        IMAGE_TAR: ${{ inputs.image-tar }}
+        IMAGE_NAME: ${{ inputs.image-name }}
+        # renovate: datasource=github-releases depName=aquasecurity/trivy
+        TRIVY_BIN_VERSION: v0.76.2
+      run: |
+        set -euo pipefail
+
+        if [[ -n "${IMAGE_REF}" && -n "${IMAGE_TAR}" ]]; then
+          echo "::error::Set either image-ref or image-tar, not both."; exit 1
+        fi
+        if [[ -z "${IMAGE_REF}" && -z "${IMAGE_TAR}" ]]; then
+          echo "::error::One of image-ref or image-tar is required."; exit 1
+        fi
+        if [[ -n "${IMAGE_TAR}" && -z "${IMAGE_NAME}" ]]; then
+          echo "::error::image-name is required when image-tar is used."; exit 1
+        fi
+
+        required=(curl jq sha256sum tar)
+        if [[ -n "${IMAGE_REF}" ]]; then
+          required+=(docker)
+        fi
+        for tool in "${required[@]}"; do
+          command -v "${tool}" >/dev/null || { echo "::error::${tool} is required on the runner"; exit 1; }
+        done
+
+        sanitize() { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '-' | cut -c1-80; }
+        key_hash() { printf '%s|%s' "$1" "${TRIVY_BIN_VERSION}" | sha256sum | cut -c1-32; }
+
+        # Layer digests from an OCI layout directory: index.json -> (nested index ->)
+        # image manifest -> layers. Buildx indexes may include attestation manifests
+        # with platform unknown/unknown; skip those.
+        oci_layers() {
+          local dir="$1" digest blob
+          digest=$(jq -r '.manifests[0].digest // empty' "${dir}/index.json" 2>/dev/null)
+          for _ in 1 2 3; do
+            [[ -n "${digest}" ]] || return 1
+            blob="${dir}/blobs/${digest%%:*}/${digest#*:}"
+            [[ -f "${blob}" ]] || return 1
+            if jq -e '.manifests' "${blob}" >/dev/null 2>&1; then
+              digest=$(jq -r '[.manifests[] | select((.platform.os // "") != "unknown")][0].digest // .manifests[0].digest // empty' "${blob}")
+              continue
+            fi
+            jq -ce '[.layers[].digest] | select(length > 0)' "${blob}"
+            return
+          done
+          return 1
+        }
+
+        trivy_input=""
+        if [[ -n "${IMAGE_TAR}" ]]; then
+          slug=$(sanitize "${IMAGE_NAME}")
+          work_dir="${RUNNER_TEMP}/trivy-image/${slug}"
+          mkdir -p "${work_dir}"
+          # Trivy reads docker-save tars directly but needs OCI layouts as a directory,
+          # so an OCI tar (buildx --output type=oci) is unpacked first.
+          if [[ -d "${IMAGE_TAR}" ]]; then
+            trivy_input="${IMAGE_TAR}"
+            layers=$(oci_layers "${IMAGE_TAR}") || { echo "::error::'${IMAGE_TAR}' is not an OCI image layout directory."; exit 1; }
+          elif [[ ! -s "${IMAGE_TAR}" ]]; then
+            echo "::error::image-tar '${IMAGE_TAR}' does not exist or is empty."; exit 1
+          elif tar -tf "${IMAGE_TAR}" manifest.json >/dev/null 2>&1; then
+            trivy_input="${IMAGE_TAR}"
+            tar -xf "${IMAGE_TAR}" -C "${work_dir}" manifest.json
+            layers=$(jq -ce '.[0].Layers | select(length > 0)' "${work_dir}/manifest.json") || { echo "::error::Could not read layers from '${IMAGE_TAR}' manifest.json."; exit 1; }
+          elif tar -tf "${IMAGE_TAR}" index.json >/dev/null 2>&1; then
+            trivy_input="${work_dir}/oci"
+            rm -rf "${trivy_input}"; mkdir -p "${trivy_input}"
+            tar -xf "${IMAGE_TAR}" -C "${trivy_input}"
+            layers=$(oci_layers "${trivy_input}") || { echo "::error::Could not read an image manifest from OCI archive '${IMAGE_TAR}'."; exit 1; }
+          else
+            echo "::error::'${IMAGE_TAR}' is neither a docker-save archive nor an OCI layout (tar or directory)."; exit 1
+          fi
+          image_display="${IMAGE_NAME} ($(basename "${IMAGE_TAR}"))"
+        else
+          inspect_err="${RUNNER_TEMP}/trivy-image-inspect.err"
+          if ! layers=$(docker image inspect --format '{{json .RootFS.Layers}}' "${IMAGE_REF}" 2>"${inspect_err}"); then
+            echo "::error::docker image inspect '${IMAGE_REF}' failed: $(tr '\n' ' ' <"${inspect_err}"). If the image is not in the daemon, build it in this job first (docker/build-push-action: load: true) or pass it with image-tar."
+            exit 1
+          fi
+          if [[ -z "${IMAGE_NAME}" ]]; then
+            # Strip digest and tag; keep registry/repo path.
+            IMAGE_NAME="${IMAGE_REF%%@*}"
+            IMAGE_NAME="${IMAGE_NAME%:*}"
+          fi
+          image_display="${IMAGE_REF}"
+        fi
+        slug=$(sanitize "${IMAGE_NAME}")
+        work_dir="${RUNNER_TEMP}/trivy-image/${slug}"
+        mkdir -p "${work_dir}"
+
+        # Layer digests are content-addressed: identical layers give the same key even
+        # when the image ID differs because of a new build timestamp.
+        sbom_key="trivy-image-sbom-v1-${slug}-$(key_hash "${layers}")"
+
+        # trivy-db is published roughly every six hours; bucket the DB cache to match.
+        db_bucket="$(date -u +%Y-%m-%d)-$(( 10#$(date -u +%H) / 6 ))"
+
+        {
+          echo "slug=${slug}"
+          echo "image-name=${IMAGE_NAME}"
+          echo "image-display=${image_display}"
+          echo "trivy-input=${trivy_input}"
+          echo "trivy-version=${TRIVY_BIN_VERSION}"
+          echo "cache-dir=${RUNNER_TEMP}/trivy-cache"
+          echo "work-dir=${work_dir}"
+          echo "sbom-path=${work_dir}/sbom.cdx.json"
+          echo "report-path=${work_dir}/report.json"
+          echo "sbom-key=${sbom_key}"
+          echo "db-bucket=${db_bucket}"
+        } >> "${GITHUB_OUTPUT}"
+
+    - name: Install Trivy
+      id: install
+      shell: bash
+      env:
+        TRIVY_BIN_VERSION: ${{ steps.meta.outputs.trivy-version }}
+      run: |
+        set -euo pipefail
+        ver="${TRIVY_BIN_VERSION#v}"
+        case "$(uname -m)" in
+          x86_64)        arch="64bit" ;;
+          aarch64|arm64) arch="ARM64" ;;
+          *) echo "::error::Unsupported runner architecture: $(uname -m)"; exit 1 ;;
+        esac
+        archive="trivy_${ver}_Linux-${arch}.tar.gz"
+        base="https://github.com/aquasecurity/trivy/releases/download/${TRIVY_BIN_VERSION}"
+        curl_opts=(-sSfL --proto '=https' --proto-redir '=https' --tlsv1.2 --retry 3 --retry-all-errors --connect-timeout 10)
+
+        dir="${RUNNER_TEMP}/trivy-bin"
+        mkdir -p "${dir}"
+        cd "${dir}"
+        curl "${curl_opts[@]}" --max-time 180 -o "${archive}" "${base}/${archive}"
+        curl "${curl_opts[@]}" --max-time 30 -o checksums.txt "${base}/trivy_${ver}_checksums.txt"
+        if ! expected=$(grep " ${archive}\$" checksums.txt); then
+          echo "::error::No checksum for ${archive} in trivy_${ver}_checksums.txt; the release layout may have changed."
+          exit 1
+        fi
+        sha256sum -c - <<< "${expected}"
+        tar -xzf "${archive}" trivy
+        rm -f "${archive}" checksums.txt
+        ./trivy --version
+        echo "trivy=${dir}/trivy" >> "${GITHUB_OUTPUT}"
+
+    - name: Restore Trivy vulnerability DB
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        # Only the DBs; the layer analysis cache under the same root is per-image and not worth keeping.
+        path: |
+          ${{ steps.meta.outputs.cache-dir }}/db
+          ${{ steps.meta.outputs.cache-dir }}/java-db
+        key: trivy-db-v2-${{ steps.meta.outputs.db-bucket }}
+        restore-keys: trivy-db-v2-
+
+    - name: Update Trivy DB
+      shell: bash
+      env:
+        TRIVY: ${{ steps.install.outputs.trivy }}
+        TRIVY_CACHE_DIR: ${{ steps.meta.outputs.cache-dir }}
+      run: |
+        set -euo pipefail
+        db="${TRIVY_CACHE_DIR}/db"
+        valid_db() { [[ -s "${db}/trivy.db" ]] && jq -e '.NextUpdate' "${db}/metadata.json" >/dev/null 2>&1; }
+        # Snapshot so a partially written download is not mistaken for the restored DB.
+        snapshot() { stat -c '%s' "${db}/trivy.db" 2>/dev/null; cat "${db}/metadata.json" 2>/dev/null; true; }
+        before=$(snapshot)
+
+        # Trivy only downloads when the restored DB is past its NextUpdate; a stalled
+        # registry must not hold the job for the full scan timeout.
+        for attempt in 1 2 3; do
+          if "${TRIVY}" image --download-db-only --timeout 3m --quiet; then
+            exit 0
+          fi
+          if [[ "${attempt}" -lt 3 ]]; then
+            echo "Trivy DB download failed (attempt ${attempt}); retrying"
+            sleep $(( attempt * 15 ))
+          fi
+        done
+
+        if [[ "$(snapshot)" == "${before}" ]] && valid_db; then
+          echo "::warning::Could not refresh the Trivy vulnerability DB; scanning with the cached DB from $(jq -r .UpdatedAt "${db}/metadata.json")."
+          exit 0
+        fi
+        echo "::error::Could not download the Trivy vulnerability DB after 3 attempts and no usable cached DB is available."
+        exit 1
+
+    - name: Restore cached SBOM
+      id: restore-sbom
+      if: inputs.cache-sbom == 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.meta.outputs.sbom-path }}
+        key: ${{ steps.meta.outputs.sbom-key }}
+
+    - name: Validate cached SBOM
+      id: check-sbom
+      shell: bash
+      env:
+        SBOM_PATH: ${{ steps.meta.outputs.sbom-path }}
+        CACHE_HIT: ${{ steps.restore-sbom.outputs.cache-hit }}
+      run: |
+        set -euo pipefail
+        valid=false
+        if [[ "${CACHE_HIT}" == "true" ]]; then
+          if jq -e '.bomFormat == "CycloneDX"' "${SBOM_PATH}" >/dev/null 2>&1; then
+            valid=true
+          else
+            echo "::warning::Cached SBOM is invalid; regenerating."
+            rm -f "${SBOM_PATH}"
+          fi
+        fi
+        echo "valid=${valid}" >> "${GITHUB_OUTPUT}"
+
+    - name: Generate SBOM
+      if: steps.check-sbom.outputs.valid != 'true'
+      shell: bash
+      env:
+        IMAGE_REF: ${{ inputs.image-ref }}
+        TRIVY_INPUT: ${{ steps.meta.outputs.trivy-input }}
+        SBOM_PATH: ${{ steps.meta.outputs.sbom-path }}
+        TIMEOUT: ${{ inputs.timeout }}
+        TRIVY: ${{ steps.install.outputs.trivy }}
+        TRIVY_CACHE_DIR: ${{ steps.meta.outputs.cache-dir }}
+      run: |
+        set -euo pipefail
+        args=(--format cyclonedx --output "${SBOM_PATH}" --timeout "${TIMEOUT}" --skip-db-update --quiet)
+        if [[ -n "${TRIVY_INPUT}" ]]; then
+          "${TRIVY}" image "${args[@]}" --input "${TRIVY_INPUT}"
+        else
+          "${TRIVY}" image "${args[@]}" --image-src docker "${IMAGE_REF}"
+        fi
+
+    - name: Save SBOM to cache
+      if: inputs.cache-sbom == 'true' && steps.check-sbom.outputs.valid != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.meta.outputs.sbom-path }}
+        key: ${{ steps.meta.outputs.sbom-key }}
+
+    - name: Scan SBOM for vulnerabilities
+      shell: bash
+      env:
+        WORK_DIR: ${{ steps.meta.outputs.work-dir }}
+        SBOM_PATH: ${{ steps.meta.outputs.sbom-path }}
+        REPORT_PATH: ${{ steps.meta.outputs.report-path }}
+        SEVERITY: ${{ inputs.severity }}
+        IGNORE_UNFIXED: ${{ inputs.ignore-unfixed }}
+        TRIVYIGNORES: ${{ inputs.trivyignores }}
+        TIMEOUT: ${{ inputs.timeout }}
+        TRIVY: ${{ steps.install.outputs.trivy }}
+        TRIVY_CACHE_DIR: ${{ steps.meta.outputs.cache-dir }}
+      run: |
+        set -euo pipefail
+
+        # Without trivyignores Trivy falls back to ./.trivyignore in the consumer repo, if present.
+        args=(--format json --severity "${SEVERITY}" --timeout "${TIMEOUT}" --skip-db-update --quiet)
+        if [[ "${IGNORE_UNFIXED}" == "true" ]]; then
+          args+=(--ignore-unfixed)
+        fi
+        if [[ -n "${TRIVYIGNORES}" ]]; then
+          ignorefile="${WORK_DIR}/.trivyignore"
+          : > "${ignorefile}"
+          IFS=',' read -ra files <<< "${TRIVYIGNORES}"
+          for f in "${files[@]}"; do
+            f="${f#"${f%%[![:space:]]*}"}"; f="${f%"${f##*[![:space:]]}"}"
+            [[ -n "${f}" ]] || continue
+            if [[ "${f}" == /* || "${f}" == *..* ]]; then
+              echo "::error::trivyignore path must be workspace-relative: ${f}"; exit 1
+            fi
+            [[ -f "${f}" ]] || { echo "::error::trivyignore file not found: ${f}"; exit 1; }
+            cat "${f}" >> "${ignorefile}"; echo >> "${ignorefile}"
+          done
+          args+=(--ignorefile "${ignorefile}")
+        fi
+
+        "${TRIVY}" sbom "${args[@]}" --output "${REPORT_PATH}" "${SBOM_PATH}"
+
+    - name: Build report
+      id: report
+      shell: bash
+      env:
+        REPORT_PATH: ${{ steps.meta.outputs.report-path }}
+        SUMMARY_PATH: ${{ steps.meta.outputs.work-dir }}/summary.md
+        COMMENT_PATH: ${{ steps.meta.outputs.work-dir }}/comment.md
+        IMAGE_REF: ${{ steps.meta.outputs.image-display }}
+        IMAGE_NAME: ${{ steps.meta.outputs.image-name }}
+        SLUG: ${{ steps.meta.outputs.slug }}
+        SEVERITY: ${{ inputs.severity }}
+        IGNORE_UNFIXED: ${{ inputs.ignore-unfixed }}
+        SBOM_CACHE_HIT: ${{ steps.check-sbom.outputs.valid == 'true' }}
+        TRIVY_BIN_VERSION: ${{ steps.meta.outputs.trivy-version }}
+        MAX_ROWS: ${{ inputs.max-rows }}
+      run: |
+        set -euo pipefail
+        # stdout is the full report (job summary); COMMENT_PATH gets the same or a
+        # reduced version if it would exceed GitHub's comment size limit.
+        bash "${GITHUB_ACTION_PATH}/report.sh" > "${SUMMARY_PATH}"
+        cat "${SUMMARY_PATH}" >> "${GITHUB_STEP_SUMMARY}"
+        echo "comment-path=${COMMENT_PATH}" >> "${GITHUB_OUTPUT}"
+
+    - name: Post PR comment
+      id: comment
+      if: >-
+        inputs.comment == 'true'
+        && github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
+      continue-on-error: true
+      uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3.12.0
+      with:
+        repo-token: ${{ inputs.github-token }}
+        message-id: trivy-image-scan-${{ steps.meta.outputs.slug }}
+        message-path: ${{ steps.report.outputs.comment-path }}
+
+    - name: Comment fallback notice
+      if: steps.comment.outcome == 'failure'
+      shell: bash
+      run: echo "::warning::Could not post the PR comment (does github-token have pull-requests:write?). The scan report is in the job summary."
