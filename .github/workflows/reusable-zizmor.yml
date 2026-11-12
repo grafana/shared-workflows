@@ -158,7 +158,7 @@ jobs:
           cache-suffix: ${{ env.ZIZMOR_VERSION }}
           cache-dependency-glob: ""
 
-      # Temporary GH secrets migration notice. Will remove after November 23, 2026.
+      # Temporary GH secrets migration notice. Will remove after Monday, December 7, 2026.
       - name: Find GitHub secret references
         id: secret-references
         if: >-
@@ -197,7 +197,7 @@ jobs:
 
             ${{ steps.secret-references.outputs.secret_references }}
 
-            **All GitHub Actions secrets are scheduled for removal on November 23, 2026.**
+            **All GitHub Actions secrets are scheduled for removal on Monday, December 7, 2026.**
 
             If these references use secrets stored in GitHub, you must move them to Vault and update the workflows before that date. Follow the [Vault migration guidance](https://enghub.grafana-ops.net/docs/default/component/deployment-tools/platform/vault/#ci-secrets-for-repositories-outside-the-grafana-org).
 
