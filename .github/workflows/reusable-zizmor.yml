@@ -129,21 +129,14 @@ jobs:
         run: |
           if [ -z "${FORCE_DEFAULT_CONFIG}" ]; then
             echo "Checking for user-provided zizmor configuration..."
-            if [ -f "zizmor.yml" ]; then
-              # No action needed, zizmor will find it
-              echo "Using zizmor.yml found in repository root."
-              echo "repo-local-zizmor-config=zizmor.yml" >> "${GITHUB_OUTPUT}"
-              exit 0
-            fi
-
-            if [ -f ".github/zizmor.yml" ]; then
-              # No action needed, zizmor will find it
-              echo "Using .github/zizmor.yml found in repository."
-              echo "repo-local-zizmor-config=.github/zizmor.yml" >> "${GITHUB_OUTPUT}"
-              exit 0
-            fi
-
-            echo "No user-provided zizmor.yml found in root or .github/. Using default zizmor config."
+            for config in .github/zizmor.yml .github/zizmor.yaml zizmor.yml zizmor.yaml; do
+              if [ -f "${config}" ]; then
+                echo "Using ${config} found in repository."
+                echo "repo-local-zizmor-config=${config}" >> "${GITHUB_OUTPUT}"
+                exit 0
+              fi
+            done
+            echo "No user-provided zizmor config found. Using default zizmor config."
           else
             echo "always-use-default-config is set. Using default config."
           fi
