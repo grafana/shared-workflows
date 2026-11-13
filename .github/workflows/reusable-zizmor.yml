@@ -36,7 +36,8 @@ on:
       always-use-default-config:
         description: |
           Whether to always use the default configuration. When `false`,
-          `.zizmor.yml` or `.github/zizmor.yml` will be used, if present.
+          the first available of `.github/zizmor.yml`, `.github/zizmor.yaml`,
+          `zizmor.yml`, or `zizmor.yaml` will be used.
         required: false
         type: boolean
         default: false
