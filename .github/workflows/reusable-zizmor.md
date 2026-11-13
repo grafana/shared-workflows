@@ -187,9 +187,9 @@ uses: actions/checkout@v3 # zizmor: ignore[artipacked]
 
 [zizmor-ignore-comment]: https://woodruffw.github.io/zizmor/usage/#with-comments
 
-## Repo-local `zizmor.yml` policy gate
+## Repo-local zizmor configuration policy gate
 
-When `always-use-default-config` is `false` and the calling repository uses a **repo-local** `zizmor.yml` or `.github/zizmor.yml` (so zizmor discovers that file instead of the Grafana default from `shared-workflows`), the workflow **validates that file before running zizmor**. If validation fails, the job stops and zizmor is not executed. Validation uses the composite action [`actions/validate-zizmor-config`](../../actions/validate-zizmor-config) from this repository, **hash-pinned** in `reusable-zizmor.yml` to satisfy pinning checks (bump that SHA when you change the action). **Set up Zizmor configuration** writes the path to validate as step output `repo-local-zizmor-config` when a repo-local file is used; that is separate from `zizmor-config`, which is only set when the run uses **`--config`** with the Grafana default shipped in [`actions/zizmor-collection-paths`](../../actions/zizmor-collection-paths/default-zizmor.yml).
+When `always-use-default-config` is `false` and the calling repository uses a **repo-local** config (`.github/zizmor.yml`, `.github/zizmor.yaml`, `zizmor.yml`, or `zizmor.yaml`) (so zizmor discovers that file instead of the Grafana default from `shared-workflows`), the workflow **validates that file before running zizmor**. If validation fails, the job stops and zizmor is not executed. Validation uses the composite action [`actions/validate-zizmor-config`](../../actions/validate-zizmor-config) from this repository, **hash-pinned** in `reusable-zizmor.yml` to satisfy pinning checks (bump that SHA when you change the action). **Set up Zizmor configuration** writes the path to validate as step output `repo-local-zizmor-config` when a repo-local file is used; that is separate from `zizmor-config`, which is only set when the run uses **`--config`** with the Grafana default shipped in [`actions/zizmor-collection-paths`](../../actions/zizmor-collection-paths/default-zizmor.yml).
 
 The gate is **skipped** when:
 
@@ -205,10 +205,27 @@ The policy rejects configs that:
 
 Inline `# zizmor: ignore[...]` comments in workflow files are unchanged; this gate applies only to the repo-local YAML config file.
 
+## GitHub Actions workflow lockfiles (opt-in)
+
+With zizmor v1.32.0, a repository opts in by committing
+`.github/workflows/actions.lock`. The shared check reads it automatically, even
+with `extra-args: --offline` or `.github/zizmor-collection-ignore`. No local
+`zizmor.yml`, workflow input, or global option is needed.
+
+From the repository root, run `gh actions-lock` to onboard all workflows, or
+`gh actions-lock .github/workflows/ci.yml` for one workflow. Review and commit
+the generated lockfile. Add `gh actions-lock --verify` to the repository's PR
+checks so a stale lockfile is caught before merge. See [GitHub's setup guide](https://docs.github.com/en/actions/how-tos/secure-your-work/lock-workflow-dependencies).
+
+Zizmor treats workflows listed in the lockfile as pinned for `unpinned-uses`.
+Lockfiles do not cover reusable workflow calls, standalone composite actions,
+or Docker images, which still need manual pinning. Zizmor's lockfile support is
+experimental; see its [current limitations](https://docs.zizmor.sh/usage/#workflow-lockfiles).
+
 ## Configuration
 
-zizmor [can be configured][zizmor-config] with a `zizmor.yml` or
-`.github/zizmor.yml` file in the repository. With this, [findings or entire
+zizmor [can be configured][zizmor-config] with `.github/zizmor.yml`, `.github/zizmor.yaml`,
+`zizmor.yml`, or `zizmor.yaml` in the repository (in that priority order). With these, [findings or entire
 files can be ignored][zizmor-ignore-config].
 
 [zizmor-config]: https://woodruffw.github.io/zizmor/configuration/
