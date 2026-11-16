@@ -86,7 +86,7 @@ Parameters:
 			name:     "output with name (dev)",
 			input:    successOutput,
 			instance: "dev",
-			expected: "https://argo-workflows-dev.grafana.net:443/workflows/argo/hello-world-4kx2g",
+			expected: "https://argo-workflows.grafana-dev.net:443/workflows/argo/hello-world-4kx2g",
 		},
 		{
 			name:     "output with name (ops)",
