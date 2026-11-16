@@ -46,6 +46,11 @@ inputs:
     description: |
       If true, then upload files with `content-encoding: gzip`
     default: "true"
+  use_gcloud:
+    description: |
+      Use the gcloud CLI instead of the Node upload action.
+    required: false
+    default: "false"
   use_wif_auth:
     description: |
       Use WIF for authentication instead of service account.
@@ -55,7 +60,7 @@ inputs:
 outputs:
   uploaded:
     description: "The list of successfully uploaded files."
-    value: ${{ steps.upload-files.outputs.uploaded }}
+    value: ${{ steps.upload-files.outputs.uploaded || steps.upload-files-gcloud.outputs.uploaded }}
 
 runs:
   using: composite
@@ -98,6 +103,7 @@ runs:
         echo "destination=${DESTINATION}" | tee -a ${GITHUB_OUTPUT}
     - uses: google-github-actions/upload-cloud-storage@6397bd7208e18d13ba2619ee21b9873edc94427a # v3.0.0
       id: upload-files
+      if: inputs.use_gcloud != 'true'
       with:
         path: ${{ inputs.path }}
         glob: ${{ inputs.glob }}
@@ -106,6 +112,66 @@ runs:
         predefinedAcl: ${{ inputs.use_wif_auth == 'true' && ' ' || inputs.predefinedAcl }} # when using WIF auth, we cannot use predefinedAcl
         gzip: ${{ inputs.gzip }}
         process_gcloudignore: false
+
+    - name: Set up gcloud
+      if: inputs.use_gcloud == 'true'
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+    - name: Upload files with gcloud
+      id: upload-files-gcloud
+      if: inputs.use_gcloud == 'true'
+      shell: bash
+      env:
+        SOURCE_PATH: ${{ inputs.path }}
+        SOURCE_GLOB: ${{ inputs.glob }}
+        DESTINATION: ${{ steps.construct-path.outputs.destination }}
+        INCLUDE_PARENT: ${{ inputs.parent }}
+        GZIP: ${{ inputs.gzip }}
+        PREDEFINED_ACL: ${{ inputs.use_wif_auth == 'true' && ' ' || inputs.predefinedAcl }}
+        # Avoid additional bucket checks and temporary objects for large files.
+        CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED: "False"
+      run: |
+        set -euo pipefail
+        shopt -s globstar dotglob nullglob extglob
+        cd "$GITHUB_WORKSPACE"
+        args=()
+        [[ "$GZIP" != true ]] || args+=(--gzip-local-all)
+        [[ -z "${PREDEFINED_ACL// /}" ]] || args+=("--predefined-acl=$PREDEFINED_ACL")
+        target="${DESTINATION%/}"
+        target="${target%/.}"
+        if [[ "$SOURCE_GLOB" == *'{'* || "$SOURCE_GLOB" == *'}'* ]]; then
+          echo "::error::Brace expansion is unsupported in CLI glob patterns"
+          exit 1
+        fi
+        if [[ -f "$SOURCE_PATH" ]]; then
+          if [[ -n "$SOURCE_GLOB" ]]; then
+            echo "::error::The glob input cannot be used with a file path"
+            exit 1
+          fi
+          files=("$(basename -- "$SOURCE_PATH")")
+          cd "$(dirname -- "$SOURCE_PATH")"
+        else
+          base="$(basename -- "$SOURCE_PATH")"
+          if [[ "$INCLUDE_PARENT" == true && "$base" != . && "$base" != / ]]; then
+            target+="/$base"
+          fi
+          cd "$SOURCE_PATH"
+          # Expand the glob without splitting filenames containing spaces.
+          IFS=
+          # shellcheck disable=SC2206
+          files=(${SOURCE_GLOB:-**/*})
+        fi
+        prefix="${target#*/}"
+        [[ "$prefix" != "$target" ]] || prefix=""
+        uploaded=()
+        for file in "${files[@]}"; do
+          [[ -f "$file" ]] || continue
+          file="${file#./}"
+          gcloud storage cp "${args[@]}" "./$file" "gs://$target/$file"
+          uploaded+=("${prefix:+$prefix/}$file")
+        done
+        ((${#uploaded[@]})) || echo "::warning::No files matched the upload path and glob"
+        delimiter="uploaded_${RANDOM}_${RANDOM}"
+        (IFS=,; printf 'uploaded<<%s\n%s\n%s\n' "$delimiter" "${uploaded[*]}" "$delimiter") >> "$GITHUB_OUTPUT"
 
     - name: Delete Google Application Credentials file
       if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}

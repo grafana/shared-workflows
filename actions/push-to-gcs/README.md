@@ -113,6 +113,12 @@ jobs:
 
 <!-- x-release-please-end-version -->
 
+## Upload with the gcloud CLI
+
+Set `use_gcloud: true` to try a different upload implementation when the Node
+uploader intermittently fails but reruns succeed
+([upstream issue #394](https://github.com/google-github-actions/upload-cloud-storage/issues/394)).
+
 ## Inputs
 
 <!-- BEGIN_INPUTS -->
@@ -129,6 +135,7 @@ jobs:
 | `path`                    | String  | Yes      |                  | The path to a file or folder inside the action's filesystem that should be uploaded to the bucket. You can specify either the absolute path or the relative path from the action. |
 | `predefinedAcl`           | String  | No       | `projectPrivate` | Apply a predefined set of access controls to the file(s). Default is projectPrivate (See https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions)                  |
 | `service_account`         | String  | No       |                  | Custom service account to use for authentication.                                                                                                                                 |
+| `use_gcloud`              | Boolean | No       | `false`          | Use the gcloud CLI instead of the Node upload action.                                                                                                                             |
 | `use_wif_auth`            | Boolean | No       | `false`          | Use WIF for authentication instead of service account.                                                                                                                            |
 
 <!-- END_INPUTS -->
