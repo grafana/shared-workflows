@@ -157,6 +157,12 @@ runs:
         # Accept any version
         version:
 
+    - name: Set up Go
+      if: inputs.use_gcloud == 'true'
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+
     - name: Upload files with gcloud
       id: upload-files-gcloud
       if: inputs.use_gcloud == 'true'
@@ -170,96 +176,11 @@ runs:
         PREDEFINED_ACL: ${{ inputs.use_wif_auth == 'true' && ' ' || inputs.predefinedAcl }}
         # Avoid additional bucket checks and temporary objects for large files.
         CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED: "False"
+        GOWORK: "off"
       run: |
         set -euo pipefail
-        shopt -s extglob
-        cd "$GITHUB_WORKSPACE"
-        args=()
-        [[ "$GZIP" != true ]] || args+=(--gzip-local-all)
-        [[ -z "${PREDEFINED_ACL// /}" ]] || args+=("--predefined-acl=$PREDEFINED_ACL")
-        target="${DESTINATION%/}"
-        target="${target%/.}"
-        if [[ "$SOURCE_GLOB" == *'{'* || "$SOURCE_GLOB" == *'}'* ]]; then
-          echo "::error::Brace expansion is unsupported in CLI glob patterns"
-          exit 1
-        fi
-        if [[ -f "$SOURCE_PATH" ]]; then
-          if [[ -n "$SOURCE_GLOB" ]]; then
-            echo "::error::The glob input cannot be used with a file path"
-            exit 1
-          fi
-          files=("$(basename -- "$SOURCE_PATH")")
-          cd "$(dirname -- "$SOURCE_PATH")"
-        else
-          base="$(basename -- "$SOURCE_PATH")"
-          if [[ "$INCLUDE_PARENT" == true && "$base" != . && "$base" != / ]]; then
-            target+="/$base"
-          fi
-          cd "$SOURCE_PATH"
-          pattern="${SOURCE_GLOB:-**/*}"
-          if [[ "$pattern" == /* ]]; then
-            path_tool="$(command -v grealpath || command -v realpath)"
-            pattern="$("$path_tool" -ms --relative-to="$PWD" -- "$pattern")"
-          fi
-          pattern="${pattern#./}"
-          # Match components so '*' cannot cross directory boundaries.
-          matches_glob() {
-            local name="$1" glob="$2" head="${2%%/*}"
-            if [[ "$head" == '**' ]]; then
-              [[ "$glob" != '**' ]] || return 0
-              matches_glob "$name" "${glob#*/}" && return 0
-              [[ "$name" == */* ]] && matches_glob "${name#*/}" "$glob"
-            else
-              # shellcheck disable=SC2053
-              [[ "${name%%/*}" == $head ]] || return 1
-              if [[ "$name" == */* && "$glob" == */* ]]; then
-                matches_glob "${name#*/}" "${glob#*/}"
-              else
-                [[ "$name" != */* && "$glob" != */* ]]
-              fi
-            fi
-          }
-          # Follow directory symlinks with find's cycle protection.
-          file_list="$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/gcs-files.XXXXXX")"
-          find -L . -type f -print0 > "$file_list"
-          files=()
-          while IFS= read -r -d '' file; do
-            file="${file#./}"
-            if matches_glob "$file" "$pattern"; then
-              files+=("$file")
-            fi
-          done < <(LC_ALL=C sort -z "$file_list")
-        fi
-        prefix="${target#*/}"
-        [[ "$prefix" != "$target" ]] || prefix=""
-        pids=()
-        wait_uploads() {
-          local pid result=0
-          for pid in "${pids[@]}"; do
-            wait "$pid" || result=$?
-          done
-          return "$result"
-        }
-        uploaded=()
-        for file in "${files[@]}"; do
-          directory="${file%/*}"
-          [[ "$directory" != "$file" ]] || directory=""
-          # gcloud expands wildcards in quoted source arguments too.
-          literal="${file//\[/[[]}"
-          literal="${literal//\*/[*]}"
-          literal="${literal//\?/[?]}"
-          gcloud storage cp "${args[@]}" "./$literal" "gs://$target/${directory:+$directory/}" &
-          pids+=("$!")
-          uploaded+=("${prefix:+$prefix/}$file")
-          if ((${#pids[@]} == 4)); then
-            wait_uploads
-            pids=()
-          fi
-        done
-        wait_uploads
-        ((${#uploaded[@]})) || echo "::warning::No files matched the upload path and glob"
-        delimiter="uploaded_${RANDOM}_${RANDOM}"
-        (IFS=,; printf 'uploaded<<%s\n%s\n%s\n' "$delimiter" "${uploaded[*]}" "$delimiter") >> "$GITHUB_OUTPUT"
+        cd "${GITHUB_ACTION_PATH}"
+        go run .
 
     - name: Delete Google Application Credentials file
       if: ${{ inputs.delete_credentials_file == 'true' && env.GOOGLE_APPLICATION_CREDENTIALS != '' }}
