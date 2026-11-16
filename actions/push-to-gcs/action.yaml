@@ -113,9 +113,50 @@ runs:
         gzip: ${{ inputs.gzip }}
         process_gcloudignore: false
 
-    - name: Set up gcloud
+    # setup-gcloud runs `gcloud auth login` once, with no retry, and fetching
+    # the OIDC subject token for it occasionally times out. If it fails, wait
+    # and run setup-gcloud again (up to 2 retries); gcloud is already installed
+    # by then, so each retry is effectively just another login attempt.
+    - name: Setup `gcloud` CLI
+      id: setup-gcloud
       if: inputs.use_gcloud == 'true'
+      continue-on-error: true
       uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      with:
+        # Accept any version
+        version:
+
+    - name: Wait before retrying `gcloud` setup
+      if: inputs.use_gcloud == 'true' && steps.setup-gcloud.outcome == 'failure'
+      shell: sh
+      run: |
+        echo "::warning::setup-gcloud failed, retrying in 10s (attempt 2 of 3)"
+        sleep 10
+
+    - name: Setup `gcloud` CLI (retry 1)
+      id: setup-gcloud-retry
+      if: inputs.use_gcloud == 'true' && steps.setup-gcloud.outcome == 'failure'
+      continue-on-error: true
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      with:
+        # Accept any version
+        version:
+
+    - name: Wait before retrying `gcloud` setup again
+      if: inputs.use_gcloud == 'true' && steps.setup-gcloud-retry.outcome == 'failure'
+      shell: sh
+      run: |
+        echo "::warning::setup-gcloud failed again, retrying in 30s (attempt 3 of 3)"
+        sleep 30
+
+    # Last attempt: no continue-on-error, so a third failure fails the job
+    - name: Setup `gcloud` CLI (retry 2)
+      if: inputs.use_gcloud == 'true' && steps.setup-gcloud-retry.outcome == 'failure'
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      with:
+        # Accept any version
+        version:
+
     - name: Upload files with gcloud
       id: upload-files-gcloud
       if: inputs.use_gcloud == 'true'
@@ -131,7 +172,7 @@ runs:
         CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED: "False"
       run: |
         set -euo pipefail
-        shopt -s globstar dotglob nullglob extglob
+        shopt -s extglob
         cd "$GITHUB_WORKSPACE"
         args=()
         [[ "$GZIP" != true ]] || args+=(--gzip-local-all)
@@ -155,20 +196,67 @@ runs:
             target+="/$base"
           fi
           cd "$SOURCE_PATH"
-          # Expand the glob without splitting filenames containing spaces.
-          IFS=
-          # shellcheck disable=SC2206
-          files=(${SOURCE_GLOB:-**/*})
+          pattern="${SOURCE_GLOB:-**/*}"
+          if [[ "$pattern" == /* ]]; then
+            path_tool="$(command -v grealpath || command -v realpath)"
+            pattern="$("$path_tool" -ms --relative-to="$PWD" -- "$pattern")"
+          fi
+          pattern="${pattern#./}"
+          # Match components so '*' cannot cross directory boundaries.
+          matches_glob() {
+            local name="$1" glob="$2" head="${2%%/*}"
+            if [[ "$head" == '**' ]]; then
+              [[ "$glob" != '**' ]] || return 0
+              matches_glob "$name" "${glob#*/}" && return 0
+              [[ "$name" == */* ]] && matches_glob "${name#*/}" "$glob"
+            else
+              # shellcheck disable=SC2053
+              [[ "${name%%/*}" == $head ]] || return 1
+              if [[ "$name" == */* && "$glob" == */* ]]; then
+                matches_glob "${name#*/}" "${glob#*/}"
+              else
+                [[ "$name" != */* && "$glob" != */* ]]
+              fi
+            fi
+          }
+          # Follow directory symlinks with find's cycle protection.
+          file_list="$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/gcs-files.XXXXXX")"
+          find -L . -type f -print0 > "$file_list"
+          files=()
+          while IFS= read -r -d '' file; do
+            file="${file#./}"
+            if matches_glob "$file" "$pattern"; then
+              files+=("$file")
+            fi
+          done < <(LC_ALL=C sort -z "$file_list")
         fi
         prefix="${target#*/}"
         [[ "$prefix" != "$target" ]] || prefix=""
+        pids=()
+        wait_uploads() {
+          local pid result=0
+          for pid in "${pids[@]}"; do
+            wait "$pid" || result=$?
+          done
+          return "$result"
+        }
         uploaded=()
         for file in "${files[@]}"; do
-          [[ -f "$file" ]] || continue
-          file="${file#./}"
-          gcloud storage cp "${args[@]}" "./$file" "gs://$target/$file"
+          directory="${file%/*}"
+          [[ "$directory" != "$file" ]] || directory=""
+          # gcloud expands wildcards in quoted source arguments too.
+          literal="${file//\[/[[]}"
+          literal="${literal//\*/[*]}"
+          literal="${literal//\?/[?]}"
+          gcloud storage cp "${args[@]}" "./$literal" "gs://$target/${directory:+$directory/}" &
+          pids+=("$!")
           uploaded+=("${prefix:+$prefix/}$file")
+          if ((${#pids[@]} == 4)); then
+            wait_uploads
+            pids=()
+          fi
         done
+        wait_uploads
         ((${#uploaded[@]})) || echo "::warning::No files matched the upload path and glob"
         delimiter="uploaded_${RANDOM}_${RANDOM}"
         (IFS=,; printf 'uploaded<<%s\n%s\n%s\n' "$delimiter" "${uploaded[*]}" "$delimiter") >> "$GITHUB_OUTPUT"

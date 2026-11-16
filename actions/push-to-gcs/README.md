@@ -119,6 +119,8 @@ Set `use_gcloud: true` to try a different upload implementation when the Node
 uploader intermittently fails but reruns succeed
 ([upstream issue #394](https://github.com/google-github-actions/upload-cloud-storage/issues/394)).
 
+CLI uploads follow directory symlinks with cycle protection and run up to four transfers concurrently.
+
 ## Inputs
 
 <!-- BEGIN_INPUTS -->

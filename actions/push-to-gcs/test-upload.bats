@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+export BATS_TEST_TIMEOUT=30
+
 setup() {
   script="$(awk '
     /id: upload-files-gcloud/ { step = 1 }
@@ -17,24 +19,46 @@ setup() {
 }
 
 gcloud() {
+  local source="${*: -2:1}" target="${*: -1}" IFS=
+  local -a sources peers
+  shopt -s nullglob dotglob
+  # Match the CLI's wildcard expansion, including for quoted arguments.
+  # shellcheck disable=SC2206
+  sources=($source)
+  ((${#sources[@]} == 1)) || return 64
   printf '%s\n' "$@" >> "$COMMAND_LOG"
-  printf '%s\n' "${@: -1}" >> "$DESTINATION_LOG"
+  printf '%s\n' "${sources[0]}" >> "$SOURCE_LOG"
+  if [[ "$target" == */ || "$target" == "${DIRECTORY_DESTINATION:-}" ]]; then
+    target="${target%/}/$(basename -- "${sources[0]}")"
+  fi
+  printf '%s\n' "$target" >> "$DESTINATION_LOG"
+  if [[ -n "${BARRIER_DIR:-}" ]]; then
+    : > "$BARRIER_DIR/$BASHPID"
+    while :; do
+      peers=("$BARRIER_DIR"/*)
+      ((${#peers[@]} > 1)) && break
+      sleep 0.01
+    done
+  fi
+  if [[ -n "${FAIL_BASENAME:-}" && "${sources[0]##*/}" != "$FAIL_BASENAME" ]]; then
+    return 0
+  fi
   return "${FAIL_UPLOAD:-0}"
 }
 
 run_upload() {
   local name="$1"
   shift
-  env GITHUB_WORKSPACE="$workspace" GITHUB_OUTPUT="$BATS_TEST_TMPDIR/$name.output" \
+  env GITHUB_WORKSPACE="$workspace" GITHUB_OUTPUT="$BATS_TEST_TMPDIR/$name.output" RUNNER_TEMP="$BATS_TEST_TMPDIR" \
     SOURCE_PATH=dist SOURCE_GLOB= DESTINATION=bucket/releases/ \
     INCLUDE_PARENT=false GZIP=false PREDEFINED_ACL=projectPrivate \
-    COMMAND_LOG="$BATS_TEST_TMPDIR/$name.commands" DESTINATION_LOG="$BATS_TEST_TMPDIR/$name.destinations" \
+    COMMAND_LOG="$BATS_TEST_TMPDIR/$name.commands" DESTINATION_LOG="$BATS_TEST_TMPDIR/$name.destinations" SOURCE_LOG="$BATS_TEST_TMPDIR/$name.sources" \
     "$@" bash -e -o pipefail -c "$script"
 }
 
 @test "directory uploads retain nested and hidden paths and export object names" {
   run_upload directory
-  [[ "$(< "$BATS_TEST_TMPDIR/directory.destinations")" == $'gs://bucket/releases/.hidden/file.txt\ngs://bucket/releases/nested/package.sha256\ngs://bucket/releases/package with spaces.tar.gz\ngs://bucket/releases/package.tar.gz' ]]
+  [[ "$(LC_ALL=C sort "$BATS_TEST_TMPDIR/directory.destinations")" == $'gs://bucket/releases/.hidden/file.txt\ngs://bucket/releases/nested/package.sha256\ngs://bucket/releases/package with spaces.tar.gz\ngs://bucket/releases/package.tar.gz' ]]
   [[ "$(< "$BATS_TEST_TMPDIR/directory.output")" == *'releases/.hidden/file.txt,releases/nested/package.sha256,releases/package with spaces.tar.gz,releases/package.tar.gz'* ]]
   [[ "$(< "$BATS_TEST_TMPDIR/directory.commands")" == *'--predefined-acl=projectPrivate'* ]]
   [[ "$(< "$BATS_TEST_TMPDIR/directory.commands")" != *'--gzip'* ]]
@@ -59,7 +83,7 @@ run_upload() {
 
 @test "extglobs select matching files including hidden directories" {
   run_upload extglob SOURCE_GLOB='**/@(package.sha256|file.txt)'
-  [[ "$(< "$BATS_TEST_TMPDIR/extglob.destinations")" == $'gs://bucket/releases/.hidden/file.txt\ngs://bucket/releases/nested/package.sha256' ]]
+  [[ "$(LC_ALL=C sort "$BATS_TEST_TMPDIR/extglob.destinations")" == $'gs://bucket/releases/.hidden/file.txt\ngs://bucket/releases/nested/package.sha256' ]]
 }
 
 @test "workspace source and default bucket path do not add dot components" {
@@ -97,7 +121,7 @@ run_upload() {
   run run_upload failure FAIL_UPLOAD=23
   [ "$status" -eq 23 ]
   [[ ! -f "$BATS_TEST_TMPDIR/failure.output" ]]
-  [ "$(wc -l < "$BATS_TEST_TMPDIR/failure.destinations")" -eq 1 ]
+  [ "$(wc -l < "$BATS_TEST_TMPDIR/failure.destinations")" -le 4 ]
 }
 
 @test "missing source paths fail before invoking gcloud" {
@@ -118,4 +142,69 @@ run_upload() {
   [ "$status" -ne 0 ]
   [[ "$output" == *'Brace expansion is unsupported'* ]]
   [[ ! -f "$BATS_TEST_TMPDIR/brace.commands" && ! -f "$BATS_TEST_TMPDIR/brace.output" ]]
+}
+
+@test "absolute globs produce relative object paths and retain nonrecursive matching" {
+  printf nested > "$workspace/dist/nested/extra.tar.gz"
+  run_upload absolute-glob "SOURCE_GLOB=$workspace/dist/*.tar.gz"
+  [[ "$(LC_ALL=C sort "$BATS_TEST_TMPDIR/absolute-glob.destinations")" == $'gs://bucket/releases/package with spaces.tar.gz\ngs://bucket/releases/package.tar.gz' ]]
+  [[ "$(< "$BATS_TEST_TMPDIR/absolute-glob.output")" != *"$workspace"* ]]
+}
+
+@test "recursive globs follow nested directory symlinks" {
+  mkdir -p "$workspace/shared/deep"
+  printf shared > "$workspace/shared/deep/asset.js"
+  ln -s ../shared "$workspace/dist/vendor"
+  run_upload symlink SOURCE_GLOB='**/*.js'
+  [[ "$(< "$BATS_TEST_TMPDIR/symlink.destinations")" == 'gs://bucket/releases/vendor/deep/asset.js' ]]
+  [[ "$(< "$BATS_TEST_TMPDIR/symlink.output")" == *'releases/vendor/deep/asset.js'* ]]
+}
+
+@test "symlink cycles terminate without repeated uploads" {
+  mkdir -p "$workspace/shared/deep"
+  printf shared > "$workspace/shared/deep/asset.js"
+  ln -s ../shared "$workspace/dist/vendor"
+  ln -s .. "$workspace/dist/nested/back"
+  run run_upload cycle
+  if [ "$status" -eq 0 ]; then
+    [ "$(wc -l < "$BATS_TEST_TMPDIR/cycle.destinations")" -eq 5 ]
+    [[ "$(< "$BATS_TEST_TMPDIR/cycle.destinations")" == *"vendor/deep/asset.js"* ]]
+    [[ "$(< "$BATS_TEST_TMPDIR/cycle.output")" != *"nested/back/"* ]]
+  else
+    [ "$status" -eq 1 ]
+    [[ "$output" == *loop* || "$output" == *cycle* ]]
+    [[ ! -f "$BATS_TEST_TMPDIR/cycle.commands" && ! -f "$BATS_TEST_TMPDIR/cycle.output" ]]
+  fi
+}
+
+@test "existing object-name prefixes do not change the uploaded object name" {
+  run_upload prefix SOURCE_PATH=dist/package.tar.gz DIRECTORY_DESTINATION=gs://bucket/releases/package.tar.gz
+  [[ "$(< "$BATS_TEST_TMPDIR/prefix.destinations")" == 'gs://bucket/releases/package.tar.gz' ]]
+  [[ "$(< "$BATS_TEST_TMPDIR/prefix.commands")" == *$'\ngs://bucket/releases/' ]]
+}
+
+@test "wildcard characters in selected filenames are passed literally to gcloud" {
+  mkdir -p "$workspace/app/[slug]" "$workspace/app/s"
+  printf intended > "$workspace/app/[slug]/page.js"
+  printf decoy > "$workspace/app/s/page.js"
+  for filename in 'bundle*.js' 'bundle?.js' 'closing].js'; do
+    printf artifact > "$workspace/app/$filename"
+  done
+  run_upload wildcard SOURCE_PATH=app
+  [[ "$(< "$BATS_TEST_TMPDIR/wildcard.sources")" == *'./[slug]/page.js'* ]]
+  [[ "$(< "$BATS_TEST_TMPDIR/wildcard.sources")" == *'./bundle*.js'* ]]
+  [[ "$(< "$BATS_TEST_TMPDIR/wildcard.sources")" == *'./bundle?.js'* ]]
+  [[ "$(< "$BATS_TEST_TMPDIR/wildcard.destinations")" == *'gs://bucket/releases/[slug]/page.js'* ]]
+}
+
+@test "independent files upload concurrently" {
+  mkdir "$BATS_TEST_TMPDIR/barrier"
+  run_upload parallel "BARRIER_DIR=$BATS_TEST_TMPDIR/barrier"
+  [ "$(wc -l < "$BATS_TEST_TMPDIR/parallel.destinations")" -eq 4 ]
+}
+
+@test "a failed parallel transfer prevents a successful uploaded output" {
+  run run_upload parallel-failure FAIL_UPLOAD=23 FAIL_BASENAME=package.tar.gz
+  [ "$status" -eq 23 ]
+  [[ ! -f "$BATS_TEST_TMPDIR/parallel-failure.output" ]]
 }
