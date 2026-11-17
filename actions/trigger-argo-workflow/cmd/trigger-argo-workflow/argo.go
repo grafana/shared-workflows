@@ -65,7 +65,7 @@ func (a App) PrintConfig(w io.Writer, md GitHubActionsMetadata) error {
 }
 
 var instanceToHost = map[string]string{
-	"dev": "argo-workflows-dev.grafana.net:443",
+	"dev": "argo-workflows.grafana-dev.net:443",
 	"ops": "argo-workflows.grafana.net:443",
 }
 
