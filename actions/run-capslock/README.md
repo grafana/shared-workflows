@@ -11,7 +11,7 @@ jobs:
     name: Runs Capslock
     steps:
       - name: Run Capslock
-        uses: grafana/shared-workflows/actions/run-capslock@run-capslock/v0.2.3
+        uses: grafana/shared-workflows/actions/run-capslock@run-capslock/v0.2.4
         id: run-capslock
 ```
 
