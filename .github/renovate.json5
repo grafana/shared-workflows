@@ -21,7 +21,9 @@
       datasourceTemplate: "npm",
     },
   ],
-  dependencyDashboard: true,
+  dependencyDashboard: {
+    enabled: true,
+  },
   enabledManagers: [
     "bun",
     "bun-version",
