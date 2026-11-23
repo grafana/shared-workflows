@@ -11,3 +11,8 @@ This folder contains some workflows that can be re-used from other repositories:
   your GitHub Actions workflow files.
 
 [zizmor]: https://woodruffw.github.io/zizmor/
+
+## Organization ruleset workflows
+
+- [`global-renovate-policy`](./global-renovate-policy.md): Check repository-wide
+  Renovate enablement during the organization policy brownout.

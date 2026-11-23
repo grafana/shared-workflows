@@ -1,0 +1,14 @@
+{
+  "name": "check-renovate-enabled",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test check.test.mjs"
+  },
+  "dependencies": {
+    "json5": "2.2.3"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
