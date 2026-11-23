@@ -1,0 +1,67 @@
+name: Renovate repository policy
+
+# Org rulesets control whether this result blocks merging (Evaluate/Active).
+# Do not skip unchanged config: existing disablement is part of the brownout.
+on:
+  pull_request:
+  merge_group:
+
+permissions: {}
+
+concurrency:
+  group: renovate-policy-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  renovate-policy:
+    name: Renovate enabled
+    runs-on: ubuntu-x64-small
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout policy implementation
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: grafana/shared-workflows
+          # The implementation must come from the same trusted revision as the
+          # required workflow, never from the repository being checked.
+          ref: ${{ github.workflow_sha }}
+          path: _renovate_policy
+          sparse-checkout: scripts/check-renovate-enabled
+          persist-credentials: false
+
+      - name: Checkout proposed repository configuration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.repository }}
+          # PR merge commit or merge-group commit, so a remediation PR can pass.
+          ref: ${{ github.sha }}
+          path: _renovate_repository
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /renovate.*
+            /.renovaterc*
+            /package.json
+            /.github/
+            /.gitlab/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: _renovate_policy/scripts/check-renovate-enabled/package-lock.json
+
+      - name: Install policy parser
+        working-directory: _renovate_policy/scripts/check-renovate-enabled
+        # Only the trusted, lockfile-pinned parser is installed. No target repo
+        # package manager config, dependencies or lifecycle scripts are used.
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Check repository-wide Renovate enablement
+        working-directory: _renovate_policy/scripts/check-renovate-enabled
+        env:
+          REPOSITORY_PATH: ${{ github.workspace }}/_renovate_repository
+        run: node check.mjs "$REPOSITORY_PATH"
