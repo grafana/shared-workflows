@@ -29,4 +29,5 @@ jobs:
       min-severity: high
       min-confidence: low
       extra-args: --offline
+      renovate-policy: warn
     secrets: inherit

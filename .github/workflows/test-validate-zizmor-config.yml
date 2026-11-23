@@ -9,6 +9,7 @@ on:
       - actions/zizmor-collection-paths/default-zizmor.yml
       - .github/workflows/test-validate-zizmor-config.yml
       - .github/workflows/reusable-zizmor.yml
+      - scripts/renovate-policy/**
 
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - actions/zizmor-collection-paths/default-zizmor.yml
       - .github/workflows/test-validate-zizmor-config.yml
       - .github/workflows/reusable-zizmor.yml
+      - scripts/renovate-policy/**
     types:
       - edited
       - opened
@@ -55,6 +57,17 @@ jobs:
         run: |
           cd actions/validate-zizmor-config
           uv run --with "pyyaml==${PYYAML_VERSION}" python3 -m unittest discover -v
+
+      - name: Renovate policy tests
+        env:
+          # renovate: datasource=pypi depName=pyyaml
+          PYYAML_VERSION: "6.0.3"
+          # renovate: datasource=pypi depName=json5
+          JSON5_VERSION: "0.12.1"
+        run: |
+          uv run --no-project --no-config --no-env-file --isolated \
+            --with "pyyaml==${PYYAML_VERSION}" --with "json5==${JSON5_VERSION}" \
+            -- python3 -I scripts/renovate-policy/test_renovate_policy.py -v
 
       - name: Integration smoke (action on the default zizmor config)
         uses: ./actions/validate-zizmor-config

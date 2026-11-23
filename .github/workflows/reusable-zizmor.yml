@@ -21,6 +21,12 @@ on:
         type: string
         default: "high"
 
+      renovate-policy:
+        description: "Check for explicit repository-wide Renovate disablement in the analysis job: off, warn, or enforce. Independent of Zizmor severity settings."
+        required: false
+        type: string
+        default: "off"
+
       runs-on:
         description: "The runner to use for jobs. Set this to use self-hosted runners."
         required: false
@@ -109,6 +115,7 @@ jobs:
           egress-policy: audit
 
       - name: Checkout code
+        id: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -151,6 +158,7 @@ jobs:
           echo "zizmor-config=${DEFAULT_ZIZMOR_CONFIG}" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Setup UV
+        id: setup-uv
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
@@ -325,6 +333,149 @@ jobs:
             echo "Failing the build due to findings at or above ${FAIL_LEVEL} severity."
             exit 1
           fi
+
+      # Keep this in the trusted reusable workflow: the checkout belongs to the
+      # caller, so running a script from it would execute code from the PR.
+      - name: Check Renovate enablement policy
+        id: renovate-policy
+        if: ${{ !cancelled() && inputs.renovate-policy != 'off' && steps.checkout.outcome == 'success' && steps.setup-uv.outcome == 'success' }}
+        continue-on-error: ${{ inputs.renovate-policy == 'warn' }}
+        timeout-minutes: 2
+        env:
+          RENOVATE_POLICY: ${{ inputs.renovate-policy }}
+          # renovate: datasource=pypi depName=json5
+          JSON5_VERSION: "0.12.1"
+          GH_TOKEN: ""
+        shell: bash
+        run: |
+          uv run --no-project --no-config --no-env-file --isolated \
+            --with "json5==${JSON5_VERSION}" -- python3 -I - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import stat
+          import sys
+
+          import json5
+
+          # Renovate's default search order; inspect only the first match.
+          # https://docs.renovatebot.com/configuration-options/#locations-for-configuration-filenames
+          CONFIG_FILES = (
+              "renovate.json", "renovate.jsonc", "renovate.json5",
+              ".github/renovate.json", ".github/renovate.jsonc", ".github/renovate.json5",
+              ".gitlab/renovate.json", ".gitlab/renovate.jsonc", ".gitlab/renovate.json5",
+              ".renovaterc", ".renovaterc.json", ".renovaterc.jsonc", ".renovaterc.json5",
+              "package.json",
+          )
+          ISSUE = "https://github.com/grafana/deployment_tools/issues/791627"
+          MAX_BYTES = 1024 * 1024
+          MISSING = object()
+
+          class PolicyError(Exception):
+              pass
+
+          def read_config(root, filename):
+              path = root
+              parts = Path(filename).parts
+              for index, part in enumerate(parts):
+                  path = path / part
+                  try:
+                      info = path.lstat()
+                  except FileNotFoundError:
+                      return MISSING
+                  except OSError:
+                      raise PolicyError(f"Cannot read {filename}.") from None
+                  if stat.S_ISLNK(info.st_mode):
+                      raise PolicyError(f"Configuration path {filename} must not use symlinks.")
+                  if index < len(parts) - 1:
+                      if not stat.S_ISDIR(info.st_mode):
+                          raise PolicyError(f"Cannot read {filename}.")
+                  elif not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES:
+                      raise PolicyError(f"{filename} must be a regular file no larger than 1 MiB.")
+              try:
+                  contents = path.read_text(encoding="utf-8")
+                  return json.loads(contents) if filename == "package.json" else json5.loads(contents)
+              except Exception:
+                  # Never print parser errors or untrusted file contents.
+                  raise PolicyError(f"Cannot parse {filename} as JSON or JSON5.") from None
+
+          def violations(config):
+              if not isinstance(config, dict):
+                  raise PolicyError("Renovate configuration must be an object.")
+              if "enabled" in config and not isinstance(config["enabled"], bool):
+                  raise PolicyError("Renovate enabled must be a boolean.")
+              force = config.get("force", {})
+              if not isinstance(force, dict):
+                  raise PolicyError("Renovate force must be an object.")
+              if "enabled" in force and not isinstance(force["enabled"], bool):
+                  raise PolicyError("Renovate force.enabled must be a boolean.")
+              presets = config.get("extends", [])
+              if not isinstance(presets, list) or any(not isinstance(p, str) for p in presets):
+                  raise PolicyError("Renovate extends must be an array of preset names.")
+              reasons = []
+              if config.get("enabled") is False:
+                  reasons.append("enabled: false")
+              if force.get("enabled") is False:
+                  reasons.append("force.enabled: false")
+              if ":disableRenovate" in presets:
+                  reasons.append("extends includes :disableRenovate")
+              return reasons
+
+          def inspect_repository(root):
+              if not root.is_absolute() or not root.is_dir():
+                  raise PolicyError("An existing absolute repository directory is required.")
+              for filename in CONFIG_FILES:
+                  config = read_config(root, filename)
+                  if config is MISSING:
+                      continue
+                  if filename == "package.json":
+                      if not isinstance(config, dict):
+                          raise PolicyError("package.json must be an object.")
+                      if "renovate" not in config:
+                          continue
+                      config = config["renovate"]
+                  return filename, violations(config)
+              return None, []
+
+          def report(kind, message):
+              escaped = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::{kind} title=Renovate policy::{escaped}")
+              summary = os.environ.get("GITHUB_STEP_SUMMARY")
+              if summary:
+                  with open(summary, "a", encoding="utf-8") as output:
+                      output.write(message + "\n\n")
+
+          def main():
+              mode = os.environ["RENOVATE_POLICY"]
+              if mode not in ("off", "warn", "enforce"):
+                  report("error", "renovate-policy must be off, warn, or enforce.")
+                  return 2
+              if mode == "off":
+                  return 0
+              kind = "warning" if mode == "warn" else "error"
+              try:
+                  # pull_request_target checks out the base branch, not the proposed change.
+                  if os.environ["GITHUB_EVENT_NAME"] not in ("pull_request", "merge_group", "push"):
+                      raise PolicyError("Renovate policy requires a pull_request, merge_group, or push event.")
+                  filename, reasons = inspect_repository(Path(os.environ["GITHUB_WORKSPACE"]))
+                  if reasons:
+                      report(kind, f"{filename} disables Renovate repository-wide ({'; '.join(reasons)}). "
+                             f"Remove the repository-wide disablement; scoped packageRules remain allowed. See {ISSUE}. "
+                             f"Mode: {mode}.")
+                      return 0 if mode == "warn" else 1
+                  message = (
+                      f"{filename}: no explicit repository-wide Renovate disablement found. "
+                      "Inherited presets and catch-all rules are not evaluated."
+                      if filename else "No repository Renovate configuration found; the self-hosted global defaults apply."
+                  )
+                  report("notice", f"{message} Mode: {mode}.")
+                  return 0
+              except PolicyError as error:
+                  report(kind, f"Unable to check Renovate configuration: {error} See {ISSUE}. Mode: {mode}.")
+                  return 0 if mode == "warn" else 2
+
+          sys.exit(main())
+          PY
 
   grafana-bench:
     name: Send zizmor metrics to Prometheus via Grafana Bench
