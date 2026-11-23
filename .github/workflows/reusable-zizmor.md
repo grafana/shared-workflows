@@ -111,6 +111,7 @@ jobs:
 | `github-token`                   | string  | No       | `${{ github.token }}` | Use a different token to the default                                                                                                                                                                                          |
 | `min-confidence`                 | string  | No       | `low`                 | Only show results at or above this confidence level [possible values: unknown, low, medium, high]                                                                                                                             |
 | `min-severity`                   | string  | No       | `low`                 | Only show results at or above this severity [possible values: unknown, informational, low, medium, high]                                                                                                                      |
+| `renovate-policy`                | string  | No       | `off`                 | Check for explicit repository-wide Renovate disablement in the analysis job: off, warn, or enforce. Independent of Zizmor severity settings.                                                                                  |
 | `runs-on`                        | string  | No       | `ubuntu-latest`       | The runner to use for jobs. Set this to use self-hosted runners.                                                                                                                                                              |
 | `send-bench-metrics`             | boolean | No       | `true`                | If true, run Grafana Bench after analysis (Vault Prometheus creds). Job only runs for grafana org and non-fork PRs; fork PRs have no OIDC/Vault access.                                                                       |
 
@@ -204,6 +205,101 @@ The policy rejects configs that:
 - Set `rules.unpinned-uses.config.policies` with a universal [`"*": any`](https://docs.zizmor.sh/audits/#unpinned-uses) entry (all matching `uses:` clauses may stay unpinned). Scoped policies such as `actions/*: any` or `grafana/*: any` remain valid.
 
 Inline `# zizmor: ignore[...]` comments in workflow files are unchanged; this gate applies only to the repo-local YAML config file.
+
+## Renovate enablement policy and brownouts
+
+Set `renovate-policy` to check for explicit repository-wide Renovate disablement
+inside the existing `analysis` job. It reuses that job's checkout and UV setup;
+it does not add a job, checkout, or permission. The default is `off`, so callers
+must opt in after updating their pinned reusable-workflow SHA.
+
+This repository's existing `zizmor.yml` caller opts into `warn` to exercise the
+step in its own CI. Organization-wide adoption still requires the central caller
+change described below.
+
+| Mode      | Behavior                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------ |
+| `off`     | Skip the step and its dependency installation.                                                   |
+| `warn`    | Report violations and unreadable configs as warnings without failing the job.                    |
+| `enforce` | Fail the existing analysis job on a violation, unreadable config, or checker/dependency failure. |
+
+In `warn` mode, a failure to install or run the checker is also nonblocking via
+step-level `continue-on-error`; inspect the step log for those failures. The
+step has a two-minute timeout. Zizmor findings and its repo-local config gate
+retain their existing failure behavior in every mode. `fail-severity: never`
+only affects Zizmor findings; it does not turn off Renovate enforcement.
+
+The check rejects a top-level `enabled: false`, `force.enabled: false`, or a
+direct `extends` entry of `:disableRenovate`. Manager and package-rule exclusions
+remain allowed. It parses the first matching file in [Renovate's default config
+search order][renovate-config-locations], including JSON5, `.renovaterc` variants,
+and `package.json["renovate"]`. Missing local config passes because Grafana's
+self-hosted defaults apply. A malformed first config fails without falling
+through to another file.
+
+This is an explicit-disablement check, not full Renovate configuration
+validation. It does not resolve inherited presets, detect catch-all rules, or
+honor custom `configFileNames`. Keep the existing disabled-repository alerts and
+configuration validation. Files must be regular files of at most 1 MiB; symlink
+files and parent directories are rejected. Configuration is read only as data:
+the checker is embedded in the trusted reusable workflow and does not execute
+scripts, Python modules, or project dependency configuration from the checkout.
+
+### Rollout through the existing required workflow
+
+The organization owner must first verify that the centrally managed required
+caller covers every target repository and branch on both `pull_request` and
+`merge_group`, including config-only PRs and fork PRs. The path-filtered examples
+above are not sufficient for a general Renovate gate. Preserve the existing
+required workflow, Zizmor settings, and security permissions. For its existing
+call to this reusable workflow, update the SHA and add:
+
+```yaml
+with:
+  renovate-policy: warn
+```
+
+Use a literal mode in that trusted caller, outside the target repositories'
+control. Do not derive it from target-repository config or overridable repository
+variables. Runs on `push` can also inspect their checked-out commit, but are not a
+pre-merge gate. Other events, including `pull_request_target` (which checks out
+the base branch), produce a warning in `warn` mode and fail in `enforce` mode.
+
+For the rollout tracked in [deployment_tools#791627][renovate-policy-issue]:
+
+1. Start with `warn` for two working days. Collect run links, repo owners, config
+   paths and findings. Contact affected teams or prepare fixes for their review,
+   linking the issue. Record time-limited exceptions with owner and expiry.
+2. Before enforcement, verify on canaries that direct disablement warns, then
+   fails in `enforce`, and that enabled configs and scoped exclusions pass.
+   Include a fork PR and a merge-queue run, and confirm a Zizmor violation still
+   fails when Renovate is in `warn` or `off`. Measure the added step duration and
+   confirm that job counts remain unchanged.
+3. Schedule a staffed 30-minute canary brownout, then a staffed two-hour wider
+   window if the canary succeeds. Set `renovate-policy: enforce` only for the
+   approved cohort through the central caller. Record exact UTC start/end times,
+   the operator, rollback owner, source SHA and affected repositories in the
+   tracking issue before starting. Do not widen to repos whose caller coverage
+   has not been verified.
+4. At the end of each window, or on the first reproducible false positive,
+   checker outage or unexpected merge-queue blockage, set the mode back to
+   `warn`. Use `off` if dependency installation or checker runtime is the problem.
+   Keep the Zizmor ruleset Active throughout; changing the whole ruleset to
+   Evaluate would also relax the security gate.
+
+There is no automatic expiry: the operator must revert the mode at the recorded
+cutoff. Changing a caller does not change inputs or SHAs already captured by an
+existing run. A failed-job rerun can reuse the old reusable-workflow SHA. Verify
+the mode and SHA in a **new run** triggered under the updated caller before
+declaring rollback complete; retrigger affected PRs and merge-queue entries as
+needed. Do not bypass the entire Zizmor check to clear a Renovate failure.
+
+Policy findings appear in step annotations and the job summary, with the tracking
+issue linked for remediation. They are not added to Zizmor's SARIF report, so
+Grafana Bench's Zizmor metrics do not count Renovate violations.
+
+[renovate-config-locations]: https://docs.renovatebot.com/configuration-options/#locations-for-configuration-filenames
+[renovate-policy-issue]: https://github.com/grafana/deployment_tools/issues/791627
 
 ## Configuration
 
