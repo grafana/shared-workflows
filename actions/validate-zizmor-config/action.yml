@@ -31,4 +31,4 @@ runs:
         CONFIG_PATH: ${{ inputs.config_path }}
         SARIF_OUTPUT: ${{ inputs.sarif_output }}
         # renovate: datasource=pypi depName=pyyaml
-        PYYAML_VERSION: "6.0.3"
+        PYYAML_VERSION: "6.0.4"
