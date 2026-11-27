@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/grafana/shared-workflows/compare/validate-zizmor-config/v0.2.4...validate-zizmor-config/v0.2.5) (2026-11-27)
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update dependency pyyaml to v6.0.4 ([#2395](https://github.com/grafana/shared-workflows/issues/2395)) ([ea58d30](https://github.com/grafana/shared-workflows/commit/ea58d303602240393fa4f2136c03dfef17dd2bd3))
+
 ## [0.2.4](https://github.com/grafana/shared-workflows/compare/validate-zizmor-config/v0.2.3...validate-zizmor-config/v0.2.4) (2026-10-20)
 
 
