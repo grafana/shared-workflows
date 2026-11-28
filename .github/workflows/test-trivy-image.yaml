@@ -1,0 +1,123 @@
+name: Test trivy-image
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - actions/trivy-image/**
+      - .github/workflows/test-trivy-image.yaml
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - actions/trivy-image/**
+      - .github/workflows/test-trivy-image.yaml
+    types:
+      - edited
+      - opened
+      - ready_for_review
+      - synchronize
+
+  merge_group:
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Render fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            actions/trivy-image
+
+      - name: Run report.sh against the fixtures
+        run: ./actions/trivy-image/report_test.sh
+
+  e2e:
+    name: "End to end (${{ matrix.name }})"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pull-requests: write # PR comment
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: daemon image
+            source: daemon
+          - name: OCI archive
+            source: archive
+
+    env:
+      IMAGE_NAME: trivy-image-selftest-${{ matrix.source }}
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            actions/trivy-image
+
+      - name: Build fixture image into the daemon
+        if: matrix.source == 'daemon'
+        run: docker build -t "${IMAGE_NAME}:test" actions/trivy-image/testdata
+
+      - name: Set up Docker Buildx
+        if: matrix.source == 'archive'
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      # The docker-container driver cannot load into the daemon; this is the shape
+      # docker-build-push-image produces for PR builds, exported as an OCI archive.
+      - name: Build fixture image as an OCI archive
+        if: matrix.source == 'archive'
+        run: docker buildx build --output "type=oci,dest=${RUNNER_TEMP}/image.tar" actions/trivy-image/testdata
+
+      - name: Scan fixture image
+        id: scan
+        uses: ./actions/trivy-image
+        with:
+          image-ref: ${{ matrix.source == 'daemon' && format('{0}:test', env.IMAGE_NAME) || '' }}
+          image-tar: ${{ matrix.source == 'archive' && format('{0}/image.tar', runner.temp) || '' }}
+          image-name: ${{ env.IMAGE_NAME }}
+
+      - name: Check outputs
+        env:
+          TOTAL: ${{ steps.scan.outputs.total }}
+          CRITICAL: ${{ steps.scan.outputs.critical }}
+          HIGH: ${{ steps.scan.outputs.high }}
+          REPORT: ${{ steps.scan.outputs.report-path }}
+          SBOM: ${{ steps.scan.outputs.sbom-path }}
+          SBOM_CACHE_HIT: ${{ steps.scan.outputs.sbom-cache-hit }}
+        run: |
+          set -euo pipefail
+          echo "total=${TOTAL} critical=${CRITICAL} high=${HIGH} sbom-cache-hit=${SBOM_CACHE_HIT}"
+          [[ "${TOTAL}" =~ ^[0-9]+$ && "${CRITICAL}" =~ ^[0-9]+$ && "${HIGH}" =~ ^[0-9]+$ ]] || { echo "::error::counts are not numeric"; exit 1; }
+          [[ "${SBOM_CACHE_HIT}" == "true" || "${SBOM_CACHE_HIT}" == "false" ]] || { echo "::error::sbom-cache-hit is not a boolean"; exit 1; }
+          jq -e '.Results' "${REPORT}" > /dev/null
+          jq -e '.bomFormat == "CycloneDX"' "${SBOM}" > /dev/null
