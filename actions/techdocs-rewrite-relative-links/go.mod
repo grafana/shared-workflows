@@ -5,7 +5,7 @@ go 1.25.0
 toolchain go1.26.11
 
 require (
-	github.com/aymanbagabas/go-udiff v0.4.1
+	github.com/aymanbagabas/go-udiff v0.4.2
 	github.com/lmittmann/tint v1.2.0
 	github.com/neilotoole/slogt v1.1.0
 	github.com/spf13/afero v1.15.0
